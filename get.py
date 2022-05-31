@@ -3,11 +3,13 @@
 from sys import argv, exit
 from requests import get
 from bs4 import BeautifulSoup
-from os import path, sep, getcwd
+from os import path, sep, getcwd, mkdir 
 from time import sleep
 
-BASE_PATH = "chapters/all"
-# TODO create BASE_PATH dir if it doesn't exist
+BASE_PATH = "chapters"
+if not path.isdir(BASE_PATH):
+    mkdir(BASE_PATH)
+
 def getChapterLinks():
     url = "https://wanderinginn.com/table-of-contents/"
     table_of_contents = get(url)
