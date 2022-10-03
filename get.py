@@ -1,4 +1,5 @@
 #!/usr/bin/python
+
 # Download every chapter from the links in the Wandering Inn Table of Contents
 from sys import argv, exit
 from requests import get
@@ -6,15 +7,15 @@ from bs4 import BeautifulSoup
 from os import path, sep, getcwd, mkdir 
 from time import sleep
 
+BASE_URL = "https://wanderinginn.com/table-of-contents/"
 BASE_PATH = "chapters"
 if not path.isdir(BASE_PATH):
     mkdir(BASE_PATH)
 
 def getChapterLinks():
-    url = "https://wanderinginn.com/table-of-contents/"
-    table_of_contents = get(url)
+    table_of_contents = get(BASE_URL)
     if table_of_contents.status_code != 200:
-        print(f"Cannot access {url}. Check your network connection.")
+        print(f"Cannot access {BASE_URL}. Check your network connection.")
         exit(0)
 
     soup = BeautifulSoup(table_of_contents.content, 'html.parser')
@@ -33,8 +34,8 @@ def getChapterText(link):
     return "".join(header_text) + "\n\n".join(content_text)
 
 def saveChapter(filename, content):
-    with open(filename, "w") as f:
-        f.write(content)
+    with open(filename, "w") as file:
+        file.write(content)
 
 if __name__ == "__main__":
     chapter_links = getChapterLinks()
@@ -60,8 +61,12 @@ if __name__ == "__main__":
         offset = 0
 
     # TODO handle keyboard interrupt
+    # TODO add pause/resume
+    # TODO add type hinting
+    # TODO add chapter hashing to check for changes
+    # TODO add chapter archiving functionality
     for i, link in enumerate(chapter_links[offset:max_chapter]): 
-        file_prefix = f"{offset + i}-" 
+        file_prefix = f"{offset + i}-"
 
         # remove trailing '/' from URL
         file_suffix = str(link[8:-1]) if link[-1] == "/" else str(link[8:])
