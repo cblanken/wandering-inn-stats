@@ -5,7 +5,7 @@ from time import sleep
 from requests import get
 from bs4 import BeautifulSoup
 
-BASE_URL = "https://wanderinginn.com/table-of-contents/"
+BASE_URL = "https://wanderinginn.com"
 BASE_PATH = "chapters"
 if not path.isdir(BASE_PATH):
     mkdir(BASE_PATH)
@@ -27,7 +27,7 @@ class TableOfContents:
         """Scrape table of contents for chapter links
         """
         chapter_link_elements = self.soup.select(
-                '#content div > p > a[href^="https://wanderinginn.com"]')
+                f'#content div > p > a[href^="{BASE_URL}"]')
         return list(filter(None, [link.get('href') for link in chapter_link_elements]))
 
     def get_volume_titles_by_id(self):
@@ -106,6 +106,9 @@ if __name__ == "__main__":
     # TODO add type hinting
     # TODO add chapter hashing to check for changes
     # TODO add chapter archiving functionality
+    # TODO use urllib or requests to handle URLs
+    # TODO refactor to use pathlib instead of os
+    # TODO add error handling
     for i, link in enumerate(chapter_links[OFFSET:max_chapter]):
         file_prefix = f"{OFFSET + i}-"
 
