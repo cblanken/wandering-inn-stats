@@ -1,5 +1,5 @@
 """Module to download every chapter from the links in the Wandering Inn Table of Contents"""
-from sys import argv
+from sys import argv, stderr
 from os import path, sep, getcwd, mkdir
 from time import sleep
 from requests import get
@@ -10,18 +10,58 @@ BASE_PATH = "chapters"
 if not path.isdir(BASE_PATH):
     mkdir(BASE_PATH)
 
-def get_chapter_links():
-    """Scrape table of contents for chapter links
+class TableOfContents:
+    """Object to scrape the Table of Contents and methods to query for any needed info
     """
-    table_of_contents = get(BASE_URL)
-    if table_of_contents.status_code != 200:
-        print(f"Cannot access {BASE_URL}. Check your network connection.")
-        exit(0)
+    def __init__(self):
+        self.url = "https://wanderinginn.com/table-of-contents/"
+        table_of_contents = get(self.url)
+        if table_of_contents.status_code != 200:
+            print(f"Cannot access {self.url}. Check your network connection.")
+            return None
+        self.soup = BeautifulSoup(table_of_contents.content, 'html.parser')
+        self.chapter_links = self.get_chapter_links()
+        self.volume_titles_by_id = self.get_volume_titles_by_id()
 
-    soup = BeautifulSoup(table_of_contents.content, 'html.parser')
-    chapter_link_elements = soup.select(
-            '#content div.entry-content > p > a[href^="https://wanderinginn.com"]')
-    return list(filter(None, [link.get('href') for link in chapter_link_elements]))
+    def get_chapter_links(self):
+        """Scrape table of contents for chapter links
+        """
+        chapter_link_elements = self.soup.select(
+                '#content div > p > a[href^="https://wanderinginn.com"]')
+        return list(filter(None, [link.get('href') for link in chapter_link_elements]))
+
+    def get_volume_titles_by_id(self):
+        """Scrape table of contents volume titles
+        """
+        volume_titles = self.soup.select('#content div > p:nth-of-type(2n+1) strong')
+
+        volumes = {}
+        for ele in volume_titles:
+            text = ele.get_text().strip()
+            try:
+                id = int(text[text.find(" "):])
+                volumes[id] = text
+            except ValueError:
+                # TODO handle int parse error
+                print("Failed to parse Volume ID from scraped table of contents", file=stderr)
+                return None
+        return volumes
+
+    def get_volume_chapter_index_ranges(self):
+        """Scrape table of contents for chapter indexes of each volume
+        """
+        chapter_lists = [
+            x.find_all('a') for x in self.soup.select('#content div p:nth-of-type(2n)')
+        ]
+
+        chapter_index = 0
+        chapter_indexes = []
+        for chapter_list in chapter_lists:
+            start = chapter_index
+            end = start + len(chapter_list) - 1
+            chapter_index = end + 1
+            chapter_indexes.append( (start, end) )
+        return chapter_indexes
 
 def get_chapter_text(chapter_link):
     """Scrape chapter text from link
@@ -41,7 +81,8 @@ def save_chapter(file, content):
         file.write(content)
 
 if __name__ == "__main__":
-    chapter_links = get_chapter_links()
+    toc = TableOfContents()
+    chapter_links = toc.get_chapter_links()
     max_chapter = len(chapter_links)
     OFFSET = 0
     if len(argv) == 2:
