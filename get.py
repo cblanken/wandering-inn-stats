@@ -57,13 +57,15 @@ class TableOfContents:
             x.find_all('a') for x in self.soup.select('#content div p:nth-of-type(2n)')
         ]
 
-        chapter_index = 0
-        chapter_indexes = []
+        volume_index = 1
+        chapter_index = 1
+        chapter_indexes = {}
         for chapter_list in chapter_lists:
             start = chapter_index
             end = start + len(chapter_list) - 1
             chapter_index = end + 1
-            chapter_indexes.append( (start, end) )
+            chapter_indexes[volume_index] = (start, end)
+            volume_index += 1
         return chapter_indexes
 
 
