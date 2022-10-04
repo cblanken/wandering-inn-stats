@@ -1,8 +1,11 @@
+"""Module for processing scraped chapter text"""
 from __future__ import annotations
-from pathlib import Path
-from enum import Enum
 import sys
 import re
+from enum import Enum
+from pathlib import Path
+import get
+from bs4 import BeautifulSoup
 
 MAGIC_WORD_PATTERN = r"\[(\w\,? ?)+\]"
 OBTAINED_PATTERN = r".*[Oo]btained.?\]$"
@@ -88,7 +91,7 @@ class TextRef:
         self.context = line_text[start:end].strip()
 
     def __str__(self):
-        return (f"line: {self.line_id:<6}start: {self.start_column:<5}end: {self.end_column:<5}text: {self.text:50}context: {self.context}")
+        return f"line: {self.line_id:<6}start: {self.start_column:<5}end: {self.end_column:<5}text: {self.text:.<50}context: {self.context}"
 
 class Chapter:
     """
@@ -102,18 +105,18 @@ class Chapter:
         is_interlude (bool): whether or not the chapter is an Interlude chapter
             These chapters usually follow side-characters, often specified with the letters of the
             the characters' first names
+        url (str): link to chapter web page
     """
-    def __init__(self, id: int, volume_chapter_id: int, title: str, is_interlude: bool, url: str,
+    def __init__(self, id: int, title: str, is_interlude: bool, url: str,
         post_date: str) -> Chapter:
         self.id = id
-        self.volume_chapter_id = volume_chapter_id
         self.title = title
         self.is_interlude = is_interlude
         self.url = url
         self.post_date = post_date
 
     def __str__(self):
-        return f"id: {self.id}\tvol_chap_id: {self.volume_chapter_id}\t{self.title}"
+        return f"id: {self.id}\t{self.title}\t{self.url}"
 
 class Volume:
     """
@@ -124,15 +127,17 @@ class Volume:
         title (str): Title of the volume, typically Volume X where X matches the ID
         summary (str): Short summary of the volume
     """
-    def __init__(self, id: int, title: str, summary: str = ""):
+    def __init__(self, id: int, title: str, chapter_range: tuple[int, int], summary: str = ""):
         self.id = id
         self.title = title
+        self.chapter_range = chapter_range
         self.summary = summary
 
     def __str__(self):
-        return f"id: {id}\ttitle: {self.title}\tsummary: {self.summary}"
+        return f"id: {self.id:<4}title: {self.title:<12}summary: {self.summary}"
 
-def get_text_refs(pattern: re.Pattern, lines: list[str], context_len: int = DEFAULT_CONTEXT_LEN) -> list[TextRef]:
+def get_text_refs(pattern: re.Pattern, lines: list[str],
+    context_len: int = DEFAULT_CONTEXT_LEN) -> list[TextRef]:
     """Return list of TextRef(s) for a given regex pattern over [lines] of text
     """
     text_refs = []
@@ -143,8 +148,16 @@ def get_text_refs(pattern: re.Pattern, lines: list[str], context_len: int = DEFA
             text_refs.append(text_ref)
     return text_refs
 
-def print_refs(filepath: Path, include_classes = False, include_skills = False, include_spells = False):
-    """Print refs that match the regex patterns for Classes, Skills, or Spells
+def generate_chapter_text_refs(
+    filepath: Path,
+    include_classes = False,
+    include_skills = False,
+    include_spells = False):
+    """Return  TextRef(s) that match the regex for the [MAGIC_WORDS] and optionally
+    [Classes], [Skills], or [Spells]
+
+    Arguments:
+        filepath (Path): file system path to chapter text file
     """
     with open(filepath, "r", encoding="utf-8") as file:
         lines = file.readlines()
@@ -152,37 +165,72 @@ def print_refs(filepath: Path, include_classes = False, include_skills = False, 
     refs = get_text_refs(ALL_MAGIC_WORDS_RE, lines)
     if len(refs) > 0:
         for ref in refs:
+            yield ref
+
+    if include_classes:
+        class_refs = get_text_refs(CLASS_OBTAINED_RE, lines)
+        if len(class_refs) > 0:
+            refs += class_refs
+            for ref in class_refs:
+                yield ref
+
+    if include_skills:
+        skill_refs = get_text_refs(SKILL_OBTAINED_RE, lines)
+        if len(skill_refs) > 0:
+            refs += skill_refs
+            for ref in skill_refs:
+                yield ref
+
+    if include_spells:
+        spell_refs = get_text_refs(SPELL_OBTAINED_RE, lines)
+        if len(spell_refs) > 0:
+            refs += spell_refs
+            for ref in spell_refs:
+                yield ref
+
+
+def generate_all_text_refs(chapters_dir: Path):
+    """Print references for all chapters in `chapters_dir`
+    """
+    chapter_paths = chapters_dir.glob("*-wanderinginn.com-*")
+    chapter_paths = sorted({ int(p.name[:p.name.find("-")]):p for p in chapter_paths }.items())
+    for (i, path) in chapter_paths:
+        yield (path, generate_chapter_text_refs(path, True, True, True))
+
+def print_all_text_refs(chapters_dir: Path):
+    """Print all text references found by `generate_all_text_refs` generator
+    Delineated by file path
+    """
+
+    for ref in generate_all_text_refs(Path(sys.argv[1])):
+        path = ref[0]
+        generator = ref[1]
+        print("")
+        print("=" * len(str(path)))
+        print(path)
+        print("=" * len(str(path)))
+        for ref in generator:
             print(ref)
 
-    refs = get_text_refs(CLASS_OBTAINED_RE, lines)
-    if len(refs) > 0 and include_classes:
-        print("\nCLASSES OBTAINED:")
-        for ref in refs:
-            print(ref)
+def get_volumes():
+    """Return dictionary of Volume(s) by ID
+    """
+    toc = get.TableOfContents()
 
-    refs = get_text_refs(SKILL_OBTAINED_RE, lines)
-    if len(refs) > 0 and include_skills:
-        print("\nSKILLS OBTAINED:")
-        for ref in refs:
-            print(ref)
+    volumes = {}
+    for key, vol in toc.volume_data.items():
+        volumes[key] = Volume(key, vol[0], vol[1])
 
-    refs = get_text_refs(SPELL_OBTAINED_RE, lines)
-    if len(refs) > 0 and include_spells:
-        print("\nSPELLS OBTAINED:")
-        for ref in refs:
-            print(ref)
+    return volumes
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
         print("Usage: python parse.py DIRECTORY")
         sys.exit(1)
 
-    chapters_path = Path(sys.argv[1])
-    chapter_paths = chapters_path.glob("*-wanderinginn.com-*")
-    chapter_paths = sorted({ int(p.name[:p.name.find("-")]):p for p in chapter_paths }.items())
-    for (i, chapter) in chapter_paths:
-        print("")
-        print("=" * len(str(chapter)))
-        print(chapter)
-        print("=" * len(str(chapter)))
-        print_refs(chapter)
+    # TODO add table of contents fallback file
+    print_all_text_refs(Path(sys.argv[1]))
+    # for (i, path) in chapter_paths:
+    #     with open(path, encoding="utf-8") as fp:
+    #         soup = BeautifulSoup(fp)
+    #     id = int(path[:path.find("-")])
