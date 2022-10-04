@@ -1,21 +1,24 @@
 """Module to download every chapter from the links in the Wandering Inn Table of Contents"""
 from sys import argv, stderr
-from os import path, sep, getcwd, mkdir
+from pathlib import Path
 from time import sleep
-from requests import get
 from bs4 import BeautifulSoup
+import requests
 
 BASE_URL = "https://wanderinginn.com"
-BASE_PATH = "chapters"
-if not path.isdir(BASE_PATH):
-    mkdir(BASE_PATH)
+CHAPTERS_PATH = Path("./chapters")
+CHAPTERS_TXT_PATH = Path(CHAPTERS_PATH, "text")
+CHAPTERS_SRC_PATH = Path(CHAPTERS_PATH, "src")
+CHAPTERS_TXT_PATH.mkdir(parents = True, exist_ok = True)
+CHAPTERS_SRC_PATH.mkdir(parents = True, exist_ok = True)
+REQUEST_THROTTLE_S = 1.0
 
 class TableOfContents:
     """Object to scrape the Table of Contents and methods to query for any needed info
     """
     def __init__(self):
         self.url = "https://wanderinginn.com/table-of-contents/"
-        table_of_contents = get(self.url)
+        table_of_contents = requests.get(self.url)
         if table_of_contents.status_code != 200:
             print(f"Cannot access {self.url}. Check your network connection.")
             return None
@@ -63,21 +66,30 @@ class TableOfContents:
             chapter_indexes.append( (start, end) )
         return chapter_indexes
 
-def get_chapter_text(chapter_link):
+
+def get_chapter(chapter_link):
+    """Get HTML of chapter
+    """
+    try:
+        return requests.get(chapter_link)
+    except requests.HTTPError:
+        print(f"Unable to retrieve chapter from {chapter_link}", file=stderr)
+        return None
+
+def get_chapter_text(html):
     """Scrape chapter text from link
     """
-    page = get(chapter_link)
-    soup = BeautifulSoup(page.content, 'html.parser')
+    soup = BeautifulSoup(html.content, 'html.parser')
     header_text = [element.get_text() for element in soup.select(
         '#content > article > header.entry-header')]
     content_text = [element.get_text() for element in soup.select(
         '#content > article > div.entry-content > *')]
     return "".join(header_text) + "\n\n".join(content_text)
 
-def save_chapter(file, content):
+def save_file(filepath, content):
     """Write chapter text content to file
     """
-    with open(file, "w", encoding="utf-8") as file:
+    with open(filepath, "w", encoding="utf-8") as file:
         file.write(content)
 
 if __name__ == "__main__":
@@ -107,19 +119,33 @@ if __name__ == "__main__":
     # TODO add chapter hashing to check for changes
     # TODO add chapter archiving functionality
     # TODO use urllib or requests to handle URLs
-    # TODO refactor to use pathlib instead of os
     # TODO add error handling
     for i, link in enumerate(chapter_links[OFFSET:max_chapter]):
-        file_prefix = f"{OFFSET + i}-"
+        if link is None:
+            print(f"No link provided in chapter_links[{i}]", file=stderr)
+            continue
 
-        # remove trailing '/' from URL
-        FILE_SUFFIX = str(link[8:-1]) if link[-1] == "/" else str(link[8:])
+        file_prefix = f"{OFFSET + i + 1}-"
 
-        filename = file_prefix + FILE_SUFFIX.replace(sep, '-')
-        FILEPATH = sep.join([getcwd(), BASE_PATH, filename])
-        if not path.exists(FILEPATH) and link is not None:
-            print(f"Downloading {link} to {FILEPATH}")
-            save_chapter(FILEPATH, get_chapter_text(link))
-            sleep(0.25)
-        else:
-            print(f"Skipping {link}, {filename} already exists")
+        # remove trailing '/' from URL and replace '/' with '-'
+        FILE_SUFFIX = (str(link[8:-1]) if link[-1] == "/" else str(link[8:])).replace("/", "-")
+        filename = file_prefix + FILE_SUFFIX
+
+        src_path = Path(CHAPTERS_SRC_PATH, filename + ".html")
+        txt_path = Path(CHAPTERS_TXT_PATH, filename + ".txt")
+
+        if src_path.exists() or txt_path.exists():
+            print(f"Skipping, {src_path} or {txt_path} already exists")
+            continue
+
+        print(f"{i}: Downloading {link}")
+        HTML = get_chapter(link)
+        TEXT = get_chapter_text(HTML)
+
+        save_file(src_path, HTML.text)
+        print(f"\t{link} src saved to {src_path}")
+
+        save_file(txt_path, TEXT)
+        print(f"\t{link} text saved to {txt_path}")
+
+        sleep(REQUEST_THROTTLE_S)
