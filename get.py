@@ -24,7 +24,7 @@ class TableOfContents:
             return None
         self.soup = BeautifulSoup(table_of_contents.content, 'html.parser')
         self.chapter_links = self.get_chapter_links()
-        self.volume_titles_by_id = self.get_volume_titles_by_id()
+        self.volume_data = self.get_volume_data()
 
     def get_chapter_links(self):
         """Scrape table of contents for chapter links
@@ -33,40 +33,31 @@ class TableOfContents:
                 f'#content div > p > a[href^="{BASE_URL}"]')
         return list(filter(None, [link.get('href') for link in chapter_link_elements]))
 
-    def get_volume_titles_by_id(self):
-        """Scrape table of contents volume titles
+    def get_volume_data(self):
+        """Return dictionary containg tuples (volume_title, chapter_indexes) by volume ID
         """
         volume_titles = self.soup.select('#content div > p:nth-of-type(2n+1) strong')
-
-        volumes = {}
-        for ele in volume_titles:
-            text = ele.get_text().strip()
-            try:
-                id = int(text[text.find(" "):])
-                volumes[id] = text
-            except ValueError:
-                # TODO handle int parse error
-                print("Failed to parse Volume ID from scraped table of contents", file=stderr)
-                return None
-        return volumes
-
-    def get_volume_chapter_index_ranges(self):
-        """Scrape table of contents for chapter indexes of each volume
-        """
         chapter_lists = [
             x.find_all('a') for x in self.soup.select('#content div p:nth-of-type(2n)')
         ]
 
-        volume_index = 1
+        volume_data = zip(volume_titles, chapter_lists)
+
+        volumes = {}
+        volume_id = 1
         chapter_index = 1
-        chapter_indexes = {}
-        for chapter_list in chapter_lists:
+        for volume in volume_data:
+            title = volume[0].get_text().strip()
+            chapter_elements = volume[1]
+
             start = chapter_index
-            end = start + len(chapter_list) - 1
+            end = start + len(chapter_elements) - 1
+
+            volumes[volume_id] = (title, (start, end))
             chapter_index = end + 1
-            chapter_indexes[volume_index] = (start, end)
-            volume_index += 1
-        return chapter_indexes
+            volume_id += 1
+
+        return volumes
 
 
 def get_chapter(chapter_link):
