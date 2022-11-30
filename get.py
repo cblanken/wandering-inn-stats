@@ -80,8 +80,8 @@ if __name__ == "__main__":
         src_path = Path(CHAPTERS_SRC_PATH, filename + ".html")
         txt_path = Path(CHAPTERS_TXT_PATH, filename + ".txt")
 
+        # Skip already downloaded chapters
         if src_path.exists() or txt_path.exists():
-            print(f"Skipping, {src_path} or {txt_path} already exists")
             continue
 
         print(f"{i}: Downloading {link}")
