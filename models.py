@@ -36,7 +36,7 @@ class Class:
 
 class Skill:
     """
-    Model for [Skill]es in the book
+    Model for [Skill]s in the book
 
     Attributes:
         name (str): name of the [Skill]
@@ -150,7 +150,7 @@ class TableOfContents:
         return list(filter(None, [link.get('href') for link in chapter_link_elements]))
 
     def get_volume_data(self):
-        """Return dictionary containg tuples (volume_title, chapter_indexes) by volume ID
+        """Return dictionary containing tuples (volume_title, chapter_indexes) by volume ID
         """
         volume_titles = self.soup.select('#content div > p:nth-of-type(2n+1) strong')
         chapter_lists = [

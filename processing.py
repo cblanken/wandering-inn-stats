@@ -92,6 +92,7 @@ def get_volumes():
     """
     toc = TableOfContents()
 
+    # TODO: replace with dictionary comprehension
     volumes = {}
     for key, vol in toc.volume_data.items():
         volumes[key] = Volume(key, vol[0], vol[1])
