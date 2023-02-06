@@ -1,0 +1,1848 @@
+<!DOCTYPE html>
+<!--[if IE 6]>
+<html id="ie6" lang="en">
+<![endif]-->
+<!--[if IE 7]>
+<html id="ie7" lang="en">
+<![endif]-->
+<!--[if IE 8]>
+<html id="ie8" lang="en">
+<![endif]-->
+<!--[if !(IE 6) & !(IE 7) & !(IE 8)]><!-->
+<html lang="en">
+<!--<![endif]-->
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width" />
+<title>
+4.36 O | The Wandering Inn	</title>
+<link rel="profile" href="https://gmpg.org/xfn/11" />
+<link rel="stylesheet" type="text/css" media="all" href="https://s2.wp.com/wp-content/themes/pub/twentyeleven/style.css?ver=20190507" />
+<link rel="pingback" href="https://wanderinginn.com/xmlrpc.php">
+<!--[if lt IE 9]>
+<script src="https://s2.wp.com/wp-content/themes/pub/twentyeleven/js/html5.js?ver=3.7.0" type="text/javascript"></script>
+<![endif]-->
+<meta name='robots' content='max-image-preview:large' />
+
+<!-- Async WordPress.com Remote Login -->
+<script id="wpcom_remote_login_js">
+var wpcom_remote_login_extra_auth = '';
+function wpcom_remote_login_remove_dom_node_id( element_id ) {
+	var dom_node = document.getElementById( element_id );
+	if ( dom_node ) { dom_node.parentNode.removeChild( dom_node ); }
+}
+function wpcom_remote_login_remove_dom_node_classes( class_name ) {
+	var dom_nodes = document.querySelectorAll( '.' + class_name );
+	for ( var i = 0; i < dom_nodes.length; i++ ) {
+		dom_nodes[ i ].parentNode.removeChild( dom_nodes[ i ] );
+	}
+}
+function wpcom_remote_login_final_cleanup() {
+	wpcom_remote_login_remove_dom_node_classes( "wpcom_remote_login_msg" );
+	wpcom_remote_login_remove_dom_node_id( "wpcom_remote_login_key" );
+	wpcom_remote_login_remove_dom_node_id( "wpcom_remote_login_validate" );
+	wpcom_remote_login_remove_dom_node_id( "wpcom_remote_login_js" );
+	wpcom_remote_login_remove_dom_node_id( "wpcom_request_access_iframe" );
+	wpcom_remote_login_remove_dom_node_id( "wpcom_request_access_styles" );
+}
+
+// Watch for messages back from the remote login
+window.addEventListener( "message", function( e ) {
+	if ( e.origin === "https://r-login.wordpress.com" ) {
+		var data = {};
+		try {
+			data = JSON.parse( e.data );
+		} catch( e ) {
+			wpcom_remote_login_final_cleanup();
+			return;
+		}
+
+		if ( data.msg === 'LOGIN' ) {
+			// Clean up the login check iframe
+			wpcom_remote_login_remove_dom_node_id( "wpcom_remote_login_key" );
+
+			var id_regex = new RegExp( /^[0-9]+$/ );
+			var token_regex = new RegExp( /^.*|.*|.*$/ );
+			if (
+				token_regex.test( data.token )
+				&& id_regex.test( data.wpcomid )
+			) {
+				// We have everything we need to ask for a login
+				var script = document.createElement( "script" );
+				script.setAttribute( "id", "wpcom_remote_login_validate" );
+				script.src = '/remote-login.php?wpcom_remote_login=validate'
+					+ '&wpcomid=' + data.wpcomid
+					+ '&token=' + encodeURIComponent( data.token )
+					+ '&host=' + window.location.protocol
+					+ '//' + window.location.hostname
+					+ '&postid=4339'
+					+ '&is_singular=1';
+				document.body.appendChild( script );
+			}
+
+			return;
+		}
+
+		// Safari ITP, not logged in, so redirect
+		if ( data.msg === 'LOGIN-REDIRECT' ) {
+			window.location = 'https://wordpress.com/log-in?redirect_to=' + window.location.href;
+			return;
+		}
+
+		// Safari ITP, storage access failed, remove the request
+		if ( data.msg === 'LOGIN-REMOVE' ) {
+			var css_zap = 'html { -webkit-transition: margin-top 1s; transition: margin-top 1s; } /* 9001 */ html { margin-top: 0 !important; } * html body { margin-top: 0 !important; } @media screen and ( max-width: 782px ) { html { margin-top: 0 !important; } * html body { margin-top: 0 !important; } }';
+			var style_zap = document.createElement( 'style' );
+			style_zap.type = 'text/css';
+			style_zap.appendChild( document.createTextNode( css_zap ) );
+			document.body.appendChild( style_zap );
+
+			var e = document.getElementById( 'wpcom_request_access_iframe' );
+			e.parentNode.removeChild( e );
+
+			document.cookie = 'wordpress_com_login_access=denied; path=/; max-age=31536000';
+
+			return;
+		}
+
+		// Safari ITP
+		if ( data.msg === 'REQUEST_ACCESS' ) {
+			console.log( 'request access: safari' );
+
+			// Check ITP iframe enable/disable knob
+			if ( wpcom_remote_login_extra_auth !== 'safari_itp_iframe' ) {
+				return;
+			}
+
+			// If we are in a "private window" there is no ITP.
+			var private_window = false;
+			try {
+				var opendb = window.openDatabase( null, null, null, null );
+			} catch( e ) {
+				private_window = true;
+			}
+
+			if ( private_window ) {
+				console.log( 'private window' );
+				return;
+			}
+
+			var iframe = document.createElement( 'iframe' );
+			iframe.id = 'wpcom_request_access_iframe';
+			iframe.setAttribute( 'scrolling', 'no' );
+			iframe.setAttribute( 'sandbox', 'allow-storage-access-by-user-activation allow-scripts allow-same-origin allow-top-navigation-by-user-activation' );
+			iframe.src = 'https://r-login.wordpress.com/remote-login.php?wpcom_remote_login=request_access&origin=' + encodeURIComponent( data.origin ) + '&wpcomid=' + encodeURIComponent( data.wpcomid );
+
+			var css = 'html { -webkit-transition: margin-top 1s; transition: margin-top 1s; } /* 9001 */ html { margin-top: 46px !important; } * html body { margin-top: 46px !important; } @media screen and ( max-width: 660px ) { html { margin-top: 71px !important; } * html body { margin-top: 71px !important; } #wpcom_request_access_iframe { display: block; height: 71px !important; } } #wpcom_request_access_iframe { border: 0px; height: 46px; position: fixed; top: 0; left: 0; width: 100%; min-width: 100%; z-index: 99999; background: #23282d; } ';
+
+			var style = document.createElement( 'style' );
+			style.type = 'text/css';
+			style.id = 'wpcom_request_access_styles';
+			style.appendChild( document.createTextNode( css ) );
+			document.body.appendChild( style );
+
+			document.body.appendChild( iframe );
+		}
+
+		if ( data.msg === 'DONE' ) {
+			wpcom_remote_login_final_cleanup();
+		}
+	}
+}, false );
+
+// Inject the remote login iframe after the page has had a chance to load
+// more critical resources
+window.addEventListener( "DOMContentLoaded", function( e ) {
+	var iframe = document.createElement( "iframe" );
+	iframe.style.display = "none";
+	iframe.setAttribute( "scrolling", "no" );
+	iframe.setAttribute( "id", "wpcom_remote_login_key" );
+	iframe.src = "https://r-login.wordpress.com/remote-login.php"
+		+ "?wpcom_remote_login=key"
+		+ "&origin=aHR0cHM6Ly93YW5kZXJpbmdpbm4uY29t"
+		+ "&wpcomid=113840984"
+		+ "&time=1664899977";
+	document.body.appendChild( iframe );
+}, false );
+</script>
+<link rel='dns-prefetch' href='//s1.wp.com' />
+<link rel='dns-prefetch' href='//wanderinginn.wordpress.com' />
+<link rel='dns-prefetch' href='//s0.wp.com' />
+<link rel='dns-prefetch' href='//s2.wp.com' />
+<link href='https://fonts.gstatic.com' crossorigin rel='preconnect' />
+<link rel="alternate" type="application/rss+xml" title="The Wandering Inn &raquo; Feed" href="https://wanderinginn.com/feed/" />
+<link rel="alternate" type="application/rss+xml" title="The Wandering Inn &raquo; Comments Feed" href="https://wanderinginn.com/comments/feed/" />
+<link rel="alternate" type="application/rss+xml" title="The Wandering Inn &raquo; 4.36 O Comments Feed" href="https://wanderinginn.com/2018/05/17/4-36-o/feed/" />
+	<script type="text/javascript">
+		/* <![CDATA[ */
+		function addLoadEvent(func) {
+			var oldonload = window.onload;
+			if (typeof window.onload != 'function') {
+				window.onload = func;
+			} else {
+				window.onload = function () {
+					oldonload();
+					func();
+				}
+			}
+		}
+		/* ]]> */
+	</script>
+	<script type="text/javascript">
+window._wpemojiSettings = {"baseUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/72x72\/","ext":".png","svgUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/svg\/","svgExt":".svg","source":{"concatemoji":"https:\/\/s0.wp.com\/wp-includes\/js\/wp-emoji-release.min.js?m=1652185836h&ver=6.0.2"}};
+/*! This file is auto-generated */
+!function(e,a,t){var n,r,o,i=a.createElement("canvas"),p=i.getContext&&i.getContext("2d");function s(e,t){var a=String.fromCharCode,e=(p.clearRect(0,0,i.width,i.height),p.fillText(a.apply(this,e),0,0),i.toDataURL());return p.clearRect(0,0,i.width,i.height),p.fillText(a.apply(this,t),0,0),e===i.toDataURL()}function c(e){var t=a.createElement("script");t.src=e,t.defer=t.type="text/javascript",a.getElementsByTagName("head")[0].appendChild(t)}for(o=Array("flag","emoji"),t.supports={everything:!0,everythingExceptFlag:!0},r=0;r<o.length;r++)t.supports[o[r]]=function(e){if(!p||!p.fillText)return!1;switch(p.textBaseline="top",p.font="600 32px Arial",e){case"flag":return s([127987,65039,8205,9895,65039],[127987,65039,8203,9895,65039])?!1:!s([55356,56826,55356,56819],[55356,56826,8203,55356,56819])&&!s([55356,57332,56128,56423,56128,56418,56128,56421,56128,56430,56128,56423,56128,56447],[55356,57332,8203,56128,56423,8203,56128,56418,8203,56128,56421,8203,56128,56430,8203,56128,56423,8203,56128,56447]);case"emoji":return!s([129777,127995,8205,129778,127999],[129777,127995,8203,129778,127999])}return!1}(o[r]),t.supports.everything=t.supports.everything&&t.supports[o[r]],"flag"!==o[r]&&(t.supports.everythingExceptFlag=t.supports.everythingExceptFlag&&t.supports[o[r]]);t.supports.everythingExceptFlag=t.supports.everythingExceptFlag&&!t.supports.flag,t.DOMReady=!1,t.readyCallback=function(){t.DOMReady=!0},t.supports.everything||(n=function(){t.readyCallback()},a.addEventListener?(a.addEventListener("DOMContentLoaded",n,!1),e.addEventListener("load",n,!1)):(e.attachEvent("onload",n),a.attachEvent("onreadystatechange",function(){"complete"===a.readyState&&t.readyCallback()})),(e=t.source||{}).concatemoji?c(e.concatemoji):e.wpemoji&&e.twemoji&&(c(e.twemoji),c(e.wpemoji)))}(window,document,window._wpemojiSettings);
+</script>
+<style type="text/css">
+img.wp-smiley,
+img.emoji {
+	display: inline !important;
+	border: none !important;
+	box-shadow: none !important;
+	height: 1em !important;
+	width: 1em !important;
+	margin: 0 0.07em !important;
+	vertical-align: -0.1em !important;
+	background: none !important;
+	padding: 0 !important;
+}
+</style>
+	<link crossorigin='anonymous' rel='stylesheet' id='all-css-0-1' href='https://s0.wp.com/_static/??-eJylkd1OAyEQhV9IdlyzaeOF8Vn4meBUYAkzWHl7Z5s0Vk2riTeEw8l35gBwrMavRbAI1NQjFYbYVTpsUZ2G8DYv08N0D65TCuDS6l9NItdsG8AyEk6e+Q7+FyQvmD+DqPjUAzIcGDIGspjU1uRLUZMd2EzCaP2YMpXfcfUu9RfoevlTUw1DqXarbMfaxcRG4c/3/xbRrFCJfAXP3ZwTtnfT81ztz/I3sCOFiKI4n/dG8P02UnWMca42ZDa6ZurZnL6FN+45P8273bLsH5d5f/gAOyLUIw==?cssminify=yes' type='text/css' media='all' />
+<style id='wp-block-library-inline-css'>
+.has-text-align-justify {
+	text-align:justify;
+}
+.wp-block-cover__image-background.has-parallax {
+	background-size: cover;
+}
+</style>
+<style id='global-styles-inline-css'>
+body{--wp--preset--color--black: #000;--wp--preset--color--cyan-bluish-gray: #abb8c3;--wp--preset--color--white: #fff;--wp--preset--color--pale-pink: #f78da7;--wp--preset--color--vivid-red: #cf2e2e;--wp--preset--color--luminous-vivid-orange: #ff6900;--wp--preset--color--luminous-vivid-amber: #fcb900;--wp--preset--color--light-green-cyan: #7bdcb5;--wp--preset--color--vivid-green-cyan: #00d084;--wp--preset--color--pale-cyan-blue: #8ed1fc;--wp--preset--color--vivid-cyan-blue: #0693e3;--wp--preset--color--vivid-purple: #9b51e0;--wp--preset--color--blue: #1982d1;--wp--preset--color--dark-gray: #373737;--wp--preset--color--medium-gray: #666;--wp--preset--color--light-gray: #e2e2e2;--wp--preset--gradient--vivid-cyan-blue-to-vivid-purple: linear-gradient(135deg,rgba(6,147,227,1) 0%,rgb(155,81,224) 100%);--wp--preset--gradient--light-green-cyan-to-vivid-green-cyan: linear-gradient(135deg,rgb(122,220,180) 0%,rgb(0,208,130) 100%);--wp--preset--gradient--luminous-vivid-amber-to-luminous-vivid-orange: linear-gradient(135deg,rgba(252,185,0,1) 0%,rgba(255,105,0,1) 100%);--wp--preset--gradient--luminous-vivid-orange-to-vivid-red: linear-gradient(135deg,rgba(255,105,0,1) 0%,rgb(207,46,46) 100%);--wp--preset--gradient--very-light-gray-to-cyan-bluish-gray: linear-gradient(135deg,rgb(238,238,238) 0%,rgb(169,184,195) 100%);--wp--preset--gradient--cool-to-warm-spectrum: linear-gradient(135deg,rgb(74,234,220) 0%,rgb(151,120,209) 20%,rgb(207,42,186) 40%,rgb(238,44,130) 60%,rgb(251,105,98) 80%,rgb(254,248,76) 100%);--wp--preset--gradient--blush-light-purple: linear-gradient(135deg,rgb(255,206,236) 0%,rgb(152,150,240) 100%);--wp--preset--gradient--blush-bordeaux: linear-gradient(135deg,rgb(254,205,165) 0%,rgb(254,45,45) 50%,rgb(107,0,62) 100%);--wp--preset--gradient--luminous-dusk: linear-gradient(135deg,rgb(255,203,112) 0%,rgb(199,81,192) 50%,rgb(65,88,208) 100%);--wp--preset--gradient--pale-ocean: linear-gradient(135deg,rgb(255,245,203) 0%,rgb(182,227,212) 50%,rgb(51,167,181) 100%);--wp--preset--gradient--electric-grass: linear-gradient(135deg,rgb(202,248,128) 0%,rgb(113,206,126) 100%);--wp--preset--gradient--midnight: linear-gradient(135deg,rgb(2,3,129) 0%,rgb(40,116,252) 100%);--wp--preset--duotone--dark-grayscale: url('#wp-duotone-dark-grayscale');--wp--preset--duotone--grayscale: url('#wp-duotone-grayscale');--wp--preset--duotone--purple-yellow: url('#wp-duotone-purple-yellow');--wp--preset--duotone--blue-red: url('#wp-duotone-blue-red');--wp--preset--duotone--midnight: url('#wp-duotone-midnight');--wp--preset--duotone--magenta-yellow: url('#wp-duotone-magenta-yellow');--wp--preset--duotone--purple-green: url('#wp-duotone-purple-green');--wp--preset--duotone--blue-orange: url('#wp-duotone-blue-orange');--wp--preset--font-size--small: 13px;--wp--preset--font-size--medium: 20px;--wp--preset--font-size--large: 36px;--wp--preset--font-size--x-large: 42px;--wp--preset--spacing--20: 0.44rem;--wp--preset--spacing--30: 0.67rem;--wp--preset--spacing--40: 1rem;--wp--preset--spacing--50: 1.5rem;--wp--preset--spacing--60: 2.25rem;--wp--preset--spacing--70: 3.38rem;--wp--preset--spacing--80: 5.06rem;}:where(.is-layout-flex){gap: 0.5em;}body .is-layout-flow > .alignleft{float: left;}body .is-layout-flow > .alignright{float: right;}body .is-layout-flow > .aligncenter{margin-left: auto !important;margin-right: auto !important;}body .is-layout-constrained > .alignleft{float: left;}body .is-layout-constrained > .alignright{float: right;}body .is-layout-constrained > .aligncenter{margin-left: auto !important;margin-right: auto !important;}body .is-layout-constrained > :where(:not(.alignleft):not(.alignright):not(.alignfull)){max-width: var(--wp--style--global--content-size);margin-left: auto !important;margin-right: auto !important;}body .is-layout-constrained > .alignwide{max-width: var(--wp--style--global--wide-size);}body .is-layout-flex{display: flex;}body .is-layout-flex{flex-wrap: wrap;align-items: center;}body .is-layout-flex > *{margin: 0;}:where(.wp-block-columns.is-layout-flex){gap: 2em;}.has-black-color{color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-color{color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-color{color: var(--wp--preset--color--white) !important;}.has-pale-pink-color{color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-color{color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-color{color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-color{color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-color{color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-color{color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-color{color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-color{color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-color{color: var(--wp--preset--color--vivid-purple) !important;}.has-black-background-color{background-color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-background-color{background-color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-background-color{background-color: var(--wp--preset--color--white) !important;}.has-pale-pink-background-color{background-color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-background-color{background-color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-background-color{background-color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-background-color{background-color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-background-color{background-color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-background-color{background-color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-background-color{background-color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-background-color{background-color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-background-color{background-color: var(--wp--preset--color--vivid-purple) !important;}.has-black-border-color{border-color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-border-color{border-color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-border-color{border-color: var(--wp--preset--color--white) !important;}.has-pale-pink-border-color{border-color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-border-color{border-color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-border-color{border-color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-border-color{border-color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-border-color{border-color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-border-color{border-color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-border-color{border-color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-border-color{border-color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-border-color{border-color: var(--wp--preset--color--vivid-purple) !important;}.has-vivid-cyan-blue-to-vivid-purple-gradient-background{background: var(--wp--preset--gradient--vivid-cyan-blue-to-vivid-purple) !important;}.has-light-green-cyan-to-vivid-green-cyan-gradient-background{background: var(--wp--preset--gradient--light-green-cyan-to-vivid-green-cyan) !important;}.has-luminous-vivid-amber-to-luminous-vivid-orange-gradient-background{background: var(--wp--preset--gradient--luminous-vivid-amber-to-luminous-vivid-orange) !important;}.has-luminous-vivid-orange-to-vivid-red-gradient-background{background: var(--wp--preset--gradient--luminous-vivid-orange-to-vivid-red) !important;}.has-very-light-gray-to-cyan-bluish-gray-gradient-background{background: var(--wp--preset--gradient--very-light-gray-to-cyan-bluish-gray) !important;}.has-cool-to-warm-spectrum-gradient-background{background: var(--wp--preset--gradient--cool-to-warm-spectrum) !important;}.has-blush-light-purple-gradient-background{background: var(--wp--preset--gradient--blush-light-purple) !important;}.has-blush-bordeaux-gradient-background{background: var(--wp--preset--gradient--blush-bordeaux) !important;}.has-luminous-dusk-gradient-background{background: var(--wp--preset--gradient--luminous-dusk) !important;}.has-pale-ocean-gradient-background{background: var(--wp--preset--gradient--pale-ocean) !important;}.has-electric-grass-gradient-background{background: var(--wp--preset--gradient--electric-grass) !important;}.has-midnight-gradient-background{background: var(--wp--preset--gradient--midnight) !important;}.has-small-font-size{font-size: var(--wp--preset--font-size--small) !important;}.has-medium-font-size{font-size: var(--wp--preset--font-size--medium) !important;}.has-large-font-size{font-size: var(--wp--preset--font-size--large) !important;}.has-x-large-font-size{font-size: var(--wp--preset--font-size--x-large) !important;}
+:where(.wp-block-columns.is-layout-flex){gap: 2em;}
+.wp-block-pullquote{font-size: 1.5em;line-height: 1.6;}
+.wp-block-navigation a:where(:not(.wp-element-button)){color: inherit;}
+</style>
+<link crossorigin='anonymous' rel='stylesheet' id='all-css-2-1' href='https://s1.wp.com/_static/??-eJyNj8EOwjAMQ3+IEjYBggPiW7YSSlnaVE26an9PuYGQ0G625SfZUJOxHBWjgj4woEAqI2htwYKEM0YYie0kWyuygRV10YXQ1GQ5rGYsE2eB25CnHyYUk6g4HwUcsmljBvUcv4y50+DzPzRju+GadNBaH/YNXcOlO/b9aX/edYfnC0ReZ8I=?cssminify=yes' type='text/css' media='all' />
+<style id='jetpack-global-styles-frontend-style-inline-css'>
+:root { --font-headings: unset; --font-base: unset; --font-headings-default: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif; --font-base-default: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif;}
+</style>
+<link crossorigin='anonymous' rel='stylesheet' id='all-css-4-1' href='https://s0.wp.com/wp-content/themes/h4/global.css?m=1420737423h&cssminify=yes' type='text/css' media='all' />
+<script id='wpcom-actionbar-placeholder-js-extra'>
+var actionbardata = {"siteID":"113840984","siteURL":"https:\/\/wanderinginn.com","xhrURL":"https:\/\/wanderinginn.com\/wp-admin\/admin-ajax.php","nonce":"1ba14e6909","isLoggedIn":"","statusMessage":"","subsEmailDefault":"instantly","proxyScriptUrl":"https:\/\/s0.wp.com\/wp-content\/js\/wpcom-proxy-request.js?ver=20211021","shortlink":"https:\/\/wp.me\/p7HFeU-17Z","i18n":{"followedText":"New posts from this site will now appear in your <a href=\"https:\/\/wordpress.com\/read\">Reader<\/a>","foldBar":"Collapse this bar","unfoldBar":"Expand this bar"}};
+</script>
+<script crossorigin='anonymous' type='text/javascript' src='https://s1.wp.com/_static/??/wp-content/js/mobile-useragent-info.js,/wp-content/js/rlt-proxy.js?m=1637704497j'></script>
+<script type='text/javascript'>
+	window.addEventListener( 'DOMContentLoaded', function() {
+		rltInitialize( {"token":null,"iframeOrigins":["https:\/\/widgets.wp.com"]} );
+	} );
+</script>
+<link crossorigin='anonymous' rel='stylesheet' id='all-css-0-2' href='https://s0.wp.com/wp-content/mu-plugins/highlander-comments/style.css?m=1663315160h&cssminify=yes' type='text/css' media='all' />
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="https://wanderinginn.wordpress.com/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="https://s1.wp.com/wp-includes/wlwmanifest.xml" /> 
+<meta name="generator" content="WordPress.com" />
+<link rel="canonical" href="https://wanderinginn.com/2018/05/17/4-36-o/" />
+<link rel='shortlink' href='https://wp.me/p7HFeU-17Z' />
+<link rel="alternate" type="application/json+oembed" href="https://public-api.wordpress.com/oembed/?format=json&amp;url=https%3A%2F%2Fwanderinginn.com%2F2018%2F05%2F17%2F4-36-o%2F&amp;for=wpcom-auto-discovery" /><link rel="alternate" type="application/xml+oembed" href="https://public-api.wordpress.com/oembed/?format=xml&amp;url=https%3A%2F%2Fwanderinginn.com%2F2018%2F05%2F17%2F4-36-o%2F&amp;for=wpcom-auto-discovery" />
+<!-- Jetpack Open Graph Tags -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="4.36 O" />
+<meta property="og:url" content="https://wanderinginn.com/2018/05/17/4-36-o/" />
+<meta property="og:description" content="Of all the inns in Liscor, it was fair to say the Tailless Thief run by Peslas was without dispute the best. No other inn had the same quality of food prepared by a [Cook] with [Advanced Cooking] a…" />
+<meta property="article:published_time" content="2018-05-17T07:12:07+00:00" />
+<meta property="article:modified_time" content="2018-05-22T09:30:46+00:00" />
+<meta property="og:site_name" content="The Wandering Inn" />
+<meta property="og:image" content="https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=200" />
+<meta property="og:image:width" content="200" />
+<meta property="og:image:height" content="200" />
+<meta property="og:image:alt" content="" />
+<meta property="og:locale" content="en_US" />
+<meta property="article:publisher" content="https://www.facebook.com/WordPresscom" />
+<meta name="twitter:text:title" content="4.36 O" />
+<meta name="twitter:image" content="https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=240" />
+<meta name="twitter:card" content="summary" />
+
+<!-- End Jetpack Open Graph Tags -->
+<link rel="search" type="application/opensearchdescription+xml" href="https://wanderinginn.com/osd.xml" title="The Wandering Inn" />
+<link rel="search" type="application/opensearchdescription+xml" href="https://s1.wp.com/opensearch.xml" title="WordPress.com" />
+	<style>
+		/* Link color */
+		a,
+		#site-title a:focus,
+		#site-title a:hover,
+		#site-title a:active,
+		.entry-title a:hover,
+		.entry-title a:focus,
+		.entry-title a:active,
+		.widget_twentyeleven_ephemera .comments-link a:hover,
+		section.recent-posts .other-recent-posts a[rel="bookmark"]:hover,
+		section.recent-posts .other-recent-posts .comments-link a:hover,
+		.format-image footer.entry-meta a:hover,
+		#site-generator a:hover {
+			color: #1583af;
+		}
+		section.recent-posts .other-recent-posts .comments-link a:hover {
+			border-color: #1583af;
+		}
+		article.feature-image.small .entry-summary p a:hover,
+		.entry-header .comments-link a:hover,
+		.entry-header .comments-link a:focus,
+		.entry-header .comments-link a:active,
+		.feature-slider a.active {
+			background-color: #1583af;
+		}
+	</style>
+	<meta name="application-name" content="The Wandering Inn" /><meta name="msapplication-window" content="width=device-width;height=device-height" /><meta name="msapplication-tooltip" content="A tale of a girl, an inn, and a world full of levels." /><meta name="msapplication-task" content="name=Subscribe;action-uri=https://wanderinginn.com/feed/;icon-uri=https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=16" /><meta name="msapplication-task" content="name=Sign up for a free blog;action-uri=http://wordpress.com/signup/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Support;action-uri=http://support.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Forums;action-uri=http://forums.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="description" content="Of all the inns in Liscor, it was fair to say the Tailless Thief run by Peslas was without dispute the best. No other inn had the same quality of food prepared by a [Cook] with [Advanced Cooking] and other Skills, or a high-level [Innkeeper], or the advantageous placement that Peslas’ inn enjoyed. So Olesm&hellip;" />
+<link rel="icon" href="https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=32" sizes="32x32" />
+<link rel="icon" href="https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=192" sizes="192x192" />
+<link rel="apple-touch-icon" href="https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=180" />
+<meta name="msapplication-TileImage" content="https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=270" />
+		<link rel="stylesheet" id="custom-css-css" type="text/css" href="https://s0.wp.com/?custom-css=1&#038;csblog=7HFeU&#038;cscache=6&#038;csrev=3" />
+		<!-- Your Google Analytics Plugin is missing the tracking ID -->
+</head>
+
+<body class="post-template-default single single-post postid-4339 single-format-standard wp-embed-responsive customizer-styles-applied single-author singular two-column right-sidebar highlander-enabled highlander-dark">
+<div class="skip-link"><a class="assistive-text" href="#content">Skip to primary content</a></div><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-dark-grayscale"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0 0.49803921568627" /><feFuncG type="table" tableValues="0 0.49803921568627" /><feFuncB type="table" tableValues="0 0.49803921568627" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-grayscale"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0 1" /><feFuncG type="table" tableValues="0 1" /><feFuncB type="table" tableValues="0 1" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-purple-yellow"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0.54901960784314 0.98823529411765" /><feFuncG type="table" tableValues="0 1" /><feFuncB type="table" tableValues="0.71764705882353 0.25490196078431" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-blue-red"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0 1" /><feFuncG type="table" tableValues="0 0.27843137254902" /><feFuncB type="table" tableValues="0.5921568627451 0.27843137254902" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-midnight"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0 0" /><feFuncG type="table" tableValues="0 0.64705882352941" /><feFuncB type="table" tableValues="0 1" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-magenta-yellow"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0.78039215686275 1" /><feFuncG type="table" tableValues="0 0.94901960784314" /><feFuncB type="table" tableValues="0.35294117647059 0.47058823529412" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-purple-green"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0.65098039215686 0.40392156862745" /><feFuncG type="table" tableValues="0 1" /><feFuncB type="table" tableValues="0.44705882352941 0.4" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-blue-orange"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0.098039215686275 1" /><feFuncG type="table" tableValues="0 0.66274509803922" /><feFuncB type="table" tableValues="0.84705882352941 0.41960784313725" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><div id="page" class="hfeed">
+	<header id="branding">
+			<hgroup>
+				<h1 id="site-title"><span><a href="https://wanderinginn.com/" rel="home">The Wandering Inn</a></span></h1>
+				<h2 id="site-description">A tale of a girl, an inn, and a world full of levels.</h2>
+			</hgroup>
+
+						<a href="https://wanderinginn.com/">
+									<img src="https://wanderinginn.files.wordpress.com/2022/07/cropped-220725_merch_banner_launch-1.png" width="1000" height="296" alt="The Wandering Inn" />
+								</a>
+			
+									<form method="get" id="searchform" action="https://wanderinginn.com/">
+		<label for="s" class="assistive-text">Search</label>
+		<input type="text" class="field" name="s" id="s" placeholder="Search" />
+		<input type="submit" class="submit" name="submit" id="searchsubmit" value="Search" />
+	</form>
+			
+			<nav id="access">
+				<h3 class="assistive-text">Main menu</h3>
+				<div class="menu-menu-1-container"><ul id="menu-menu-1" class="menu"><li id="menu-item-1422" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-home menu-item-1422"><a href="https://wanderinginn.com/">Overview</a></li>
+<li id="menu-item-1912" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1912"><a href="https://wanderinginn.com/table-of-contents/">Table of Contents</a></li>
+<li id="menu-item-1998" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-1998"><a href="https://www.patreon.com/user?u=4240617">Patreon</a></li>
+<li id="menu-item-10438" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-10438"><a href="https://wanderinginn.com/social/">Social</a>
+<ul class="sub-menu">
+	<li id="menu-item-4811" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-4811"><a href="https://discord.gg/abwsa3y">Discord</a></li>
+	<li id="menu-item-4810" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-4810"><a href="https://www.reddit.com/r/WanderingInn/">Reddit</a></li>
+	<li id="menu-item-8944" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-8944"><a href="https://twitter.com/WanderingInn">Twitter</a></li>
+	<li id="menu-item-10440" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-10440"><a href="https://www.facebook.com/thewanderinginn/">Facebook</a></li>
+</ul>
+</li>
+<li id="menu-item-10446" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-10446"><a href="https://wanderinginn.com/publishing-3/">Publishing</a>
+<ul class="sub-menu">
+	<li id="menu-item-10448" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-10448"><a href="https://www.amazon.com/kindle-dbs/entity/author/B07XCYVYMW">E-books</a></li>
+	<li id="menu-item-10447" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-10447"><a href="https://www.audible.com/author/pirate-aba/B07XCYVYMW">Audiobooks</a></li>
+	<li id="menu-item-8761" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-8761"><a href="https://www.cloudscapecomics.com/last-tide/">The Last Tide (Comicbook)</a></li>
+</ul>
+</li>
+<li id="menu-item-1424" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1424"><a href="https://wanderinginn.com/guestbook/">Guestbook</a></li>
+<li id="menu-item-2935" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-2935"><a href="https://wanderinginn.com/fanworks/">Fanworks</a>
+<ul class="sub-menu">
+	<li id="menu-item-8557" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-8557"><a href="https://wanderinginn.com/fanworks-permissions/">Fanworks Permissions</a></li>
+</ul>
+</li>
+<li id="menu-item-1426" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1426"><a href="https://wanderinginn.com/reader-reviews/">Reader Reviews</a></li>
+<li id="menu-item-5002" class="menu-item menu-item-type-post_type menu-item-object-post menu-item-has-children menu-item-5002"><a href="https://wanderinginn.com/2018/10/19/glossary/">Glossary</a>
+<ul class="sub-menu">
+	<li id="menu-item-7035" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-7035"><a href="https://wanderinginn.com/fanworks/#B">Maps</a></li>
+</ul>
+</li>
+<li id="menu-item-5684" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-5684"><a href="https://wanderinginn.com/writing-faqs/">Writing FAQs</a></li>
+<li id="menu-item-11759" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-11759"><a href="https://aubergevagabonde.wordpress.com/">L&#8217;Auberge Vagabonde</a></li>
+<li id="menu-item-11765" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-11765"><a href="https://wanderinginn.com/contacts/">Contacts</a></li>
+<li id="menu-item-12493" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-12493"><a href="https://www.store.wanderinginn.com/">Merch Store</a></li>
+<li id="menu-item-12667" class="menu-item menu-item-type-post_type menu-item-object-post menu-item-12667"><a href="https://wanderinginn.com/2022/09/28/interlude-the-great-race/">Interlude – The Great Race</a></li>
+</ul></div>			</nav><!-- #access -->
+	</header><!-- #branding -->
+
+
+	<div id="main">
+
+		<div id="primary">
+			<div id="content" role="main">
+
+				
+					<nav id="nav-single">
+						<h3 class="assistive-text">Post navigation</h3>
+						<span class="nav-previous"><a href="https://wanderinginn.com/2018/05/15/4-35-e/" rel="prev"><span class="meta-nav">&larr;</span> Previous</a></span>
+						<span class="nav-next"><a href="https://wanderinginn.com/2018/05/19/4-37-o/" rel="next">Next <span class="meta-nav">&rarr;</span></a></span>
+					</nav><!-- #nav-single -->
+
+					
+<article id="post-4339" class="post-4339 post type-post status-publish format-standard hentry category-writing tag-fantasy tag-inn tag-web-novel tag-web-serial tag-writing">
+	<header class="entry-header">
+		<h1 class="entry-title">4.36 O</h1>
+
+				<div class="entry-meta">
+						<span class="sep">Posted on </span><a href="https://wanderinginn.com/2018/05/17/4-36-o/" title="7:12 am" rel="bookmark"><time class="entry-date" datetime="2018-05-17T07:12:07+00:00">May 17, 2018</time></a><span class="by-author"> <span class="sep"> by </span> <span class="author vcard"><a class="url fn n" href="https://wanderinginn.com/author/pirateaba/" title="View all posts by pirateaba" rel="author">pirateaba</a></span></span>		</div><!-- .entry-meta -->
+			</header><!-- .entry-header -->
+
+	<div class="entry-content">
+		<p>Of all the inns in Liscor, it was fair to say the Tailless Thief run by Peslas was without dispute the best. No other inn had the same quality of food prepared by a [Cook] with [Advanced Cooking] and other Skills, or a high-level [Innkeeper], or the advantageous placement that Peslas’ inn enjoyed. So Olesm would agree it was the best inn. Within Liscor, of course.</p>
+<p>But he was growing sick of it. It wasn’t just that Peslas was an intolerant old egghead in Olesm’s opinion, or that he missed another, younger, more intelligent and certainly more attractive [Innkeeper]. No, it was the drinking.</p>
+<p>Peslas’ inn served Drakes of all colors, and it was a Drake-themed establishment. That meant that spirits manufactured by Drakes were served almost exclusively, although it had to be said that Peslas had a very nice store of wines from around the world.</p>
+<p>However, it was a Drake custom to have a shot of the fiery spirits they loved to brew before anything else. Even wine. The burning sensation added to the following experience of drinking wine, or so it was claimed.</p>
+<p>Personally, Olesm didn’t particularly enjoy the alcohol that had made Izril famous. The Drakes’ signature Firebreath Whiskey for instance had the same reputation as the Drake species that made it. It was offensive, hard to tolerate in large doses, and usually the prelude to the fight if imbibed too heavily.</p>
+<p>But it was a purely Drake drink, and so every time Wall Lord Ilvriss went drinking, Olesm would have to down at least a shot or two of it. He’d grown to associate Peslas’ inn with such drinking experiences, and so hated it.</p>
+<p>“Another round, Peslas! And fill young Swifttail’s glass. Don’t be stingy! Everyone who drinks tonight does so on my coin. A Lord of the Wall from Salazsar treats his brethren away from home with due respect! Never let it be said otherwise!”</p>
+<p>Olesm groaned as he sat around the full table of Drakes and heard the cheer go up. It was predicted of course; Ilvriss had been here last night, and the night before that, and Peslas’ inn was packed.</p>
+<p>“Here you are, sir. And for you, Olesm.”</p>
+<p>Peslas himself bustled over with a refill. Olesm glumly watched as the glowing orange liquid was splashed generously into his mug. He turned and raised it to the Drake in armor sitting two places away from him.</p>
+<p>“Your health, sir.”</p>
+<p>“And to you, young Swifttail!”</p>
+<p>Wall Lord Ilvriss raised his mug and drank down the fiery liquid, not stopping until he’d drained the mug to cheers from the officers, mages, and other members of his personal escort. Other Drakes, officials in the city or influential individuals, tried to emulate the Lord of the Wall with mixed results.</p>
+<p>Olesm drank more slowly, gulping down the spirits and cursing Peslas for filling his mug so high. He got half of it down in the end and Ilvriss slapped his back, laughing heartily.</p>
+<p>“A fine attempt! We’ll have to teach you to drink properly while I’m still here, Olesm! A [Tactician] should be able to drink with his commanding officer, especially if he’s to rise through the ranks. And I fully expect you to in due time. A young prodigy at my table! It reminds me of when I was young.”</p>
+<p>“You’re too kind.”</p>
+<p>Olesm murmured and tried not to rub at his shoulder. He sat next to a high-level [Lieutenant] as Ilvriss began recounting one of the tales of when he’d been young. The other Drakes leaned forwards, laughing and interjecting comments or questions. Olesm tried to look interested and died a bit inside. It was always like this.</p>
+<p>He hated being here, hated having to drink with the Wall Lord—just past <em>breakfast</em> for goodness sake! But, and here was the tricky bit, it was a real honor to be invited to such a gathering. Olesm wouldn’t have been allowed near this table if Ilvriss hadn’t requested him sit with him. Yes, it was an honor. Because Ilvriss <em>liked</em> Olesm.</p>
+<p>As the son he’d never had. Or perhaps as the student to whatever Ilvriss was mentoring. Maybe the Wall Lord was just bored, but after a few meetings with Liscor’s council, the Lord of the Wall had begun inviting Olesm to spend more time with him in Liscor. He seemed interested, pleased with Olesm’s ideas and what he termed ‘youthful invigorations’.</p>
+<p>Ilvriss had taken Olesm under his tail, and as such, Olesm was often forced to go drinking with the Wall Lord and his personal retinue, or listen to long conversations about politics or the good days when the damned Ants weren’t here, Drakes were Drakes, and the Humans were nearly ready to crumble because they were cowardly fleshbags.</p>
+<p>Despite the aforementioned honor of being invited, Olesm still might have dared to avoid such gatherings for his own health, if he weren’t under strict orders to the contrary.</p>
+<p>It had been explained to him very thoroughly. Part of his job—rather, his <em>real</em> job—was to keep the Wall Lord happy while he was staying in Liscor. Due to the presence of the Goblin Lord’s armies, it was impossible to assure his safe return to his home city. In fact, Hawk, the lone Courier in Liscor, refused to try and make the trip.</p>
+<p>Olesm personally thought that was a bit cowardly of the Rabbit Beastkin. Hawk was a Courier, and Olesm knew for a fact that his levels and Skills would probably allow him to survive any encounter on the roads, even if he ran straight into a raiding army of Goblins.</p>
+<p>But that was Couriers for you. Some were cautious, and others were brave to the point of suicidal. Hawk was pragmatic. He’d seen both a Wall Lord and General Shivertail himself suffer defeat at the hand of the Goblin Lord, and after that, the destruction of <em>two</em> Drake armies. True, General Shivertail and Wall Lord Ilvriss hadn’t been prepared and their armies had both been worn down from tearing each other to shreds, but the Courier didn’t want to risk his ears.</p>
+<p>So Ilvriss was stuck and antsy with it. He’d already gone out twice and slaughtered one of the Hollowstone Deceivers—the Rock Crabs as Erin termed them—and wiped out a number of Shield Spider nests. When he wasn’t consulting with his various allies and contacts via [Message] spell or taking part in one of the innumerable strategy meetings going on in Liscor, he was here. Drinking.</p>
+<p>The Drakes around the table roared with laughter as Ilvriss said something that might have been funny and Olesm tried to pretend he’d been listening. Inside he writhed in agony.</p>
+<p>All Olesm wanted to do was go back to the Wandering Inn and sit there, drink something, and have a tasty snack while he played chess with Erin. He longed for that, those fleeting moments he kept in his memories. They had been simpler times.</p>
+<p>But he couldn’t now, although he wanted to. Olesm knew it would be impossible to get Ilvriss to shift his daily drinking session there because Erin didn’t stock Firebreath Whiskey, she wasn’t a Drake, and she was now hosting <em>Hobgoblins</em> in her inn. Olesm would have dearly loved to know what had possessed Erin, but the upshot was that he’d probably get Ilvriss to agree to chop off his own tail before the Drake agreed to drink under the same roof as a living Goblin.</p>
+<p>What a mess. Olesm traced on the table with one of his claws, devoting one earhole to Ilvriss’ account of his first battle. Erin really was in it this time. Watch Captain Zevara was furious and everyone was talking about how stupid she was for taking in Goblins. No one was willing to visit Erin’s inn to get to Celum at the moment. Olesm sighed. He wondered if Erin would go out of business if she didn’t kick the Goblins out. Why were they here, anyways?</p>
+<p>More complications. It really had been better before, when Erin’s inn was small and Olesm could walk in and have a chat with her without someone interrupting. But those days were gone, and Goblins were ruining everything for everyone.</p>
+<p>And now the <em>army</em> was coming back, or at least, a small taskforce to help out with the Goblin situation. Olesm shuddered. He didn’t have to be a [Tactician] to predict that there would be trouble if the Goblins were still in Erin’s inn when they got there. They’d cause trouble.</p>
+<p>Actually, they’d cause trouble even if the Goblins were nowhere to be seen. They always did every time they came back. And the commanders in Liscor’s army made Zevara look relaxed. She <em>was </em>relaxed compared to how they did things.</p>
+<p>“And there I was, broken sword in hand, staring down a damned [Blademaster] with an enchanted bastard sword of his own. I backed up and looked around but there was no help coming. Fortunately, I had been given a ring by my mother for my first battle, so I raised it and twisted it—the very ring you see here—and…”</p>
+<p>Everyone seemed to be hooked on Ilvriss. Olesm’s [Tactician] senses told him now was an ideal moment. He carefully lowered his mug and poured the rest of his drink onto the floorboards underneath the table. No one noticed; quaffing had been undertaken earlier this morning, and the room was already messy.</p>
+<p>Drinking in the morning. Olesm shook his head. Half of the Drakes here would have to get to work. The rest, like Ilvriss, probably had livers made of steel because they’d be drinking and talking all day if no one interrupted him.</p>
+<p>Then again, that was their right. They were high-level [Warriors], experienced soldiers, and veterans of numerous battles all. The Drakes who surrounded Ilvriss at all times could lead armies with the Lord of the Wall. Olesm felt small around them.</p>
+<p>And yet, Ilvriss kept telling him he was a prodigy. Which was actually warranted, Olesm knew. He was a Level 27 [Tactician]. And he’d been Level 22 a few months ago. Olesm could hardly believe it. That kind of leveling was <em>insane</em> outside of wars. It was probably one of the reasons why Ilvriss had taken an interest in him.</p>
+<p>But prodigy? It might be fair to say, but Olesm didn’t feel smart at all. He might be Level 27, but Erin had reached Level 30 in the same amount of time. From Level 1. From nothing. Remembering that, it wasn’t hard to stay humble. Meek.</p>
+<p>Absently, forgetting he’d already gotten rid of his drink, Olesm raised his mug to his lips. Ilvriss noticed the Drake blinking into his mug and raised his voice.</p>
+<p>“What’s this? Done so soon? Good lad! Another round for young Swifttail!”</p>
+<p>“Oh, no, please—”</p>
+<p>If he had to down another mouthful, Olesm thought he might actually puke. He waved a hand and Ilvriss laughed again.</p>
+<p>“Don’t be so modest, young Swifttail! We’re drinking in part to celebrate <em>you!</em> A Level 27 [Tactician]? When I was your age I hadn’t reached Level 20! Soon you’ll be a [Strategist], and when you are, you’ll truly be a person of influence in your own right.”</p>
+<p>He waved a hand expansively at the two [Strategists] that were part of his own retinue. Olesm had met the male and female Drakes—they were a married couple—and he ducked his head at them, noting their approving smiles. They treated him like a son as well.</p>
+<p>“You’re too kind, Wall Lord.”</p>
+<p>“Am I? Am I? Perhaps. But if I am, it is only because I recognize talent. A [Strategist] may be essential to every army, but they are hardly common! You could join any army with that class. I know you’re a citizen of Liscor, but it would be a shame to waste your abilities in a mercenary army, even one as acclaimed as Liscor’s. When the day comes that you reach that level, I hope you might consider moving to Salazsar. The Walled Cities have need of fresh minds like you.”</p>
+<p>This was beyond a compliment. Olesm went red, and the table of Drakes laughed. He stammered, trying to change the subject.</p>
+<p>“I uh, I’m not sure I’m that close. Is [Strategist] that simple of an upgrade from [Tactician]? I thought it was a Level 40 class, at least.”</p>
+<p>That was a flat lie, but Ilvriss took the bait.</p>
+<p>“Level 40? Hah! What prank have you fallen for? [Strategists] are Level 30. Or…I’ve heard they can be lower if you combine a military rank with the [Tactician] class. A Level 20 [Tactician] and a Level 10 [Sergeant] or something, you understand? But that’s a shortcut. A diluted achievement. Young Olesm’s <em>pure.</em>”</p>
+<p>There was a slur in his voice. He was already drunk. Another Drake, an obsequious [Merchant] who always flattered Ilvriss, raised his own mug.</p>
+<p>“Hah, yes! A pure young Drake. We should be careful we don’t sully his youth before he gets a taste for the world. Young Olesm here needs to taste more of life’s pleasures before he enters politics, Wall Lord. More drink, more time in battle…and in bed, I should wager!”</p>
+<p>Ilvriss howled with laugher and banged on the table with the others. Olesm rolled his eyes and twitched his tail irritably. There had been a lot of talk like that. Olesm hadn’t ever taken part in a war, so to all the veterans he was fresh-tailed, and they made jokes at his expense.</p>
+<p>It was time to go. Olesm knew he shouldn’t play this card too often, but he had a job to do today so it was a legitimate card. He pushed back his chair, bowing apologetically to Ilvriss.</p>
+<p>“Much as I’d love to drink, I’m afraid I really do have pressing obligations, Wall Lord.”</p>
+<p>“Ah. I’d forgotten.”</p>
+<p>Ilvriss paused and scowled, as if the bright sunlight streaming into the room were an afterthought. He glanced at Olesm impatiently.</p>
+<p>“Can’t you postpone whatever needs doing?”</p>
+<p>Olesm made an apologetic face.</p>
+<p>“I’m afraid not, sir. I…it would be wrong of me to abandon my post, no matter how honored I am to be here. I must stick to my duty.”</p>
+<p>Something changed in Ilvriss’ face as he listened to Olesm’s careful words. Quick as lightning his mirth disappeared. He lowered his mug, and Olesm saw the other Drakes around him quiet down and watch the Wall Lord warily.</p>
+<p>“Duty? Ah, if duty calls one must obey, mustn’t they? But be cautious, young Olesm. Duty is a harsh mistress and she asks much. Death walks with you, and sometimes it cannot be avoided. Even if you had known—even if—”</p>
+<p>He broke off and looked into his mug, all the mirth of a moment ago lost. Olesm exchanged glances with the other Drakes sitting around the table.</p>
+<p>Wall Lord Ilvriss had been maudlin recently. Ever since the battle with Regrika Blackpaw and the other Gold-rank traitor, Ikriss. He was prone to snapping at others, drinking to excess, and fits of melancholy—not too different from his usual self, in other words. But the sadness was new.</p>
+<p>Someone had to bring him back to his good spirits. This time it was Peslas. The [Innkeeper] hurried over with a hot plate of grilled fish and a mug of wine.</p>
+<p>“Yes, to duty! Young Olesm must go, but surely you have more tales to tell, Wall Lord? I’d be grateful to hear more—it’s not often a legend sits in my inn!”</p>
+<p>Ilvriss brightened a bit as he saw the food. He accepted plate and mug and nodded as all eyes fell on him again.</p>
+<p>“Well, I suppose if I must—go, Olesm. I’ll remain here. As for stories, if that’s what you want Peslas, I have one about my finest subordinate. Periss. She was—a warrior and leader beyond repute. I remember the day I first met her. She’d downed a Wyvern. By herself! I was in my tent and I heard about a patrol that had been ambushed by monsters, so I rushed out and saw her there…”</p>
+<p>Olesm backed out of the inn, grateful for the reprieve. Besides, he really did have a job to do. He was Liscor’s dedicated [Tactician], after all. Every Drake city needed one and Olesm worked hard at his job. True, there wasn’t always work to do, but recently there had been a lot. So much so that he’d only gotten the issue of the dungeon today. Or more specifically, what lived in the dungeon.</p>
+<p>&nbsp;</p>
+<p>&#8212;-</p>
+<p>&nbsp;</p>
+<p>Shield Spiders. Crypt Worms. Various undead. Enchanted suits of armor, Bog Wraiths, a trap full of Face-Eater Moths, giant infested slugs, the Children, the lists went on. Olesm was privy to almost every report that went to Watch Captain Zevara and other members of the Council and so he knew that Liscor’s dungeon was host to a huge variety of very nasty monsters.</p>
+<p>Some were documented, others were variations on known threats. It was an adventurer’s job to handle them, and Olesm’s only input into the situation with the dungeon was to consult with Zevara about containing any threats that escaped from either the Dungeon’s official entrance or the rift in the snow. Plans were already being made to set up a more permanent set of fortifications around both.</p>
+<p>However, there was one variety of monster that had been spotted by the teams going in and out of the dungeon’s rift that were… concerning. Among the monsters that roamed the maze of trapped tunnels were groups of Goblins and strange, Gnoll-like monsters who used weapons and fought with brutal efficiency.</p>
+<p>The first group to encounter them (and survive), Vuliel Drae, had brought back several heads. Olesm had inspected them and they certainly looked similar to a Gnoll’s. However, the heads were far larger, sported vicious canines and apparently came from bodies far bigger than any Gnoll had a right to be.</p>
+<p>The Adventurer’s Guild hadn’t been able to identify the monster when they’d sent the image of the head to other guilds for analysis. However, several of the older Gnolls had reacted strongly to the heads but refused to say what they’d recognized. Thus, it fell to Olesm to tactfully ask what these not-Gnolls were about.</p>
+<p>He decided to go to Krshia, since he knew her the best and she was one of the leaders of the Gnolls in the city. Olesm rubbed at his head and swerved down the street, greeting Drakes and Gnolls he knew as they waved to him. The Gnolls sniffed and remarked about drinking so early; Olesm grunted about Ilvriss and they only laughed.</p>
+<p>The Gnoll [Shopkeeper] wasn’t at her stall today, which was unusual. Olesm had to ask where her apartment was. Thankfully two other Gnolls at the small marketplace were able to direct him.</p>
+<p>They knew him of course; Gnolls were very conscious of figures of authority and Olesm had made it a point to consult with the Gnolls who represented the unofficial figures of authority in Liscor. It was a shame none of them had a place on the Council; a few Gnolls might nicely balance out the idiots who thought with their tails.</p>
+<p>Unlike Erin, Olesm didn’t regularly visit Krshia. In fact, he’d been staying away from both Erin and the Gnoll recently. Olesm still felt guilty about telling Regrika about Ryoka. That had led to Brunkr’s death, and, it seemed, Ryoka’s disappearance. He knew it was impossible to have known that Regrika Blackpaw, the famed Named Adventurer, was a murderer, but still. Olesm hesitated in front of Krshia’s door for several minutes before he reluctantly knocked.</p>
+<p>The apartment was silent for a long time. Long enough that Olesm was turning to go when he heard someone shuffling towards the door. He waited, and Krshia slowly pulled the door open. She blinked at him and he stared up at her.</p>
+<p>“Um, good morning, Krshia. Are you well?”</p>
+<p>She didn’t look well. The Gnoll was barely dressed and she had bleary eyes and disheveled fur. She looked terrible, in short. Olesm cleared his throat as he glanced into her apartment. It too was a mess.</p>
+<p>“I ah—I’m terribly sorry to bother you, but I was hoping I could speak to you as a representative of the Gnolls in Liscor. I wouldn’t want to intrude if you’re occupied, however…”</p>
+<p>Only now did he realize he might be intruding on her grief. But Krshia blinked at Olesm and seemed to wake up a bit. She shook herself, and then nodded.</p>
+<p>“I—hrr. Yes. As a representative, you said? What is this about? Come in—let me freshen myself and put on tea.”</p>
+<p>She invited him in. Olesm was hesitant at first, but Krshia seemed glad of the company. She rushed about, clearing a space on the sofa—it looked like she’d been sleeping there—and putting on some of the spicy Gnoll tea. When she sat across from him and offered him some sliced raw meat, she looked a lot more awake than before, and curious, too.</p>
+<p>“It is not often that Olesm Swifttail comes to my residence on official business, yes? That is what this is, yes? Has the Council decided something, or is this more informal?”</p>
+<p>“It’s…formal, but not related to any decision the city has made.”</p>
+<p>Olesm carefully chewed at the meat and sipped from his cup, grateful for both after drinking. Krshia nodded encouragingly and he went on, watching her expression carefully.</p>
+<p>“I believe you have heard about the reports from the dungeon, Miss Krshia? Part of my job involves identifying monsters who may be threats to the city, particularly if they are unknown. And a recent team that went into the dungeon recovered several, uh, heads of a strange creature they claimed was fighting in tandem with Goblins. They um…”</p>
+<p>The Gnoll’s forehead wrinkled and Olesm broke off. Krshia hummed to herself and nodded. Now there was a sharpness to her eyes that Olesm recognized with relief.</p>
+<p>“Ah. I see what this is about. You wish to ask about these creatures which resemble my people so much.”</p>
+<p>“Yes. Yes, the other Gnolls wouldn’t talk about it. However, if these—these creatures are a threat, or worse, are related to Gnolls—”</p>
+<p>“They are. Both threat and related. It is an uncomfortable topic among my people, Olesm. Many of the young do not know of these…things. But I saw one of the heads and yes, I do know what they are.”</p>
+<p>“Ah. Would you be willing to share your information? I promise, we only need tactical data, not anything—”</p>
+<p>Olesm broke off delicately and Krshia shrugged.</p>
+<p>“Tactical data? I do not know if it will help, but the story is only uncomfortable, not taboo. I will relate it to you. If you have time?</p>
+<p>“Please, I would be most grateful.”</p>
+<p>Krshia nodded with a slight smile. She sipped at her cup and chewed on more slices of meat. Her stomach rumbled a bit and Olesm wondered if she’d had breakfast. He took another slice, chewing appreciatively. Gnolls liked their food to be eaten when they offered it. A full bowl of snacks after a discussion was a disappointment.</p>
+<p>“Hrr. Yes. Where to begin? I think we must delve into history first, Olesm. You see, the origin of these creatures that resemble us goes back to when the continent was first inhabited by our peoples. Drakes and Gnolls.”</p>
+<p>The Drake paused as he reached for another slice of meat. He stared at Krshia.</p>
+<p>“That long ago? But that’s <em>ancient</em> history. Thousands of years old!”</p>
+<p>Krshia nodded. She smiled a bit as Olesm stared at her.</p>
+<p>“Yes. Is it surprising I would know tales from back then? It is true few books survive so long, enchanted or not, but history is told through our tribes differently from the Drakes. It is spoken, passed from Gnoll to Gnoll. And we remember things in ways you do not. For instance, long ago it was said that Izril was not known as the home of Drakes and Gnolls, but as the home of Dragons.”</p>
+<p>“Our Ancestors.”</p>
+<p>Olesm murmured respectfully and with a hint of longing. He had never seen a Dragon before, only heard rumors. One in Terandria for instance, that preyed on livestock. But Ancestors, <em>real</em> Drake Ancestors, were supposed to be wise and cunning, full of magic and wonders. And greed, of course. That’s where Drakes got it from. Krshia nodded. She sniffed and chewed on a bit of the raw meat in the bowl. She clearly had no longing for the past.</p>
+<p>“Yes. I have heard what Drakes say. But that is not the Gnoll experience, no. Our people remember a time when Dragons ruled and their descendants, Drakes, built vast and impregnable cities to shield themselves from war with their elders. Dragons and Drakes fought, but both preyed on a common species. Gnolls. We were food for Dragons. Drakes too. Our peoples lived in terror of the skies.”</p>
+<p>Olesm shifted uncomfortably. Krshia smiled gently.</p>
+<p>“It is not your fault for the past Olesm, yes? Regardless, in order to survive, it is said that we Gnolls dug deep and learned how to hide. We found refuge in caverns, lived underground. And down there, some of us…changed.”</p>
+<p>“Changed? How?”</p>
+<p>The Gnoll paused as she sat across from Olesm. She looked uncomfortable, but she shook her head and shrugged in reply to his question.</p>
+<p>“It was dark in the ground, Olesm. Dark, or so the stories say, and we Gnolls are not meant to dig so deep. We spent years, decades, in hiding. Longer, I think, but the stories are not clear. In any case, we spent so long down there that some of us went mad from the deepness of it. Mad and wild. Their bodies changed as they forgot the ways of civilization—and we Gnolls are civilized, for all that you call us tribal creatures.”</p>
+<p>“I have never thought so.”</p>
+<p>“Hrm. No? Well, others say it and there is some truth to it. But these other Gnolls lost those hints of civilization. They became bestial, more like monsters than people, yes? That is when Gnollkind split. In the darkness, one group remained Gnolls and others became—not.”</p>
+<p>Olesm stared at Krshia.</p>
+<p>“How is that possible? You’re saying Gnolls as a species changed? How?”</p>
+<p>She shrugged.</p>
+<p>“It was only some. As to how, perhaps it was magic, or perhaps it was just a difference in what they ate. Or what they did.”</p>
+<p>“I don’t follow.”</p>
+<p>“The others, the not-Gnolls. They longed for the light, yes? That longing can be a terrible thing. They lost their mind in the darkness. Became as savage as the things that dug around them. Ate and killed, and gained strength for it. They gave up their levels, Olesm.”</p>
+<p>Memory stirred. Olesm remembered hearing about Ryoka’s refusal to level. But he still couldn’t believe it.</p>
+<p>“Impossible. As a people? You mean…”</p>
+<p>The Gnoll [Shopkeeper] nodded.</p>
+<p>“It was a trade, I think. A curse willingly taken, or—or something else. These not-Gnolls turned their backs on what made them Gnolls to become stronger. They obtained powerful forms, dangerous abilities…but at a price. They lost their ability to level in exchange for bodies like steel, strength beyond other Gnolls. But they lost their minds, became warlike, hungry only for blood and flesh. Again, at a price. It was said of these Gnolls that they underwent strange changes in the moonlight. Only during the full moon would they regain any measure of sanity.”</p>
+<p>Olesm tried to imagine such creatures. It wasn’t hard, actually. Take away the intelligence of a Gnoll, replace it with a primitive mind and make them stronger—he shuddered as he imagined a tribe of them living deep in the darkness.</p>
+<p>“I take it that the other Gnolls who didn’t change didn’t like these new Gnolls?”</p>
+<p>Krshia nodded grimly.</p>
+<p>“They began to hunt us. As if we were not their family. And so we fought back. In the darkness, Gnoll fought not-Gnoll and the difference between us became great. In time, the others were no longer Gnolls at all, but different. We called them Raskghar and they are our enemies.”</p>
+<p>“Were your enemies, you mean.”</p>
+<p>The [Shopkeeper] shook her head.</p>
+<p>“<em>Are.</em> We thought them wiped out long ago, but if they remain, they are our foes yet.”</p>
+<p>“But hold on, you said that was thousands of years ago. These Raskghar—these cave Gnolls are only in Liscor, in a dungeon we just discovered. Doesn’t that change—”</p>
+<p>Krshia was shaking her head again and again. She fixed Olesm with one steady eye as she sipped from her cup.</p>
+<p>“We declared war on them, Olesm. As a people. Gnoll tribes may war and make peace as they choose of course, but when we make war, it is as a species. We do not lay down our arms until all tribes have agreed. So. If these creatures do live below Liscor, then we are <em>still</em> at war with them. Time is meaningless to our feud.”</p>
+<p>“But—”</p>
+<p>Olesm forced himself to break off. He was dealing with a different culture here, a different species. Krshia eyed Olesm and relented a bit.</p>
+<p>“Recall that during the war, our people fought without peace against yours for hundreds of years, Olesm. The war did not end, though both our species suffered greatly. When we emerged from the ground we declared war on the Drakes, now that the Dragons had lost their hold on the continent. We declared it as a people, and such was the bloodshed that there has not been a greater loss of life since, not even from the Antinium.”</p>
+<p>Olesm nodded. The war. Of course he knew that bit of history. People, mostly Humans, liked to talk about the Antinium Wars as the great wars of the century, but to the Drakes and Gnolls, there would be only one great war. It was <em>the</em> war. The war between their species.</p>
+<p>“As I recall, the Gnolls were present throughout the continent but strongest in the north. They destroyed many of the Walled Cities built there and several in the south. There was countless death on both sides. However…it may be an unpopular opinion, but my analysis of the histories makes me believe the Gnolls were winning during that time.”</p>
+<p>Krshia blinked. She seemed surprised, which was unusual for her.</p>
+<p>“Oh? What makes you say this?”</p>
+<p>Olesm shrugged self-consciously.</p>
+<p>“It’s nothing conclusive. I’ve hardly done an in-depth study of the history, but it’s just that Drakes were famous for the cities we built. We kept most of our populations behind the Walled Cities—we still do, only in smaller and more numerous cities. But when we were fighting in the war, the Gnolls were slowly destroying our homes, breaking down the enchanted walls one by one. [Shamans], leading armies of hundreds of thousands, warrior-kings, bloody battles…we both lost, but Gnolls could always regroup and live anywhere on the continent. While we Drakes were losing our homes. So I think we were losing.”</p>
+<p>He paused. Krshia was blinking at him and he could tell she had something to say. She sipped deeply from her cup and then refilled it. And his. Krshia smiled at Olesm.</p>
+<p>“Hrr. Rarely have I met a Drake who is willing to say such things. Your people dislike admitting defeat. But that is the opinion of we Gnolls. We were winning. For that truth Olesm Swifttail, I thank you.”</p>
+<p>She bowed her head slightly and Olesm felt his scales changing color.</p>
+<p>“It’s nothing. Just facts. It’s just the facts, Miss Krshia. And as you said, the war was terrible for both sides regardless of who was winning.”</p>
+<p>Krshia sighed, reluctantly agreeing.</p>
+<p>“But of course. It matters little, yes? The Humans took half the continent while we squabbled. The Five Families destroyed the last of the Walled Cities and drove both our peoples south, past the High Passes.”</p>
+<p>Olesm nodded gravely.</p>
+<p>“The Gnoll tribes fought to the last for their lands, if I recall. Your people suffered a terrible loss.”</p>
+<p>“One we have still not recovered from. That is why we as a people sued for peace with the Humans. Why we do not march north each year with your kind. Oh, some city-born fight in your armies, but the Gnolls will not die. Our tribes grow and we replenish, but our people are a fraction of what they were.”</p>
+<p>“True, but the Gnoll populations have been on the rise historically. I remember seeing some figures…the Antinium Wars barely halted your growth. Why, if your population kept rising the way some of our [Strategists] and [Historians] are suggesting…”</p>
+<p>The Drake was searching through his notepad. He paused as a thought struck him and peered suspiciously at Krshia.</p>
+<p>“Miss Silverfang? Exactly how many tribes would you say are formed every year? And how many of those tribes double or triple their numbers every decade?”</p>
+<p>Krshia’s eyes twinkled. The Gnoll averted her gaze and sipped at her tea thoughtfully. She spoke cattily, her ears flicking back and forth as she peeked at Olesm’s face.</p>
+<p>“If my people do have plans that involve Drakes or Humans, it would only be in a few more generations, yes? Numbers matter. And I…hope it would be peaceful. All we wish to do is reclaim our old lands. If that means living next to Humans, so be it.”</p>
+<p>“I see.”</p>
+<p>Olesm filed that information away for later. He cleared his throat.</p>
+<p>“Thank you for the history. It seems these Raskghar are a threat, both to your people and in general. I don’t think the Council or the Adventurer’s Guild would argue that point. May I ask what you know about their combat abilities? If they don’t level that’s one relief, but just how strong are they in general?”</p>
+<p>The Gnoll pondered the question for a while.</p>
+<p>“Hrr. It is too long ago for specifics to be passed down, but I would imagine a single one of these Raskghar would be a match for a Silver-rank adventurer. They were said to be strong, immune to pain, and have hides that were proof against iron. But those are legends. I imagine the truth is that they are simply stronger. Primal, primitive Gnolls who cannot level but have more strength than our kind.“</p>
+<p>“I see. Well, thank you for your time, Krshia. I will have to relay that to the Adventurer’s Guild. I think these Raskghar would be classified as a threat similar to Hobgoblins. Unless you disagree?”</p>
+<p>Krshia was shaking her head. She looked serious as she pointed a finger of her paw at Olesm.</p>
+<p>“Not at all. Hobgoblins are dangerous, like the ones in Erin’s inn, yes? But they are a danger because of numbers as much as their skill. Raskghar are brutes. They may be stronger naturally than Hobs, but they lack levels so they would fall behind in strength. What makes them dangerous is that they are <em>born</em> to the darkness, Olesm. They hunt in places without light. They are not warriors, they are predators. They track their prey and ambush them. That is the danger.”</p>
+<p><em>Not warriors, but creatures adapted perfectly to an environment with mazes and traps. Ambush specialists.</em> Olesm nodded.</p>
+<p>“I’ll emphasize that in my report and make sure the adventurers know to be careful. Thank you very much, Miss Krshia.”</p>
+<p>“You are welcome, Olesm.”</p>
+<p>The Gnoll smiled at Olesm and he sensed that she was in better spirits than when she’d first opened the door. Krshia eyed the scraps of meat left in her bowl and stood up.</p>
+<p>“I have enjoyed your company. But you do not need to leave right away, yes? Sit. Let us talk. I have heard rumors about Erin, although I have not seen her in days. And I have more snacks—let us have some breadsticks. I have some honey…I would not like to waste it. And there is more tea.”</p>
+<p>Olesm smiled at Krshia. He had not missed the shield and sword carefully propped up against one wall, or the way Krshia kept looking around. The apartment was empty. There was a vacancy in it. For a while he could fill it.</p>
+<p>“I would be honored to sit, of course. Please, tell me, what do you think about this issue of the Goblin Lord?”</p>
+<p>&nbsp;</p>
+<p>&#8212;&#8211;</p>
+<p>&nbsp;</p>
+<p>It was a good two hours more before Olesm could leave Krshia’s home, but he considered that time well spent by comparison. Olesm first waddled over to one of the public toilets and relieved himself of half a pot’s worth of tea. Then he walked down the street. The snow had completely melted in Liscor, but it was still chilly outside. Olesm tugged at the cloak he wore and fished at his belt pouch.</p>
+<p>He pulled out a pad of tightly bound pieces of paper; a luxury compared to parchment, but one the city paid him for. He also had an enchanted quill that drew ink from a pot without him needing to dip it, a very useful invention. Olesm walked and wrote, muttering to himself as he did.</p>
+<p>“Gnoll breeding strategy. Talk to Gen. Shivertail or Wall Lrd? Concerns—future generations.”</p>
+<p>Olesm paused as he stared at the cramped handwriting. Then he sighed and scribbled over the words. No, not a good idea. This was him being a hoarder, thinking too narrowly. Gnolls were not the enemy. Come to that, Humans weren’t the enemy. Not anymore. They’d lived here for generations. Didn’t that mean they had a place? They weren’t the ones who’d razed Drake cities and put thousands to the sword, no matter what the elders said.</p>
+<p>No, the real enemy was the Antinium. And Olesm wasn’t sure if all of them were the enemy. Sighing, Olesm crossed out the words a few more times and jotted down the notes about the Raskghar.</p>
+<p>“Did I spell that right? Oh well. It’s good enough. Now…”</p>
+<p>Olesm hesitated and looked around, tail twitching as he stood in the street. He <em>could</em> go back to the inn and file the report later, but that would mean drinking. On the other claw, Olesm was fairly sure that Selys was at the desk in the Adventure’s Guild at the moment and he could probably spend hours filing a report in person and chatting with her. Also, there was that thing that had been nagging at Olesm for days. Maybe he could resolve it today?</p>
+<p>It certainly beat drinking. So Olesm turned around in the street, waved to one of his chess-buddies, and hurried over to the Adventurer’s Guild. It was packed. As usual. Humans, Gnolls, and Drakes were all waiting in lines, or sitting out of the cold and talking.</p>
+<p>Olesm was pleased that there was less of a crush than before; while it was true the adventurers were here for the dungeon, Erin’s door to Celum had allowed a lot of the pressure to be taken off of Liscor’s guild. Now adventurers were saturating the region around Liscor, rather than all crammed into the one city and causing trouble exclusively here.</p>
+<p>Still, he had to wait in line. There were four counters open and each [Receptionist] was busy. Olesm spotted Selys and saw there was only one person in front of him. He hurried over and then recognized the Human arguing at the desk.</p>
+<p>“—and furthermore, I object to your characterization of my talents. I am offering you an equitable, nay, <em>charitable</em> solution to an unresolved crisis in your city, and you are not considering it, let alone relaying my request to your Guildmaster!”</p>
+<p>Pisces put his hands flat on the counter and glared at Selys. The Drake [Receptionist] glared back and leaned over the desk so that Pisces had to lean back or receive a slow head butt. Her tail thrashed behind the counter.</p>
+<p>“First off, it’s Guild<em>mistress.</em> My Grandmother’s in charge and she doesn’t like [Necromancers]. In fact, she likes them less than I do. Furthermore, I can’t authorize putting a dangerous monster in the sewers—”</p>
+<p>“<em>Dangerous?</em>”</p>
+<p>Pisces spluttered. He was receiving a lot of unfriendly looks from around the room Olesm noted, but he was focused on Selys. He leaned forwards until he was nose-to-snout with Selys.</p>
+<p>“It would be under my control at all times. True, it would be remotely, but it would operate under precise instructions—”</p>
+<p>“Oh? Like the one you gave Toren before he abandoned Erin and went off and killed a bunch of people?”</p>
+<p>The [Necromancer]’s teeth ground together audibly.</p>
+<p>“That was a separate case with an autonomous creation with <em>free</em> <em>will,</em> not—”</p>
+<p>“You have your answer. <em>Next! </em>Oh, hi there Olesm! How can I help you?”</p>
+<p>Pisces was incandescent with fury, but Selys calmly pushed him aside and smiled sweetly at Olesm. He smiled back. Suddenly, Olesm recalled why he hadn’t ever really talked to Selys before they’d both known Erin.</p>
+<p>She was a social personality, always talking, but she had an <em>edge</em> when she got mad. Selys and Olesm ran in different circles. Olesm coughed and stepped forwards, tail twitching apologetically as Pisces glared at both of them.</p>
+<p>“Hello, Selys. I’m actually here to deliver a report about those Gnoll-like monsters that were found in the dungeon. I’ve investigated the matter and they’re a primitive offshoot of the Gnoll species. Some kind of throwback or…well, they’re clearly dangerous and they’ve adapted for the darkness. The Gnolls hate them and I have a few details on how they might fight.”</p>
+<p>“Really? Freakish Gnoll offshoots, huh?”</p>
+<p>Selys’ nonexistent eyebrows rose. She glanced out the window and made a face.</p>
+<p>“It sounds important, and I’d love to hear about them, but I’m nearly done with my shift, Olesm. This jerk—”</p>
+<p>She pointed towards Pisces with her tail and the [Necromancer] glowered. He still hadn’t moved away and was making Olesm uncomfortable.</p>
+<p>“—took up a lot of my time and I’m actually meeting with Erin right after this. Can I call over my replacement and have her get all the details? Or better yet, can you send a report through all those official channels? It’s not that we can’t do it, it’s just that we’re a bit overworked, you know?”</p>
+<p>She made a face. Olesm floundered, and then nodded. That wasn’t what he wanted, but what could he say?</p>
+<p>“Of course. That would be fine.”</p>
+<p>“Cool. Oh, and so I can mention it to Erin—what are these not-Gnolls called?”</p>
+<p>“Raskghar. I think.”</p>
+<p>“Got it. Hey, Maviss! Can you take over? Thanks!”</p>
+<p>Selys walked out from behind the counter and another Drake took her place. Maviss, a Drake with light pinkish-red scales, smiled sweetly at Olesm. A bit too sweetly. Selys winked at her friend and Olesm edged back from the counter.</p>
+<p>“Ah. Ahem. Selys tells me you’re very busy, so I’ll file that report and submit it tonight—”</p>
+<p>“Are you sure? I’m sure I could write it all down if you want.”</p>
+<p>Pisces was trying to chase after Selys until she tripped him up with her tail. He stood up to laughter, flushing with anger, and Olesm shook his head. He cleared his throat and then lowered his voice. There was one other reason why he’d come to the Adventurer’s Guild, and that was to follow up on a hunch.</p>
+<p>“I wonder, Miss Maviss, whether your guild has the records of the recent expedition into the crypt by four Silver-ranked adventuring teams? The one with the attacking undead, led by the creature known as Skinner?”</p>
+<p>Maviss’ smile vanished. She nodded. Everyone in Liscor remembered that night of horrors.</p>
+<p>“We have lots of files. But don’t you get all of them as a [Tactician]?”</p>
+<p>He shook his head.</p>
+<p>“All the ones about the attack of course, testimonies, statements from the [Guardsmen]…but when the adventurers were uh, recovered and their remains were counted, that report got sent to your guild. If the city kept a copy, it’s lost somewhere. I was hoping I could see it. I’m especially interested in what the [Guardsmen] found. The possessions of the deceased adventuring teams that were confiscated and so on.”</p>
+<p>The [Receptionist] thought about that and then nodded.</p>
+<p>“I can get that for you. It might take a bit. Why don’t you wait here? Unless you’d like to help?”</p>
+<p>She winked at Olesm. He blushed.</p>
+<p>“I uh, no, I’m sorry. I have uh, a lot of pressing engagements. With the Wall Lord. I do apologize.”</p>
+<p>“Oh. Alright then.”</p>
+<p>Looking disappointed, Maviss sighed and walked out into one of the back rooms where files were kept. Formal documentation might not exist in Human guilds, but Drakes were sticklers for reports and filing, so Olesm was sure a copy of the report he needed was back there. He turned, intending to take a seat while Maviss searched, and jumped as he saw Pisces standing behind him.</p>
+<p>“A report from the events surrounding the crypt and the attack of the undead horde? Why would you be interested in that?”</p>
+<p>The [Necromancer] eyed Olesm, arms folded, completely unapologetic about eavesdropping. Olesm coughed.</p>
+<p>“Good morning, uh, Pisces.”</p>
+<p>“Olesm.”</p>
+<p>The [Mage] and [Tactician] stared at each other. Neither quite knew what to say. True, they’d met and played games of chess against each other, but that was because both of them knew Erin. They weren’t exactly acquaintances; neither one could remember really having a long conversation together.</p>
+<p>Olesm shifted.</p>
+<p>“I uh, I’m following up a discrepancy with the reports, which is why I requested them.”</p>
+<p>“Ah. I see. And what is it you have uncovered?”</p>
+<p>“Confidential, I’m afraid. City business. What were you asking Selys about? It seemed important.”</p>
+<p>“Confidential.”</p>
+<p>Pisces’ tone was acerbic as he looked down his nose at Olesm. His gaze flicked to the Drake’s face, to his tail, and then to the notepad Olesm was still holding. The Drake hurriedly put that away. He didn’t like how Pisces always seemed so…so <em>perceptive</em> about things. For one thing, the [Necromancer] was one of the few Humans who watched Drakes’ tails for their reactions. Olesm kept his very still and raised his voice casually.</p>
+<p>“How’s uh, the adventuring business? Doing a lot of fun…killing monsters? How’s Ceria doing?”</p>
+<p>He winced. He hadn’t meant to blurt that out. Even if he had meant to ask. Pisces blinked. He studied Olesm and the Drake just knew he was recalling Olesm’s very brief fling with Ceria and the moment when she’d rejected his request to join the Horns of Hammerad. The memory made Olesm want to gnaw on his tail.</p>
+<p>The [Necromancer] betrayed none of what he was thinking, though. He lifted his shoulder fractionally and sniffed.</p>
+<p>“We have been undertaking mundane requests of little worth as of late. There are few worthwhile tasks to complete as I’m sure you’re aware. Oversaturation of adventurers…I believe Springwalker and the others are resting in the inn. They were most upset after our last mission.”</p>
+<p>Olesm’s heart began to pound.</p>
+<p>“Why? Is she—I mean, is everyone alright? I haven’t visited the inn in a while.”</p>
+<p>Again, Pisces sniffed.</p>
+<p>“Nothing damaging. Rather, we had accepted a rather odious task to clear an infested cave of vermin. The mission was hardly dangerous. Physically, that is.”</p>
+<p>“Vermin?”</p>
+<p>“Yes. An infested cave a few miles from Liscor. It was filled with roaches. Cockroaches. About ten thousand of them. Our task was to eliminate their nest and as many as possible. There were…complications.”</p>
+<p>Pisces brushed at his robes. Only now did Olesm look down and notice several smears on the robes. They were enchanted to resist staining and dirt of course, but the liquid on the robes was sticky. There were black bits of shell and wing and a few legs—Olesm’s tail <em>twitched</em> and Pisces grinned.</p>
+<p>“Ice magic is futile against those kinds of roaches. We had to burn them. Unfortunately, there were larger variants with nasty bites and they swarmed us. Well, I say ‘us’ when I mean my other three companions. They got into Yvlon’s armor and onto Ceria…Ksmvr was most helpful in eating them. I believe he and Ceria consider the roaches as snacks and were more offended by the bites than anything else.”</p>
+<p>He seemed amused by Olesm’s reaction. Pisces looked around the room, meeting a few gazes before they quickly averted. He shook his head and sniffed a third time.</p>
+<p>“I was intending to do more work today, but it seems my presence is unwelcome here.”</p>
+<p>That was an understatement. Adventurers watched Pisces with folded arms. Some turned their backs to him. One made a gesture. Olesm winced. He knew [Necromancers] were unpopular in Liscor and the rest of the continent—well, most of the world, really—for good reason, but Pisces’ attitude seemed to exacerbate the issue.</p>
+<p>“I got the report! Olesm, I have them and—oh.”</p>
+<p>Maviss returned, holding a sheaf of parchment and stopped when she saw Pisces. He looked at her and she hurriedly shoved the file into Olesm’s hand before retreating behind the counter. Olesm paged through the report.</p>
+<p>“It seems like everything I need. Miss Maviss, can I return this at a later date?”</p>
+<p>“Absolutely! Uh—can I help you?”</p>
+<p>Maviss stared at Pisces, tail twitching nervously. He looked at Olesm and then at her and shook his head.</p>
+<p>“Not in the slightest, I would imagine.”</p>
+<p>He turned. Olesm looked at Maviss.</p>
+<p>“Thank you for the files. I have to be going.”</p>
+<p>“Oh. Wouldn’t you like to stay for—”</p>
+<p>The Drake hurried away and out of the guild. Olesm walked quickly, pausing to greet an adventurer he knew, and then hurried down the street. He wanted to open the report in his apartment, but realized someone was striding along in the same direction as him, practically at the same speed.</p>
+<p>Olesm and Pisces halted in the street, staring at each other as Drakes and Gnolls walked around them. Pisces frowned at Olesm. Olesm scowled at Pisces.</p>
+<p>“Why are you following me?”</p>
+<p>Pisces sniffed.</p>
+<p>“I am not. It would appear we were moving in the same direction purely by happenstance. That is known as coincidence.”</p>
+<p>He turned. Olesm stuck his tongue out at his back and heard a giggle. He turned, and then his scales turned bright red as he saw Drassi and a few female Drakes he recognized gossiping together. They waved and Olesm waved back before covering his face with one claw.</p>
+<p>Pisces glanced at the Drakes, and noticed one of the [Guardsman] on patrol giving Olesm a nod. The same [Guardsmen] spat as he passed by Pisces. The mage’s voice was acerbic.</p>
+<p>“It seems you are well beloved in this city, Mister Swifttail.”</p>
+<p>Olesm nodded. He felt a bit embarrassed, actually, given how people were treating Pisces.</p>
+<p>“I get to know a lot of people in my job. It uh, seems like you’re not well loved here.”</p>
+<p>The [Necromancer] shrugged.</p>
+<p>“My reputation as a [Necromancer] precedes me. Too, there are my past crimes.”</p>
+<p>Olesm recalled the incident with the monster terrorizing innocent villagers out of food and coin. He scowled.</p>
+<p>“Yes. That. But I think people might still treat you better if you made an effort.”</p>
+<p>Pisces was turning to go. He looked over his shoulder and raised his eyebrows.</p>
+<p>“Why should I? Their opinions are set in stone. Besides, my isolation is a product of my achievements and who I am. Talent is lonely. I do not need friends or adulation. Success is its own reward.”</p>
+<p>His words stung Olesm’s scales like nettles. And yet, at the same time Olesm had an instinctive sense that Pisces was lying through his teeth. He didn’t have a truth detection Skill, but the Drake still sensed it. And…<em>talent?</em></p>
+<p>Olesm though about Ilvriss praising him and the shame and mixed emotions he felt. Whereas Pisces practically shouted his own arrogance. That lit a fire under his tail. He snapped at Pisces.</p>
+<p>“You seem to have an inflated opinion of your abilities.”</p>
+<p>Pisces smirked.</p>
+<p>“Accurately judging my own worth is not hubris. If others fail to comprehend my worth, that is their failing. Not mine.”</p>
+<p>“Oh yeah? Well—well, what if you’re wrong?”</p>
+<p>Snappy retorts were the specialty of Selys, not his. Olesm felt his scales flush and Pisces gave him a condescending look that was worse than a reply. Olesm lashed his tail against the paving stones.</p>
+<p>“Okay then. If you’re so special, why are you lowering yourself to adventuring with others? Unless you’re not talented enough to do things by yourself?”</p>
+<p>The mage’s eyes narrowed. He took a moment to respond, and his coolness infuriated Olesm even more.</p>
+<p>“Pragmatism, of course. And perhaps a bit of—nostalgia. Regardless, my status as an adventurer is a career decision. The true mystery is why <em>you </em>aren’t an adventurer. You seem enamored with the profession, not to mention a certain individual. Why not pursue such interests?”</p>
+<p>The words hit Olesm right in the heart this time. A critical hit. He stared at Pisces, feeling his fury rising. He spat.</p>
+<p>“<em>I </em>wasn’t invited. I asked, as you recall.”</p>
+<p>“Indeed I do. Hm. If a rejection was enough to stop you, then perhaps it was wise of you not to choose to be an adventurer after all. Words may burn, but they are a paltry force compared to claws and magic. If you cannot weather rejection, combat would certainly prove your undoing.”</p>
+<p>The arch look. The burning words. Olesm opened his mouth and lifted the report about the dead adventurers.</p>
+<p>“At least I was brave enough to go with them the first time! Where were you? Too cowardly to join them? I know Ceria asked you—why come crawling to her later when you rejected her once?”</p>
+<p>Pisces’ eyes narrowed dangerously. He opened his mouth and Olesm balled his claws into fists. Before he or Olesm could say anything else, both heard a voice calling Olesm’s name.</p>
+<p>“Olesm! Olesm Swifttail! I have a delivery for you!”</p>
+<p>The Drake turned his head. His eyes widened.</p>
+<p>“Hawk?”</p>
+<p>The Rabbitman was striding down the street, moving twice as fast as anyone else. As usual, Hawk appeared to be practically vibrating with energy. In the cold weather he’d left his muscular abdomen exposed and he seemed immune to the chill. Olesm wondered if he’d had any of Erin’s Corusdeer Soup.</p>
+<p>The Courier halted in front of Olesm and opened a pouch on his belt. It must have been a belt pouch of holding, because he pulled out several objects before he came up with a very thick sealed envelope. Olesm stared at it. If Hawk was delivering it, the letter had to be sent by Courier. Or was Hawk doing City Runner deliveries?</p>
+<p>“What’s this about, Hawk?”</p>
+<p>The Rabbit Tribe Beastkin offered Olesm the letter.</p>
+<p>“I’ve got a message for you, Olesm. What else? It’s a pretty lucrative delivery for me; a simple package. I got it from Invrisil—a quick run, even with the Corusdeer stampede I had to dodge. Here, just state to me on this truth stone that you are Olesm Swifttail and—”</p>
+<p>“Wait, what? But I—I haven’t been expecting any deliveries! And this looks expensive!”</p>
+<p>Hawk nodded.</p>
+<p>“Sure is. I can’t tell you the specifics—Runner’s confidentiality and all that, but I think this came from First Landing. Which means it’s from another continent.”</p>
+<p>“Another <em>continent?</em>”</p>
+<p>Pisces was staring intently at the letter and at Hawk. The Courier eyed him, but said nothing. He was all business as he offered Olesm the various tools Couriers used to prove their deliveries had occurred, and then nodded.</p>
+<p>“Looks good. Here you go.”</p>
+<p>He handed Olesm the letter. It was thick and the paper looked very costly. Olesm gingerly pulled out a dagger; he’d reuse the paper if he could, and looked at Hawk.</p>
+<p>“You have no idea who this is from?”</p>
+<p>“Probably someone who likes your chess newsletter thing. I hear that it gets good traction among the Drake cities. Didn’t you get a whole bunch of deliveries from the Runner’s Guild after some idiot misspelled your name wrong or something?”</p>
+<p>“Yeah, but no one’s sent a message by <em>Courier—</em>”</p>
+<p>Olesm was fumbling with the plain wax seal. It wasn’t stamped, so whoever wanted to send this didn’t feel like broadcasting to the world who they were. He was thinking about his chess newsletter. Yes, it was certainly possible, but what with all the dangers of the Goblin Lord and so forth, Olesm had completely missed sending his chess games and analysis for the last two weeks. And it wasn’t like his chess newsletters had spread beyond the continent. So who—</p>
+<p>His heart stopped as he pulled out the short message from the envelope. At the top of the creamy, soft paper flecked with bits of gold was an insignia he recognized. It was a wing, or rather, a stylized flowing wing comprised of three colors. Pink, yellow, and green, the same colors as the eyes of their leader. Olesm would have recognized the insignia anywhere as a [Tactician], and the inhaled breaths from Hawk and Pisces showed both recognized it too.</p>
+<p>The banner of the Forgotten Wing company stared up at Olesm. It was one of the Four Great Companies of Baleros. The Forgotten Wing Company. The Iron Vanguard. Maelstrom’s Howling. And the Eyes of Baleros.</p>
+<p>But of the four companies, this one mattered most. Because the greatest [Strategist] in the world led that company. And Olesm’s eyes travelled slowly down the page, skipping the precise, neat handwriting and finding the signature at the bottom.</p>
+<p>Niers Astoragon.</p>
+<p>Olesm looked up. Hawk stared at the letter. Pisces’ face was dead white. The [Mage] stared at the [Tactician]. The [Tactician] stared at the [Mage].</p>
+<p>Hawk the Courier stared for a second longer and then whistled.</p>
+<p>“Cool. That’s great, Olesm. Glad I decided to deliver it. Hey, do you know anything about those Goblins in Erin’s inn? I nearly kicked one when I came through the door. Hello? Guys?”</p>
+<p>He peered at the two stunned chess lovers and shook his head.</p>
+<p>“Never mind. I’ll go ask someone in a tavern. Let me know if you want to send a reply. It’s not listed on the contract, but I could ask. Later!”</p>
+<p>He strode off. That broke the spell around Pisces and Olesm. They stared at each other, earlier arguments forgotten.</p>
+<p>“Well? What does it say?”</p>
+<p>Pisces was peering at the letter. Olesm hesitated, and then showed it to him. The two read it, and their faces turned paler. Olesm went line by line through the letter, muttering out loud in disbelief.</p>
+<p>“To Olesm Swifttail…most impressed by your analysis…quality of the games represented…intriguing endeavor…attached puzzle I have compiled myself? <em>Looking forwards to future publications?</em> A SMALL TOKEN OF MY APPRECIATION!?”</p>
+<p>He reached into the envelope and slowly lifted out a glinting brass ring. The insignia of an eye was set with a tiny diamond in the metal. Pisces stared at it. He stared at Olesm. Olesm threw up his hands. Pisces did likewise. The two screamed, and they began to dance wildly about, shouting in disbelief.</p>
+<p>The people walking down the street halted and stared at the two as Olesm and Pisces danced about, shouting incoherently about chess and Niers and rings. They didn’t care, but it was the subject of much entertainment for everyone watching. Including the young woman and Drake standing down the street, munching on some toasted breadsticks dipped in cheese and watching everything.</p>
+<p>&nbsp;</p>
+<p>&#8212;-</p>
+<p>&nbsp;</p>
+<p>“What are those two idiots doing?”</p>
+<p>Selys and Erin paused as they watched Pisces and Olesm dancing about in the street. Erin shrugged.</p>
+<p>“Dunno. They look happy, though. It’s weird seeing them together, isn’t it?”</p>
+<p>Selys sniffed.</p>
+<p>“Hatchlings are the same wherever you go. Anyways, forget them Erin. You were telling me about the Goblins?”</p>
+<p>“Oh, right!”</p>
+<p>Erin began walking after Selys, leaving the dancing Pisces and Olesm behind. She sighed.</p>
+<p>“It’s a problem. Not them, exactly, but pants.”</p>
+<p>“Pants?”</p>
+<p>“Yeah, we’re having a real pants crisis. They don’t like them. They want to wear their horrible old loincloths, but I made them get rid of them because they were nasty. Really nasty. But they’d rather walk around naked than with pants…”</p>
+<p>“What, really? That’s disg—what do they look like?”</p>
+<p>“<em>Selys!</em>”</p>
+<p>“I’m just asking.”</p>
+<p>“Mrsha lives in my inn!”</p>
+<p>“Ooh. Okay, that’s a problem.”</p>
+<p>“Yeah. She’s learned they’re a weak spot. And she <em>hates</em> the Goblins. So she keeps throwing things at them. She hit Badarrow right in the groin with a pot the other day, and you know what happens when she doesn’t like something. She <em>bites.</em> I want to avoid that. So if you know any good [Tailors]…”</p>
+<p>“Let me introduce you to one right now. Don’t you worry; Aunt Selys is on the job! That’s Aunt Selys for Mrsha, obviously. Don’t call me an Aunt, Erin. It’ll make me feel old.”</p>
+<p>“Aw. Can I call you my cousin?”</p>
+<p>“Maybe…”</p>
+<p>They wandered off. Pisces and Olesm kept dancing, and eventually they stopped. Olesm handed the letter to Pisces, and with a trembling claw, put on the ring.</p>
+<p>&nbsp;</p>
+<hr />
+<p><a href="https://wanderinginn.com/2018/05/15/4-35-e/">Previous Chapter</a> <span style="float:right;"><a href="https://wanderinginn.com/2018/05/19/4-37-o">Next Chapter</a></span></p>
+			</div><!-- .entry-content -->
+
+	<footer class="entry-meta">
+		This entry was posted in <a href="https://wanderinginn.com/tag/writing/" rel="category tag">Writing</a> and tagged <a href="https://wanderinginn.com/tag/fantasy/" rel="tag">fantasy</a>, <a href="https://wanderinginn.com/tag/inn/" rel="tag">inn</a>, <a href="https://wanderinginn.com/tag/web-novel/" rel="tag">web novel</a>, <a href="https://wanderinginn.com/tag/web-serial/" rel="tag">web serial</a>, <a href="https://wanderinginn.com/tag/writing/" rel="tag">Writing</a> by <a href="https://wanderinginn.com/author/pirateaba/">pirateaba</a>. Bookmark the <a href="https://wanderinginn.com/2018/05/17/4-36-o/" title="Permalink to 4.36 O" rel="bookmark">permalink</a>.
+		
+			</footer><!-- .entry-meta -->
+</article><!-- #post-4339 -->
+
+						<div id="comments">
+	
+	
+			<h2 id="comments-title">
+			30 thoughts on &ldquo;<span>4.36 O</span>&rdquo;		</h2>
+
+		
+		<ol class="commentlist">
+					<li class="comment byuser comment-author-pirateaba bypostauthor even thread-even depth-1 highlander-comment" id="li-comment-15768">
+		<article id="comment-15768" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/2f8ac70cd17f11c419846c441769523b?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn"><a href='http://pirateaba.wordpress.com' rel='external nofollow ugc' class='url'>pirateaba</a></span> on <a href="https://wanderinginn.com/2018/05/17/4-36-o/#comment-15768"><time datetime="2018-05-17T07:12:44+00:00">May 17, 2018 at 7:12 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>And heeeeeeeeeeeeeeeeeeere it is! Super early! Incredibly early! Something-must-be-wrong-it&#8217;s-so-early! The monthly chapter!</p>
+<p>But wait, it isn&#8217;t over. This is a two-parter as usual. I uh, had to write it that way. Olesm just has too much to do and this chapter&#8217;s going places after this. Well, a place, actually. I might have to roll it into parts of another POV, but we&#8217;ll see. Maybe&#8230;actually, it&#8217;ll be cool. I can just add more Pisces to mix in with all the Olesm.</p>
+<p>And it is a lot of Olesm, but as you can see, he&#8217;s crossed paths with Pisces and stuff is happening. Stuff! This chapter&#8217;s not meant to reveal anything too dramatic (although Pisces and Olesm might disagree), it&#8217;s meant to serve as window into what those two do when they&#8217;re not hanging around Erin.</p>
+<p>Speaking of which, I have one more note. I&#8217;ve changed some of the names of the Great Companies of Baleroes like I said. Congrats to Iituem, and Fancylee for the inspirations for the renaming of the Centaur and Dullahan companies! I&#8217;ll&#8230;get around to rewriting the older chapters at some point.</p>
+<p>Hope you like this chapter, and look forwards to the next one! I debated releasing this chapter when I wrote it (today, which is around Wednesday/Thursday wherever you are), or waiting till Saturday until I could do a dual release. If you&#8217;re reading this before then, I got bored and decided to release it. Anyways. Thanks for reading! Look forwards to the thrilling conclusion! I promise you that SOMETHING big will be revealed. And it ain&#8217;t the ring.</p>
+<p>Aba out.</p>
+<p>PS: Yes, the Raskghar are reverse werewolves. Smart under the moon, scary at all times.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/05/17/4-36-o/?replytocom=15768#respond' data-commentid="15768" data-postid="4339" data-belowelement="comment-15768" data-respondelement="respond" data-replyto="Reply to pirateaba" aria-label='Reply to pirateaba'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment odd alt depth-2 highlander-comment" id="li-comment-16292">
+		<article id="comment-16292" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/f32ce09800b1111d45ae6f54eee9f131?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">Daniel</span> on <a href="https://wanderinginn.com/2018/05/17/4-36-o/#comment-16292"><time datetime="2018-05-17T08:56:33+00:00">May 17, 2018 at 8:56 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>She bites&#8230; ow&#8230;</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/05/17/4-36-o/?replytocom=16292#respond' data-commentid="16292" data-postid="4339" data-belowelement="comment-16292" data-respondelement="respond" data-replyto="Reply to Daniel" aria-label='Reply to Daniel'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment even depth-2 highlander-comment" id="li-comment-16390">
+		<article id="comment-16390" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/9f25d793579efe0350479a261c44910c?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">Michael</span> on <a href="https://wanderinginn.com/2018/05/17/4-36-o/#comment-16390"><time datetime="2018-05-17T14:57:57+00:00">May 17, 2018 at 2:57 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Hahahah!</p>
+<p>I miss read your last line and spend way too long trying to see how Raskghar was the reverse of werewolves. Sevlowerew x= Rahgksar</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/05/17/4-36-o/?replytocom=16390#respond' data-commentid="16390" data-postid="4339" data-belowelement="comment-16390" data-respondelement="respond" data-replyto="Reply to Michael" aria-label='Reply to Michael'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment odd alt depth-2 highlander-comment" id="li-comment-17524">
+		<article id="comment-17524" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/6fc40c9299a4968df18a9fe64a8808a6?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">Ocean23</span> on <a href="https://wanderinginn.com/2018/05/17/4-36-o/#comment-17524"><time datetime="2018-05-22T15:38:48+00:00">May 22, 2018 at 3:38 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Just to be sure, is this the right order:</p>
+<p>The Armored Legion Company → The Iron Vanguard<br />
+The Flowing Wind Company → Maelstrom’s Howling</p>
+<p>Or is it the other way around?</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/05/17/4-36-o/?replytocom=17524#respond' data-commentid="17524" data-postid="4339" data-belowelement="comment-17524" data-respondelement="respond" data-replyto="Reply to Ocean23" aria-label='Reply to Ocean23'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-barthumphries even depth-2 highlander-comment" id="li-comment-22230">
+		<article id="comment-22230" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/8d85246a3afcd12b78082d478236be49?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn"><a href='http://arrowheaduniversity.wordpress.com' rel='external nofollow ugc' class='url'>BartHumphries</a></span> on <a href="https://wanderinginn.com/2018/05/17/4-36-o/#comment-22230"><time datetime="2018-06-07T05:11:37+00:00">June 7, 2018 at 5:11 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Wait, whose name was changed to what?</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/05/17/4-36-o/?replytocom=22230#respond' data-commentid="22230" data-postid="4339" data-belowelement="comment-22230" data-respondelement="respond" data-replyto="Reply to BartHumphries" aria-label='Reply to BartHumphries'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-pirateaba bypostauthor odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-15769">
+		<article id="comment-15769" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/2f8ac70cd17f11c419846c441769523b?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn"><a href='http://pirateaba.wordpress.com' rel='external nofollow ugc' class='url'>pirateaba</a></span> on <a href="https://wanderinginn.com/2018/05/17/4-36-o/#comment-15769"><time datetime="2018-05-17T07:13:28+00:00">May 17, 2018 at 7:13 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Leave a typo and whether you like Olesm or Pisces more! Not mentioning a name is a vote for Peslas.</p>
+<p>(Pisces fans: Phreak_91, || RadiantLegacy ||, Neceros, MrWiggles, Avocadolph)<br />
+(Peslas fans: gueenee, Waytfm, fancylee, Inspyrous)</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/05/17/4-36-o/?replytocom=15769#respond' data-commentid="15769" data-postid="4339" data-belowelement="comment-15769" data-respondelement="respond" data-replyto="Reply to pirateaba" aria-label='Reply to pirateaba'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment even depth-2 highlander-comment" id="li-comment-16389">
+		<article id="comment-16389" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/2edd48ce4a2bc628ffff0c82333091c8?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">Neceros</span> on <a href="https://wanderinginn.com/2018/05/17/4-36-o/#comment-16389"><time datetime="2018-05-17T14:12:44+00:00">May 17, 2018 at 2:12 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Also, as much as I truly do like Olesm, I&#8217;m afraid I like Pisces more.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/05/17/4-36-o/?replytocom=16389#respond' data-commentid="16389" data-postid="4339" data-belowelement="comment-16389" data-respondelement="respond" data-replyto="Reply to Neceros" aria-label='Reply to Neceros'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment odd alt depth-2 highlander-comment" id="li-comment-16549">
+		<article id="comment-16549" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/86e3313640631187fba06a6cea8c86ee?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">fancylee</span> on <a href="https://wanderinginn.com/2018/05/17/4-36-o/#comment-16549"><time datetime="2018-05-18T22:23:26+00:00">May 18, 2018 at 10:23 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>*or if</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/05/17/4-36-o/?replytocom=16549#respond' data-commentid="16549" data-postid="4339" data-belowelement="comment-16549" data-respondelement="respond" data-replyto="Reply to fancylee" aria-label='Reply to fancylee'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment even depth-2 highlander-comment" id="li-comment-16935">
+		<article id="comment-16935" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/fb4e67b292e1137cb17c6e3f2d8e32db?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">Avocadolph</span> on <a href="https://wanderinginn.com/2018/05/17/4-36-o/#comment-16935"><time datetime="2018-05-19T22:30:25+00:00">May 19, 2018 at 10:30 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Oh, and Pisces is my favorite character.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/05/17/4-36-o/?replytocom=16935#respond' data-commentid="16935" data-postid="4339" data-belowelement="comment-16935" data-respondelement="respond" data-replyto="Reply to Avocadolph" aria-label='Reply to Avocadolph'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-abrahamegolden odd alt depth-2 highlander-comment" id="li-comment-17539">
+		<article id="comment-17539" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/30971d1a1342973b792bd54bcdc09c03?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">T0PH4T</span> on <a href="https://wanderinginn.com/2018/05/17/4-36-o/#comment-17539"><time datetime="2018-05-22T18:22:07+00:00">May 22, 2018 at 6:22 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>“Gnoll breeding strategy. Talk to Gen. Shivertail or Wall Lrd? Concerns—future generations.”</p>
+<p>Think this is supposed to be &#8220;Wall Lord.&#8221;</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/05/17/4-36-o/?replytocom=17539#respond' data-commentid="17539" data-postid="4339" data-belowelement="comment-17539" data-respondelement="respond" data-replyto="Reply to T0PH4T" aria-label='Reply to T0PH4T'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment even depth-3 highlander-comment" id="li-comment-17665">
+		<article id="comment-17665" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/99efe6b9ef1f837257fb6df109c806d3?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">Spectator</span> on <a href="https://wanderinginn.com/2018/05/17/4-36-o/#comment-17665"><time datetime="2018-05-22T20:31:32+00:00">May 22, 2018 at 8:31 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>It looks like shorthand to me, especially since it was basically Olesm taking notes rather than the narrator speaking.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/05/17/4-36-o/?replytocom=17665#respond' data-commentid="17665" data-postid="4339" data-belowelement="comment-17665" data-respondelement="respond" data-replyto="Reply to Spectator" aria-label='Reply to Spectator'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		<li class="comment odd alt depth-2 highlander-comment" id="li-comment-17685">
+		<article id="comment-17685" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/abc3c98abeabb0d1d17d5b41c034aea9?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">Kelrik Kenning</span> on <a href="https://wanderinginn.com/2018/05/17/4-36-o/#comment-17685"><time datetime="2018-05-23T02:15:12+00:00">May 23, 2018 at 2:15 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Olesm spotted Selys and saw there was only one person in front of him. </p>
+<p>I believe dear Sells is female?<br />
+Team Pisces, from the start. Sorry. :P</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/05/17/4-36-o/?replytocom=17685#respond' data-commentid="17685" data-postid="4339" data-belowelement="comment-17685" data-respondelement="respond" data-replyto="Reply to Kelrik Kenning" aria-label='Reply to Kelrik Kenning'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment even depth-2 highlander-comment" id="li-comment-17695">
+		<article id="comment-17695" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/95244734a5e251cb6edd2c3c3b2b11ff?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">Mage meJ</span> on <a href="https://wanderinginn.com/2018/05/17/4-36-o/#comment-17695"><time datetime="2018-05-23T06:25:03+00:00">May 23, 2018 at 6:25 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Olesm though about Ilvriss praising him and the shame and mixed emotions he felt. </p>
+<p>Olesm &#8220;thought&#8221; about &#8230;.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/05/17/4-36-o/?replytocom=17695#respond' data-commentid="17695" data-postid="4339" data-belowelement="comment-17695" data-respondelement="respond" data-replyto="Reply to Mage meJ" aria-label='Reply to Mage meJ'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-tyriantybalt odd alt depth-2 highlander-comment" id="li-comment-55164">
+		<article id="comment-55164" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/779cfd99efd44d7e087f9e00e0ba7aad?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn"><a href='http://tyriantybalt.wordpress.com' rel='external nofollow ugc' class='url'>tyriantybalt</a></span> on <a href="https://wanderinginn.com/2018/05/17/4-36-o/#comment-55164"><time datetime="2019-02-20T17:43:38+00:00">February 20, 2019 at 5:43 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>&#8212;&#8212;&#8212;<br />
+Ilvriss howled with *laugher and banged on the table with the others.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/05/17/4-36-o/?replytocom=55164#respond' data-commentid="55164" data-postid="4339" data-belowelement="comment-55164" data-respondelement="respond" data-replyto="Reply to tyriantybalt" aria-label='Reply to tyriantybalt'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment even depth-2 highlander-comment" id="li-comment-69516">
+		<article id="comment-69516" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/e4f623d82dc3e132ad53f1702402f183?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">Dragonlover</span> on <a href="https://wanderinginn.com/2018/05/17/4-36-o/#comment-69516"><time datetime="2019-10-29T21:56:23+00:00">October 29, 2019 at 9:56 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>“Oh? Like the one you gave Toren before he abandoned Erin and went off and killed a bunch of people?”</p>
+<p>“Oh? Like the one you gave Erin? before he abandoned her and went off and killed a bunch of people?”</p>
+<p>This is my first typo I&#8217;ve found so&#8230; Here you go.</p>
+<p>Also i love Pisces. Keep up the great work!</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/05/17/4-36-o/?replytocom=69516#respond' data-commentid="69516" data-postid="4339" data-belowelement="comment-69516" data-respondelement="respond" data-replyto="Reply to Dragonlover" aria-label='Reply to Dragonlover'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-endocrineinformation odd alt depth-2 highlander-comment" id="li-comment-134270">
+		<article id="comment-134270" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/9595f2018d44188a434c5c3b66ff809d?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn"><a href='http://gravatar.com/endocrineinformation' rel='external nofollow ugc' class='url'>endocrineinformation</a></span> on <a href="https://wanderinginn.com/2018/05/17/4-36-o/#comment-134270"><time datetime="2022-09-30T13:48:40+00:00">September 30, 2022 at 1:48 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>typo: Olesm though about Ilvriss praising him and the shame&#8230; &#8211;&gt; thought</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/05/17/4-36-o/?replytocom=134270#respond' data-commentid="134270" data-postid="4339" data-belowelement="comment-134270" data-respondelement="respond" data-replyto="Reply to endocrineinformation" aria-label='Reply to endocrineinformation'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="li-comment-16320">
+		<article id="comment-16320" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/235faaa361319a71e329bf7efac07291?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Inspyrous</span> on <a href="https://wanderinginn.com/2018/05/17/4-36-o/#comment-16320"><time datetime="2018-05-17T09:08:18+00:00">May 17, 2018 at 9:08 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Joy came to young Olesm and Pisces, and you can give them more, just click to the link below and vote </p>
+<p><a href="http://topwebfiction.com/vote.php?for=the-wandering-inn" rel="nofollow ugc">http://topwebfiction.com/vote.php?for=the-wandering-inn</a></p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/05/17/4-36-o/?replytocom=16320#respond' data-commentid="16320" data-postid="4339" data-belowelement="comment-16320" data-respondelement="respond" data-replyto="Reply to Inspyrous" aria-label='Reply to Inspyrous'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-16382">
+		<article id="comment-16382" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/fa1c06e0e4229c74230525035f531c54?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Kelmi</span> on <a href="https://wanderinginn.com/2018/05/17/4-36-o/#comment-16382"><time datetime="2018-05-17T12:43:18+00:00">May 17, 2018 at 12:43 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Pisces is an adorable asshole while Olesm hasnt got quite as much character developement so far, so it’s gotta be our narcissistic necromancer~</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/05/17/4-36-o/?replytocom=16382#respond' data-commentid="16382" data-postid="4339" data-belowelement="comment-16382" data-respondelement="respond" data-replyto="Reply to Kelmi" aria-label='Reply to Kelmi'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment byuser comment-author-euodiachloris even depth-2 highlander-comment" id="li-comment-17704">
+		<article id="comment-17704" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/d1b85f0e3558b890559682f91dc13615?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn"><a href='http://euodiachloris.wordpress.com' rel='external nofollow ugc' class='url'>Euodiachloris</a></span> on <a href="https://wanderinginn.com/2018/05/17/4-36-o/#comment-17704"><time datetime="2018-05-23T15:37:41+00:00">May 23, 2018 at 3:37 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>It&#8217;s about time the two realised they&#8217;re both serious geeks who desperately need each other to geek properly out with.</p>
+<p>It&#8217;s no fun if you can&#8217;t jabber at 70 wpm with somebody else who has a chance to catch what you&#8217;re geeking out about. *points at their geek-off*</p>
+<p>They both won that one. :)</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/05/17/4-36-o/?replytocom=17704#respond' data-commentid="17704" data-postid="4339" data-belowelement="comment-17704" data-respondelement="respond" data-replyto="Reply to Euodiachloris" aria-label='Reply to Euodiachloris'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-even depth-1 highlander-comment" id="li-comment-16383">
+		<article id="comment-16383" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/2edd48ce4a2bc628ffff0c82333091c8?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Neceros</span> on <a href="https://wanderinginn.com/2018/05/17/4-36-o/#comment-16383"><time datetime="2018-05-17T13:41:54+00:00">May 17, 2018 at 1:41 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>I really hope next chapter involves Olesm consulting with Pisces on the Necromancy aspect of the Goblin Lord.  I&#8217;d very much like to see both of them discuss it, not least because it&#8217;s important enough to warrant quite a bit of discussion.  </p>
+<p>(Also&#8230; is anyone else shipping the two of them, just a little bit?  I just want more LGBT representation in this universe, if I&#8217;m honest, but also they would be kind of a cute prickly couple.)</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/05/17/4-36-o/?replytocom=16383#respond' data-commentid="16383" data-postid="4339" data-belowelement="comment-16383" data-respondelement="respond" data-replyto="Reply to Neceros" aria-label='Reply to Neceros'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment even depth-2 highlander-comment" id="li-comment-39577">
+		<article id="comment-39577" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/3941406b65c78da499d81a55ef53d079?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">Jjames</span> on <a href="https://wanderinginn.com/2018/05/17/4-36-o/#comment-39577"><time datetime="2018-08-10T15:04:23+00:00">August 10, 2018 at 3:04 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Pisces and Olesm? I definitely friend-ship them, but relation-ship? Eh, I don’t see either of them going for it. As for LGBT representation, I’m pretty sure it was implied Krshia is at least bisexual and one of Rags’ captains is gay. We haven’t seen all that many romantic relationships period, which is to be expected considering the premise of most of the POV characters is being dropped into another world.</p>
+<p>What I really want to see is how Individual Antinium handle romantic relationships, gay or straight. Any Individuals’ romantic relationship would likely be with each other, as I doubt they garner much interest outside of their own species&#8230;</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/05/17/4-36-o/?replytocom=39577#respond' data-commentid="39577" data-postid="4339" data-belowelement="comment-39577" data-respondelement="respond" data-replyto="Reply to Jjames" aria-label='Reply to Jjames'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-grekcaan odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-16397">
+		<article id="comment-16397" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/912e2fc1c2b90239b745545c148b8e39?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn"><a href='http://grekran.wordpress.com' rel='external nofollow ugc' class='url'>grekran</a></span> on <a href="https://wanderinginn.com/2018/05/17/4-36-o/#comment-16397"><time datetime="2018-05-17T21:42:44+00:00">May 17, 2018 at 9:42 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Yesss, loved this chapter! I like both Olesm and Pisces, they each need a friend and they could be a great combo in battle. I really enjoyed reading the new Baleros company names, very epic and poetic sounding.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/05/17/4-36-o/?replytocom=16397#respond' data-commentid="16397" data-postid="4339" data-belowelement="comment-16397" data-respondelement="respond" data-replyto="Reply to grekran" aria-label='Reply to grekran'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="li-comment-16398">
+		<article id="comment-16398" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/d801d7816d92c2e74f02f0bfb0036ae3?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">braidertom</span> on <a href="https://wanderinginn.com/2018/05/17/4-36-o/#comment-16398"><time datetime="2018-05-17T21:48:28+00:00">May 17, 2018 at 9:48 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>good thing olesm didn&#8217;t see erin right then, he woulda realized that it was due to her and woulda had to give it up</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/05/17/4-36-o/?replytocom=16398#respond' data-commentid="16398" data-postid="4339" data-belowelement="comment-16398" data-respondelement="respond" data-replyto="Reply to braidertom" aria-label='Reply to braidertom'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-16547">
+		<article id="comment-16547" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/d0db22d0982efddee22c6f9254fae0f8?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Kevin</span> on <a href="https://wanderinginn.com/2018/05/17/4-36-o/#comment-16547"><time datetime="2018-05-18T19:18:14+00:00">May 18, 2018 at 7:18 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Olsem reminds me of myself.  Pisces is wayyy more interesting.  Though I am a sucker for people who stick with their goal/dream no matter the disapproval of others.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/05/17/4-36-o/?replytocom=16547#respond' data-commentid="16547" data-postid="4339" data-belowelement="comment-16547" data-respondelement="respond" data-replyto="Reply to Kevin" aria-label='Reply to Kevin'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="li-comment-17684">
+		<article id="comment-17684" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/453c69ce40c99ad69bae329880cce716?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Valin</span> on <a href="https://wanderinginn.com/2018/05/17/4-36-o/#comment-17684"><time datetime="2018-05-23T01:50:03+00:00">May 23, 2018 at 1:50 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Surprise early chapters!? Best news all week!</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/05/17/4-36-o/?replytocom=17684#respond' data-commentid="17684" data-postid="4339" data-belowelement="comment-17684" data-respondelement="respond" data-replyto="Reply to Valin" aria-label='Reply to Valin'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-22414">
+		<article id="comment-22414" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/7ae14430afb310e425a92675a3055e52?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">HighJumper</span> on <a href="https://wanderinginn.com/2018/05/17/4-36-o/#comment-22414"><time datetime="2018-06-07T09:56:30+00:00">June 7, 2018 at 9:56 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>The Raskghar are VERY interesting. Did you come up with them yourself? Most fantasy uses of Gnolls have treated them like dog-type monsters, without much development, but I thoroughly enjoy the realism you bring to them. The reverse lycanthropy is particularly interesting because Gnolls are so similar to wolves already, so lunar cycles create less of a change, only between wolf and dog. Weredogs would be interesting in their own right, for wolves to become tamer once a month, but adding sentience makes it FASCINATING. </p>
+<p>And since werewolves are those who become like wolves at the full moon, I think the term for these beings who become like Gnolls at the full moon should be wereGnolls.  </p>
+<p>It even sounds like werewolves. Hint, hint, use this term I beg of you, hint, hint. </p>
+<p>It seems a bit like a Ryoka kind of coinage if werewolves are only known in our world, but Erin could come up with it too, and it&#8217;d be right in line with Pisces&#8217; wordplay if he&#8217;s made aware of both werewolves and Raskghar and their similarities.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/05/17/4-36-o/?replytocom=22414#respond' data-commentid="22414" data-postid="4339" data-belowelement="comment-22414" data-respondelement="respond" data-replyto="Reply to HighJumper" aria-label='Reply to HighJumper'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment even depth-2 highlander-comment" id="li-comment-22419">
+		<article id="comment-22419" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/8d85246a3afcd12b78082d478236be49?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn"><a href='http://gravatar.com/barthumphries' rel='external nofollow ugc' class='url'>Bart</a></span> on <a href="https://wanderinginn.com/2018/05/17/4-36-o/#comment-22419"><time datetime="2018-06-07T14:59:49+00:00">June 7, 2018 at 2:59 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>I personally prefer Raskghar over wereGnoll.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/05/17/4-36-o/?replytocom=22419#respond' data-commentid="22419" data-postid="4339" data-belowelement="comment-22419" data-respondelement="respond" data-replyto="Reply to Bart" aria-label='Reply to Bart'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment odd alt depth-3 highlander-comment" id="li-comment-22422">
+		<article id="comment-22422" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/7ae14430afb310e425a92675a3055e52?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">HighJumper</span> on <a href="https://wanderinginn.com/2018/05/17/4-36-o/#comment-22422"><time datetime="2018-06-07T15:23:16+00:00">June 7, 2018 at 3:23 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>As a cooler name for a unique race, definitely. I&#8217;m thinking more as an additional nickname to werewolf-aware people, not as a replacement to Raskghar. Once they separated from the Gnolls they needed a separate name, even before their dark practices or lycanthropic infection or whatever led to their current state. Given the diversity of evolutionary processes, I suspect there might be groups of Raskghar with different characteristics, such as entirely monstrous Raskghar(who don&#8217;t have a lunar cycle of sentience and are therefore not wereGnolls), or less monstrous Raskghar(who have regular lycanthropy or varied lycanthropy instead of the canon reverse lycanthropy for which I have the headcanon nickname), or even not-monstrous Raskghar(an isolated group who reverted back to Gnoll-like permanent sentience, but may still be different enough to remain Raskghar). The story pirateaba is so wonderfully telling has enough tangents already, but I&#8217;d be intrigued by a story of how Gnolls would interact with reformed non-monstrous Raskghar, if such exist.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/05/17/4-36-o/?replytocom=22422#respond' data-commentid="22422" data-postid="4339" data-belowelement="comment-22422" data-respondelement="respond" data-replyto="Reply to HighJumper" aria-label='Reply to HighJumper'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-cdlevit even thread-even depth-1 highlander-comment" id="li-comment-55490">
+		<article id="comment-55490" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/9a908f23a831006705346a0881b90675?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">cdlevit</span> on <a href="https://wanderinginn.com/2018/05/17/4-36-o/#comment-55490"><time datetime="2019-02-25T19:25:48+00:00">February 25, 2019 at 7:25 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>&#8220;&#8221;“Gnoll breeding strategy. Talk to Gen. Shivertail or Wall Lrd? Concerns—future generations.”&#8221; Lord?</p>
+<p>If there are werewolves, what happened with Vampires, there was a short mention of them existing in this novel. Are there higher beings hiding, beside dragons?</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/05/17/4-36-o/?replytocom=55490#respond' data-commentid="55490" data-postid="4339" data-belowelement="comment-55490" data-respondelement="respond" data-replyto="Reply to cdlevit" aria-label='Reply to cdlevit'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment byuser comment-author-ftaku odd alt depth-2 highlander-comment" id="li-comment-87028">
+		<article id="comment-87028" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/1d3da3e06cd42a10e8f7f8197415158c?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn"><a href='http://ftaku.wordpress.com' rel='external nofollow ugc' class='url'>ftaku</a></span> on <a href="https://wanderinginn.com/2018/05/17/4-36-o/#comment-87028"><time datetime="2020-07-22T18:17:10+00:00">July 22, 2020 at 6:17 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Ylvons family with their silver weapons and mines are supposedly a main cause of vampire disappearing</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/05/17/4-36-o/?replytocom=87028#respond' data-commentid="87028" data-postid="4339" data-belowelement="comment-87028" data-respondelement="respond" data-replyto="Reply to ftaku" aria-label='Reply to ftaku'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		</ol>
+
+		
+		
+	
+		<div id="respond" class="comment-respond">
+		<h3 id="reply-title" class="comment-reply-title">Leave a Reply <small><a rel="nofollow" id="cancel-comment-reply-link" href="/2018/05/17/4-36-o/#respond" style="display:none;">Cancel reply</a></small></h3><form action="https://wanderinginn.com/wp-comments-post.php" method="post" id="commentform" class="comment-form"><input type="hidden" id="highlander_comment_nonce" name="highlander_comment_nonce" value="bd33e1bdd8" /><input type="hidden" name="_wp_http_referer" value="/2018/05/17/4-36-o/" />
+<input type="hidden" name="hc_post_as" id="hc_post_as" value="guest" />
+
+<div class="comment-form-field comment-textarea">
+	<label for="comment">Enter your comment here...</label>
+	<div id="comment-form-comment"><textarea id="comment" name="comment" title="Enter your comment here..."></textarea></div>
+</div>
+
+<div id="comment-form-identity">
+	<div id="comment-form-nascar">
+		<p>Fill in your details below or click an icon to log in:</p>
+		<ul>
+			<li class="selected" style="display:none;">
+				<a href="#comment-form-guest" id="postas-guest" class="nascar-signin-link"
+				 title="Login via Guest" 				>
+									</a>
+			</li>
+			<li>
+				<a href="#comment-form-load-service:WordPress.com" id="postas-wordpress" class="nascar-signin-link"
+				 title="Login via WordPress.com" 				>
+					<svg xmlns="http://www.w3.org/2000/svg" role="presentation" viewBox="0 0 24 24" ><rect x="0" fill="none" width="24" height="24"/><g><path fill="#FFF" d="M12.158 12.786l-2.698 7.84c.806.236 1.657.365 2.54.365 1.047 0 2.05-.18 2.986-.51-.024-.037-.046-.078-.065-.123l-2.762-7.57zM3.008 12c0 3.56 2.07 6.634 5.068 8.092L3.788 8.342c-.5 1.117-.78 2.354-.78 3.658zm15.06-.454c0-1.112-.398-1.88-.74-2.48-.456-.74-.883-1.368-.883-2.11 0-.825.627-1.595 1.51-1.595.04 0 .078.006.116.008-1.598-1.464-3.73-2.36-6.07-2.36-3.14 0-5.904 1.613-7.512 4.053.21.008.41.012.58.012.94 0 2.395-.114 2.395-.114.484-.028.54.684.057.74 0 0-.487.058-1.03.086l3.275 9.74 1.968-5.902-1.4-3.838c-.485-.028-.944-.085-.944-.085-.486-.03-.43-.77.056-.742 0 0 1.484.114 2.368.114.94 0 2.397-.114 2.397-.114.486-.028.543.684.058.74 0 0-.488.058-1.03.086l3.25 9.665.897-2.997c.456-1.17.684-2.137.684-2.907zm1.82-3.86c.04.286.06.593.06.924 0 .912-.17 1.938-.683 3.22l-2.746 7.94c2.672-1.558 4.47-4.454 4.47-7.77 0-1.564-.4-3.033-1.1-4.314zM12 22C6.486 22 2 17.514 2 12S6.486 2 12 2s10 4.486 10 10-4.486 10-10 10z"/></g></svg>				</a>
+			</li>
+			<li>
+				<a href="#comment-form-load-service:Twitter" id="postas-twitter" class="nascar-signin-link"
+				 title="Login via Twitter" 				>
+					<svg xmlns="http://www.w3.org/2000/svg" role="presentation" viewBox="0 0 24 24" ><rect x="0" fill="none" width="24" height="24"/><g><path fill="#FFF" d="M22.23 5.924c-.736.326-1.527.547-2.357.646.847-.508 1.498-1.312 1.804-2.27-.793.47-1.67.812-2.606.996C18.325 4.498 17.258 4 16.078 4c-2.266 0-4.103 1.837-4.103 4.103 0 .322.036.635.106.935-3.41-.17-6.433-1.804-8.457-4.287-.353.607-.556 1.312-.556 2.064 0 1.424.724 2.68 1.825 3.415-.673-.022-1.305-.207-1.86-.514v.052c0 1.988 1.415 3.647 3.293 4.023-.344.095-.707.145-1.08.145-.265 0-.522-.026-.773-.074.522 1.63 2.038 2.817 3.833 2.85-1.404 1.1-3.174 1.757-5.096 1.757-.332 0-.66-.02-.98-.057 1.816 1.164 3.973 1.843 6.29 1.843 7.547 0 11.675-6.252 11.675-11.675 0-.178-.004-.355-.012-.53.802-.578 1.497-1.3 2.047-2.124z"/></g></svg>				</a>
+			</li>
+			<li>
+				<a href="#comment-form-load-service:Facebook" id="postas-facebook" class="nascar-signin-link"
+				 title="Login via Facebook" 				>
+					<svg xmlns="http://www.w3.org/2000/svg" role="presentation" viewBox="0 0 24 24" ><rect x="0" fill="none" width="24" height="24"/><g><path fill="#FFF" d="M20.007 3H3.993C3.445 3 3 3.445 3 3.993v16.013c0 .55.445.994.993.994h8.62v-6.97H10.27V11.31h2.346V9.31c0-2.325 1.42-3.59 3.494-3.59.993 0 1.847.073 2.096.106v2.43h-1.438c-1.128 0-1.346.537-1.346 1.324v1.734h2.69l-.35 2.717h-2.34V21h4.587c.548 0 .993-.445.993-.993V3.993c0-.548-.445-.993-.993-.993z"/></g></svg>				</a>
+			</li>
+		</ul>
+	</div>
+
+	<div id="comment-form-guest" class="comment-form-service selected">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+<a href="https://gravatar.com/site/signup/" target="_blank">				<img src="https://1.gravatar.com/avatar/ad516503a11cd5ca435acc9bb6523536?s=25&amp;d=identicon&amp;forcedefault=y&amp;r=PG" alt="Gravatar" width="25" class="no-grav" />
+</a>			</div>
+
+				<div class="comment-form-fields">
+				<div class="comment-form-field comment-form-email">
+					<label for="email">Email <span class="required">(required)</span> <span class="nopublish">(Address never made public)</span></label>
+					<div class="comment-form-input"><input id="email" name="email" type="email" value="" /></div>
+				</div>
+				<div class="comment-form-field comment-form-author">
+					<label for="author">Name <span class="required">(required)</span></label>
+					<div class="comment-form-input"><input id="author" name="author" type="text" value="" /></div>
+				</div>
+				<div class="comment-form-field comment-form-url">
+					<label for="url">Website</label>
+					<div class="comment-form-input"><input id="url" name="url" type="url" value="" /></div>
+				</div>
+			</div>
+			
+		</div>
+	</div>
+
+	<div id="comment-form-wordpress" class="comment-form-service">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+				<img src="https://1.gravatar.com/avatar/ad516503a11cd5ca435acc9bb6523536?s=25&amp;d=identicon&amp;forcedefault=y&amp;r=PG" alt="WordPress.com Logo" width="25" class="no-grav" />
+			</div>
+
+				<div class="comment-form-fields">
+				<input type="hidden" name="wp_avatar" id="wordpress-avatar" class="comment-meta-wordpress" value="" />
+				<input type="hidden" name="wp_user_id" id="wordpress-user_id" class="comment-meta-wordpress" value="" />
+				<input type="hidden" name="wp_access_token" id="wordpress-access_token" class="comment-meta-wordpress" value="" />
+						<p class="comment-form-posting-as pa-wordpress">
+			<strong></strong>
+			You are commenting using your WordPress.com account.			<span class="comment-form-log-out">
+				(&nbsp;<a href="javascript:HighlanderComments.doExternalLogout( 'wordpress' );">Log&nbsp;Out</a>&nbsp;/&nbsp;
+				<a href="#" onclick="javascript:HighlanderComments.switchAccount();return false;">Change</a>&nbsp;)
+			</span>
+			<span class="pa-icon"><svg xmlns="http://www.w3.org/2000/svg" role="presentation" viewBox="0 0 24 24" ><rect x="0" fill="none" width="24" height="24"/><g><path fill="#FFF" d="M12.158 12.786l-2.698 7.84c.806.236 1.657.365 2.54.365 1.047 0 2.05-.18 2.986-.51-.024-.037-.046-.078-.065-.123l-2.762-7.57zM3.008 12c0 3.56 2.07 6.634 5.068 8.092L3.788 8.342c-.5 1.117-.78 2.354-.78 3.658zm15.06-.454c0-1.112-.398-1.88-.74-2.48-.456-.74-.883-1.368-.883-2.11 0-.825.627-1.595 1.51-1.595.04 0 .078.006.116.008-1.598-1.464-3.73-2.36-6.07-2.36-3.14 0-5.904 1.613-7.512 4.053.21.008.41.012.58.012.94 0 2.395-.114 2.395-.114.484-.028.54.684.057.74 0 0-.487.058-1.03.086l3.275 9.74 1.968-5.902-1.4-3.838c-.485-.028-.944-.085-.944-.085-.486-.03-.43-.77.056-.742 0 0 1.484.114 2.368.114.94 0 2.397-.114 2.397-.114.486-.028.543.684.058.74 0 0-.488.058-1.03.086l3.25 9.665.897-2.997c.456-1.17.684-2.137.684-2.907zm1.82-3.86c.04.286.06.593.06.924 0 .912-.17 1.938-.683 3.22l-2.746 7.94c2.672-1.558 4.47-4.454 4.47-7.77 0-1.564-.4-3.033-1.1-4.314zM12 22C6.486 22 2 17.514 2 12S6.486 2 12 2s10 4.486 10 10-4.486 10-10 10z"/></g></svg></span>
+		</p>
+					</div>
+	
+		</div>
+	</div>
+
+	<div id="comment-form-twitter" class="comment-form-service">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+				<img src="https://1.gravatar.com/avatar/ad516503a11cd5ca435acc9bb6523536?s=25&amp;d=identicon&amp;forcedefault=y&amp;r=PG" alt="Twitter picture" width="25" class="no-grav" />
+			</div>
+
+				<div class="comment-form-fields">
+				<input type="hidden" name="twitter_avatar" id="twitter-avatar" class="comment-meta-twitter" value="" />
+				<input type="hidden" name="twitter_user_id" id="twitter-user_id" class="comment-meta-twitter" value="" />
+				<input type="hidden" name="twitter_access_token" id="twitter-access_token" class="comment-meta-twitter" value="" />
+						<p class="comment-form-posting-as pa-twitter">
+			<strong></strong>
+			You are commenting using your Twitter account.			<span class="comment-form-log-out">
+				(&nbsp;<a href="javascript:HighlanderComments.doExternalLogout( 'twitter' );">Log&nbsp;Out</a>&nbsp;/&nbsp;
+				<a href="#" onclick="javascript:HighlanderComments.switchAccount();return false;">Change</a>&nbsp;)
+			</span>
+			<span class="pa-icon"><svg xmlns="http://www.w3.org/2000/svg" role="presentation" viewBox="0 0 24 24" ><rect x="0" fill="none" width="24" height="24"/><g><path fill="#FFF" d="M22.23 5.924c-.736.326-1.527.547-2.357.646.847-.508 1.498-1.312 1.804-2.27-.793.47-1.67.812-2.606.996C18.325 4.498 17.258 4 16.078 4c-2.266 0-4.103 1.837-4.103 4.103 0 .322.036.635.106.935-3.41-.17-6.433-1.804-8.457-4.287-.353.607-.556 1.312-.556 2.064 0 1.424.724 2.68 1.825 3.415-.673-.022-1.305-.207-1.86-.514v.052c0 1.988 1.415 3.647 3.293 4.023-.344.095-.707.145-1.08.145-.265 0-.522-.026-.773-.074.522 1.63 2.038 2.817 3.833 2.85-1.404 1.1-3.174 1.757-5.096 1.757-.332 0-.66-.02-.98-.057 1.816 1.164 3.973 1.843 6.29 1.843 7.547 0 11.675-6.252 11.675-11.675 0-.178-.004-.355-.012-.53.802-.578 1.497-1.3 2.047-2.124z"/></g></svg></span>
+		</p>
+					</div>
+	
+		</div>
+	</div>
+
+	<div id="comment-form-facebook" class="comment-form-service">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+				<img src="" alt="Facebook photo" width="25" class="no-grav" />
+			</div>
+
+				<div class="comment-form-fields">
+				<input type="hidden" name="fb_avatar" id="facebook-avatar" class="comment-meta-facebook" value="" />
+				<input type="hidden" name="fb_user_id" id="facebook-user_id" class="comment-meta-facebook" value="" />
+				<input type="hidden" name="fb_access_token" id="facebook-access_token" class="comment-meta-facebook" value="" />
+						<p class="comment-form-posting-as pa-facebook">
+			<strong></strong>
+			You are commenting using your Facebook account.			<span class="comment-form-log-out">
+				(&nbsp;<a href="javascript:HighlanderComments.doExternalLogout( 'facebook' );">Log&nbsp;Out</a>&nbsp;/&nbsp;
+				<a href="#" onclick="javascript:HighlanderComments.switchAccount();return false;">Change</a>&nbsp;)
+			</span>
+			<span class="pa-icon"><svg xmlns="http://www.w3.org/2000/svg" role="presentation" viewBox="0 0 24 24" ><rect x="0" fill="none" width="24" height="24"/><g><path fill="#FFF" d="M20.007 3H3.993C3.445 3 3 3.445 3 3.993v16.013c0 .55.445.994.993.994h8.62v-6.97H10.27V11.31h2.346V9.31c0-2.325 1.42-3.59 3.494-3.59.993 0 1.847.073 2.096.106v2.43h-1.438c-1.128 0-1.346.537-1.346 1.324v1.734h2.69l-.35 2.717h-2.34V21h4.587c.548 0 .993-.445.993-.993V3.993c0-.548-.445-.993-.993-.993z"/></g></svg></span>
+		</p>
+					</div>
+	
+		</div>
+	</div>
+
+
+	<div id="comment-form-load-service" class="comment-form-service">
+		<div class="comment-form-posting-as-cancel"><a href="javascript:HighlanderComments.cancelExternalWindow();">Cancel</a></div>
+		<p>Connecting to %s</p>
+	</div>
+
+</div>
+
+<script type="text/javascript">
+var highlander_expando_javascript = function () {
+
+	function hide( sel ) {
+		var el = document.querySelector( sel );
+		if ( el ) {
+			el.style.setProperty( 'display', 'none' );
+		}
+	}
+
+	function show( sel ) {
+		var el = document.querySelector( sel );
+		if ( el ) {
+			el.style.removeProperty( 'display' );
+		}
+	}
+
+	var input = document.createElement( 'input' );
+	var comment = document.querySelector( '#comment' );
+
+	if ( input && comment && 'placeholder' in input ) {
+		var label = document.querySelector( '.comment-textarea label' );
+		if ( label ) {
+			var text = label.textContent;
+			label.parentNode.removeChild( label );
+			comment.setAttribute( 'placeholder', text );
+		}
+	}
+
+	// Expando Mode: start small, then auto-resize on first click + text length
+	hide( '#comment-form-identity' );
+	hide( '#comment-form-subscribe' );
+	hide( '#commentform .form-submit' );
+
+	if ( comment ) {
+		comment.style.height = '10px';
+
+		var handler = function () {
+			comment.style.height = HighlanderComments.initialHeight + 'px';
+			show( '#comment-form-identity' );
+			show( '#comment-form-subscribe' );
+			show( '#commentform .form-submit' );
+			HighlanderComments.resizeCallback();
+
+			comment.removeEventListener( 'focus', handler );
+		};
+
+		comment.addEventListener( 'focus', handler );
+	}
+}
+
+if ( document.readyState !== 'loading' ) {
+	highlander_expando_javascript();
+} else {
+	document.addEventListener( 'DOMContentLoaded', highlander_expando_javascript );
+}
+
+</script>
+
+<div id="comment-form-subscribe">
+	<p class="comment-subscription-form"><input type="checkbox" name="subscribe" id="subscribe" value="subscribe" style="width: auto;"/> <label class="subscribe-label" id="subscribe-label" for="subscribe" style="display: inline;">Notify me of new comments via email.</label></p><p class="post-subscription-form"><input type="checkbox" name="subscribe_blog" id="subscribe_blog" value="subscribe" style="width: auto;"/> <label class="subscribe-label" id="subscribe-blog-label" for="subscribe_blog"  style="display: inline;">Notify me of new posts via email.</label></p></div>
+
+
+
+
+<p class="form-submit"><input name="submit" type="submit" id="comment-submit" class="submit button" value="Post Comment" /> <input type='hidden' name='comment_post_ID' value='4339' id='comment_post_ID' />
+<input type='hidden' name='comment_parent' id='comment_parent' value='0' />
+</p><p style="display: none;"><input type="hidden" id="akismet_comment_nonce" name="akismet_comment_nonce" value="5894258eaf" /></p>
+<input type="hidden" name="genseq" value="1664899977" />
+<p style="display: none !important;"><label>&#916;<textarea name="ak_hp_textarea" cols="45" rows="8" maxlength="100"></textarea></label><input type="hidden" id="ak_js_1" name="ak_js" value="76"/><script>document.getElementById( "ak_js_1" ).setAttribute( "value", ( new Date() ).getTime() );</script></p></form>	</div><!-- #respond -->
+	<div style="clear: both"></div>
+</div><!-- #comments -->
+
+				
+			</div><!-- #content -->
+		</div><!-- #primary -->
+
+
+	</div><!-- #main -->
+
+	<footer id="colophon">
+
+			
+
+			<div id="site-generator">
+				 								<a href="https://wordpress.com/?ref=footer_blog" rel="nofollow">Blog at WordPress.com.</a>
+			</div>
+	</footer><!-- #colophon -->
+</div><!-- #page -->
+
+<!--  -->
+<script type="text/javascript">
+	window._tkq = window._tkq || [];
+	if ( Math.random() < 0.01 ) {
+		window._tkq.push( [
+			'recordEvent',
+			'wpcom_wordads_noad',
+			{"theme":"pub\/twentyeleven","blog_id":113840984,"post_id":4339,"reason_noadverts_plugin":1,"reason_upgrade":1,"reason_blog_null":1,"reason_post_null":1}
+		] );
+	}
+</script><script src='//0.gravatar.com/js/gprofiles.js?ver=202240z' id='grofiles-cards-js'></script>
+<script id='wpgroho-js-extra'>
+var WPGroHo = {"my_hash":""};
+</script>
+<script crossorigin='anonymous' type='text/javascript' src='https://s1.wp.com/wp-content/mu-plugins/gravatar-hovercards/wpgroho.js?m=1610363240h'></script>
+
+	<script>
+		// Initialize and attach hovercards to all gravatars
+		( function() {
+			function init() {
+				if ( typeof Gravatar === 'undefined' ) {
+					return;
+				}
+
+				if ( typeof Gravatar.init !== 'function' ) {
+					return;
+				}
+
+				Gravatar.profile_cb = function ( hash, id ) {
+					WPGroHo.syncProfileData( hash, id );
+				};
+
+				Gravatar.my_hash = WPGroHo.my_hash;
+				Gravatar.init( 'body', '#wp-admin-bar-my-account' );
+			}
+
+			if ( document.readyState !== 'loading' ) {
+				init();
+			} else {
+				document.addEventListener( 'DOMContentLoaded', init );
+			}
+		} )();
+	</script>
+
+		<div style="display:none">
+	<div class="grofile-hash-map-2f8ac70cd17f11c419846c441769523b">
+	</div>
+	<div class="grofile-hash-map-f32ce09800b1111d45ae6f54eee9f131">
+	</div>
+	<div class="grofile-hash-map-9f25d793579efe0350479a261c44910c">
+	</div>
+	<div class="grofile-hash-map-6fc40c9299a4968df18a9fe64a8808a6">
+	</div>
+	<div class="grofile-hash-map-8d85246a3afcd12b78082d478236be49">
+	</div>
+	<div class="grofile-hash-map-2edd48ce4a2bc628ffff0c82333091c8">
+	</div>
+	<div class="grofile-hash-map-86e3313640631187fba06a6cea8c86ee">
+	</div>
+	<div class="grofile-hash-map-fb4e67b292e1137cb17c6e3f2d8e32db">
+	</div>
+	<div class="grofile-hash-map-30971d1a1342973b792bd54bcdc09c03">
+	</div>
+	<div class="grofile-hash-map-99efe6b9ef1f837257fb6df109c806d3">
+	</div>
+	<div class="grofile-hash-map-abc3c98abeabb0d1d17d5b41c034aea9">
+	</div>
+	<div class="grofile-hash-map-95244734a5e251cb6edd2c3c3b2b11ff">
+	</div>
+	<div class="grofile-hash-map-779cfd99efd44d7e087f9e00e0ba7aad">
+	</div>
+	<div class="grofile-hash-map-e4f623d82dc3e132ad53f1702402f183">
+	</div>
+	<div class="grofile-hash-map-9595f2018d44188a434c5c3b66ff809d">
+	</div>
+	<div class="grofile-hash-map-235faaa361319a71e329bf7efac07291">
+	</div>
+	<div class="grofile-hash-map-fa1c06e0e4229c74230525035f531c54">
+	</div>
+	<div class="grofile-hash-map-d1b85f0e3558b890559682f91dc13615">
+	</div>
+	<div class="grofile-hash-map-3941406b65c78da499d81a55ef53d079">
+	</div>
+	<div class="grofile-hash-map-912e2fc1c2b90239b745545c148b8e39">
+	</div>
+	<div class="grofile-hash-map-d801d7816d92c2e74f02f0bfb0036ae3">
+	</div>
+	<div class="grofile-hash-map-d0db22d0982efddee22c6f9254fae0f8">
+	</div>
+	<div class="grofile-hash-map-453c69ce40c99ad69bae329880cce716">
+	</div>
+	<div class="grofile-hash-map-7ae14430afb310e425a92675a3055e52">
+	</div>
+	<div class="grofile-hash-map-8d85246a3afcd12b78082d478236be49">
+	</div>
+	<div class="grofile-hash-map-9a908f23a831006705346a0881b90675">
+	</div>
+	<div class="grofile-hash-map-1d3da3e06cd42a10e8f7f8197415158c">
+	</div>
+	</div>
+<script id='highlander-comments-js-extra'>
+var HighlanderComments = {"loggingInText":"Logging In\u2026","submittingText":"Posting Comment\u2026","postCommentText":"Post Comment","connectingToText":"Connecting to %s","commentingAsText":"%1$s: You are commenting using your %2$s account.","logoutText":"Log Out","loginText":"Log In","connectURL":"https:\/\/wanderinginn.wordpress.com\/public.api\/connect\/?action=request&domain=wanderinginn.com","logoutURL":"https:\/\/wanderinginn.wordpress.com\/wp-login.php?action=logout&_wpnonce=027032d4fa","homeURL":"https:\/\/wanderinginn.com\/","postID":"4339","gravDefault":"identicon","enterACommentError":"Please enter a comment","enterEmailError":"Please enter your email address here","invalidEmailError":"Invalid email address","enterAuthorError":"Please enter your name here","gravatarFromEmail":"This picture will show whenever you leave a comment. Click to customize it.","logInToExternalAccount":"Log in to use details from one of these accounts.","change":"Change","changeAccount":"Change Account","comment_registration":"","userIsLoggedIn":"","isJetpack":"","text_direction":"ltr"};
+</script>
+<script crossorigin='anonymous' type='text/javascript' src='https://s0.wp.com/_static/??/wp-content/js/textarea-autosize.min.js,/wp-content/mu-plugins/highlander-comments/script.js?m=1663141412j'></script>
+	<div id="actionbar" style="display: none;"
+			class="actnbr-pub-twentyeleven actnbr-has-follow">
+		<ul>
+								<li class="actnbr-btn actnbr-hidden">
+								<a class="actnbr-action actnbr-actn-follow " href="">
+			<svg class="gridicon gridicons-reader-follow" height="24" width="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g><path d="M23 16v2h-3v3h-2v-3h-3v-2h3v-3h2v3h3zM20 2v9h-4v3h-3v4H4c-1.1 0-2-.9-2-2V2h18zM8 13v-1H4v1h4zm3-3H4v1h7v-1zm0-2H4v1h7V8zm7-4H4v2h14V4z"/></g></svg><span>Follow</span>
+		</a>
+		<a class="actnbr-action actnbr-actn-following  no-display" href="">
+			<svg class="gridicon gridicons-reader-following" height="24" width="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g><path d="M23 13.482L15.508 21 12 17.4l1.412-1.388 2.106 2.188 6.094-6.094L23 13.482zm-7.455 1.862L20 10.89V2H2v14c0 1.1.9 2 2 2h4.538l4.913-4.832 2.095 2.176zM8 13H4v-1h4v1zm3-2H4v-1h7v1zm0-2H4V8h7v1zm7-3H4V4h14v2z"/></g></svg><span>Following</span>
+		</a>
+							<div class="actnbr-popover tip tip-top-left actnbr-notice" id="follow-bubble">
+							<div class="tip-arrow"></div>
+							<div class="tip-inner actnbr-follow-bubble">
+															<ul>
+											<li class="actnbr-sitename">
+			<a href="https://wanderinginn.com">
+				<img alt='' src='https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=50' class='avatar avatar-50' height='50' width='50' />				The Wandering Inn			</a>
+		</li>
+										<form method="post" action="https://subscribe.wordpress.com" accept-charset="utf-8" style="display: none;">
+																						<div class="actnbr-follow-count">Join 2,697 other followers</div>
+																					<div>
+										<input type="email" name="email" placeholder="Enter your email address" class="actnbr-email-field" aria-label="Enter your email address" />
+										</div>
+										<input type="hidden" name="action" value="subscribe" />
+										<input type="hidden" name="blog_id" value="113840984" />
+										<input type="hidden" name="source" value="https://wanderinginn.com/2018/05/17/4-36-o/" />
+										<input type="hidden" name="sub-type" value="actionbar-follow" />
+										<input type="hidden" id="_wpnonce" name="_wpnonce" value="9bb017f338" />										<div class="actnbr-button-wrap">
+											<button type="submit" value="Sign me up">
+												Sign me up											</button>
+										</div>
+									</form>
+									<li class="actnbr-login-nudge">
+										<div>
+											Already have a WordPress.com account? <a href="https://wordpress.com/log-in?redirect_to=https%3A%2F%2Fr-login.wordpress.com%2Fremote-login.php%3Faction%3Dlink%26back%3Dhttps%253A%252F%252Fwanderinginn.com%252F2018%252F05%252F17%252F4-36-o%252F">Log in now.</a>										</div>
+									</li>
+								</ul>
+															</div>
+						</div>
+					</li>
+							<li class="actnbr-ellipsis actnbr-hidden">
+				<svg class="gridicon gridicons-ellipsis" height="24" width="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g><path d="M7 12c0 1.104-.896 2-2 2s-2-.896-2-2 .896-2 2-2 2 .896 2 2zm12-2c-1.104 0-2 .896-2 2s.896 2 2 2 2-.896 2-2-.896-2-2-2zm-7 0c-1.104 0-2 .896-2 2s.896 2 2 2 2-.896 2-2-.896-2-2-2z"/></g></svg>				<div class="actnbr-popover tip tip-top-left actnbr-more">
+					<div class="tip-arrow"></div>
+					<div class="tip-inner">
+						<ul>
+									<li class="actnbr-sitename">
+			<a href="https://wanderinginn.com">
+				<img alt='' src='https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=50' class='avatar avatar-50' height='50' width='50' />				The Wandering Inn			</a>
+		</li>
+								<li class="actnbr-folded-customize">
+								<a href="https://wanderinginn.wordpress.com/wp-admin/customize.php?url=https%3A%2F%2Fwanderinginn.wordpress.com%2F2018%2F05%2F17%2F4-36-o%2F">
+									<svg class="gridicon gridicons-customize" height="20" width="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g><path d="M2 6c0-1.505.78-3.08 2-4 0 .845.69 2 2 2 1.657 0 3 1.343 3 3 0 .386-.08.752-.212 1.09.74.594 1.476 1.19 2.19 1.81L8.9 11.98c-.62-.716-1.214-1.454-1.807-2.192C6.753 9.92 6.387 10 6 10c-2.21 0-4-1.79-4-4zm12.152 6.848l1.34-1.34c.607.304 1.283.492 2.008.492 2.485 0 4.5-2.015 4.5-4.5 0-.725-.188-1.4-.493-2.007L18 9l-2-2 3.507-3.507C18.9 3.188 18.225 3 17.5 3 15.015 3 13 5.015 13 7.5c0 .725.188 1.4.493 2.007L3 20l2 2 6.848-6.848c1.885 1.928 3.874 3.753 5.977 5.45l1.425 1.148 1.5-1.5-1.15-1.425c-1.695-2.103-3.52-4.092-5.448-5.977z"/></g></svg>									<span>Customize</span>
+								</a>
+							</li>
+																<li class="actnbr-folded-follow">
+												<a class="actnbr-action actnbr-actn-follow " href="">
+			<svg class="gridicon gridicons-reader-follow" height="24" width="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g><path d="M23 16v2h-3v3h-2v-3h-3v-2h3v-3h2v3h3zM20 2v9h-4v3h-3v4H4c-1.1 0-2-.9-2-2V2h18zM8 13v-1H4v1h4zm3-3H4v1h7v-1zm0-2H4v1h7V8zm7-4H4v2h14V4z"/></g></svg><span>Follow</span>
+		</a>
+		<a class="actnbr-action actnbr-actn-following  no-display" href="">
+			<svg class="gridicon gridicons-reader-following" height="24" width="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g><path d="M23 13.482L15.508 21 12 17.4l1.412-1.388 2.106 2.188 6.094-6.094L23 13.482zm-7.455 1.862L20 10.89V2H2v14c0 1.1.9 2 2 2h4.538l4.913-4.832 2.095 2.176zM8 13H4v-1h4v1zm3-2H4v-1h7v1zm0-2H4V8h7v1zm7-3H4V4h14v2z"/></g></svg><span>Following</span>
+		</a>
+										</li>
+																	<li class="actnbr-signup"><a href="https://wordpress.com/start/">Sign up</a></li>
+									<li class="actnbr-login"><a href="https://wordpress.com/log-in?redirect_to=https%3A%2F%2Fr-login.wordpress.com%2Fremote-login.php%3Faction%3Dlink%26back%3Dhttps%253A%252F%252Fwanderinginn.com%252F2018%252F05%252F17%252F4-36-o%252F">Log in</a></li>
+																	<li class="actnbr-shortlink"><a href="https://wp.me/p7HFeU-17Z">Copy shortlink</a></li>
+																	<li class="flb-report"><a href="http://en.wordpress.com/abuse/">Report this content</a></li>
+																	<li class="actnbr-reader">
+										<a href="https://wordpress.com/read/blogs/113840984/posts/4339">
+											View post in Reader										</a>
+									</li>
+																	<li class="actnbr-subs">
+										<a href="https://subscribe.wordpress.com/">Manage subscriptions</a>
+									</li>
+																		<li class="actnbr-fold"><a href="">Collapse this bar</a></li>
+															</ul>
+					</div>
+				</div>
+			</li>
+		</ul>
+	</div>
+	
+<script>
+window.addEventListener( "load", function( event ) {
+	var link = document.createElement( "link" );
+	link.href = "https://s0.wp.com/wp-content/mu-plugins/actionbar/actionbar.css?v=20210915";
+	link.type = "text/css";
+	link.rel = "stylesheet";
+	document.head.appendChild( link );
+
+	var script = document.createElement( "script" );
+	script.src = "https://s0.wp.com/wp-content/mu-plugins/actionbar/actionbar.js?v=20220329";
+	script.defer = true;
+	document.body.appendChild( script );
+} );
+</script>
+
+	<script crossorigin='anonymous' type='text/javascript' src='https://s2.wp.com/_static/??-eJx9jd0OwiAMRl9I6AxmixfGRzEMqoFRRij48/ZWk3npXfOdc1J4FOXW3DA3iAwe78FheerIOxAUskvdI3+YW4lEUxVLemkKeZO2nroqqd9CZrBeuJptBbLcsMqlWrVu4X/REpiwKaMHuMjn33CtX9lLe6bTfhwPZpqOg4lvZ0RE/g=='></script>
+<script type="text/javascript">
+// <![CDATA[
+(function() {
+try{
+  if ( window.external &&'msIsSiteMode' in window.external) {
+    if (window.external.msIsSiteMode()) {
+      var jl = document.createElement('script');
+      jl.type='text/javascript';
+      jl.async=true;
+      jl.src='/wp-content/plugins/ie-sitemode/custom-jumplist.php';
+      var s = document.getElementsByTagName('script')[0];
+      s.parentNode.insertBefore(jl, s);
+    }
+  }
+}catch(e){}
+})();
+// ]]>
+</script><script src="//stats.wp.com/w.js?63" defer></script> <script type="text/javascript">
+_tkq = window._tkq || [];
+_stq = window._stq || [];
+_tkq.push(['storeContext', {'blog_id':'113840984','blog_tz':'0','user_lang':'en','blog_lang':'en','user_id':'0'}]);
+_stq.push(['view', {'blog':'113840984','v':'wpcom','tz':'0','user_id':'0','post':'4339','subd':'wanderinginn'}]);
+_stq.push(['extra', {'crypt':'UE40eW5QN0p8M2Y/RE1mNzc2NTVTamdsd0xoLz9RQkM2K298TXY9bERQMXc2MjhEaVZfb2wwakRoSj0mUkp1THptM1NdbkV1WjZIcU9mVWQmPUIvMlN6Jk8wW3NYVEJ3dWZOWExuWD9VNTEucGVTRmZwYTB2ZD82MHd0Y1Y0RlltYWdKeC9TU05lUzUxV1pzZWh8UlVlalotK3A/NWVna2ZGUkZscFhqamFwWmE5eHd3PyVGLEpuPVVoeFtzTFI9RkgtRE9EMFJLdF9aQ1o9aHE9RC5NTV1MT21JP2hXLTFyWT9MLU1VflU1My1OenZjQWdUcDFuRVtOUU15Q1BnOFZsa1RjSml4Ynphfk9KQnE/Jjh1aFN6OVdfRkgreDBBMDlrfkUvL1s3b2c1NkV5UThQUn4lSFtIRzg2P116bVg='}]);
+_stq.push([ 'clickTrackerInit', '113840984', '4339' ]);
+	</script>
+<noscript><img src="https://pixel.wp.com/b.gif?v=noscript" style="height:1px;width:1px;overflow:hidden;position:absolute;bottom:1px;" alt="" /></noscript>
+<script>
+if ( 'object' === typeof wpcom_mobile_user_agent_info ) {
+
+	wpcom_mobile_user_agent_info.init();
+	var mobileStatsQueryString = "";
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedPlatformName )
+		mobileStatsQueryString += "&x_" + 'mobile_platforms' + '=' + wpcom_mobile_user_agent_info.matchedPlatformName;
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedUserAgentName )
+		mobileStatsQueryString += "&x_" + 'mobile_devices' + '=' + wpcom_mobile_user_agent_info.matchedUserAgentName;
+	
+	if( wpcom_mobile_user_agent_info.isIPad() )
+		mobileStatsQueryString += "&x_" + 'ipad_views' + '=' + 'views';
+
+	if( "" != mobileStatsQueryString ) {
+		new Image().src = document.location.protocol + '//pixel.wp.com/g.gif?v=wpcom-no-pv' + mobileStatsQueryString + '&baba=' + Math.random();
+	}
+	
+}
+</script>
+</body>
+</html>

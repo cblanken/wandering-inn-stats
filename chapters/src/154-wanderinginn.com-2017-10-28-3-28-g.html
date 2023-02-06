@@ -1,0 +1,2113 @@
+<!DOCTYPE html>
+<!--[if IE 6]>
+<html id="ie6" lang="en">
+<![endif]-->
+<!--[if IE 7]>
+<html id="ie7" lang="en">
+<![endif]-->
+<!--[if IE 8]>
+<html id="ie8" lang="en">
+<![endif]-->
+<!--[if !(IE 6) & !(IE 7) & !(IE 8)]><!-->
+<html lang="en">
+<!--<![endif]-->
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width" />
+<title>
+3.28 G | The Wandering Inn	</title>
+<link rel="profile" href="https://gmpg.org/xfn/11" />
+<link rel="stylesheet" type="text/css" media="all" href="https://s2.wp.com/wp-content/themes/pub/twentyeleven/style.css?ver=20190507" />
+<link rel="pingback" href="https://wanderinginn.com/xmlrpc.php">
+<!--[if lt IE 9]>
+<script src="https://s2.wp.com/wp-content/themes/pub/twentyeleven/js/html5.js?ver=3.7.0" type="text/javascript"></script>
+<![endif]-->
+<meta name='robots' content='max-image-preview:large' />
+
+<!-- Async WordPress.com Remote Login -->
+<script id="wpcom_remote_login_js">
+var wpcom_remote_login_extra_auth = '';
+function wpcom_remote_login_remove_dom_node_id( element_id ) {
+	var dom_node = document.getElementById( element_id );
+	if ( dom_node ) { dom_node.parentNode.removeChild( dom_node ); }
+}
+function wpcom_remote_login_remove_dom_node_classes( class_name ) {
+	var dom_nodes = document.querySelectorAll( '.' + class_name );
+	for ( var i = 0; i < dom_nodes.length; i++ ) {
+		dom_nodes[ i ].parentNode.removeChild( dom_nodes[ i ] );
+	}
+}
+function wpcom_remote_login_final_cleanup() {
+	wpcom_remote_login_remove_dom_node_classes( "wpcom_remote_login_msg" );
+	wpcom_remote_login_remove_dom_node_id( "wpcom_remote_login_key" );
+	wpcom_remote_login_remove_dom_node_id( "wpcom_remote_login_validate" );
+	wpcom_remote_login_remove_dom_node_id( "wpcom_remote_login_js" );
+	wpcom_remote_login_remove_dom_node_id( "wpcom_request_access_iframe" );
+	wpcom_remote_login_remove_dom_node_id( "wpcom_request_access_styles" );
+}
+
+// Watch for messages back from the remote login
+window.addEventListener( "message", function( e ) {
+	if ( e.origin === "https://r-login.wordpress.com" ) {
+		var data = {};
+		try {
+			data = JSON.parse( e.data );
+		} catch( e ) {
+			wpcom_remote_login_final_cleanup();
+			return;
+		}
+
+		if ( data.msg === 'LOGIN' ) {
+			// Clean up the login check iframe
+			wpcom_remote_login_remove_dom_node_id( "wpcom_remote_login_key" );
+
+			var id_regex = new RegExp( /^[0-9]+$/ );
+			var token_regex = new RegExp( /^.*|.*|.*$/ );
+			if (
+				token_regex.test( data.token )
+				&& id_regex.test( data.wpcomid )
+			) {
+				// We have everything we need to ask for a login
+				var script = document.createElement( "script" );
+				script.setAttribute( "id", "wpcom_remote_login_validate" );
+				script.src = '/remote-login.php?wpcom_remote_login=validate'
+					+ '&wpcomid=' + data.wpcomid
+					+ '&token=' + encodeURIComponent( data.token )
+					+ '&host=' + window.location.protocol
+					+ '//' + window.location.hostname
+					+ '&postid=3539'
+					+ '&is_singular=1';
+				document.body.appendChild( script );
+			}
+
+			return;
+		}
+
+		// Safari ITP, not logged in, so redirect
+		if ( data.msg === 'LOGIN-REDIRECT' ) {
+			window.location = 'https://wordpress.com/log-in?redirect_to=' + window.location.href;
+			return;
+		}
+
+		// Safari ITP, storage access failed, remove the request
+		if ( data.msg === 'LOGIN-REMOVE' ) {
+			var css_zap = 'html { -webkit-transition: margin-top 1s; transition: margin-top 1s; } /* 9001 */ html { margin-top: 0 !important; } * html body { margin-top: 0 !important; } @media screen and ( max-width: 782px ) { html { margin-top: 0 !important; } * html body { margin-top: 0 !important; } }';
+			var style_zap = document.createElement( 'style' );
+			style_zap.type = 'text/css';
+			style_zap.appendChild( document.createTextNode( css_zap ) );
+			document.body.appendChild( style_zap );
+
+			var e = document.getElementById( 'wpcom_request_access_iframe' );
+			e.parentNode.removeChild( e );
+
+			document.cookie = 'wordpress_com_login_access=denied; path=/; max-age=31536000';
+
+			return;
+		}
+
+		// Safari ITP
+		if ( data.msg === 'REQUEST_ACCESS' ) {
+			console.log( 'request access: safari' );
+
+			// Check ITP iframe enable/disable knob
+			if ( wpcom_remote_login_extra_auth !== 'safari_itp_iframe' ) {
+				return;
+			}
+
+			// If we are in a "private window" there is no ITP.
+			var private_window = false;
+			try {
+				var opendb = window.openDatabase( null, null, null, null );
+			} catch( e ) {
+				private_window = true;
+			}
+
+			if ( private_window ) {
+				console.log( 'private window' );
+				return;
+			}
+
+			var iframe = document.createElement( 'iframe' );
+			iframe.id = 'wpcom_request_access_iframe';
+			iframe.setAttribute( 'scrolling', 'no' );
+			iframe.setAttribute( 'sandbox', 'allow-storage-access-by-user-activation allow-scripts allow-same-origin allow-top-navigation-by-user-activation' );
+			iframe.src = 'https://r-login.wordpress.com/remote-login.php?wpcom_remote_login=request_access&origin=' + encodeURIComponent( data.origin ) + '&wpcomid=' + encodeURIComponent( data.wpcomid );
+
+			var css = 'html { -webkit-transition: margin-top 1s; transition: margin-top 1s; } /* 9001 */ html { margin-top: 46px !important; } * html body { margin-top: 46px !important; } @media screen and ( max-width: 660px ) { html { margin-top: 71px !important; } * html body { margin-top: 71px !important; } #wpcom_request_access_iframe { display: block; height: 71px !important; } } #wpcom_request_access_iframe { border: 0px; height: 46px; position: fixed; top: 0; left: 0; width: 100%; min-width: 100%; z-index: 99999; background: #23282d; } ';
+
+			var style = document.createElement( 'style' );
+			style.type = 'text/css';
+			style.id = 'wpcom_request_access_styles';
+			style.appendChild( document.createTextNode( css ) );
+			document.body.appendChild( style );
+
+			document.body.appendChild( iframe );
+		}
+
+		if ( data.msg === 'DONE' ) {
+			wpcom_remote_login_final_cleanup();
+		}
+	}
+}, false );
+
+// Inject the remote login iframe after the page has had a chance to load
+// more critical resources
+window.addEventListener( "DOMContentLoaded", function( e ) {
+	var iframe = document.createElement( "iframe" );
+	iframe.style.display = "none";
+	iframe.setAttribute( "scrolling", "no" );
+	iframe.setAttribute( "id", "wpcom_remote_login_key" );
+	iframe.src = "https://r-login.wordpress.com/remote-login.php"
+		+ "?wpcom_remote_login=key"
+		+ "&origin=aHR0cHM6Ly93YW5kZXJpbmdpbm4uY29t"
+		+ "&wpcomid=113840984"
+		+ "&time=1664899928";
+	document.body.appendChild( iframe );
+}, false );
+</script>
+<link rel='dns-prefetch' href='//s1.wp.com' />
+<link rel='dns-prefetch' href='//wanderinginn.wordpress.com' />
+<link rel='dns-prefetch' href='//s0.wp.com' />
+<link rel='dns-prefetch' href='//s2.wp.com' />
+<link href='https://fonts.gstatic.com' crossorigin rel='preconnect' />
+<link rel="alternate" type="application/rss+xml" title="The Wandering Inn &raquo; Feed" href="https://wanderinginn.com/feed/" />
+<link rel="alternate" type="application/rss+xml" title="The Wandering Inn &raquo; Comments Feed" href="https://wanderinginn.com/comments/feed/" />
+<link rel="alternate" type="application/rss+xml" title="The Wandering Inn &raquo; 3.28 G Comments Feed" href="https://wanderinginn.com/2017/10/28/3-28-g/feed/" />
+	<script type="text/javascript">
+		/* <![CDATA[ */
+		function addLoadEvent(func) {
+			var oldonload = window.onload;
+			if (typeof window.onload != 'function') {
+				window.onload = func;
+			} else {
+				window.onload = function () {
+					oldonload();
+					func();
+				}
+			}
+		}
+		/* ]]> */
+	</script>
+	<script type="text/javascript">
+window._wpemojiSettings = {"baseUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/72x72\/","ext":".png","svgUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/svg\/","svgExt":".svg","source":{"concatemoji":"https:\/\/s0.wp.com\/wp-includes\/js\/wp-emoji-release.min.js?m=1652185836h&ver=6.0.2"}};
+/*! This file is auto-generated */
+!function(e,a,t){var n,r,o,i=a.createElement("canvas"),p=i.getContext&&i.getContext("2d");function s(e,t){var a=String.fromCharCode,e=(p.clearRect(0,0,i.width,i.height),p.fillText(a.apply(this,e),0,0),i.toDataURL());return p.clearRect(0,0,i.width,i.height),p.fillText(a.apply(this,t),0,0),e===i.toDataURL()}function c(e){var t=a.createElement("script");t.src=e,t.defer=t.type="text/javascript",a.getElementsByTagName("head")[0].appendChild(t)}for(o=Array("flag","emoji"),t.supports={everything:!0,everythingExceptFlag:!0},r=0;r<o.length;r++)t.supports[o[r]]=function(e){if(!p||!p.fillText)return!1;switch(p.textBaseline="top",p.font="600 32px Arial",e){case"flag":return s([127987,65039,8205,9895,65039],[127987,65039,8203,9895,65039])?!1:!s([55356,56826,55356,56819],[55356,56826,8203,55356,56819])&&!s([55356,57332,56128,56423,56128,56418,56128,56421,56128,56430,56128,56423,56128,56447],[55356,57332,8203,56128,56423,8203,56128,56418,8203,56128,56421,8203,56128,56430,8203,56128,56423,8203,56128,56447]);case"emoji":return!s([129777,127995,8205,129778,127999],[129777,127995,8203,129778,127999])}return!1}(o[r]),t.supports.everything=t.supports.everything&&t.supports[o[r]],"flag"!==o[r]&&(t.supports.everythingExceptFlag=t.supports.everythingExceptFlag&&t.supports[o[r]]);t.supports.everythingExceptFlag=t.supports.everythingExceptFlag&&!t.supports.flag,t.DOMReady=!1,t.readyCallback=function(){t.DOMReady=!0},t.supports.everything||(n=function(){t.readyCallback()},a.addEventListener?(a.addEventListener("DOMContentLoaded",n,!1),e.addEventListener("load",n,!1)):(e.attachEvent("onload",n),a.attachEvent("onreadystatechange",function(){"complete"===a.readyState&&t.readyCallback()})),(e=t.source||{}).concatemoji?c(e.concatemoji):e.wpemoji&&e.twemoji&&(c(e.twemoji),c(e.wpemoji)))}(window,document,window._wpemojiSettings);
+</script>
+<style type="text/css">
+img.wp-smiley,
+img.emoji {
+	display: inline !important;
+	border: none !important;
+	box-shadow: none !important;
+	height: 1em !important;
+	width: 1em !important;
+	margin: 0 0.07em !important;
+	vertical-align: -0.1em !important;
+	background: none !important;
+	padding: 0 !important;
+}
+</style>
+	<link crossorigin='anonymous' rel='stylesheet' id='all-css-0-1' href='https://s0.wp.com/_static/??-eJylkd1OAyEQhV9IdlyzaeOF8Vn4meBUYAkzWHl7Z5s0Vk2riTeEw8l35gBwrMavRbAI1NQjFYbYVTpsUZ2G8DYv08N0D65TCuDS6l9NItdsG8AyEk6e+Q7+FyQvmD+DqPjUAzIcGDIGspjU1uRLUZMd2EzCaP2YMpXfcfUu9RfoevlTUw1DqXarbMfaxcRG4c/3/xbRrFCJfAXP3ZwTtnfT81ztz/I3sCOFiKI4n/dG8P02UnWMca42ZDa6ZurZnL6FN+45P8273bLsH5d5f/gAOyLUIw==?cssminify=yes' type='text/css' media='all' />
+<style id='wp-block-library-inline-css'>
+.has-text-align-justify {
+	text-align:justify;
+}
+.wp-block-cover__image-background.has-parallax {
+	background-size: cover;
+}
+</style>
+<style id='global-styles-inline-css'>
+body{--wp--preset--color--black: #000;--wp--preset--color--cyan-bluish-gray: #abb8c3;--wp--preset--color--white: #fff;--wp--preset--color--pale-pink: #f78da7;--wp--preset--color--vivid-red: #cf2e2e;--wp--preset--color--luminous-vivid-orange: #ff6900;--wp--preset--color--luminous-vivid-amber: #fcb900;--wp--preset--color--light-green-cyan: #7bdcb5;--wp--preset--color--vivid-green-cyan: #00d084;--wp--preset--color--pale-cyan-blue: #8ed1fc;--wp--preset--color--vivid-cyan-blue: #0693e3;--wp--preset--color--vivid-purple: #9b51e0;--wp--preset--color--blue: #1982d1;--wp--preset--color--dark-gray: #373737;--wp--preset--color--medium-gray: #666;--wp--preset--color--light-gray: #e2e2e2;--wp--preset--gradient--vivid-cyan-blue-to-vivid-purple: linear-gradient(135deg,rgba(6,147,227,1) 0%,rgb(155,81,224) 100%);--wp--preset--gradient--light-green-cyan-to-vivid-green-cyan: linear-gradient(135deg,rgb(122,220,180) 0%,rgb(0,208,130) 100%);--wp--preset--gradient--luminous-vivid-amber-to-luminous-vivid-orange: linear-gradient(135deg,rgba(252,185,0,1) 0%,rgba(255,105,0,1) 100%);--wp--preset--gradient--luminous-vivid-orange-to-vivid-red: linear-gradient(135deg,rgba(255,105,0,1) 0%,rgb(207,46,46) 100%);--wp--preset--gradient--very-light-gray-to-cyan-bluish-gray: linear-gradient(135deg,rgb(238,238,238) 0%,rgb(169,184,195) 100%);--wp--preset--gradient--cool-to-warm-spectrum: linear-gradient(135deg,rgb(74,234,220) 0%,rgb(151,120,209) 20%,rgb(207,42,186) 40%,rgb(238,44,130) 60%,rgb(251,105,98) 80%,rgb(254,248,76) 100%);--wp--preset--gradient--blush-light-purple: linear-gradient(135deg,rgb(255,206,236) 0%,rgb(152,150,240) 100%);--wp--preset--gradient--blush-bordeaux: linear-gradient(135deg,rgb(254,205,165) 0%,rgb(254,45,45) 50%,rgb(107,0,62) 100%);--wp--preset--gradient--luminous-dusk: linear-gradient(135deg,rgb(255,203,112) 0%,rgb(199,81,192) 50%,rgb(65,88,208) 100%);--wp--preset--gradient--pale-ocean: linear-gradient(135deg,rgb(255,245,203) 0%,rgb(182,227,212) 50%,rgb(51,167,181) 100%);--wp--preset--gradient--electric-grass: linear-gradient(135deg,rgb(202,248,128) 0%,rgb(113,206,126) 100%);--wp--preset--gradient--midnight: linear-gradient(135deg,rgb(2,3,129) 0%,rgb(40,116,252) 100%);--wp--preset--duotone--dark-grayscale: url('#wp-duotone-dark-grayscale');--wp--preset--duotone--grayscale: url('#wp-duotone-grayscale');--wp--preset--duotone--purple-yellow: url('#wp-duotone-purple-yellow');--wp--preset--duotone--blue-red: url('#wp-duotone-blue-red');--wp--preset--duotone--midnight: url('#wp-duotone-midnight');--wp--preset--duotone--magenta-yellow: url('#wp-duotone-magenta-yellow');--wp--preset--duotone--purple-green: url('#wp-duotone-purple-green');--wp--preset--duotone--blue-orange: url('#wp-duotone-blue-orange');--wp--preset--font-size--small: 13px;--wp--preset--font-size--medium: 20px;--wp--preset--font-size--large: 36px;--wp--preset--font-size--x-large: 42px;--wp--preset--spacing--20: 0.44rem;--wp--preset--spacing--30: 0.67rem;--wp--preset--spacing--40: 1rem;--wp--preset--spacing--50: 1.5rem;--wp--preset--spacing--60: 2.25rem;--wp--preset--spacing--70: 3.38rem;--wp--preset--spacing--80: 5.06rem;}:where(.is-layout-flex){gap: 0.5em;}body .is-layout-flow > .alignleft{float: left;}body .is-layout-flow > .alignright{float: right;}body .is-layout-flow > .aligncenter{margin-left: auto !important;margin-right: auto !important;}body .is-layout-constrained > .alignleft{float: left;}body .is-layout-constrained > .alignright{float: right;}body .is-layout-constrained > .aligncenter{margin-left: auto !important;margin-right: auto !important;}body .is-layout-constrained > :where(:not(.alignleft):not(.alignright):not(.alignfull)){max-width: var(--wp--style--global--content-size);margin-left: auto !important;margin-right: auto !important;}body .is-layout-constrained > .alignwide{max-width: var(--wp--style--global--wide-size);}body .is-layout-flex{display: flex;}body .is-layout-flex{flex-wrap: wrap;align-items: center;}body .is-layout-flex > *{margin: 0;}:where(.wp-block-columns.is-layout-flex){gap: 2em;}.has-black-color{color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-color{color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-color{color: var(--wp--preset--color--white) !important;}.has-pale-pink-color{color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-color{color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-color{color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-color{color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-color{color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-color{color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-color{color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-color{color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-color{color: var(--wp--preset--color--vivid-purple) !important;}.has-black-background-color{background-color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-background-color{background-color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-background-color{background-color: var(--wp--preset--color--white) !important;}.has-pale-pink-background-color{background-color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-background-color{background-color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-background-color{background-color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-background-color{background-color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-background-color{background-color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-background-color{background-color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-background-color{background-color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-background-color{background-color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-background-color{background-color: var(--wp--preset--color--vivid-purple) !important;}.has-black-border-color{border-color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-border-color{border-color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-border-color{border-color: var(--wp--preset--color--white) !important;}.has-pale-pink-border-color{border-color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-border-color{border-color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-border-color{border-color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-border-color{border-color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-border-color{border-color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-border-color{border-color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-border-color{border-color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-border-color{border-color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-border-color{border-color: var(--wp--preset--color--vivid-purple) !important;}.has-vivid-cyan-blue-to-vivid-purple-gradient-background{background: var(--wp--preset--gradient--vivid-cyan-blue-to-vivid-purple) !important;}.has-light-green-cyan-to-vivid-green-cyan-gradient-background{background: var(--wp--preset--gradient--light-green-cyan-to-vivid-green-cyan) !important;}.has-luminous-vivid-amber-to-luminous-vivid-orange-gradient-background{background: var(--wp--preset--gradient--luminous-vivid-amber-to-luminous-vivid-orange) !important;}.has-luminous-vivid-orange-to-vivid-red-gradient-background{background: var(--wp--preset--gradient--luminous-vivid-orange-to-vivid-red) !important;}.has-very-light-gray-to-cyan-bluish-gray-gradient-background{background: var(--wp--preset--gradient--very-light-gray-to-cyan-bluish-gray) !important;}.has-cool-to-warm-spectrum-gradient-background{background: var(--wp--preset--gradient--cool-to-warm-spectrum) !important;}.has-blush-light-purple-gradient-background{background: var(--wp--preset--gradient--blush-light-purple) !important;}.has-blush-bordeaux-gradient-background{background: var(--wp--preset--gradient--blush-bordeaux) !important;}.has-luminous-dusk-gradient-background{background: var(--wp--preset--gradient--luminous-dusk) !important;}.has-pale-ocean-gradient-background{background: var(--wp--preset--gradient--pale-ocean) !important;}.has-electric-grass-gradient-background{background: var(--wp--preset--gradient--electric-grass) !important;}.has-midnight-gradient-background{background: var(--wp--preset--gradient--midnight) !important;}.has-small-font-size{font-size: var(--wp--preset--font-size--small) !important;}.has-medium-font-size{font-size: var(--wp--preset--font-size--medium) !important;}.has-large-font-size{font-size: var(--wp--preset--font-size--large) !important;}.has-x-large-font-size{font-size: var(--wp--preset--font-size--x-large) !important;}
+:where(.wp-block-columns.is-layout-flex){gap: 2em;}
+.wp-block-pullquote{font-size: 1.5em;line-height: 1.6;}
+.wp-block-navigation a:where(:not(.wp-element-button)){color: inherit;}
+</style>
+<link crossorigin='anonymous' rel='stylesheet' id='all-css-2-1' href='https://s1.wp.com/_static/??-eJyNj8EOwjAMQ3+IEjYBggPiW7YSSlnaVE26an9PuYGQ0G625SfZUJOxHBWjgj4woEAqI2htwYKEM0YYie0kWyuygRV10YXQ1GQ5rGYsE2eB25CnHyYUk6g4HwUcsmljBvUcv4y50+DzPzRju+GadNBaH/YNXcOlO/b9aX/edYfnC0ReZ8I=?cssminify=yes' type='text/css' media='all' />
+<style id='jetpack-global-styles-frontend-style-inline-css'>
+:root { --font-headings: unset; --font-base: unset; --font-headings-default: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif; --font-base-default: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif;}
+</style>
+<link crossorigin='anonymous' rel='stylesheet' id='all-css-4-1' href='https://s0.wp.com/wp-content/themes/h4/global.css?m=1420737423h&cssminify=yes' type='text/css' media='all' />
+<script id='wpcom-actionbar-placeholder-js-extra'>
+var actionbardata = {"siteID":"113840984","siteURL":"https:\/\/wanderinginn.com","xhrURL":"https:\/\/wanderinginn.com\/wp-admin\/admin-ajax.php","nonce":"1ba14e6909","isLoggedIn":"","statusMessage":"","subsEmailDefault":"instantly","proxyScriptUrl":"https:\/\/s0.wp.com\/wp-content\/js\/wpcom-proxy-request.js?ver=20211021","shortlink":"https:\/\/wp.me\/p7HFeU-V5","i18n":{"followedText":"New posts from this site will now appear in your <a href=\"https:\/\/wordpress.com\/read\">Reader<\/a>","foldBar":"Collapse this bar","unfoldBar":"Expand this bar"}};
+</script>
+<script crossorigin='anonymous' type='text/javascript' src='https://s1.wp.com/_static/??/wp-content/js/mobile-useragent-info.js,/wp-content/js/rlt-proxy.js?m=1637704497j'></script>
+<script type='text/javascript'>
+	window.addEventListener( 'DOMContentLoaded', function() {
+		rltInitialize( {"token":null,"iframeOrigins":["https:\/\/widgets.wp.com"]} );
+	} );
+</script>
+<link crossorigin='anonymous' rel='stylesheet' id='all-css-0-2' href='https://s0.wp.com/wp-content/mu-plugins/highlander-comments/style.css?m=1663315160h&cssminify=yes' type='text/css' media='all' />
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="https://wanderinginn.wordpress.com/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="https://s1.wp.com/wp-includes/wlwmanifest.xml" /> 
+<meta name="generator" content="WordPress.com" />
+<link rel="canonical" href="https://wanderinginn.com/2017/10/28/3-28-g/" />
+<link rel='shortlink' href='https://wp.me/p7HFeU-V5' />
+<link rel="alternate" type="application/json+oembed" href="https://public-api.wordpress.com/oembed/?format=json&amp;url=https%3A%2F%2Fwanderinginn.com%2F2017%2F10%2F28%2F3-28-g%2F&amp;for=wpcom-auto-discovery" /><link rel="alternate" type="application/xml+oembed" href="https://public-api.wordpress.com/oembed/?format=xml&amp;url=https%3A%2F%2Fwanderinginn.com%2F2017%2F10%2F28%2F3-28-g%2F&amp;for=wpcom-auto-discovery" />
+<!-- Jetpack Open Graph Tags -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="3.28 G" />
+<meta property="og:url" content="https://wanderinginn.com/2017/10/28/3-28-g/" />
+<meta property="og:description" content="Sometimes, in the silence of her own mind, Rags knew why her kind was so despised across the world. Privately, she could acknowledge the bitter truth. Goblins were weak. They didn’t level as much a…" />
+<meta property="article:published_time" content="2017-10-28T14:39:32+00:00" />
+<meta property="article:modified_time" content="2020-10-23T01:37:13+00:00" />
+<meta property="og:site_name" content="The Wandering Inn" />
+<meta property="og:image" content="https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=200" />
+<meta property="og:image:width" content="200" />
+<meta property="og:image:height" content="200" />
+<meta property="og:image:alt" content="" />
+<meta property="og:locale" content="en_US" />
+<meta property="article:publisher" content="https://www.facebook.com/WordPresscom" />
+<meta name="twitter:text:title" content="3.28 G" />
+<meta name="twitter:image" content="https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=240" />
+<meta name="twitter:card" content="summary" />
+
+<!-- End Jetpack Open Graph Tags -->
+<link rel="search" type="application/opensearchdescription+xml" href="https://wanderinginn.com/osd.xml" title="The Wandering Inn" />
+<link rel="search" type="application/opensearchdescription+xml" href="https://s1.wp.com/opensearch.xml" title="WordPress.com" />
+	<style>
+		/* Link color */
+		a,
+		#site-title a:focus,
+		#site-title a:hover,
+		#site-title a:active,
+		.entry-title a:hover,
+		.entry-title a:focus,
+		.entry-title a:active,
+		.widget_twentyeleven_ephemera .comments-link a:hover,
+		section.recent-posts .other-recent-posts a[rel="bookmark"]:hover,
+		section.recent-posts .other-recent-posts .comments-link a:hover,
+		.format-image footer.entry-meta a:hover,
+		#site-generator a:hover {
+			color: #1583af;
+		}
+		section.recent-posts .other-recent-posts .comments-link a:hover {
+			border-color: #1583af;
+		}
+		article.feature-image.small .entry-summary p a:hover,
+		.entry-header .comments-link a:hover,
+		.entry-header .comments-link a:focus,
+		.entry-header .comments-link a:active,
+		.feature-slider a.active {
+			background-color: #1583af;
+		}
+	</style>
+	<meta name="application-name" content="The Wandering Inn" /><meta name="msapplication-window" content="width=device-width;height=device-height" /><meta name="msapplication-tooltip" content="A tale of a girl, an inn, and a world full of levels." /><meta name="msapplication-task" content="name=Subscribe;action-uri=https://wanderinginn.com/feed/;icon-uri=https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=16" /><meta name="msapplication-task" content="name=Sign up for a free blog;action-uri=http://wordpress.com/signup/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Support;action-uri=http://support.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Forums;action-uri=http://forums.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="description" content="Sometimes, in the silence of her own mind, Rags knew why her kind was so despised across the world. Privately, she could acknowledge the bitter truth. Goblins were weak. They didn’t level as much as other races—because they were cowards, too. They lived hand-to-mouth, eating their own dead, fighting each other over scraps. The strongest&hellip;" />
+<link rel="icon" href="https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=32" sizes="32x32" />
+<link rel="icon" href="https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=192" sizes="192x192" />
+<link rel="apple-touch-icon" href="https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=180" />
+<meta name="msapplication-TileImage" content="https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=270" />
+		<link rel="stylesheet" id="custom-css-css" type="text/css" href="https://s0.wp.com/?custom-css=1&#038;csblog=7HFeU&#038;cscache=6&#038;csrev=3" />
+		<!-- Your Google Analytics Plugin is missing the tracking ID -->
+</head>
+
+<body class="post-template-default single single-post postid-3539 single-format-standard wp-embed-responsive customizer-styles-applied single-author singular two-column right-sidebar highlander-enabled highlander-dark">
+<div class="skip-link"><a class="assistive-text" href="#content">Skip to primary content</a></div><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-dark-grayscale"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0 0.49803921568627" /><feFuncG type="table" tableValues="0 0.49803921568627" /><feFuncB type="table" tableValues="0 0.49803921568627" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-grayscale"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0 1" /><feFuncG type="table" tableValues="0 1" /><feFuncB type="table" tableValues="0 1" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-purple-yellow"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0.54901960784314 0.98823529411765" /><feFuncG type="table" tableValues="0 1" /><feFuncB type="table" tableValues="0.71764705882353 0.25490196078431" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-blue-red"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0 1" /><feFuncG type="table" tableValues="0 0.27843137254902" /><feFuncB type="table" tableValues="0.5921568627451 0.27843137254902" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-midnight"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0 0" /><feFuncG type="table" tableValues="0 0.64705882352941" /><feFuncB type="table" tableValues="0 1" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-magenta-yellow"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0.78039215686275 1" /><feFuncG type="table" tableValues="0 0.94901960784314" /><feFuncB type="table" tableValues="0.35294117647059 0.47058823529412" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-purple-green"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0.65098039215686 0.40392156862745" /><feFuncG type="table" tableValues="0 1" /><feFuncB type="table" tableValues="0.44705882352941 0.4" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-blue-orange"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0.098039215686275 1" /><feFuncG type="table" tableValues="0 0.66274509803922" /><feFuncB type="table" tableValues="0.84705882352941 0.41960784313725" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><div id="page" class="hfeed">
+	<header id="branding">
+			<hgroup>
+				<h1 id="site-title"><span><a href="https://wanderinginn.com/" rel="home">The Wandering Inn</a></span></h1>
+				<h2 id="site-description">A tale of a girl, an inn, and a world full of levels.</h2>
+			</hgroup>
+
+						<a href="https://wanderinginn.com/">
+									<img src="https://wanderinginn.files.wordpress.com/2022/07/cropped-220725_merch_banner_launch-1.png" width="1000" height="296" alt="The Wandering Inn" />
+								</a>
+			
+									<form method="get" id="searchform" action="https://wanderinginn.com/">
+		<label for="s" class="assistive-text">Search</label>
+		<input type="text" class="field" name="s" id="s" placeholder="Search" />
+		<input type="submit" class="submit" name="submit" id="searchsubmit" value="Search" />
+	</form>
+			
+			<nav id="access">
+				<h3 class="assistive-text">Main menu</h3>
+				<div class="menu-menu-1-container"><ul id="menu-menu-1" class="menu"><li id="menu-item-1422" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-home menu-item-1422"><a href="https://wanderinginn.com/">Overview</a></li>
+<li id="menu-item-1912" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1912"><a href="https://wanderinginn.com/table-of-contents/">Table of Contents</a></li>
+<li id="menu-item-1998" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-1998"><a href="https://www.patreon.com/user?u=4240617">Patreon</a></li>
+<li id="menu-item-10438" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-10438"><a href="https://wanderinginn.com/social/">Social</a>
+<ul class="sub-menu">
+	<li id="menu-item-4811" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-4811"><a href="https://discord.gg/abwsa3y">Discord</a></li>
+	<li id="menu-item-4810" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-4810"><a href="https://www.reddit.com/r/WanderingInn/">Reddit</a></li>
+	<li id="menu-item-8944" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-8944"><a href="https://twitter.com/WanderingInn">Twitter</a></li>
+	<li id="menu-item-10440" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-10440"><a href="https://www.facebook.com/thewanderinginn/">Facebook</a></li>
+</ul>
+</li>
+<li id="menu-item-10446" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-10446"><a href="https://wanderinginn.com/publishing-3/">Publishing</a>
+<ul class="sub-menu">
+	<li id="menu-item-10448" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-10448"><a href="https://www.amazon.com/kindle-dbs/entity/author/B07XCYVYMW">E-books</a></li>
+	<li id="menu-item-10447" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-10447"><a href="https://www.audible.com/author/pirate-aba/B07XCYVYMW">Audiobooks</a></li>
+	<li id="menu-item-8761" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-8761"><a href="https://www.cloudscapecomics.com/last-tide/">The Last Tide (Comicbook)</a></li>
+</ul>
+</li>
+<li id="menu-item-1424" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1424"><a href="https://wanderinginn.com/guestbook/">Guestbook</a></li>
+<li id="menu-item-2935" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-2935"><a href="https://wanderinginn.com/fanworks/">Fanworks</a>
+<ul class="sub-menu">
+	<li id="menu-item-8557" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-8557"><a href="https://wanderinginn.com/fanworks-permissions/">Fanworks Permissions</a></li>
+</ul>
+</li>
+<li id="menu-item-1426" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1426"><a href="https://wanderinginn.com/reader-reviews/">Reader Reviews</a></li>
+<li id="menu-item-5002" class="menu-item menu-item-type-post_type menu-item-object-post menu-item-has-children menu-item-5002"><a href="https://wanderinginn.com/2018/10/19/glossary/">Glossary</a>
+<ul class="sub-menu">
+	<li id="menu-item-7035" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-7035"><a href="https://wanderinginn.com/fanworks/#B">Maps</a></li>
+</ul>
+</li>
+<li id="menu-item-5684" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-5684"><a href="https://wanderinginn.com/writing-faqs/">Writing FAQs</a></li>
+<li id="menu-item-11759" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-11759"><a href="https://aubergevagabonde.wordpress.com/">L&#8217;Auberge Vagabonde</a></li>
+<li id="menu-item-11765" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-11765"><a href="https://wanderinginn.com/contacts/">Contacts</a></li>
+<li id="menu-item-12493" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-12493"><a href="https://www.store.wanderinginn.com/">Merch Store</a></li>
+<li id="menu-item-12667" class="menu-item menu-item-type-post_type menu-item-object-post menu-item-12667"><a href="https://wanderinginn.com/2022/09/28/interlude-the-great-race/">Interlude – The Great Race</a></li>
+</ul></div>			</nav><!-- #access -->
+	</header><!-- #branding -->
+
+
+	<div id="main">
+
+		<div id="primary">
+			<div id="content" role="main">
+
+				
+					<nav id="nav-single">
+						<h3 class="assistive-text">Post navigation</h3>
+						<span class="nav-previous"><a href="https://wanderinginn.com/2017/10/26/3-27-m/" rel="prev"><span class="meta-nav">&larr;</span> Previous</a></span>
+						<span class="nav-next"><a href="https://wanderinginn.com/2017/10/31/3-29-g/" rel="next">Next <span class="meta-nav">&rarr;</span></a></span>
+					</nav><!-- #nav-single -->
+
+					
+<article id="post-3539" class="post-3539 post type-post status-publish format-standard hentry category-writing tag-fantasy tag-inn tag-web-novel tag-web-serial tag-writing">
+	<header class="entry-header">
+		<h1 class="entry-title">3.28 G</h1>
+
+				<div class="entry-meta">
+						<span class="sep">Posted on </span><a href="https://wanderinginn.com/2017/10/28/3-28-g/" title="2:39 pm" rel="bookmark"><time class="entry-date" datetime="2017-10-28T14:39:32+00:00">October 28, 2017</time></a><span class="by-author"> <span class="sep"> by </span> <span class="author vcard"><a class="url fn n" href="https://wanderinginn.com/author/pirateaba/" title="View all posts by pirateaba" rel="author">pirateaba</a></span></span>		</div><!-- .entry-meta -->
+			</header><!-- .entry-header -->
+
+	<div class="entry-content">
+		<p>Sometimes, in the silence of her own mind, Rags knew why her kind was so despised across the world. Privately, she could acknowledge the bitter truth.</p>
+<p>Goblins were weak. They didn’t level as much as other races—because they were cowards, too. They lived hand-to-mouth, eating their own dead, fighting each other over scraps. The strongest tribes were still forced to raid the more successful races to survive. Goblins were not creators; they only destroyed.</p>
+<p>That was what she had been told. That was what she had known all her life; the contempt of other species. And Rags had believed it. But oh, if they could see what Goblins had wrought here. In this mountain, Goblinkind had built something greater than their miserable existences. They had created something vast, something <em>new.</em></p>
+<p>A kingdom. Or perhaps, a new sort of tribe.</p>
+<p>That was the only way Rags could think of it. She stared down from the balcony, down a mile to the bottom of the place the Great Goblin Chieftain had claimed as his own. Twisting corridors built into spires of rock that stretched upwards, countless bridges made of rope and stone, and always, always, the hanging lanterns, some unlit, others shedding faint light in the darkness. That was what she saw below her; a vast anarchy stretching downwards, like some strange spider’s web.</p>
+<p>She shivered, feeling a chill from respect as much as awe. Never had she ever seen something like this. This mountain had been hollowed out and made into a dwelling place for tens of thousands of Goblins. It had been built, under the leadership of Tremborag, or perhaps he had stolen it and claimed it as his own. Either way, it was a marvel.</p>
+<p>And it was also a mystery. How could one tribe be so huge and yet, be ruled only by a Chieftain? This was the first of the things Rags pondered on her second day living in this mountain. Her tribe—and all the tribes around Liscor—had officially allied with Tremborag, and now lived in his home. There was plenty of room to spare.</p>
+<p>But back to the Chieftain. Tremborag. He was only the sixth Goblin that Rags had ever known with a name. His tribe was known, fittingly, as the Mountain City Tribe. But Rags had heard him more often referred to as the Great Chieftain’s Tribe.</p>
+<p>Great Chieftain. Rags frowned and spat over the edge of the balcony. She didn’t know if she’d hit someone—no doubt she had. One of the dangers of living in this place was that a careless stone or object dropped from on high could turn into instant death for the Goblins moving about below.</p>
+<p>How could it be? There was no such thing as a Great Chieftain, at least, as far as Rags knew. To be more precise, such an existence should have been impossible.</p>
+<p>Some things all Goblins knew, even odd ones like Garen. You had your tribe, and you were lead by your Chieftain. But…there were other Goblins whose existence was greater than Chieftain. Rags could feel it.</p>
+<p>A Goblin Lord was superior to a Chieftain. Their presence unified tribes, drawing Chieftains to them like a magnet. Unless you opposed one with all your might, Rags was sure any Goblin would end up following a Goblin Lord, even a powerful Chieftain.</p>
+<p>And a Goblin King? Rags knew without a doubt that if one existed—and one did not, she was sure—every Goblin in the world would follow such a person. The desire for a King, a leader, was built into every Goblin deep down.</p>
+<p>So it followed that all Chieftains would eventually become Goblin Lords, and into a Goblin King if they grew strong enough. It wasn’t a choice they would make; it was just nature asserting itself, like how fire burned or how you had to poop after eating.</p>
+<p>But then why had Tremborag not become a Goblin Lord? He could become one, Rags was sure. Like the Goblin Lord to the south, he had a tribe too vast for any Chieftain. Yet he was not a Lord. She would have felt it.</p>
+<p>It made no sense. Like much in this place, really. Rags turned away from the balcony and walked down into a stone corridor. Two shadows walked after her.</p>
+<p>Hobs. The Gold Stone Chieftain and a Hob from his tribe. They were Rags’…bodyguards.</p>
+<p>Again, a foreign concept. But Rags had grown to understand that protection was necessary in this place. For while this tribe was Tremborag’s, it was anything but peaceful.</p>
+<p>There were…<em>factions</em> in this place. Not other tribes; Tremborag’s had been the only one until Rags and the others had arrived. But the various sub-Chieftains who managed parts of the tribes or led their own bands of warriors fought with each other for influence.</p>
+<p>Tremborag was in charge, but there were Hobs and normal Goblins below him who had huge amounts of control over other Goblins. It boggled Rags’ mind to think of it that way, but it made a twisted kind of sense.</p>
+<p>There was no way a Chieftain could manage tens of thousands of Goblins. But…if you assumed he was ruling over other, lesser, sub-Chieftains then it might work. It obviously worked. But it made no sense.</p>
+<p>“Not Goblin.”</p>
+<p>Rags growled the words out loud. The Hob walking behind her flinched, but the bigger, fatter one, didn’t. The Gold Stone Chieftain followed Rags silently, crunching down some rock salt as he walked. He was an odd Hob. He always had something to eat, and he rarely said a word. Actually, that wasn’t uncommon for Goblins, but Rags had noticed the Gold Stone Chieftain’s face rarely changed. He seemed unperturbed by anything.</p>
+<p>But he was loyal. Rags was fairly certain of that, and grateful for it. It meant she had some power in this place.</p>
+<p>Of course, Rags still ruled over her tribe. Only…where was her tribe? She recognized some of her Goblins scurrying down the corridors, carrying wood, helping butcher animal carcasses—or Goblin bodies. But they were scattered, already becoming absorbed into this place. In a very real sense, Rags no longer had a tribe, only her own small faction.</p>
+<p>In some ways, Rags was the exact opposite of Ryoka and more like Erin. She didn’t waste time wondering <em>how</em> all this had happened, she just dealt with the facts. She’d lost her tribe. Tremborag wasn’t her ally and Garen was Garen. She was on her own and she had to find a way to survive in this new place.</p>
+<p>As always. In fact, Rags took this new situation to be a challenge, and so dealt with it calmly and in true Goblin fashion. The first thing she did was go exploring, after making sure she wouldn’t be stabbed in the back. The two Hobs helped in that regard.</p>
+<p>The mountain was <em>vast</em>. From the outside it was obviously huge, but that was in a climbing sense. Inside, Rags couldn’t help but feel she was in an entirely different world. There was so much space! Goblins had taken what was apparently an abandoned Dwarf city and slowly chipped away at the rock walls and ceiling for decades, perhaps centuries, enlarging this place until it was larger than Esthelm or Celum. Perhaps larger than Liscor.</p>
+<p>And like any city, there were places to sleep, places to eat, and places where going to the bathroom was acceptable and places where it was not, although it had to be said Goblins usually didn’t pay attention to that last part. Rags already knew where her and a lot of the new Goblin’s sleeping quarters were; they were higher up near the top.</p>
+<p>She sensed this was another slight, or a sign of their weak position in Tremborag’s tribe. Of course, normally higher meant better, but all the really good things like the exits, the main eating halls and the cooking places and forges were further down, which meant Goblins living near the top had further to go. Plus, it was more dangerous high up where you could fall thousands of feet before you went <em>splat</em> on the ground.</p>
+<p>Rags didn’t mind the height. She kept away from any place without railings or where she might slip. In short order she located another important place in the mountain, one that was again foreign to most Goblins.</p>
+<p>The armory. Rags stared curiously at the four Hobs who stood guard around the doors. She understood vaguely what they were here for. But the presence of the armory herself baffled her.</p>
+<p>She took a step towards the doors and the Hobs tensed. Rags raised her hands to show them she wasn’t trying to get in. They relaxed, and a smaller Goblin came scurrying out, waving his arms frantically.</p>
+<p>“Can’t go in! Go away!”</p>
+<p>He seemed to be in charge of managing the items inside. Rags pointed.</p>
+<p>&nbsp;</p>
+<p><strong>Why? Why needed?</strong></p>
+<p>&nbsp;</p>
+<p>He looked archly at her.</p>
+<p>“For worthy Goblins.”</p>
+<p>Rags frowned at his disdain. She’d spoken in Goblin and he’d refused to use it. It seemed almost every Goblin in this place spoke the common tongue, however broken. Speaking in the actual Goblin tongue was looked down upon, it seemed.</p>
+<p>And worthy Goblins? Rags supposed that fed into the idea of factions too. Any Goblin with Tremborag’s favor—or a lot of influence—could get what they wanted. Anyone else had to fight for what was left over.</p>
+<p>“What is in?”</p>
+<p>The small Goblin—small compared to the Hobs, that was, he was still a bit taller than Rags—shrugged.</p>
+<p>“Can look.”</p>
+<p>The small Goblin meekly approached one of the Hobs. He snorted in irritation, but when he saw Rags and the two Hobs standing at her back he grudgingly opened the door for her to peek inside.</p>
+<p>What Rags saw made her eyes widen. Racks of carefully placed swords hung in order of value, from high-quality steel to blades that looked like the metal had been forged by a true master of the craft.</p>
+<p>Rags had never heard of Damascus steel, but if Ryoka had been here she would have recognized the superiority of some of the blades. Yet these were less important than the few arms that glowed or sparkled or shone in Rags’ vision as magical artifacts. There were few of these, but the swords were just one section of the armory.</p>
+<p>Maces, axes, shields—a collection of bows and armor in all shapes and sizes! Rags saw a pile of books that had to be magical before the Hob shut the door. She stared at him, noting his superior armaments.</p>
+<p>“Very good. Tremborag say, you take. Otherwise—not!”</p>
+<p>The small Goblin ushered Rags back. She took a few steps and pointed towards the doors.</p>
+<p>“Why not give to all Hobs?”</p>
+<p>Why not distribute these weapons among all the warriors? Rags knew they could be of use; for every Hob she’d seen walking around with steel weaponry, she saw ten or twenty warriors with little more than sharpened sticks to fight with. If she equipped a force with what she’d seen inside they’d be many times more powerful.</p>
+<p>“Only worthy Goblins. Only.”</p>
+<p>“Makes no sense.”</p>
+<p>Rags frowned at the Goblin, but he just shrugged and motioned her away. Reluctantly, she left. Did Tremborag fear Goblins would attack him if they had those weapons? Or was it just because he wanted to keep them fighting over such riches? Rags could understand that, but it still felt stupid to her. He was hurting his own tribe by keeping such treasures locked away!</p>
+<p>No sense. Nonsense. It wasn’t the first time Rags had had that thought here. This mountain was so foreign, and Tremborag’s tribe so alien to her.</p>
+<p>Some things made sense. Rags found the huge storage rooms filled with food, preserved by the cold temperatures, and magic runes in a few store rooms! She discovered areas devoted entirely to fletching, or where Goblins would hammer dents out of metal equipment, or clumsily craft things like the lanterns on poles. And of course the huge forge works and kitchens were equally impressive.</p>
+<p>But always Rags was reminded that this place was not united. She saw some Goblins wearing ragged armbands, or tattooed with inks on certain parts of their body to differentiate themselves. All of the [Blacksmiths] seemed to be wearing a bracelet or necklace made of chain, for instance. Clearly they were in some faction that had a monopoly on manufactured arms.</p>
+<p>And the divisions were clearer when Rags ate that night. She ate again with Tremborag and Garen at the head table—this time no one contested her seat, although she felt hostile glares which she easily ignored.</p>
+<p>After a few minutes of eating, Rags glanced at Garen and Tremborag. Both had looked at her a few times, but neither had spoken to her directly. So she raised her voice above the din and spoke to both now.</p>
+<p>“When fight Goblin Lord?”</p>
+<p>Instantly, the length of the table—all those who had heard Rags—went still. All eyes turned to Tremborag. He looked down at Rags and grinned around a mouthful of bloody meat.</p>
+<p>“Ah, you are impatient. Good. But foolish! I have told Garen Redfang this and I will tell you now: if the Goblin Lord comes here we will fight. Otherwise I will not move. It is easy to defend here.”</p>
+<p>Rags saw other Goblins nodding at this, but she frowned. She understood the logic—this mountain was a natural stronghold that would take vast numbers of enemies to crack open. But Tremborag really intended to let the Goblin Lord gain strength while he hid here?</p>
+<p>She looked at Garen. The Hob had shifted in his seat when Tremborag spoke, but he hadn’t openly opposed the Great Chieftain. Rags did, though. She grabbed some cheese and bit into it, chewing and speaking around her mouthful.</p>
+<p>“Should go. Send army. I will go. As leader.”</p>
+<p>It was a blatant challenge. Rags would gladly fight with an army against the Goblin Lord and level if Tremborag was too cowardly to. But he just laughed hugely, making his layers of fat vibrate and bounce.</p>
+<p>“Ah, but who would follow you into battle? One or two Hobs? Your small tribe’s warriors?”</p>
+<p>Tremborag pointed down the table at the Gold Stone Chieftain eating with the few Hobs and warriors loyal to Rags.</p>
+<p>“The Goblin Lord would swat you like a bug, small Rags.”</p>
+<p>He laughed and everyone at the table besides Garen laughed too. Rags bit her tongue. She had seen the bugs that lived around Liscor. Some were acid flies and they exploded when you swatted them. But she waited for Tremborag to finish laughing. He gestured at his hall full of Goblins.</p>
+<p>“You can do nothing, not even with the legendary Garen Redfang. But I have an army as strong as the Goblin Lord’s. Stronger.”</p>
+<p>She wasn’t sure if that was true. But Tremborag’s words had roused his warriors. They banged on the tables, shouting until he raised a hand. The Great Chieftain pointed at Rags, his voice booming.</p>
+<p>“You want to fight the Goblin Lord? Well then. My warriors, my Hobs! Who would fight with Rags? Who would give her their warriors to command?”</p>
+<p>Not a single one of the Goblins sitting at the high table moved. Rags didn’t blush; she just narrowed her eyes at Tremborag as he grinned toothily at her.</p>
+<p>“You see? You have no power here.”</p>
+<p>“I…<em>lead</em>. I am smart. I lead armies!”</p>
+<p>She retorted. Tremborag laughed.</p>
+<p>“You lead? Yes, you have [Tactician]. Garen said. Good. Then we shall see if you are as skilled as Redfang claims. Later.”</p>
+<p>He waved a hand, and the conversation was done. Rags sat and pushed the rest of the cheese into her mouth, washing it down with some kind of pulpy juice, fuming. That was how it was, was it? Tremborag had just told her she had no power.</p>
+<p>She was angry, but the rich food cheered Rags up. Clearly rank had its privileges here. Rags could look at the other Goblins in the huge throne room and see far less sumptuous food available to them. Indeed, some of the hungrier-looking Goblins glanced longingly at those eating at the high table. They had to make do with raw mushrooms, rats, and mass-produced soup that looked like the worst of the meals Rags had eaten when she was young.</p>
+<p>Now that she was more able to take in her surroundings, Rags looked around and counted Hobs. Yes, a lot of them. Over a hundred. Perhaps hundreds of them walked Tremborag’s halls, given that not all Goblins ate at the same time. It was a huge force, but again, a fractured one.</p>
+<p>And most of the Hobs were young. As were most of the Goblins, in truth. In this place which was relatively safe, Goblins still didn’t have long lifespans.</p>
+<p>Then again…Rags had never seen an old Goblin, and she knew some, like the Gold Stone Chieftain, were over ten years old, which <em>was</em> old for a Goblin. But they looked like any other Hob—they didn’t really show their age.</p>
+<p>Except for one. Rags’ attention was caught by a Goblin sitting in a corner of the room. He was seated not at a table but on the ground, a sign of his inferiority. But he—</p>
+<p>He was <em>old</em>. Rags saw he actually had a beard. Some Goblins had hair, but she hadn’t known Goblins could grow <em>beards</em>. But it was white and scraggly and dirty, and it kept getting into the bowl of soup he was eating with his bare hands.</p>
+<p>She wrinkled her nose as she watched the old Goblin eat. He was messy, even by Goblin standards. He had a few teeth, but many were missing. He ate the scraps served to him greedily, laughing and chattering away with the filthy Goblins around him. For some reason, they all looked female.</p>
+<p>Another…faction. She supposed only a very weak one would want a Goblin like him. But it was a sign that some Goblins could live for a long time in this place. Outside, elderly Goblins would simply fall behind or die to monsters or in battle as a matter of course. Again, not that Rags had ever seen one remotely as old as him.</p>
+<p>At the table, the feast was still going on, but Rags wasn’t hungry. She had a smaller belly than any of the other Goblins at the table. She was young. And small. And no one was paying attention to her. That was how she’d been relegated, Rags realized.</p>
+<p>Tremborag and Garen kept their own council and talked to each other in private, and Rags apparently wasn’t important enough to be included in any other discussions. Not that there was anything important happening since they weren’t going to war yet.</p>
+<p>The Great Chieftain and Garen seemed more interested in the little key he possessed. Rags could sense they had some pact of their own, although neither one of them said anything. They just laughed and ate hugely, boasting of their abilities and achievements as they ate.</p>
+<p>She had to admit, she didn’t have the qualities to attract a following out of sheer might. Rags thought about this as she idly sipped more of her drink. She was smart and her tribe was strong, but that mattered little here it seemed. If only she was better with a sword or magic! She was learning both, but slowly. Meanwhile, the two sitting ahead of her were far more powerful than she was.</p>
+<p>Garen was as strong as any Gold-rank adventurer, despite only possessing a magical sword and no armor or rings she could see. Mounted, he was a nightmare to fight thanks to his Skills, and it was clear that he was probably the most powerful Goblin in this place besides Tremborag himself.</p>
+<p>As for the Great Goblin…he could probably just roll over and crush any adventurer he came across. Rags had no idea how strong he was, but she guessed that if she’d shot him with her black crossbow, the bolt wouldn’t have gone through all his layers of fat.</p>
+<p>After dinner, Rags went back to her quarters and sat, dismissing the Gold Stone Chieftain and Hob. She had to think. Here she was in a new environment, and she needed to gain influence. It wasn’t about war and fighting any longer—it was about being respected.</p>
+<p>She’d never had to worry about that in her tribe, even when she wasn’t Chieftain. Rags stared at the stone ceiling, feeling odd. When she was just a Goblin, even if things were bad she was still a Goblin like anyone else. If they were running they all had a chance. There was only the Chieftain and the other Goblins. Other warriors didn’t have more…<em>rights.</em> If they ate more food it was because they fought and needed the energy, not because they were special.</p>
+<p>Rags had seen warriors eating scraps in that room along with normal laboring Goblins. It was all about power, here. Power, which divided a tribe against itself.</p>
+<p>She didn’t like it. But she didn’t have to like it to use it to her advantage. Rags rolled over and slept, dreaming of ways she could gain influence in this mockery of a tribe.</p>
+<p>&nbsp;</p>
+<p>&#8212;-</p>
+<p>&nbsp;</p>
+<p>The next day, Rags met the chief [Shaman] of Tremborag’s tribe. Or rather, the [Shaman] found her. It was surprise visit, but when Rags saw the female Hob wearing paint on her mostly unclothed body and little else, she immediately made time for her.</p>
+<p>She was very nearly naked. Rags had never met another Goblin shaman, so she had no idea if this was customary, but it didn’t seem practical unless they all stayed indoors in the winter. Paint—some kind of chalky colored substance—decorated the female Hob’s skin, creating exotic patterns that hypnotized the eye.</p>
+<p>And other body parts, it seemed. For all the male Goblins the [Shaman] passed—and a good deal of the females—stared with acute interest at her, both at the parts seen and the parts hinted at.</p>
+<p>Rags was young, so she didn’t care. But she was suddenly acutely aware of how other Goblins cared about looks. The Gold Stone Chieftain grunted approvingly as he stared at the [Shaman]’s backside. Rags didn’t see the point so she only scowled when the Goblins impeded their progress with appreciative ogling.</p>
+<p>This was a type of power too, and the [Shaman] flaunted it. That made Rags a bit wary when the Shaman led her to her large and sumptuous quarters, making the two Hobs wait outside.</p>
+<p><em>She</em> had pillows, lots of them. And part of her room was clearly devoted to her craft; Rags saw a lot of items that wouldn’t have looked unfamiliar on an [Alchemist]’s table. She gazed around in interest as the [Shaman] talked with her.</p>
+<p>“You are Rags. A new Goblin and a Chieftain. So young!”</p>
+<p>Rags nodded, meeting the other Goblin’s gaze calmly. She had power too, Rags sensed.</p>
+<p>“You had no Shaman in any of your tribes. Have you never met a Shaman before?”</p>
+<p>“No.”</p>
+<p>She was very fluent, while Rags had to struggle to make herself understood. The [Shaman] smiled sadly.</p>
+<p>“It is not good. Shamans make a tribe strong. Without us, there is only Chieftains and all they can do is hit things.”</p>
+<p>That made Rags smile. The [Shaman] whispered a word, and a ball of light floated from her hands, colors—red, white, green, black—blurring together in a light show. Rags stared at it appreciatively.</p>
+<p>“We have power. We take it from the tribe. You know this?”</p>
+<p>“Yes. Magic. Like this?”</p>
+<p>Rags raised her hand and cast the [Light] spell. The [Shaman] gasped as an orb—perfectly mirroring the one she’d made—floated out of Rags’s palm. The Goblin smiled; she wasn’t so easily impressed by parlor tricks.</p>
+<p>“You have magic. No one told me this.”</p>
+<p>Which told Rags that she was being gossiped about. She shrugged.</p>
+<p>“[Shaman] magic. Is like [Mage]?”</p>
+<p>“Yes. And no. Different. My magics are basic, but strong with numbers. I can cast lightning and burn and create shields. And heal.”</p>
+<p>“Heal?”</p>
+<p>That attracted Rags’ interest. Pisces had taught her the fundamentals of magic and he had told her that healing spells were extremely advanced spells for mages.</p>
+<p>The Shaman nodded.</p>
+<p>“Close flesh. Restore blood. Not fix a missing arm, though. Still useful.”</p>
+<p>“Very.”</p>
+<p>Rags thought about how many healing potions she could save with a [Shaman]. She pointed to the female Hob.</p>
+<p>“Only you? One Shaman?”</p>
+<p>“I am Ulvama. Another five [Shamans] are in the tribe, but I am strongest by far. They can throw fire. I can scorch the earth.”</p>
+<p>So you could have more than one if your tribe was big enough. Rags wondered if she could persuade a [Shaman] to join her tribe, or if Ulvama could teach someone. Could she learn?</p>
+<p>“It is good that you think.”</p>
+<p>Ulvama interrupted Rags’ thought. The [Shaman] leaned forwards and smiled at Rags, as if the two of them were sharing a secret.</p>
+<p>“You are smart. And brave. I saw you challenging the Hob. But Tremborag does not think you are important.”</p>
+<p>“No.”</p>
+<p>Rags scowled. Ulvama smiled deeper.</p>
+<p>“But I do. You need support. Allies. I can be your ally.”</p>
+<p>Rags held still. She eyed Ulvama cautiously. A [Shaman], much less the chief [Shaman] of Tremborag’s tribe would be very useful. But why did Ulvama want to help Rags? Did she really see something in her, as she was hinting?</p>
+<p>Or did she do this to all Chieftains? Was she just playing the odds or did she want something? Rags didn’t know, but she wasn’t one to spit on an offered hand.</p>
+<p>Unless it was someone she hated, like Relc.</p>
+<p>“Ally is good.”</p>
+<p>“Yes. I can speak to other leaders for you. They are not certain if you should be followed or fought. But I can persuade them.”</p>
+<p>Rags was under no illusions as to how Ulvama would do that. She frowned; she’d had the birds and bees explained to her by Erin of all people, although she had no idea why birds would mate with bees. But would the offer of sex really persuade so many?</p>
+<p>“Will work?”</p>
+<p>Ulvama laughed.</p>
+<p>“You are young so you do not know. But it will work, especially since you have a name. That makes you special.”</p>
+<p>Rags nodded proudly. A name was rare, even if the tribe had a [Shaman], she had learned. It was a mark of influence, and here, of power.</p>
+<p>“One thing is strange, though. You have no Shaman but you have a name. Did you come from another tribe? Or did your Shaman die?”</p>
+<p>Rags shook her head.</p>
+<p>“No [Shaman]. Human gave it to me.”</p>
+<p>Ulvama’s eyes widened. She stared at Rags, and then she shook her head sadly.</p>
+<p>“Then it is not a proper name.”</p>
+<p>Rags stared at Ulvama, shocked. She hadn’t <em>liked</em> the name Erin had given her, but it had stuck and she had long since taken it as her own. It was her name!</p>
+<p>“Why not?”</p>
+<p>“Only Shamans can give names. Not Humans.”</p>
+<p>Ulvama said it as if it were obvious. Rags didn’t think this made sense and said so.</p>
+<p>“My name.”</p>
+<p>“I can give you a better one.”</p>
+<p>“No. My name.”</p>
+<p>The two stared at each other, the good mood in the room evaporating like dew. After a moment, Ulvama looked away. She spoke more directly and with less smiles.</p>
+<p>“You will need to gain support from other warriors. Find strong ones; make them your allies or make them yours.”</p>
+<p>“How? Give things?”</p>
+<p>Rags had an idea of how to gain power. Bribing followers, rewarding the faithful, demonstrating ability in combat and elsewhere—but Ulvama shook her head dismissively.</p>
+<p>“Use that.”</p>
+<p>To Rag’s surprise and outrage she reached out and poked Rags between the legs. The Goblin closed her legs instantly and glared at Ulvama.</p>
+<p>“That is mine.”</p>
+<p>She had no interest in sex, especially the way Erin described it. Goblins knew about the link between sex and babies of course; it was hard to miss the connection. But while Rags would have been considered a fine age for giving birth, she didn’t want to. It seemed like a pain.</p>
+<p>“It is the best way for females. Do not be stupid.”</p>
+<p>The Shaman was waspish. She stared at Rags and the Goblin glared back.</p>
+<p>“Sleep with others. Garen Redfang if you can. He will help you for that—all do. Do not be—”</p>
+<p>She was reaching for Rag’s legs. Rags slapped Ulvama’s hand down. The Shaman gasped in outrage. She raised a hand to strike Rags.</p>
+<p>And Rags kicked her.</p>
+<p>Kicking was better than a punch, mainly because people often watched your hands. Rags’s foot slammed into Ulvama’s stomach and the Goblin doubled over, coughing in pain. Rags sneered as she stood over Ulvama. The other Goblin was soft, lazy for all her power.</p>
+<p>“No.”</p>
+<p>When the Shaman looked up there was murder in her eyes. Rags stared down at Ulvama coldly, ready for a fight. She did not want to sleep with anyone, and she had no intention of being told what to do. Ulvama’s eyes blazed. She gathered magic to her in a wave, hissing with anger, ready to blast this upstart Chieftain.</p>
+<p>But Rags had a hand on her sword and the [Firefly] spell burning in her hand. The [Shaman] looked at Rags and the smaller Goblin knew she was wondering if she would be quick enough with her spells, or if Rags would stab her first.</p>
+<p>“Get out.”</p>
+<p>That was all Ulvama said. Rags nodded. She doubted the [Shaman] would be cowardly enough to strike her from behind. She walked towards the door. Then she turned at it.</p>
+<p>“I need no name. I have one.”</p>
+<p>The door slammed as Rags left.</p>
+<p>&nbsp;</p>
+<p>&#8212;-</p>
+<p>&nbsp;</p>
+<p>Rags felt upset and annoyed for hours after meeting Ulvama. She’d been hoping so badly for help, and Ulvama had offered it! But not only had the Shaman denied her name, she’d tried to force Rags to do something she didn’t want to, as if she had no choice. She was no true ally, and Rags had been right to not join up with her.</p>
+<p>But however good it had felt to kick Ulvama, the consequences of Rags’ actions were immediately obvious. When she received the summons to meet Tremborag with the other Goblins to plan a raid on a Human settlement, Rags found a room full of Goblin warriors standing around a map.</p>
+<p>In this, Rags could find no fault. She stared appreciatively at the map of the local area and, of all things, crude figurines arranged around a town on the big stone table. It was a tool for planning attacks, and Rags saw Garen leaning over the table as Tremborag spoke with a Hob who was pushing pieces around.</p>
+<p>When he saw Rags, though, Tremborag grinned at her. She saw other Goblins in the room turn to laugh at her as well and felt uneasy.</p>
+<p>“Ah! Fake Name Goblin! Come.”</p>
+<p>Rags froze mid-step towards the table. She stared at Tremborag. The Goblin laughed at her with his eyes and mouth. She glared at him.</p>
+<p>“I am Rags.”</p>
+<p>“That is not what Ulvama said. She said your name was given to you by a <em>Human.</em>”</p>
+<p>So, this was the Shaman’s revenge. Rags gritted her teeth, but she knew arguing was pointless. She pushed her way towards the table and stared at the pieces.</p>
+<p>“Attack?”</p>
+<p>“A raid. A Human town has many supplies and much food for the winter. I want it. But it is defended by many soldiers and some adventurers. See.”</p>
+<p>He pointed to the map. All business now, Rags listened as another Goblin explained the rough layout of the town. It wasn’t an easy place to attack by any means, she could tell. Stone walls, enchantments on the gates and even a tower spelled to hurl fire—add the Human defenders and she would have avoided it with her tribe.</p>
+<p>But Tremborag had the forces to take the town, and he wanted what was within. He pointed towards the board where a self-satisfied Goblin had arranged the pieces in a rough circle around the city, their means of attack.</p>
+<p>“What do you think, Fake Name Goblin? Garen says you are the best strategist. Can you come up with a better plan?”</p>
+<p>In an instant she could. Rags took one look at the proposed formation and swept it aside. The Goblin made an outraged sound, but she knew his plan had been terrible. All he wanted to do was attack from every side, as if that would immediately overwhelm the stout defenses of the town.</p>
+<p>In this, Tremborag’s Goblins were equal to any other Tribe. Rags sneered as she moved the pieces around. In short order she had a plan of attack that had Garen nodding approvingly. Feint a heavy assault on the gates while other forces surrounded the city. Then—feint a second attack with lots of Hobs on the west wall while the east side saw Goblins snipe the defenders there and rush ladders up with the main strike force.</p>
+<p>There were all kinds of other details of course, and Rags went through each phase of the plan. She paused when she came to the defenders, though.</p>
+<p>“Adventurers in city?”</p>
+<p>“A few. Not nearly as many as the soldiers, though.”</p>
+<p>Tremborag grinned at her. He’d been watching her work in silence. Rags carefully added a few groups of Goblins and Hobs to suppress the small group of adventurers and stood back.</p>
+<p>The other Goblins in the room stared at her plan of attack with grudging approval. Garen grinned openly and nudged Tremborag.</p>
+<p>“You see?”</p>
+<p>“I do. Well then, small Goblin. It seems you are capable of being a Chieftain after all.”</p>
+<p>Rags bared her teeth at the backhanded compliment. He wasn’t going to call her by her name ever again, was he?</p>
+<p>Tremborag smiled as he stared around.</p>
+<p>“Get ready for battle, my warriors! We will attack with many Goblins—and I will go as well.”</p>
+<p>This caused a stir among the Goblins in the room, and in moments all were volunteering to go with Tremborag. He chose only enough for the force Rags had proposed and then looked directly at her.</p>
+<p>“And you will come too. After all, it is your plan.”</p>
+<p>She nodded. Rags felt a bit of excitement burning in her, along with guilt. She’d be killing Humans. But this was a chance to prove herself! She looked Tremborag in the eye and bared her teeth.</p>
+<p>“Of course.”</p>
+<p>&nbsp;</p>
+<p>&#8212;-</p>
+<p>&nbsp;</p>
+<p>They mustered outside of the town just before evening. It wasn’t far to go, hence Tremborag’s desire to attack the town and the Goblins moved fast anyways. Rags found herself relegated to one of the side units, away from most of the fighting. She resented that, but comforted herself in the knowledge that this <em>was</em> her plan.</p>
+<p>Rags stood in the snow, shivering a bit in the leather armor she was wearing—it was very cold—and staring around. A group of warriors, including Tremborag, had been gathered for the decisive actual attack on the eastern walls. They were hiding in a copse of trees. Garen Redfang would attack the western walls with some Hobs so he was not present.</p>
+<p>In truth, neither Tremborag nor Garen were needed for this battle. Rags had gone over the plans; they had brought two Goblins for every one Human, and only some of the defenders could fight. It would be a slaughter either way; it only depended on how many Goblins their side lost in this battle.</p>
+<p>To Rags’ mild surprise, the group she was leading—one of the groups that would go into the city and tie up the Human soldiers—contained a spellcaster like herself. Only, the drooling Goblin who had to be prodded along by one of Tremborag’s warriors was very unlike her.</p>
+<p>For one thing, he had no ears. Someone had cut them off of him, leaving two earholes instead. Rags felt angry when she saw that; she knew some adventurers earned money from Goblin ears. Maybe one of them had done it to this Goblin.</p>
+<p>The Goblin stumbled towards Rags and stared at her blankly. She looked at him in disgust and turned to one of the warriors in her group.</p>
+<p>“Why bring?”</p>
+<p>The warrior shrugged as he examined his chipped sword.</p>
+<p>“Stupid. Head is bad. But can cast spell.”</p>
+<p>Rags stared at the drooling Goblin in doubt. He turned his head blankly towards her and grunted.</p>
+<p>“Ah. Ugn.”</p>
+<p>She wrinkled her nose and turned away. Ahead of her, Tremborag gave the signal and wild horn calls suddenly rent the air around her. The attack had begun.</p>
+<p>The Human town had been peacefully going about its daily routine, safe in the knowledge that so many soldiers and adventurers were gathered here to guard it. But in moments a savage Goblin attack shattered their bubble of complacency. The soldiers on the walls shot down at the masses of Goblins with shields, doing little damage. Goblins swarmed all around, but the Human commander, whoever he was, quickly realized the main push was coming from the western walls.</p>
+<p>Horns blew, men and women shouted orders, and the Goblins in the trees saw the bulk of the defenders go to fight off the Hobs that were assaulting the west side. Now was the time.</p>
+<p>Standing in the back of the ranks of Goblins, Rags only heard the cut off screams as Goblins with high [Archer] levels shot the Humans on the walls and more Goblins rushed forwards with ladders. Tremborag shouted, and suddenly everyone was running.</p>
+<p>Rags raced with her group to a ladder and climbed it nimbly. Above her a warrior choked as an arrow caught him in the chest; he fell and nearly knocked the dimwitted Goblin down with him. Rags cursed and had to pull the stupidly grinning Goblin up.</p>
+<p>Then they were on the walls and in the main town itself. Rags ran with the warriors and two archers down one of the streets; they would stop any of the soldiers trying to help the others.</p>
+<p>In less than a minute Rags saw the first soldiers breaking away from fighting at the gates and walls to fight the Goblins in the city. But they were fragmented, caught off-guard. More of them rushed at the Goblins who’d braced themselves in the streets.</p>
+<p>Goblin archers shot at the soldiers. So did Rags. She still had her black crossbow, and it killed one Human, sending him flying backwards and making the others raise their shields in alarm. But she didn’t have time to reload it so Rags drew her sword and shield instead.</p>
+<p>Before the diminished Human force could clash with the Goblins, the dimwitted Goblin was thrust forwards by the others. They shouted at him and he smiled and pointed towards the Human advance. Rags saw his hands light up—</p>
+<p>And then bolts of electricity shot across the street, striking the Humans, making them cry out in agony. Rags was surprised, but the other Goblins had waited for this moment. After the stupid Goblin lowered his hands they rushed forwards, shouting.</p>
+<p>Sparks of electricity crawled over the Humans in armor, making their arms weak as their muscles spasmed from the shocks. Rags shouted as she ran, and threw a [Firefly] spell at the Human in front of her. He screamed as the flying fire burned him, and then Rags cut his leg and slashed his chest.</p>
+<p>It wasn’t a clean kill. She cut him eight times, dodging backwards as he struck at her, screaming. But like the other Humans he was soon dead, overwhelmed by the Goblin’s knowledge and superior tactics.</p>
+<p>Satisfied, Rags and the other Goblins stepped back, some of them retrieving better quality weapons from the dead. She looked around. Two Goblins had taken injuries, one fairly bad, but none of them had died despite fighting so many Humans. True, they were strong warriors for Goblins, but this was <em>easy.</em></p>
+<p>Then Rags heard the shouts and felt the earth shaking. She turned and saw the adventurers.</p>
+<p>There were only a handful of them, Tremborag had said. Only a handful. But when Rags saw the Goblins who went flying like leaves her heart caught in her chest. Somehow, in some way, the Goblins who had scouted this city had failed to mention one crucial fact, or perhaps Tremborag had failed to mention it to Rags.</p>
+<p>These were <em>Gold</em>-rank adventurers, not Silver.</p>
+<p>As Rags watched, a roaring man with a battleaxe swung, and the ranks of Goblins sent to hold him back went flying. They were like children before his strength, even the Hobs. At his side, a huge woman with a hammer crushed a Hob’s head, smashing right through the shield he’d held up to guard himself.</p>
+<p>They were going to tear right through the Goblin forces in the city! Rags was paralyzed by indecision. They had to be slowed. But the Goblins with her couldn’t manage it! They had to get to Garen, get him into the city with as many Hobs as possible—</p>
+<p>Then she heard a <em>roar</em> which made the two Gold-rank adventurers freeze in fear. Rags turned.</p>
+<p>And saw Tremborag.</p>
+<p>At first, Rags didn’t recognize the Goblin. That was because the Hob had changed entirely. A gargantuan creature, made of muscle and rage charged down the street. Eight feet tall, huge legs cracking the cobblestones as he ran at the adventurers—</p>
+<p>It was the Great Chieftain of the Mountain. Yes, it was. Some of his features were the same. But all the fat had been changed to muscle, and he had become powerful, <em>quick—</em></p>
+<p>The warrior with the hammer raised it with a shout, but she was too slow. Tremborag caught her as he charged and smashed <em>into</em> a house. Rags flinched as wood and stone exploded like hail, and the warrior rushed in after his friend. She and the other Goblins heard shouting, then a scream. A female one. Then a man’s choking voice—</p>
+<p>In the localized sphere of silence, Tremborag walked out of the destroyed house. There was blood on his hands and around his mouth. The Goblins around Rags backed away as he walked towards her.</p>
+<p>“How?”</p>
+<p>That was all she said to the Goblin who stared down at her. Not a Hobgoblin, not a normal Goblin—something else. Some aspect of Goblin she had never heard of before. Tremborag smiled at Rags, and she saw the flesh caught in his teeth. His voice hadn’t changed much, but it was rougher, harsher, as if speaking came harder to him in this form.</p>
+<p>“There are more things in this world that you do not know than know, little Goblin. I am one of them.”</p>
+<p>Then he turned and ran towards where the sound of battle was thickest. Rags stared at his back. She said not a word as the slow Goblin laughed and pointed at something.</p>
+<p>Her knees were shaking.</p>
+<p>&nbsp;</p>
+<p>&#8212;-</p>
+<p>&nbsp;</p>
+<p>When she saw Tremborag again, he was fat and normal, as if what she’d seen was an illusion. He stood, laughing and eating something amid his cheering warriors. They’d killed the last of the Humans and the rest had either fled or—</p>
+<p>Rags still heard screaming, from female voices. She knew what was happening and it bothered her although she felt it shouldn’t. But she was more concerned with Tremborag right now. She approached hesitantly.</p>
+<p>“Ah! There you are.”</p>
+<p>He turned to her almost jovially as Garen Redfang joined them, covered in blood and lightly wounded, but steaming in the cold air with battle lust. Tremborag greeted Garen and then turned to Rags, smiling condescendingly down at her.</p>
+<p>“Not bad, little Goblin. Not good either, though; you underestimated the adventurers. They are stronger than the ones you know.”</p>
+<p>She hadn’t been <em>told</em> about them being Gold-rank! She should have assumed, but this had been a setup. Rags bit her tongue; she didn’t feel able to talk back to Tremborag after what she’d witnessed.</p>
+<p>The Great Goblin Chieftain stared down at her, musingly. He was in a good mood from the easy victory, and so he was magnanimous towards her.</p>
+<p>“You are useful, as Garen said. You have my respect. Pick first and claim whatever you want before the others.”</p>
+<p>He waved his hand to indicate the city. Rags just nodded and turned away. She avoided the places where she heard Humans screaming and Goblins shouting in delight and searched among the dead, feeling wrong on different levels.</p>
+<p>To her annoyance, anything remotely magical had already been claimed by Tremborag or one of his Hobs. Rags hunted about and found a wicked axe made of steel, a valuable weapon. But she didn’t keep it for herself.</p>
+<p>Instead, upon returning to the mountain with all their spoils, Rags searched for the Gold Stone Chieftain. He hadn’t been included on the raid. But she gave the steel axe to the Gold Stone Chieftain, who immediately discarded the somewhat blunted iron axe he’d been using in favor of this one.</p>
+<p>It was a good move, Rags knew. It showed the other Goblins she rewarded her followers, and that she wasn’t greedy like others. She felt proud of her decision—and immediately angry that she had to make it to fight for influence here. And she still felt a bit wrong.</p>
+<p>Because of the Human women.</p>
+<p>They’d been captured, over a hundred of them. Many civilians had fled or been killed, but some had been captured. The men had been killed, or so Rags believed. But the women—</p>
+<p>They were somewhere in the mountain. Somewhere, being raped. That was what Rags knew, and she tried to not think about it too hard.</p>
+<p>It wasn’t her business. Some goblins did that. Garen’s tribe didn’t and she hadn’t had to face the issue with her tribes yet, but—</p>
+<p>She was too busy fighting for influence here to worry about Humans! Rags considered her new state of affairs as she grumpily ate food by herself. She had declined to go to the throne hall to feast; she was instead eating in a smaller room where Goblins could choose to take their meals.</p>
+<p>The battle had been a victory, a huge success, it was true. But somehow, it wasn’t <em>her</em> victory. Rags had planned the battle and it had gone well, and for that she sensed her value as a strategist had been established.</p>
+<p>But Tremborag had altered perceptions by tricking her! Instead of a flawless battle, she’d been portrayed as stupid to forget the Gold-rank adventurers, lessening her worth. She had still gained from this, but—</p>
+<p>Rags looked up as a Goblin stumbled into the room she was sitting in. No Goblin had chosen to eat here but her; they were all gorging themselves in the throne room with Tremborag. But someone had decided to eat here.</p>
+<p>The dimwitted Goblin. He looked around vacantly, holding a bowl of soup in his hands. He spotted Rags and lurched towards her, smiling stupidly. Rags gritted her teeth, but she didn’t kick him away as he sat near to her. He gulped his soup greedily, his eyes unfocused.</p>
+<p>She tried to ignore him. Rags was still thinking about the Human women. She’d seen them, although she hadn’t intended to, forced along at sword-point, some naked. A few had tried to kill themselves fighting rather than be taken, but they’d been overwhelmed and—</p>
+<p>Not her business. Rags gritted her teeth. She stabbed angrily at the bloody meat on her plate. It was from a sheep and it was hot. She should eat it and find Ulvama. Maybe she could beat the stupid Shaman into—</p>
+<p>“Flowing Water Chieftain. Will you speak with me?”</p>
+<p>Rags <em>jerked</em> in surprise. She twisted, and saw the dimwitted Goblin without ears looking at her. Straight <em>at </em>her. And his eyes were no longer unfocused. Her hand went to her sword, but the other Goblin hadn’t moved to hurt her. She stared as the mindless, gibbering wreck suddenly sat up and stared at her with keen, piercing intelligence.</p>
+<p>“You.”</p>
+<p>“I.”</p>
+<p>He agreed, smiling at her. Rags stared at him warily and slowly let go of her sword.</p>
+<p>“Act.”</p>
+<p>“Yes.”</p>
+<p>They stared at each other. Rags’ mind worked at the speed of light.</p>
+<p>“Why pretend?”</p>
+<p>“Hiding. I am [Spellcaster] to them. Weak. Stupid. But I am [Mage] to you. Stronger than I seem.”</p>
+<p>“Why speak to me?”</p>
+<p>“Because you are different. I am taking risk. Would like to give you advice.”</p>
+<p>Rags paused. She stared at him and thought of the difference between his approach and Ulvama’s. She nodded slowly.</p>
+<p>“Tell.”</p>
+<p>“Do not sit with Tremborag tonight. Do not be proud. Be humble. Small.”</p>
+<p>Her eyes narrowed.</p>
+<p>“Why?”</p>
+<p>He smiled at her, exposing missing teeth.</p>
+<p>“Is better that way. You are <em>too</em> smart, too quick. You may be threat, you foreign Chieftain. And if you are…Tremborag will crush his enemies with more than fists.”</p>
+<p>Rags considered this. It made sense. Tremborag was deliberately testing her, diminishing her worth. It might be a better move to pretend to be cowed by his displays of strength, although she hadn’t considered it before. She narrowed her eyes at the other Goblin. And yet…</p>
+<p>He was strong. If he was a better spellcaster than he pretended to be, he was on the level of any Hob in terms of value, perhaps more. He could be powerful. She pointed at him accusingly.</p>
+<p>“Why you not fight? Why not stand proud? Why…<em>coward?</em>”</p>
+<p>“I tried.”</p>
+<p>He tapped his ragged earholes and grinned at her. Rags paused. She stared at his ears.</p>
+<p>Adventurers cut off Goblin ears. For that, <em>they</em> were monsters. But she had never heard of Goblins doing it to each other. Goblins killed one another as necessary. They did not mutilate. They did not torture.</p>
+<p><em>But they did rape Humans.</em></p>
+<p>She banished the thought. Rags stared at the Goblin [Mage] and nodded slowly.</p>
+<p>“I will think. And not tell.”</p>
+<p>“Good. Think hard, strange Chieftain.”</p>
+<p>That was all he said. She and he went back to their meals. When they were done, Rags stood up.</p>
+<p>The Goblin stared at her. His eyes were unfocused again and he grunted seemingly in surprise when she moved past him.</p>
+<p>“Ugn.”</p>
+<p>He stared at her vacantly. This time Rags was not fooled. She nodded to him and strode off, thinking hard.</p>
+<p>That night, Rags didn’t go to the high table. She instead ate with the Gold Stone Chieftain in a far more crowded part of the hall, as if she was cowed and humbled by her mistakes. She sensed countless eyes on her, but did and said little. She was thinking and watching instead.</p>
+<p>Next to her, the Gold Stone Chieftain ate his food as stolidly as ever. He didn’t react to Rags’ presence; he’d just scooted over when she’d walked over without a word. Only one thing he’d done had surprised her that night.</p>
+<p>When they’d been eating the Gold Stone Chieftain had stopped a passing Goblin. The old one. He was…or had been…a Hob, but he looked pathetic compared to all the others. But the Gold Stone Chieftain had called out to him nevertheless.</p>
+<p>&nbsp;</p>
+<p><strong>Old one. Sit.</strong></p>
+<p>&nbsp;</p>
+<p>And so Rags found herself sitting across from the old Goblin. He ate messily, burped loudly, and said little; he annoyed Rags more than anything else because he kept staring at her. So did all the other Goblins, to be fair.</p>
+<p>She could tell that her absence from the high table had been noted. By everyone. Rags hoped the other Goblins just interpreted it as her being ashamed and going to her actual position in the hierarchy.</p>
+<p>Meanwhile, the ranks of the Goblins were stabilizing as the new additions to Tremborag’s tribe were assimilated. And it was his tribe, Rags realized. They were becoming his.</p>
+<p>Already the Redfang warriors sat at the high table. A good number of them sat high up, bearing new scars from quick duels to assert their superiority. But as always Garen sat right next to Tremborag, clearly displaying his dominance.</p>
+<p>She’d heard what had happened. Garen had killed another Hob, one of Tremborag’s stronger followers in a quick fight. He already had his own band of followers, and Rags wondered if he’d picked a fight with the unfortunate Hob on purpose.</p>
+<p>But that wasn’t the only big news of the day. As Rags slept and woke, she heard the second big impact of yesterday’s battle circulating through the mountain. Namely, the Human women who’d been captured.</p>
+<p>They had been taken to a part of the mountain Rags had never visited. A dungeon-like place, where Goblins could come and go. Here too, access was restricted to those with favor. Normal Goblins couldn’t enter, but more influential Goblins could access the women.</p>
+<p>It bothered Rags more than she could say. But to her delight, it didn’t bother just her.</p>
+<p>While her tribe was somewhat ambivalent if not confused about taking Human women to have sex with, the reaction of Garen’s tribe had been far stronger. They were <em>upset</em> about it, and Rags heard through the grapevine of Goblin rumors that a group of Hobs and warriors had gone to Garen to complain. Apparently, their tribe took pride in not ‘sinking to that level’, and they wanted Garen to stop it.</p>
+<p>Perhaps he could have, but Garen was disinclined to go against Tremborag on this, especially because Rags knew some of the Human women had gone to the Great Goblin. So the message had come back to his tribe from Garen:</p>
+<p><em>Deal with it.</em></p>
+<p>The next night Rags didn’t eat with the main host of Goblins. Instead, she waited until later. The Redfang Goblins had been given the important duty of guarding the mountain due to their combat prowess, but that meant they ate and slept at different times.</p>
+<p>They were not happy that night and ate in sullen silence, or started fights among each other. Rags didn’t say much—she just ate with some Hobs and elite warriors who stared at her silently. She knew they were wondering why she was here, but she didn’t do anything else. She just ate until one of them poked her softly in the side.</p>
+<p>&nbsp;</p>
+<p><strong>Redfang would not listen.</strong></p>
+<p><strong> </strong></p>
+<p>She looked at the one who’d spoken, a Goblin with a scar across his face.</p>
+<p>“No.”</p>
+<p>He bared his teeth angrily and struck the table. The Hob sitting next to the warrior stared at Rags. He was a powerful warrior; they all were. Garen’s tribe might not have been individually as mighty as he was, not close, but they were elites among Goblins.</p>
+<p>&nbsp;</p>
+<p><strong>Is not right.</strong></p>
+<p>&nbsp;</p>
+<p>Another Goblin said that. Rags nodded her head fractionally, and knew they were looking at her, gauging her reaction. But then the Hob who stared at Rags spoke.</p>
+<p>“Gold Stone Chieftain. He goes to visit Humans often.”</p>
+<p>She paused. Rags’ mind went blank. Often? Did that mean—had the Gold Stone Chieftain known about the Human women before now? They hadn’t all been captured in the town. More were there from other villages, caravans raided, travelers abducted.</p>
+<p>Often?</p>
+<p>She stared at the Redfang warrior, and didn’t know what to say in reply.</p>
+<p>&nbsp;</p>
+<p>&#8212;-</p>
+<p>&nbsp;</p>
+<p>On the fourth day, Rags decided to join one of the raiding parties. Like the Goblin Lord—like any large tribe, really, Tremborag’s tribe had to constantly scavenge and hunt for new food or risk starvation, especially with so many mouths to feed. Rags knew the Goblins grew mushrooms and harvested the native rat, bat, and bug populations, but that was hardly enough.</p>
+<p>These raiding groups had the hardest jobs of any of the Goblins in Tremborag’s tribe. They had to abandon the safety of the mountain to go out and hunt monsters, animals, or raid Human settlements. It was…well, frankly, it was being a Goblin and Rags relished it.</p>
+<p>She fell in with one of the lesser factions in the mountain. Curiously, it was a group of mostly female Goblins. They resented being seen as mates by every male Goblin who came along, and they were of the opinion they fought just as well as male warriors.</p>
+<p>They did. If not with as much strength, then with a good deal of savage cunning. Rags participated in an attack on a Human village—no capturing women, just taking animals and food while the Goblins scared away the Humans. She had a chance to talk with one of their leaders, a Goblin who used two daggers dipped in a concoction made from poisonous plants.</p>
+<p>“Faction is weak.”</p>
+<p>The other Goblin looked at Rags angrily, but relented when she saw Rags was just stating the truth.</p>
+<p>“Weak, but we are united.”</p>
+<p>“Other Goblins do not treat females well?”</p>
+<p>“Not as warriors.”</p>
+<p>The female Goblin bared her teeth.</p>
+<p>“We are strong as males. When we fight, we prove we are equal.”</p>
+<p>Rags frowned. She didn’t think that was true. It seemed like this band of female warriors was being exploited by Tremborag and the other goblins to do dirty work with no real reward.</p>
+<p>She said so. The female Goblin nearly drew a blade on Rags, but Rags had demonstrated that she knew how to fight, and so it didn’t come to that. The female Goblin wiped her daggers clean as she spoke harshly.</p>
+<p>“Someday, many Hobs like us. Many.”</p>
+<p>They wanted to become Hobs. Rags understood that. Being a Hob was power in itself, and if they had many in their faction they would be respected. But until then, they would live on scraps and fight the hardest battles. Rags shook her head.</p>
+<p>Interestingly, she saw that the old Goblin was part of this band of female warriors. Rather, it was more like they tolerated him and gave him their protection. He actually fought, with a rusty greatsword that looked like it was more rust than sword. Rags wondered if he could keep up with the younger warriors.</p>
+<p>But he had a lot of fighting prowess to make up for being older. Rags had seen him step on a Human’s foot, shove him down, and then kick the Human unconscious without lifting his weapon. She supposed with age came experience. He grinned at her a few times as they returned to the mountain. She just stared at him and wondered what she was doing wrong.</p>
+<p>She had to gain influence. Power. Rags became obsessed with it. On the night of the fourth day she paced back and forth in her room, wondering how to get a lead on all the other Goblins. Because, obviously she could do it.</p>
+<p>She was smart, cunning, and Rags knew she was twice as competent as any of the other Hobs with their own faction. In a few weeks—a month perhaps—she would be able to amass as much power as the rest. And then…</p>
+<p>It was all about finding the right allies. Rags had already decided who to approach first. So she summoned the Gold Stone Chieftain to her room after they had eaten dinner.</p>
+<p>“Redfang Hob. One with mace.”</p>
+<p>He nodded as Rags spoke to him in the privacy of her room. That was one of the most influential Hobs in Garen’s tribe, by far the strongest. The Gold Stone Chieftain stared at Rags impassively. She looked at him and remembered he visited the Human women. Often.</p>
+<p>“Go. Be…nice to him. Gain trust.”</p>
+<p>She would gain his trust and then take Garen’s tribe from him. Then she would attack more villages, gain more victories using only their force. With that influence she could—</p>
+<p>“No, Chieftain.”</p>
+<p>Rags halted, mid-thought. She turned and stared at the Gold Stone Chieftain.</p>
+<p>“<em>What?</em>”</p>
+<p>“No, Chieftain.”</p>
+<p>“Why?”</p>
+<p>She demanded it of him. The Gold Stone Chieftain pondered and then replied, looking at the ceiling.</p>
+<p>“Not Goblin.”</p>
+<p>That was an insult, one of the worst among Goblin kind. Rags recoiled and then became outraged.</p>
+<p>“Obey! I am Chieftain!”</p>
+<p>“Not if this is order.”</p>
+<p>The Gold Stone Chieftain stared back at Rags, quietly defiant. It was too much. She could not lose him, her one supporter. Rags grabbed for her crossbow in fury.</p>
+<p>“If you challenge—”</p>
+<p>He moved <em>fast</em>. Rags had only been meaning to threaten, but the Gold Stone Chieftain moved towards her before she could raise the crossbow. She pulled the trigger and the crossbow bolt loosed—and missed. It shattered, against the stone next to his feet. The Gold Stone Chieftain grabbed the crossbow and tore it away from Rags, hurling it onto her bed.</p>
+<p>Her sword. Rags had it but then it too was pulled away. The Gold Stone Chieftain hurled it aside and Rags stumbled back, suddenly afraid.</p>
+<p>He loomed over her, huge. Rags suddenly realized how fragile she was, how weak. Without her weapons she was practically helpless. Her [Firefly] spell would only enrage him.</p>
+<p><em>He visited Human women often.</em></p>
+<p>But the Gold Stone Chieftain did not reach for her. Instead, he took one look at Rags and sat back down on the floor. He popped some rat jerky into his mouth and began to eat.</p>
+<p>Stunned, Rags stared at him. The Gold Stone Chieftain spoke slowly to her.</p>
+<p>“It is not Goblin. What you ask. Staying here is bad. If you stay, I will go. I will become Chieftain and leave. With my tribe.”</p>
+<p>It was the most she’d ever heard him say. Rags stared at the Gold Stone Chieftain, stunned, and then absorbed what he’d said.</p>
+<p>“<em>Leave?</em>”</p>
+<p>He wanted her to leave? But this was the one place safe from the Goblin Lord! The Gold Stone Chieftain nodded, though.</p>
+<p>“Bad place. Not Goblin. You said.”</p>
+<p>He hurled the words back at Rags and she couldn’t respond to that. She could only come up with feeble excuses.</p>
+<p>“Not strong enough. Need support. If wait…gain power. Influence—&#8221;</p>
+<p>The words sounded hollow to her, weak. They didn’t sound like what a Goblin should say. She wasn’t speaking in Goblin. Rags met the Gold Stone Chieftain’s eyes and looked away, ashamed.</p>
+<p>He stared down at her, disapprovingly. It didn’t look much different from his normal blank expression. But Rags realized—it was on purpose.</p>
+<p>And slowly, sitting in that room, unable to meet the gaze of one of her subordinates, Rags understood. She put together the old Goblin, the Gold Stone Chieftain’s knowledge of this place, and everything else together in a sudden conclusion.</p>
+<p>“You. Lived here, in past?”</p>
+<p>She stared at him. The Gold Stone Chieftain nodded. Sighed.</p>
+<p>“Once. Long ago.”</p>
+<p><em>That</em> was why he could speak the common language! But why had he left? And why did he want to leave now?</p>
+<p>Rags could understand. She could understand the way this place made you do un-Goblin things and fight amongst yourselves, and how it took away tribes and the meaning of loyalty to the Chieftain. But was that enough to risk death fighting the Goblin Lord?</p>
+<p>“Why?”</p>
+<p>It was all she asked. And the Gold Stone Chieftain stared at Rags, weighing, judging. And then he stood up.</p>
+<p>Follow.</p>
+<p>&nbsp;</p>
+<p>&#8212;-</p>
+<p>&nbsp;</p>
+<p>It was a dark place where the Goblins held the Human women. A dark place, a former building in the Dwarven city. Dark.</p>
+<p>And made darker by the crying. Rags thought there would be screams, but too many were broken by this place. She looked into rooms—for some reason the Goblins gave the Humans rooms, as if privacy mattered. She could hear well enough.</p>
+<p>There were over two hundred women there. A large number. But for thousands, tens of thousands of Goblins—</p>
+<p>Too many. And part of Rags stared at what went on here, at Goblins biting, grabbing, forcing—part of her tried to forget as she saw.</p>
+<p>But she focused on one thing. She focused on the Gold Stone Chieftain. Because he visited the Human women often. He took one into a closed room with him, she flinching, afraid. Him impassive as always.</p>
+<p>And so. This is what Rags saw. She saw the Gold Stone Chieftain let go of the Human woman. He walked over to one wall and sat down. And he pulled a carrot out and began to eat it.</p>
+<p>He sat with his back to one wall. Just sat. The Gold Stone Chieftain chewed slowly as the Human woman stared at him. She stood far across the room, shaking. Then—slowly—she realized he was not going to do anything. While he sat here, she was safe.</p>
+<p>Standing at the door, Rags saw how the woman lost her fear. She screamed at the Goblin, let out the rage and hurt. Then she retreated to a corner, wept. He sat and ate.</p>
+<p>Visited often. He had fought for the privilege to be here, Rags had heard. Smashed another Hob into a wall. He had known this place existed because he had been here once.</p>
+<p>And he had left.</p>
+<p>Sitting with the Human woman weeping in the background, the Gold Stone Chieftain looked up at Rags.</p>
+<p>“Too weak, Chieftain. Too weak. Too small. Still too small.”</p>
+<p>He nodded to her once. Rags stared at him, and then the woman.</p>
+<p>Then she went outside. Rags stared around. Her ears were keen and she heard every sound that went on in this place. Heard the begging, the cries—</p>
+<p>And she wondered what she would have done if one of the captured women or girls was Erin. What if it was her?</p>
+<p>And once that thought was had, Rags couldn’t unthink it. She stared at a girl who stumbled back into her cell and saw Erin’s face on hers. Rags turned away.</p>
+<p>She covered her ears. She tried not to imagine how many women would have come here over the years, how long they would have lived. Rags told herself Humans did it to each other. She told herself that Goblins did it to survive, that it wasn’t different than killing Humans.</p>
+<p>But they all looked like Erin to her. The young, the old—they all had the girl’s face. They were all—</p>
+<p>She ran.</p>
+<p>&nbsp;</p>
+<p>&#8212;-</p>
+<p>&nbsp;</p>
+<p>Factions. Infighting. Power struggles and politics, all hidden in the depths of this mountain. A place where Goblins were safe from all but each other. That was what Rags had found here.</p>
+<p>But it was not her place. This was not a world meant for her. It was wrong. And she feared she was losing herself the longer she stayed here.</p>
+<p>So Rags sat in her room and thought. She was a genius. She knew it, in the same way she knew the sun was hot and the snow was cold. There were things only she could do, only she could think of and dare to achieve.</p>
+<p>So Rags thought about what she could do if she could not stay here. She thought, and the answer seemed so obvious. How had she missed it before? She had been trapped, that was why. If not physically, then in her mind. It had taken the Gold Stone Chieftain, taken memory and guilt and seeing this place for what it was to break its hold on her.</p>
+<p>There was only one course. Only one thing to do. So when the Gold Stone Chieftain had finished sitting and eating, she summoned him back to her room.</p>
+<p>It was late. In a few hours it would be dawn. Perhaps now was not the time—but Rags knew it had to be now. She told the Gold Stone Chieftain what she wanted and saw him smile. Just once, but she knew she was right.</p>
+<p>“Can you—”</p>
+<p>Rags paused. That was not what a Chieftain should say. She looked at the Gold Stone Chieftain and thought of the risks. That was her job. So when she looked him in the eye, Rags was certain.</p>
+<p>“Do it.”</p>
+<p>He nodded and smiled again, briefly. Rags let him go to find all the Hobs he knew that would listen to him, and walked out into the mountain.</p>
+<p>She kicked awake Goblins she knew, and had some of them find the Goblin with no ears. Then she found the female Goblin and her band and kicked them too. Some she sent to find the Gold Stone Chieftain. The others she told to go eat with the Redfang Warriors who were having what was lunch for them in a smaller mess hall.</p>
+<p>When she was done, she found the Gold Stone Chieftain again. She looked at him as he pulled out an onion and bit into it. The smell made her eyes water, but she was surprised when he broke some off and offered it to her.</p>
+<p>“Ready?”</p>
+<p>She asked him quietly as she chewed. He nodded. Grunted.</p>
+<p>“Four Hobs. Not many.”</p>
+<p>“And the other?”</p>
+<p>“More Goblins. But all busy. Very easy. I can do myself.”</p>
+<p>If he said so, she believed him. There was nothing more to do before the moment, then. Rags stared at him and asked a question that she’d always wanted to know.</p>
+<p>“Why name tribe Gold Stone?”</p>
+<p>He shrugged, still chewing.</p>
+<p>“I like gold. Gold that is not gold. I like it too.”</p>
+<p>Rags knew what he was talking about. There were pretty stones that looked like gold you could find in caves with other minerals. It was valuable to Goblins, not just because it sparkled, but because it was a good alternative to flint and steel.</p>
+<p>She looked at him, a silent giant. A Hobgoblin, a Chieftain who said little and sometimes did little, or so it seemed. But one with depth. One with a heart, who looked at what was and decided that it was wrong. Someone who wanted to be stronger but could do nothing.</p>
+<p>“Why not you? Why not you…Chieftain?”</p>
+<p>He looked at her, calmly.</p>
+<p>“Not smart. Strong, but not smart. A good Chieftain is smart. Strong is easier, but not all are strong. Smart knows that. I am not smart.”</p>
+<p>“You are.”</p>
+<p>“Not enough. And cannot be Lord. Do not want to be. Like Tremborag. Too small.”</p>
+<p>With that, he answered all of her questions and went back to eating. Rags stood beside him and then turned with a sudden impulse.</p>
+<p>“Pyrite. I name you Pyrite.”</p>
+<p>He stopped chewing and looked at her. Rags stared back. Pyrite was the name of such stones. It was a Human name.</p>
+<p>“Not Shaman.”</p>
+<p>“Do you care?”</p>
+<p>She challenged him. The Hobgoblin thought about that for a second. And then he laughed. Pyrite smiled at Rags and nodded to her.</p>
+<p>“See you later, Chieftain. Do not die.”</p>
+<p>“I will meet you outside. You do not die. Chieftain’s orders.”</p>
+<p>She left him behind. Rags made one trip to her room. She slung the black crossbow on her back, took her sword and shield, the buckler badly dented, but still hers. She had been given it by Erin. A Human.</p>
+<p>And when Rags left her room, she was smiling. Because at last, she knew exactly what to do.</p>
+<p>&nbsp;</p>
+<p>&#8212;-</p>
+<p>&nbsp;</p>
+<p>The Redfang warriors were disgruntled by the sudden influx of Goblins during their lunch shift. But they grumbled only a bit; they were more sullen than anything else. And they recognized a good deal of the Goblins who’d entered. They were part of the Flooded Water tribe and some of the other tribes the Redfang warriors had journeyed north with, so they were allies in a sense.</p>
+<p>Still, the Redfang warriors were angry. Some of the Hobs in here were Tremborag’s warriors and they longed to pick a fight with them. But they couldn’t. They felt muzzled here, like the Carn Wolves who they had to tether in pens in the city and not allow to roam free. Their mounts howled in distress and the Redfang warriors were angry.</p>
+<p>And then the double doors leading in to the mess hall opened and a Goblin strode in, wearing leather armor. The Redfang tribe recognized her at once. She was Rags, and she…had…been their Chieftain. Not anymore, somehow.</p>
+<p>But she was dressed for war. And it made all the Goblins who saw her sit up. Was something wrong?</p>
+<p>Rags strode into the center of the room. Slowly, the eating around her stopped. She gazed around the room and saw Tremborag’s Goblins, some of them. The ones she thought might respect her. She saw the Redfang tribe, sullen, angry, but wondering. She saw the Goblin with no ears sitting next to a group of Goblins who glowed with bits of magic. And the female unit of Goblins and the grinning old Goblin still eating happily in the silence.</p>
+<p>The small Chieftain of the Flooded Water Tribe took a deep breath and then shouted. Not in the common language, but in the tongue that was hers. Goblin.</p>
+<p>&nbsp;</p>
+<p><strong>I am Rags! Chieftain!</strong></p>
+<p>&nbsp;</p>
+<p>Every Goblin paused when they heard this. They stared at Rags, thousands of eyes watching her. She stood proud. She stood taller than she ever had walking this place. As if she was ten feet tall. So she looked down at the other Goblins as she spoke.</p>
+<p>&nbsp;</p>
+<p><strong>I am Goblin. This place is not. If you are Goblin, follow me!</strong></p>
+<p>&nbsp;</p>
+<p>It was a declaration of war. Rags heard the susurration go through the assembled Goblins as the damning accusation left her tongue. It could not be unsaid. Even now she knew the Gold Stone Chieftain was attacking, cutting down Goblins of Tremborag’s tribe with the others she had sent him.</p>
+<p>It was war.</p>
+<p>“Traitor!”</p>
+<p>A Goblin, one of Tremborag’s, shouted that. He leapt to his feet, drawing his sword. But a bolt of lightning caught the Hob as he leapt for Rags. He fell, and Noears grinned as the Goblins seated around him drew their weapons.</p>
+<p>And then the hall erupted into violence. Rags lifted her sword and fought. If she died here, she would die as she had lived.</p>
+<p>A true Goblin.</p>
+<p>&nbsp;</p>
+<hr />
+<p><a href="https://wanderinginn.wordpress.com/2017/10/26/3-27-m/">Previous Chapter</a> <span style="float:right;"><a href="https://wanderinginn.wordpress.com/2017/10/31/3-29-g">Next Chapter</a></span></p>
+			</div><!-- .entry-content -->
+
+	<footer class="entry-meta">
+		This entry was posted in <a href="https://wanderinginn.com/tag/writing/" rel="category tag">Writing</a> and tagged <a href="https://wanderinginn.com/tag/fantasy/" rel="tag">fantasy</a>, <a href="https://wanderinginn.com/tag/inn/" rel="tag">inn</a>, <a href="https://wanderinginn.com/tag/web-novel/" rel="tag">web novel</a>, <a href="https://wanderinginn.com/tag/web-serial/" rel="tag">web serial</a>, <a href="https://wanderinginn.com/tag/writing/" rel="tag">Writing</a> by <a href="https://wanderinginn.com/author/pirateaba/">pirateaba</a>. Bookmark the <a href="https://wanderinginn.com/2017/10/28/3-28-g/" title="Permalink to 3.28 G" rel="bookmark">permalink</a>.
+		
+			</footer><!-- .entry-meta -->
+</article><!-- #post-3539 -->
+
+						<div id="comments">
+	
+	
+			<h2 id="comments-title">
+			36 thoughts on &ldquo;<span>3.28 G</span>&rdquo;		</h2>
+
+		
+		<ol class="commentlist">
+					<li class="comment byuser comment-author-pirateaba bypostauthor even thread-even depth-1 highlander-comment" id="li-comment-8021">
+		<article id="comment-8021" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/2f8ac70cd17f11c419846c441769523b?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn"><a href='http://pirateaba.wordpress.com' rel='external nofollow ugc' class='url'>pirateaba</a></span> on <a href="https://wanderinginn.com/2017/10/28/3-28-g/#comment-8021"><time datetime="2017-10-28T14:44:28+00:00">October 28, 2017 at 2:44 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>A hard chapter to write. Hard, for many reasons.</p>
+<p>It&#8217;s hard to write darkness well, I&#8217;ve found. Just like it can be very hard to write happy, simple moments. How do you capture a scene? Do you put down every horrible detail or do you let the reader see it for themselves?</p>
+<p>And what about Rags? This part of her story is odd, isn&#8217;t it? The Goblins in the mountain are such a diverse and fractious group&#8211;and yet there are so many characters and things I could have written Rags encountering. But she was meant to leave the mountain. I intended her to only put a foot briefly in this place. My challenge was getting her to do and feel and experience a lot and have her leave in an instant as well.</p>
+<p>I hope I succeeded. Rags is hard to write as I&#8217;ve said before, because she is complex. Young, impulsive, and ever learning. But at times she is delightfully straightforwards, as are all characters when they do what they do best. And Rags is a Goblin before she is anything else.</p>
+<p>Hope you&#8230;felt this chapter gripping. Enjoyed might not always be the right word. I hope you sympathized or at least emphasized with Rags&#8217; existential struggle, and as always, I thank you for reading. Leave a comment and see you in three days!</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/10/28/3-28-g/?replytocom=8021#respond' data-commentid="8021" data-postid="3539" data-belowelement="comment-8021" data-respondelement="respond" data-replyto="Reply to pirateaba" aria-label='Reply to pirateaba'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment byuser comment-author-mgainsbury odd alt depth-2 highlander-comment" id="li-comment-8029">
+		<article id="comment-8029" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/4698c0502de1e030f37adcaf19604a18?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">ReaverOf</span> on <a href="https://wanderinginn.com/2017/10/28/3-28-g/#comment-8029"><time datetime="2017-10-28T15:56:54+00:00">October 28, 2017 at 3:56 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>I humbly think you nailed it from start to finish. It&#8217;s a bit &#8220;fast&#8221; but in a way it makes me think of a goblin brain that doesn&#8217;t bother with what happens between important moments (food, sex and fighting I guess). I really liked it and Pyrite is a very well fleshed out character, insanely hard to do I find with those that mostly do without talking about it.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/10/28/3-28-g/?replytocom=8029#respond' data-commentid="8029" data-postid="3539" data-belowelement="comment-8029" data-respondelement="respond" data-replyto="Reply to ReaverOf" aria-label='Reply to ReaverOf'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-onedollargum even depth-2 highlander-comment" id="li-comment-8121">
+		<article id="comment-8121" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/92f194e2ab8c200afa86415f78e92e8b?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn"><a href='http://offhandblues.wordpress.com' rel='external nofollow ugc' class='url'>onedollargum</a></span> on <a href="https://wanderinginn.com/2017/10/28/3-28-g/#comment-8121"><time datetime="2017-10-31T16:20:41+00:00">October 31, 2017 at 4:20 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Loved it! The quick pace was wonderful, and while I could envision Rags climbing some of the ropes to power, rebellion was not expected. =)</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/10/28/3-28-g/?replytocom=8121#respond' data-commentid="8121" data-postid="3539" data-belowelement="comment-8121" data-respondelement="respond" data-replyto="Reply to onedollargum" aria-label='Reply to onedollargum'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment odd alt depth-2 highlander-comment" id="li-comment-115466">
+		<article id="comment-115466" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/c701afbf471947947db77c814363b3f9?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">June</span> on <a href="https://wanderinginn.com/2017/10/28/3-28-g/#comment-115466"><time datetime="2021-10-31T13:27:00+00:00">October 31, 2021 at 1:27 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>These goblin chapters with the women are always the hardest to read, but that&#8217;s just how it is. it&#8217;s the truth of the universe and you don&#8217;t avoid it, but making it a plot point is ideal. Also, Pyrite is a good goblin name</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/10/28/3-28-g/?replytocom=115466#respond' data-commentid="115466" data-postid="3539" data-belowelement="comment-115466" data-respondelement="respond" data-replyto="Reply to June" aria-label='Reply to June'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-pirateaba bypostauthor even thread-odd thread-alt depth-1 highlander-comment" id="li-comment-8022">
+		<article id="comment-8022" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/2f8ac70cd17f11c419846c441769523b?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn"><a href='http://pirateaba.wordpress.com' rel='external nofollow ugc' class='url'>pirateaba</a></span> on <a href="https://wanderinginn.com/2017/10/28/3-28-g/#comment-8022"><time datetime="2017-10-28T14:44:48+00:00">October 28, 2017 at 2:44 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Leave a typo for the true Goblins.</p>
+<p>(Possibly true Goblins: Dertyer, Yardaze, i, Hans C., Wili911, juppie)</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/10/28/3-28-g/?replytocom=8022#respond' data-commentid="8022" data-postid="3539" data-belowelement="comment-8022" data-respondelement="respond" data-replyto="Reply to pirateaba" aria-label='Reply to pirateaba'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment odd alt depth-2 highlander-comment" id="li-comment-8158">
+		<article id="comment-8158" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/e8272a6542420d5aa6afb65320e4ce8a?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">Hans C.</span> on <a href="https://wanderinginn.com/2017/10/28/3-28-g/#comment-8158"><time datetime="2017-11-01T17:03:56+00:00">November 1, 2017 at 5:03 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>delete pls.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/10/28/3-28-g/?replytocom=8158#respond' data-commentid="8158" data-postid="3539" data-belowelement="comment-8158" data-respondelement="respond" data-replyto="Reply to Hans C." aria-label='Reply to Hans C.'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment even depth-2 highlander-comment" id="li-comment-8159">
+		<article id="comment-8159" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/e8272a6542420d5aa6afb65320e4ce8a?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">Hans C.</span> on <a href="https://wanderinginn.com/2017/10/28/3-28-g/#comment-8159"><time datetime="2017-11-01T17:04:12+00:00">November 1, 2017 at 5:04 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>delete pls.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/10/28/3-28-g/?replytocom=8159#respond' data-commentid="8159" data-postid="3539" data-belowelement="comment-8159" data-respondelement="respond" data-replyto="Reply to Hans C." aria-label='Reply to Hans C.'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-even depth-1 highlander-comment" id="li-comment-8043">
+		<article id="comment-8043" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/db91481436658e7fef3f84fc2bdd1dad?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Parker</span> on <a href="https://wanderinginn.com/2017/10/28/3-28-g/#comment-8043"><time datetime="2017-10-28T16:59:06+00:00">October 28, 2017 at 4:59 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>I love how you can capture the emotions in a scene. It makes every chapter enthralling even when it turns horrible, there&#8217;s something there that makes sure you can&#8217;t stop until you&#8217;ve read all of it. Can&#8217;t wait for the next chapter, and happy halloween!</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/10/28/3-28-g/?replytocom=8043#respond' data-commentid="8043" data-postid="3539" data-belowelement="comment-8043" data-respondelement="respond" data-replyto="Reply to Parker" aria-label='Reply to Parker'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-1024dp even thread-odd thread-alt depth-1 highlander-comment" id="li-comment-8065">
+		<article id="comment-8065" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/cb474ea3c637db7230457c2b941c8fc2?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn"><a href='http://thoughtsideaswords.wordpress.com' rel='external nofollow ugc' class='url'>1024dp</a></span> on <a href="https://wanderinginn.com/2017/10/28/3-28-g/#comment-8065"><time datetime="2017-10-28T23:04:06+00:00">October 28, 2017 at 11:04 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>This was an excellent chapter. I say it was the best so far but that&#8217;s impossible to say since this story is so consistently great.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/10/28/3-28-g/?replytocom=8065#respond' data-commentid="8065" data-postid="3539" data-belowelement="comment-8065" data-respondelement="respond" data-replyto="Reply to 1024dp" aria-label='Reply to 1024dp'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment byuser comment-author-pirateaba bypostauthor odd alt depth-2 highlander-comment" id="li-comment-8066">
+		<article id="comment-8066" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/2f8ac70cd17f11c419846c441769523b?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn"><a href='http://pirateaba.wordpress.com' rel='external nofollow ugc' class='url'>pirateaba</a></span> on <a href="https://wanderinginn.com/2017/10/28/3-28-g/#comment-8066"><time datetime="2017-10-28T23:15:17+00:00">October 28, 2017 at 11:15 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Glad you liked it, but you have got to learn to reply to the typo comment rather than just post comments with typos in them. It makes my job harder and other comments are harder to find if people have to scroll down past them.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/10/28/3-28-g/?replytocom=8066#respond' data-commentid="8066" data-postid="3539" data-belowelement="comment-8066" data-respondelement="respond" data-replyto="Reply to pirateaba" aria-label='Reply to pirateaba'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment byuser comment-author-1024dp even depth-3 highlander-comment" id="li-comment-8072">
+		<article id="comment-8072" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/cb474ea3c637db7230457c2b941c8fc2?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn"><a href='http://thoughtsideaswords.wordpress.com' rel='external nofollow ugc' class='url'>1024dp</a></span> on <a href="https://wanderinginn.com/2017/10/28/3-28-g/#comment-8072"><time datetime="2017-10-29T03:27:06+00:00">October 29, 2017 at 3:27 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>sorry, i wasn&#8217;t aware that was required.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/10/28/3-28-g/?replytocom=8072#respond' data-commentid="8072" data-postid="3539" data-belowelement="comment-8072" data-respondelement="respond" data-replyto="Reply to 1024dp" aria-label='Reply to 1024dp'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment byuser comment-author-pirateaba bypostauthor odd alt depth-4 highlander-comment" id="li-comment-8086">
+		<article id="comment-8086" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/2f8ac70cd17f11c419846c441769523b?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn"><a href='http://pirateaba.wordpress.com' rel='external nofollow ugc' class='url'>pirateaba</a></span> on <a href="https://wanderinginn.com/2017/10/28/3-28-g/#comment-8086"><time datetime="2017-10-29T18:13:55+00:00">October 29, 2017 at 6:13 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>No worries, appreciate all the help and the nice comment.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/10/28/3-28-g/?replytocom=8086#respond' data-commentid="8086" data-postid="3539" data-belowelement="comment-8086" data-respondelement="respond" data-replyto="Reply to pirateaba" aria-label='Reply to pirateaba'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment even depth-5 highlander-comment" id="li-comment-8092">
+		<article id="comment-8092" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/fe5ed9202be1e8d2c94387986666d228?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn"><a href='http://www.postmodestie.com' rel='external nofollow ugc' class='url'>BOOR</a></span> on <a href="https://wanderinginn.com/2017/10/28/3-28-g/#comment-8092"><time datetime="2017-10-30T02:21:36+00:00">October 30, 2017 at 2:21 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Way to go chieftain! :)</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/10/28/3-28-g/?replytocom=8092#respond' data-commentid="8092" data-postid="3539" data-belowelement="comment-8092" data-respondelement="respond" data-replyto="Reply to BOOR" aria-label='Reply to BOOR'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-even depth-1 highlander-comment" id="li-comment-8093">
+		<article id="comment-8093" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/fe5ed9202be1e8d2c94387986666d228?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn"><a href='http://www.postmodestie.com' rel='external nofollow ugc' class='url'>BOOR</a></span> on <a href="https://wanderinginn.com/2017/10/28/3-28-g/#comment-8093"><time datetime="2017-10-30T02:34:50+00:00">October 30, 2017 at 2:34 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>This time it really shows that there was the sidestory to write, or why else the many errors and kind of strange style/lack of flow sometimes. But you did it and it is good as always.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/10/28/3-28-g/?replytocom=8093#respond' data-commentid="8093" data-postid="3539" data-belowelement="comment-8093" data-respondelement="respond" data-replyto="Reply to BOOR" aria-label='Reply to BOOR'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment even thread-odd thread-alt depth-1 highlander-comment" id="li-comment-8095">
+		<article id="comment-8095" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/17348453f1366c4cf499349850278caf?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">G͕̺͓̗̤̓̽r̘̹̝͔̝ͫ̌̓̋̋ͨa̟̫̘͎̳̤͕͋ͣ̋sͣ ̍Ṯ͔̥̟ͣ̑ͅͅē͙̮̳̌̓̀ͤ́ͩy̟̞̻͓̗͛r̳͕͍̭̒ͫ̌ï̄̀͑ͪ͌p͕͔̖̗̹͔̉ͮ̓̽̀ͬ̌</span> on <a href="https://wanderinginn.com/2017/10/28/3-28-g/#comment-8095"><time datetime="2017-10-30T11:11:50+00:00">October 30, 2017 at 11:11 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>I don&#8217;t get it. What prevents her from just taking those who are still loyal to her and leave?<br />
+Yea it is a pretty messed up place but why go to war?</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/10/28/3-28-g/?replytocom=8095#respond' data-commentid="8095" data-postid="3539" data-belowelement="comment-8095" data-respondelement="respond" data-replyto="Reply to G͕̺͓̗̤̓̽r̘̹̝͔̝ͫ̌̓̋̋ͨa̟̫̘͎̳̤͕͋ͣ̋sͣ ̍Ṯ͔̥̟ͣ̑ͅͅē͙̮̳̌̓̀ͤ́ͩy̟̞̻͓̗͛r̳͕͍̭̒ͫ̌ï̄̀͑ͪ͌p͕͔̖̗̹͔̉ͮ̓̽̀ͬ̌" aria-label='Reply to G͕̺͓̗̤̓̽r̘̹̝͔̝ͫ̌̓̋̋ͨa̟̫̘͎̳̤͕͋ͣ̋sͣ ̍Ṯ͔̥̟ͣ̑ͅͅē͙̮̳̌̓̀ͤ́ͩy̟̞̻͓̗͛r̳͕͍̭̒ͫ̌ï̄̀͑ͪ͌p͕͔̖̗̹͔̉ͮ̓̽̀ͬ̌'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment odd alt depth-2 highlander-comment" id="li-comment-8116">
+		<article id="comment-8116" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/5762168f3afd473738f660434a205601?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn"><a href='http://www.theapprenticelibrarian.jimdo.com' rel='external nofollow ugc' class='url'>Algernon Crane</a></span> on <a href="https://wanderinginn.com/2017/10/28/3-28-g/#comment-8116"><time datetime="2017-10-31T13:33:07+00:00">October 31, 2017 at 1:33 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Tremborag&#8217;s goblins would have gave them chase, presumably.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/10/28/3-28-g/?replytocom=8116#respond' data-commentid="8116" data-postid="3539" data-belowelement="comment-8116" data-respondelement="respond" data-replyto="Reply to Algernon Crane" aria-label='Reply to Algernon Crane'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment even depth-3 highlander-comment" id="li-comment-8119">
+		<article id="comment-8119" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/17348453f1366c4cf499349850278caf?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">G͕̺͓̗̤̓̽r̘̹̝͔̝ͫ̌̓̋̋ͨa̟̫̘͎̳̤͕͋ͣ̋sͣ ̍Ṯ͔̥̟ͣ̑ͅͅē͙̮̳̌̓̀ͤ́ͩy̟̞̻͓̗͛r̳͕͍̭̒ͫ̌ï̄̀͑ͪ͌p͕͔̖̗̹͔̉ͮ̓̽̀ͬ̌</span> on <a href="https://wanderinginn.com/2017/10/28/3-28-g/#comment-8119"><time datetime="2017-10-31T15:29:22+00:00">October 31, 2017 at 3:29 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Why would they ever give chase?</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/10/28/3-28-g/?replytocom=8119#respond' data-commentid="8119" data-postid="3539" data-belowelement="comment-8119" data-respondelement="respond" data-replyto="Reply to G͕̺͓̗̤̓̽r̘̹̝͔̝ͫ̌̓̋̋ͨa̟̫̘͎̳̤͕͋ͣ̋sͣ ̍Ṯ͔̥̟ͣ̑ͅͅē͙̮̳̌̓̀ͤ́ͩy̟̞̻͓̗͛r̳͕͍̭̒ͫ̌ï̄̀͑ͪ͌p͕͔̖̗̹͔̉ͮ̓̽̀ͬ̌" aria-label='Reply to G͕̺͓̗̤̓̽r̘̹̝͔̝ͫ̌̓̋̋ͨa̟̫̘͎̳̤͕͋ͣ̋sͣ ̍Ṯ͔̥̟ͣ̑ͅͅē͙̮̳̌̓̀ͤ́ͩy̟̞̻͓̗͛r̳͕͍̭̒ͫ̌ï̄̀͑ͪ͌p͕͔̖̗̹͔̉ͮ̓̽̀ͬ̌'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		<li class="comment odd alt depth-2 highlander-comment" id="li-comment-8156">
+		<article id="comment-8156" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/e8272a6542420d5aa6afb65320e4ce8a?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">Hans C.</span> on <a href="https://wanderinginn.com/2017/10/28/3-28-g/#comment-8156"><time datetime="2017-11-01T16:55:22+00:00">November 1, 2017 at 4:55 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Why go to war?</p>
+<p>&#8220;If they had an issue they challenged the Chieftain or left with as many Goblins as they could gather to form a new tribe. However, since this was in itself a challenge the breakaway Goblins usually had to fight to leave their tribe.&#8221;</p>
+<p>Also, to liberate the suffering human women and the shiny weapons? </p>
+<p>And Rags challenging Tremborag in single combat? -&gt; squish. Not the smart route.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/10/28/3-28-g/?replytocom=8156#respond' data-commentid="8156" data-postid="3539" data-belowelement="comment-8156" data-respondelement="respond" data-replyto="Reply to Hans C." aria-label='Reply to Hans C.'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment even depth-3 highlander-comment" id="li-comment-8157">
+		<article id="comment-8157" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/e8272a6542420d5aa6afb65320e4ce8a?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">Hans C.</span> on <a href="https://wanderinginn.com/2017/10/28/3-28-g/#comment-8157"><time datetime="2017-11-01T16:58:00+00:00">November 1, 2017 at 4:58 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Er delete this reply pls.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/10/28/3-28-g/?replytocom=8157#respond' data-commentid="8157" data-postid="3539" data-belowelement="comment-8157" data-respondelement="respond" data-replyto="Reply to Hans C." aria-label='Reply to Hans C.'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-even depth-1 highlander-comment" id="li-comment-8097">
+		<article id="comment-8097" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/a4c844493bb97a26f9489c4ea1660fe2?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Dan</span> on <a href="https://wanderinginn.com/2017/10/28/3-28-g/#comment-8097"><time datetime="2017-10-30T17:27:09+00:00">October 30, 2017 at 5:27 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Heh, Rag&#8217;s revolt seems rash and premature to humans, but that was Pyrite&#8217;s point.</p>
+<p>Don&#8217;t be human (1 month of scheming), be goblin, and all those disatisfied will naturally flock to you.</p>
+<p>It&#8217;s a hell of a gamble.<br />
+I&#8217;d say Rags has the same odds of winning as Trump did. </p>
+<p>Tremborag will probably go nuclear.<br />
+I&#8217;m not sure he is smart enough to pull off the Xanatos gambit where he manipulated Rags to form an opposition which he can wipe out in one neat, swift blow.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/10/28/3-28-g/?replytocom=8097#respond' data-commentid="8097" data-postid="3539" data-belowelement="comment-8097" data-respondelement="respond" data-replyto="Reply to Dan" aria-label='Reply to Dan'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment even depth-2 highlander-comment" id="li-comment-8098">
+		<article id="comment-8098" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/a4c844493bb97a26f9489c4ea1660fe2?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">Dan</span> on <a href="https://wanderinginn.com/2017/10/28/3-28-g/#comment-8098"><time datetime="2017-10-30T17:36:04+00:00">October 30, 2017 at 5:36 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Susurration, mmm lovely.</p>
+<p>Did Rags send a force to seize the armory?</p>
+<p>Or free the human women?</p>
+<p>Or something more crazy?</p>
+<p>I doubt this will end as peacefully as Moses leading his people out of Egypt, but Goblins are really hard to predict!</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/10/28/3-28-g/?replytocom=8098#respond' data-commentid="8098" data-postid="3539" data-belowelement="comment-8098" data-respondelement="respond" data-replyto="Reply to Dan" aria-label='Reply to Dan'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment odd alt depth-3 highlander-comment" id="li-comment-8135">
+		<article id="comment-8135" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/bdd8cbf5e1c5cc29e232636415753927?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">tlhonmey</span> on <a href="https://wanderinginn.com/2017/10/28/3-28-g/#comment-8135"><time datetime="2017-10-31T23:19:13+00:00">October 31, 2017 at 11:19 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>As I recall, Moses leading his people out of Egypt led to the death of at least a substantial portion of the Pharaoh&#8217;s army&#8230;</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/10/28/3-28-g/?replytocom=8135#respond' data-commentid="8135" data-postid="3539" data-belowelement="comment-8135" data-respondelement="respond" data-replyto="Reply to tlhonmey" aria-label='Reply to tlhonmey'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		<li class="comment even depth-2 highlander-comment" id="li-comment-8134">
+		<article id="comment-8134" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/bdd8cbf5e1c5cc29e232636415753927?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">tlhonmey</span> on <a href="https://wanderinginn.com/2017/10/28/3-28-g/#comment-8134"><time datetime="2017-10-31T23:18:03+00:00">October 31, 2017 at 11:18 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>He doesn&#8217;t need to wipe them out.  They&#8217;ll leave, and either survive or not.  The dissatisfied ones are out of his hair and somebody else&#8217;s problem and serve to draw attention away from his own activities.  Win/win.</p>
+<p>He&#8217;s probably not smart enough to see it that way though.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/10/28/3-28-g/?replytocom=8134#respond' data-commentid="8134" data-postid="3539" data-belowelement="comment-8134" data-respondelement="respond" data-replyto="Reply to tlhonmey" aria-label='Reply to tlhonmey'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment byuser comment-author-justatestsite31415 odd alt depth-3 highlander-comment" id="li-comment-8163">
+		<article id="comment-8163" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/fa920db536afdbeb6f399976933fee09?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn"><a href='http://justatestsite31415.wordpress.com' rel='external nofollow ugc' class='url'>LaNuup</a></span> on <a href="https://wanderinginn.com/2017/10/28/3-28-g/#comment-8163"><time datetime="2017-11-01T22:23:26+00:00">November 1, 2017 at 10:23 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Rags declared him as non goblin. That acusation he can not let stand in this way, especially as everyone who raises arms also denounces him as non goblin. Also he can not let every one who is not satisfied in his tribe go or he has to fear many of the weak groups splintering of and leaving.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/10/28/3-28-g/?replytocom=8163#respond' data-commentid="8163" data-postid="3539" data-belowelement="comment-8163" data-respondelement="respond" data-replyto="Reply to LaNuup" aria-label='Reply to LaNuup'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		<li class="comment even thread-odd thread-alt depth-1 highlander-comment" id="li-comment-8114">
+		<article id="comment-8114" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/3c4f0668ed2d3cfb4eeaa47d01db84e4?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Yan</span> on <a href="https://wanderinginn.com/2017/10/28/3-28-g/#comment-8114"><time datetime="2017-10-31T12:40:06+00:00">October 31, 2017 at 12:40 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>From the beginning, I love your work. I think the world you created is truly amazing. Characters, as if alive. But &#8230; Rags. Chapters about her seem alien to me, unnatural. It&#8217;s hard for me to realize how difficult it is to describe goblin thinking, but I hope you can do it.</p>
+<p>Good luck. I hope you will be all right.<br />
+P.S. Sorry for mistakes. My native language is russian.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/10/28/3-28-g/?replytocom=8114#respond' data-commentid="8114" data-postid="3539" data-belowelement="comment-8114" data-respondelement="respond" data-replyto="Reply to Yan" aria-label='Reply to Yan'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment odd alt thread-even depth-1 highlander-comment" id="li-comment-8120">
+		<article id="comment-8120" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/01da915f6a266c09f8540fc381a576be?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Fedback</span> on <a href="https://wanderinginn.com/2017/10/28/3-28-g/#comment-8120"><time datetime="2017-10-31T15:48:39+00:00">October 31, 2017 at 3:48 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>So&#8230;.. Is there a chapter today? I dobt eant to sound ungrateful but i am at the edge of my seat since last tuesday.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/10/28/3-28-g/?replytocom=8120#respond' data-commentid="8120" data-postid="3539" data-belowelement="comment-8120" data-respondelement="respond" data-replyto="Reply to Fedback" aria-label='Reply to Fedback'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment byuser comment-author-pirateaba bypostauthor even depth-2 highlander-comment" id="li-comment-8125">
+		<article id="comment-8125" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/2f8ac70cd17f11c419846c441769523b?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn"><a href='http://pirateaba.wordpress.com' rel='external nofollow ugc' class='url'>pirateaba</a></span> on <a href="https://wanderinginn.com/2017/10/28/3-28-g/#comment-8125"><time datetime="2017-10-31T20:04:37+00:00">October 31, 2017 at 8:04 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>This should be the latest chapter unless you&#8217;re a Patron. I released it last night.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/10/28/3-28-g/?replytocom=8125#respond' data-commentid="8125" data-postid="3539" data-belowelement="comment-8125" data-respondelement="respond" data-replyto="Reply to pirateaba" aria-label='Reply to pirateaba'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-8129">
+		<article id="comment-8129" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/6157cf9d7e8c68f1f7785f6e3e176a32?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Sparsebeard</span> on <a href="https://wanderinginn.com/2017/10/28/3-28-g/#comment-8129"><time datetime="2017-10-31T21:05:12+00:00">October 31, 2017 at 9:05 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Hard chapter to read for sure, with all that rape stuff, but great none the less Pyrite is an awesome character. I wonder if they&#8217;ll arm the human women to help them a risky move sure, but it would kind of make sense&#8230;</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/10/28/3-28-g/?replytocom=8129#respond' data-commentid="8129" data-postid="3539" data-belowelement="comment-8129" data-respondelement="respond" data-replyto="Reply to Sparsebeard" aria-label='Reply to Sparsebeard'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment byuser comment-author-justatestsite31415 even depth-2 highlander-comment" id="li-comment-8164">
+		<article id="comment-8164" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/fa920db536afdbeb6f399976933fee09?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn"><a href='http://justatestsite31415.wordpress.com' rel='external nofollow ugc' class='url'>LaNuup</a></span> on <a href="https://wanderinginn.com/2017/10/28/3-28-g/#comment-8164"><time datetime="2017-11-01T22:27:09+00:00">November 1, 2017 at 10:27 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>I fear that most of them are broken and would probably not fight against the Mountain Goblins or would simply fight all goblins as they have no idea what is going on</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/10/28/3-28-g/?replytocom=8164#respond' data-commentid="8164" data-postid="3539" data-belowelement="comment-8164" data-respondelement="respond" data-replyto="Reply to LaNuup" aria-label='Reply to LaNuup'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-even depth-1 highlander-comment" id="li-comment-8137">
+		<article id="comment-8137" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/bdd8cbf5e1c5cc29e232636415753927?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">tlhonmey</span> on <a href="https://wanderinginn.com/2017/10/28/3-28-g/#comment-8137"><time datetime="2017-10-31T23:29:13+00:00">October 31, 2017 at 11:29 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>As &#8220;sexist&#8221; as it sounds to our modern sensibilities, keeping the females inside where they&#8217;re safe is simple practicality in a world this violent.  Females are *far* more valuable than males.  A tribe can easily lose three quarters of its males and have the next generation be just as large as it would have been otherwise.  But to lose three quarters of the females would be a crippling blow from which they would not recover for four generations. (Assuming a roughly 50/50 split between male and female births as with most mammals.)</p>
+<p>The only thing offsetting that would be the goblin ability to sire children on other species and have them all be born as goblins, but captives are far more expensive to keep than willing tribesmembers.</p>
+<p>Incidentally, it seems interesting that both half-elves and goblins have the ability to breed true regardless of what they&#8217;re mixed with&#8230;  Perchance is there some relationship there that nobody remembers/wants to talk about?</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/10/28/3-28-g/?replytocom=8137#respond' data-commentid="8137" data-postid="3539" data-belowelement="comment-8137" data-respondelement="respond" data-replyto="Reply to tlhonmey" aria-label='Reply to tlhonmey'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment even depth-2 highlander-comment" id="li-comment-8175">
+		<article id="comment-8175" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/349c9043b1192041162b8473d8a5107f?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">wp</span> on <a href="https://wanderinginn.com/2017/10/28/3-28-g/#comment-8175"><time datetime="2017-11-02T23:05:40+00:00">November 2, 2017 at 11:05 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Someone suggested a few chapters ago that goblins are devolved elves. At the time I argued with them, but now I am not as sure.</p>
+<p>&#8211; goblins don&#8217;t seem to show age (is this because they die violent deaths while young due to their  lifestyle? Perhaps they are long lived &#8211; like elves)<br />
+&#8211; goblin King once desire peace until he leveled enough to &#8220;remember&#8221; something, then he wanted to kill everyone (goblins used to be elves but we&#8217;re cursed by other races?).</p>
+<p>It&#8217;s an interesting idea :)</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/10/28/3-28-g/?replytocom=8175#respond' data-commentid="8175" data-postid="3539" data-belowelement="comment-8175" data-respondelement="respond" data-replyto="Reply to wp" aria-label='Reply to wp'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-8143">
+		<article id="comment-8143" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/24bda263ff7b809c69e0b547e670101e?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">SleepingFuriously</span> on <a href="https://wanderinginn.com/2017/10/28/3-28-g/#comment-8143"><time datetime="2017-11-01T01:30:39+00:00">November 1, 2017 at 1:30 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Oh joy another goblin side story. Huh, very dark at that. That makes it a bit uncomfortable to read and I fear  that elements from the side story could becoming rampant in other parts of the story. It was very well done however, you have a real talent for this. Despite not caring for the goblins this was a gripping &#8216;read. I usually skim through those chapters but now I find myself wondering if I will do that for the next one. I must ponder this, thanks for the treat.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/10/28/3-28-g/?replytocom=8143#respond' data-commentid="8143" data-postid="3539" data-belowelement="comment-8143" data-respondelement="respond" data-replyto="Reply to SleepingFuriously" aria-label='Reply to SleepingFuriously'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-tormanen even thread-even depth-1 highlander-comment" id="li-comment-8144">
+		<article id="comment-8144" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/75ce43ba42ce17b2847b64c921537122?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn"><a href='http://ogshurkin.wordpress.com' rel='external nofollow ugc' class='url'>tormanen</a></span> on <a href="https://wanderinginn.com/2017/10/28/3-28-g/#comment-8144"><time datetime="2017-11-01T02:01:20+00:00">November 1, 2017 at 2:01 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>The Great Goblin Chieftain is naught but a coward who would wait for the undead to die of old age before he waged a war he couldn&#8217;t win with his power alone. He rules with fear and politics and is mockery of what a true chieftain should be.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/10/28/3-28-g/?replytocom=8144#respond' data-commentid="8144" data-postid="3539" data-belowelement="comment-8144" data-respondelement="respond" data-replyto="Reply to tormanen" aria-label='Reply to tormanen'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-dickinsd68 odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-8169">
+		<article id="comment-8169" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/6a2ca2aca3a9df1587ad7e8956f69899?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn"><a href='http://dickinsd68.wordpress.com' rel='external nofollow ugc' class='url'>dickinsd68</a></span> on <a href="https://wanderinginn.com/2017/10/28/3-28-g/#comment-8169"><time datetime="2017-11-02T06:10:53+00:00">November 2, 2017 at 6:10 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>You have done it again!  Great chapter,  great writing.   So much emotion.   Thank you.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/10/28/3-28-g/?replytocom=8169#respond' data-commentid="8169" data-postid="3539" data-belowelement="comment-8169" data-respondelement="respond" data-replyto="Reply to dickinsd68" aria-label='Reply to dickinsd68'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-rhhxhchchxjdj even thread-even depth-1 highlander-comment" id="li-comment-8380">
+		<article id="comment-8380" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/58b8bc417b46d5302585d0ec181b8bc6?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn"><a href='http://rhhxhchchxjdj.wordpress.com' rel='external nofollow ugc' class='url'>rhhxhchchxjdj</a></span> on <a href="https://wanderinginn.com/2017/10/28/3-28-g/#comment-8380"><time datetime="2017-11-11T23:33:46+00:00">November 11, 2017 at 11:33 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>&#8220;Sometimes, in the silence of her own mind, Rags knew why her kind was so despised across the world. Privately, she could acknowledge the bitter truth&#8230; Goblins were weak. They didn’t level as much as other races—because they were cowards, too. They lived hand-to-mouth, eating their own dead, fighting each other over scraps. The strongest tribes were still forced to raid the more successful races to survive. Goblins were not creators; they only destroyed.&#8221;</p>
+<p>HUH?????????????????? Um no, goblins are hated BECAUSE THEY ATTACK AND KILL EVERYONE THEY CAN! I thought Rags was supposed to be smart. What the hell is this?</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/10/28/3-28-g/?replytocom=8380#respond' data-commentid="8380" data-postid="3539" data-belowelement="comment-8380" data-respondelement="respond" data-replyto="Reply to rhhxhchchxjdj" aria-label='Reply to rhhxhchchxjdj'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment odd alt depth-2 highlander-comment" id="li-comment-103117">
+		<article id="comment-103117" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/7900d2f27a1bae1807be230702bc1196?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">Donna Wilson</span> on <a href="https://wanderinginn.com/2017/10/28/3-28-g/#comment-103117"><time datetime="2021-04-12T21:14:39+00:00">April 12, 2021 at 9:14 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>You are looking at it from an outside/Human perspective. Rags is looking at it from her own Goblin perspective. She is smart, but part of being smart is acknowledging what others think of her race.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/10/28/3-28-g/?replytocom=103117#respond' data-commentid="103117" data-postid="3539" data-belowelement="comment-103117" data-respondelement="respond" data-replyto="Reply to Donna Wilson" aria-label='Reply to Donna Wilson'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		</ol>
+
+		
+		
+	
+		<div id="respond" class="comment-respond">
+		<h3 id="reply-title" class="comment-reply-title">Leave a Reply <small><a rel="nofollow" id="cancel-comment-reply-link" href="/2017/10/28/3-28-g/#respond" style="display:none;">Cancel reply</a></small></h3><form action="https://wanderinginn.com/wp-comments-post.php" method="post" id="commentform" class="comment-form"><input type="hidden" id="highlander_comment_nonce" name="highlander_comment_nonce" value="bd33e1bdd8" /><input type="hidden" name="_wp_http_referer" value="/2017/10/28/3-28-g/" />
+<input type="hidden" name="hc_post_as" id="hc_post_as" value="guest" />
+
+<div class="comment-form-field comment-textarea">
+	<label for="comment">Enter your comment here...</label>
+	<div id="comment-form-comment"><textarea id="comment" name="comment" title="Enter your comment here..."></textarea></div>
+</div>
+
+<div id="comment-form-identity">
+	<div id="comment-form-nascar">
+		<p>Fill in your details below or click an icon to log in:</p>
+		<ul>
+			<li class="selected" style="display:none;">
+				<a href="#comment-form-guest" id="postas-guest" class="nascar-signin-link"
+				 title="Login via Guest" 				>
+									</a>
+			</li>
+			<li>
+				<a href="#comment-form-load-service:WordPress.com" id="postas-wordpress" class="nascar-signin-link"
+				 title="Login via WordPress.com" 				>
+					<svg xmlns="http://www.w3.org/2000/svg" role="presentation" viewBox="0 0 24 24" ><rect x="0" fill="none" width="24" height="24"/><g><path fill="#FFF" d="M12.158 12.786l-2.698 7.84c.806.236 1.657.365 2.54.365 1.047 0 2.05-.18 2.986-.51-.024-.037-.046-.078-.065-.123l-2.762-7.57zM3.008 12c0 3.56 2.07 6.634 5.068 8.092L3.788 8.342c-.5 1.117-.78 2.354-.78 3.658zm15.06-.454c0-1.112-.398-1.88-.74-2.48-.456-.74-.883-1.368-.883-2.11 0-.825.627-1.595 1.51-1.595.04 0 .078.006.116.008-1.598-1.464-3.73-2.36-6.07-2.36-3.14 0-5.904 1.613-7.512 4.053.21.008.41.012.58.012.94 0 2.395-.114 2.395-.114.484-.028.54.684.057.74 0 0-.487.058-1.03.086l3.275 9.74 1.968-5.902-1.4-3.838c-.485-.028-.944-.085-.944-.085-.486-.03-.43-.77.056-.742 0 0 1.484.114 2.368.114.94 0 2.397-.114 2.397-.114.486-.028.543.684.058.74 0 0-.488.058-1.03.086l3.25 9.665.897-2.997c.456-1.17.684-2.137.684-2.907zm1.82-3.86c.04.286.06.593.06.924 0 .912-.17 1.938-.683 3.22l-2.746 7.94c2.672-1.558 4.47-4.454 4.47-7.77 0-1.564-.4-3.033-1.1-4.314zM12 22C6.486 22 2 17.514 2 12S6.486 2 12 2s10 4.486 10 10-4.486 10-10 10z"/></g></svg>				</a>
+			</li>
+			<li>
+				<a href="#comment-form-load-service:Twitter" id="postas-twitter" class="nascar-signin-link"
+				 title="Login via Twitter" 				>
+					<svg xmlns="http://www.w3.org/2000/svg" role="presentation" viewBox="0 0 24 24" ><rect x="0" fill="none" width="24" height="24"/><g><path fill="#FFF" d="M22.23 5.924c-.736.326-1.527.547-2.357.646.847-.508 1.498-1.312 1.804-2.27-.793.47-1.67.812-2.606.996C18.325 4.498 17.258 4 16.078 4c-2.266 0-4.103 1.837-4.103 4.103 0 .322.036.635.106.935-3.41-.17-6.433-1.804-8.457-4.287-.353.607-.556 1.312-.556 2.064 0 1.424.724 2.68 1.825 3.415-.673-.022-1.305-.207-1.86-.514v.052c0 1.988 1.415 3.647 3.293 4.023-.344.095-.707.145-1.08.145-.265 0-.522-.026-.773-.074.522 1.63 2.038 2.817 3.833 2.85-1.404 1.1-3.174 1.757-5.096 1.757-.332 0-.66-.02-.98-.057 1.816 1.164 3.973 1.843 6.29 1.843 7.547 0 11.675-6.252 11.675-11.675 0-.178-.004-.355-.012-.53.802-.578 1.497-1.3 2.047-2.124z"/></g></svg>				</a>
+			</li>
+			<li>
+				<a href="#comment-form-load-service:Facebook" id="postas-facebook" class="nascar-signin-link"
+				 title="Login via Facebook" 				>
+					<svg xmlns="http://www.w3.org/2000/svg" role="presentation" viewBox="0 0 24 24" ><rect x="0" fill="none" width="24" height="24"/><g><path fill="#FFF" d="M20.007 3H3.993C3.445 3 3 3.445 3 3.993v16.013c0 .55.445.994.993.994h8.62v-6.97H10.27V11.31h2.346V9.31c0-2.325 1.42-3.59 3.494-3.59.993 0 1.847.073 2.096.106v2.43h-1.438c-1.128 0-1.346.537-1.346 1.324v1.734h2.69l-.35 2.717h-2.34V21h4.587c.548 0 .993-.445.993-.993V3.993c0-.548-.445-.993-.993-.993z"/></g></svg>				</a>
+			</li>
+		</ul>
+	</div>
+
+	<div id="comment-form-guest" class="comment-form-service selected">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+<a href="https://gravatar.com/site/signup/" target="_blank">				<img src="https://1.gravatar.com/avatar/ad516503a11cd5ca435acc9bb6523536?s=25&amp;d=identicon&amp;forcedefault=y&amp;r=PG" alt="Gravatar" width="25" class="no-grav" />
+</a>			</div>
+
+				<div class="comment-form-fields">
+				<div class="comment-form-field comment-form-email">
+					<label for="email">Email <span class="required">(required)</span> <span class="nopublish">(Address never made public)</span></label>
+					<div class="comment-form-input"><input id="email" name="email" type="email" value="" /></div>
+				</div>
+				<div class="comment-form-field comment-form-author">
+					<label for="author">Name <span class="required">(required)</span></label>
+					<div class="comment-form-input"><input id="author" name="author" type="text" value="" /></div>
+				</div>
+				<div class="comment-form-field comment-form-url">
+					<label for="url">Website</label>
+					<div class="comment-form-input"><input id="url" name="url" type="url" value="" /></div>
+				</div>
+			</div>
+			
+		</div>
+	</div>
+
+	<div id="comment-form-wordpress" class="comment-form-service">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+				<img src="https://1.gravatar.com/avatar/ad516503a11cd5ca435acc9bb6523536?s=25&amp;d=identicon&amp;forcedefault=y&amp;r=PG" alt="WordPress.com Logo" width="25" class="no-grav" />
+			</div>
+
+				<div class="comment-form-fields">
+				<input type="hidden" name="wp_avatar" id="wordpress-avatar" class="comment-meta-wordpress" value="" />
+				<input type="hidden" name="wp_user_id" id="wordpress-user_id" class="comment-meta-wordpress" value="" />
+				<input type="hidden" name="wp_access_token" id="wordpress-access_token" class="comment-meta-wordpress" value="" />
+						<p class="comment-form-posting-as pa-wordpress">
+			<strong></strong>
+			You are commenting using your WordPress.com account.			<span class="comment-form-log-out">
+				(&nbsp;<a href="javascript:HighlanderComments.doExternalLogout( 'wordpress' );">Log&nbsp;Out</a>&nbsp;/&nbsp;
+				<a href="#" onclick="javascript:HighlanderComments.switchAccount();return false;">Change</a>&nbsp;)
+			</span>
+			<span class="pa-icon"><svg xmlns="http://www.w3.org/2000/svg" role="presentation" viewBox="0 0 24 24" ><rect x="0" fill="none" width="24" height="24"/><g><path fill="#FFF" d="M12.158 12.786l-2.698 7.84c.806.236 1.657.365 2.54.365 1.047 0 2.05-.18 2.986-.51-.024-.037-.046-.078-.065-.123l-2.762-7.57zM3.008 12c0 3.56 2.07 6.634 5.068 8.092L3.788 8.342c-.5 1.117-.78 2.354-.78 3.658zm15.06-.454c0-1.112-.398-1.88-.74-2.48-.456-.74-.883-1.368-.883-2.11 0-.825.627-1.595 1.51-1.595.04 0 .078.006.116.008-1.598-1.464-3.73-2.36-6.07-2.36-3.14 0-5.904 1.613-7.512 4.053.21.008.41.012.58.012.94 0 2.395-.114 2.395-.114.484-.028.54.684.057.74 0 0-.487.058-1.03.086l3.275 9.74 1.968-5.902-1.4-3.838c-.485-.028-.944-.085-.944-.085-.486-.03-.43-.77.056-.742 0 0 1.484.114 2.368.114.94 0 2.397-.114 2.397-.114.486-.028.543.684.058.74 0 0-.488.058-1.03.086l3.25 9.665.897-2.997c.456-1.17.684-2.137.684-2.907zm1.82-3.86c.04.286.06.593.06.924 0 .912-.17 1.938-.683 3.22l-2.746 7.94c2.672-1.558 4.47-4.454 4.47-7.77 0-1.564-.4-3.033-1.1-4.314zM12 22C6.486 22 2 17.514 2 12S6.486 2 12 2s10 4.486 10 10-4.486 10-10 10z"/></g></svg></span>
+		</p>
+					</div>
+	
+		</div>
+	</div>
+
+	<div id="comment-form-twitter" class="comment-form-service">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+				<img src="https://1.gravatar.com/avatar/ad516503a11cd5ca435acc9bb6523536?s=25&amp;d=identicon&amp;forcedefault=y&amp;r=PG" alt="Twitter picture" width="25" class="no-grav" />
+			</div>
+
+				<div class="comment-form-fields">
+				<input type="hidden" name="twitter_avatar" id="twitter-avatar" class="comment-meta-twitter" value="" />
+				<input type="hidden" name="twitter_user_id" id="twitter-user_id" class="comment-meta-twitter" value="" />
+				<input type="hidden" name="twitter_access_token" id="twitter-access_token" class="comment-meta-twitter" value="" />
+						<p class="comment-form-posting-as pa-twitter">
+			<strong></strong>
+			You are commenting using your Twitter account.			<span class="comment-form-log-out">
+				(&nbsp;<a href="javascript:HighlanderComments.doExternalLogout( 'twitter' );">Log&nbsp;Out</a>&nbsp;/&nbsp;
+				<a href="#" onclick="javascript:HighlanderComments.switchAccount();return false;">Change</a>&nbsp;)
+			</span>
+			<span class="pa-icon"><svg xmlns="http://www.w3.org/2000/svg" role="presentation" viewBox="0 0 24 24" ><rect x="0" fill="none" width="24" height="24"/><g><path fill="#FFF" d="M22.23 5.924c-.736.326-1.527.547-2.357.646.847-.508 1.498-1.312 1.804-2.27-.793.47-1.67.812-2.606.996C18.325 4.498 17.258 4 16.078 4c-2.266 0-4.103 1.837-4.103 4.103 0 .322.036.635.106.935-3.41-.17-6.433-1.804-8.457-4.287-.353.607-.556 1.312-.556 2.064 0 1.424.724 2.68 1.825 3.415-.673-.022-1.305-.207-1.86-.514v.052c0 1.988 1.415 3.647 3.293 4.023-.344.095-.707.145-1.08.145-.265 0-.522-.026-.773-.074.522 1.63 2.038 2.817 3.833 2.85-1.404 1.1-3.174 1.757-5.096 1.757-.332 0-.66-.02-.98-.057 1.816 1.164 3.973 1.843 6.29 1.843 7.547 0 11.675-6.252 11.675-11.675 0-.178-.004-.355-.012-.53.802-.578 1.497-1.3 2.047-2.124z"/></g></svg></span>
+		</p>
+					</div>
+	
+		</div>
+	</div>
+
+	<div id="comment-form-facebook" class="comment-form-service">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+				<img src="" alt="Facebook photo" width="25" class="no-grav" />
+			</div>
+
+				<div class="comment-form-fields">
+				<input type="hidden" name="fb_avatar" id="facebook-avatar" class="comment-meta-facebook" value="" />
+				<input type="hidden" name="fb_user_id" id="facebook-user_id" class="comment-meta-facebook" value="" />
+				<input type="hidden" name="fb_access_token" id="facebook-access_token" class="comment-meta-facebook" value="" />
+						<p class="comment-form-posting-as pa-facebook">
+			<strong></strong>
+			You are commenting using your Facebook account.			<span class="comment-form-log-out">
+				(&nbsp;<a href="javascript:HighlanderComments.doExternalLogout( 'facebook' );">Log&nbsp;Out</a>&nbsp;/&nbsp;
+				<a href="#" onclick="javascript:HighlanderComments.switchAccount();return false;">Change</a>&nbsp;)
+			</span>
+			<span class="pa-icon"><svg xmlns="http://www.w3.org/2000/svg" role="presentation" viewBox="0 0 24 24" ><rect x="0" fill="none" width="24" height="24"/><g><path fill="#FFF" d="M20.007 3H3.993C3.445 3 3 3.445 3 3.993v16.013c0 .55.445.994.993.994h8.62v-6.97H10.27V11.31h2.346V9.31c0-2.325 1.42-3.59 3.494-3.59.993 0 1.847.073 2.096.106v2.43h-1.438c-1.128 0-1.346.537-1.346 1.324v1.734h2.69l-.35 2.717h-2.34V21h4.587c.548 0 .993-.445.993-.993V3.993c0-.548-.445-.993-.993-.993z"/></g></svg></span>
+		</p>
+					</div>
+	
+		</div>
+	</div>
+
+
+	<div id="comment-form-load-service" class="comment-form-service">
+		<div class="comment-form-posting-as-cancel"><a href="javascript:HighlanderComments.cancelExternalWindow();">Cancel</a></div>
+		<p>Connecting to %s</p>
+	</div>
+
+</div>
+
+<script type="text/javascript">
+var highlander_expando_javascript = function () {
+
+	function hide( sel ) {
+		var el = document.querySelector( sel );
+		if ( el ) {
+			el.style.setProperty( 'display', 'none' );
+		}
+	}
+
+	function show( sel ) {
+		var el = document.querySelector( sel );
+		if ( el ) {
+			el.style.removeProperty( 'display' );
+		}
+	}
+
+	var input = document.createElement( 'input' );
+	var comment = document.querySelector( '#comment' );
+
+	if ( input && comment && 'placeholder' in input ) {
+		var label = document.querySelector( '.comment-textarea label' );
+		if ( label ) {
+			var text = label.textContent;
+			label.parentNode.removeChild( label );
+			comment.setAttribute( 'placeholder', text );
+		}
+	}
+
+	// Expando Mode: start small, then auto-resize on first click + text length
+	hide( '#comment-form-identity' );
+	hide( '#comment-form-subscribe' );
+	hide( '#commentform .form-submit' );
+
+	if ( comment ) {
+		comment.style.height = '10px';
+
+		var handler = function () {
+			comment.style.height = HighlanderComments.initialHeight + 'px';
+			show( '#comment-form-identity' );
+			show( '#comment-form-subscribe' );
+			show( '#commentform .form-submit' );
+			HighlanderComments.resizeCallback();
+
+			comment.removeEventListener( 'focus', handler );
+		};
+
+		comment.addEventListener( 'focus', handler );
+	}
+}
+
+if ( document.readyState !== 'loading' ) {
+	highlander_expando_javascript();
+} else {
+	document.addEventListener( 'DOMContentLoaded', highlander_expando_javascript );
+}
+
+</script>
+
+<div id="comment-form-subscribe">
+	<p class="comment-subscription-form"><input type="checkbox" name="subscribe" id="subscribe" value="subscribe" style="width: auto;"/> <label class="subscribe-label" id="subscribe-label" for="subscribe" style="display: inline;">Notify me of new comments via email.</label></p><p class="post-subscription-form"><input type="checkbox" name="subscribe_blog" id="subscribe_blog" value="subscribe" style="width: auto;"/> <label class="subscribe-label" id="subscribe-blog-label" for="subscribe_blog"  style="display: inline;">Notify me of new posts via email.</label></p></div>
+
+
+
+
+<p class="form-submit"><input name="submit" type="submit" id="comment-submit" class="submit button" value="Post Comment" /> <input type='hidden' name='comment_post_ID' value='3539' id='comment_post_ID' />
+<input type='hidden' name='comment_parent' id='comment_parent' value='0' />
+</p><p style="display: none;"><input type="hidden" id="akismet_comment_nonce" name="akismet_comment_nonce" value="c9d13039d1" /></p>
+<input type="hidden" name="genseq" value="1664899928" />
+<p style="display: none !important;"><label>&#916;<textarea name="ak_hp_textarea" cols="45" rows="8" maxlength="100"></textarea></label><input type="hidden" id="ak_js_1" name="ak_js" value="109"/><script>document.getElementById( "ak_js_1" ).setAttribute( "value", ( new Date() ).getTime() );</script></p></form>	</div><!-- #respond -->
+	<div style="clear: both"></div>
+</div><!-- #comments -->
+
+				
+			</div><!-- #content -->
+		</div><!-- #primary -->
+
+
+	</div><!-- #main -->
+
+	<footer id="colophon">
+
+			
+
+			<div id="site-generator">
+				 								<a href="https://wordpress.com/?ref=footer_blog" rel="nofollow">Blog at WordPress.com.</a>
+			</div>
+	</footer><!-- #colophon -->
+</div><!-- #page -->
+
+<!--  -->
+<script type="text/javascript">
+	window._tkq = window._tkq || [];
+	if ( Math.random() < 0.01 ) {
+		window._tkq.push( [
+			'recordEvent',
+			'wpcom_wordads_noad',
+			{"theme":"pub\/twentyeleven","blog_id":113840984,"post_id":3539,"reason_noadverts_plugin":1,"reason_upgrade":1,"reason_blog_null":1,"reason_post_null":1}
+		] );
+	}
+</script><script src='//0.gravatar.com/js/gprofiles.js?ver=202240z' id='grofiles-cards-js'></script>
+<script id='wpgroho-js-extra'>
+var WPGroHo = {"my_hash":""};
+</script>
+<script crossorigin='anonymous' type='text/javascript' src='https://s1.wp.com/wp-content/mu-plugins/gravatar-hovercards/wpgroho.js?m=1610363240h'></script>
+
+	<script>
+		// Initialize and attach hovercards to all gravatars
+		( function() {
+			function init() {
+				if ( typeof Gravatar === 'undefined' ) {
+					return;
+				}
+
+				if ( typeof Gravatar.init !== 'function' ) {
+					return;
+				}
+
+				Gravatar.profile_cb = function ( hash, id ) {
+					WPGroHo.syncProfileData( hash, id );
+				};
+
+				Gravatar.my_hash = WPGroHo.my_hash;
+				Gravatar.init( 'body', '#wp-admin-bar-my-account' );
+			}
+
+			if ( document.readyState !== 'loading' ) {
+				init();
+			} else {
+				document.addEventListener( 'DOMContentLoaded', init );
+			}
+		} )();
+	</script>
+
+		<div style="display:none">
+	<div class="grofile-hash-map-2f8ac70cd17f11c419846c441769523b">
+	</div>
+	<div class="grofile-hash-map-4698c0502de1e030f37adcaf19604a18">
+	</div>
+	<div class="grofile-hash-map-92f194e2ab8c200afa86415f78e92e8b">
+	</div>
+	<div class="grofile-hash-map-c701afbf471947947db77c814363b3f9">
+	</div>
+	<div class="grofile-hash-map-e8272a6542420d5aa6afb65320e4ce8a">
+	</div>
+	<div class="grofile-hash-map-db91481436658e7fef3f84fc2bdd1dad">
+	</div>
+	<div class="grofile-hash-map-cb474ea3c637db7230457c2b941c8fc2">
+	</div>
+	<div class="grofile-hash-map-fe5ed9202be1e8d2c94387986666d228">
+	</div>
+	<div class="grofile-hash-map-17348453f1366c4cf499349850278caf">
+	</div>
+	<div class="grofile-hash-map-5762168f3afd473738f660434a205601">
+	</div>
+	<div class="grofile-hash-map-a4c844493bb97a26f9489c4ea1660fe2">
+	</div>
+	<div class="grofile-hash-map-bdd8cbf5e1c5cc29e232636415753927">
+	</div>
+	<div class="grofile-hash-map-fa920db536afdbeb6f399976933fee09">
+	</div>
+	<div class="grofile-hash-map-3c4f0668ed2d3cfb4eeaa47d01db84e4">
+	</div>
+	<div class="grofile-hash-map-01da915f6a266c09f8540fc381a576be">
+	</div>
+	<div class="grofile-hash-map-6157cf9d7e8c68f1f7785f6e3e176a32">
+	</div>
+	<div class="grofile-hash-map-349c9043b1192041162b8473d8a5107f">
+	</div>
+	<div class="grofile-hash-map-24bda263ff7b809c69e0b547e670101e">
+	</div>
+	<div class="grofile-hash-map-75ce43ba42ce17b2847b64c921537122">
+	</div>
+	<div class="grofile-hash-map-6a2ca2aca3a9df1587ad7e8956f69899">
+	</div>
+	<div class="grofile-hash-map-58b8bc417b46d5302585d0ec181b8bc6">
+	</div>
+	<div class="grofile-hash-map-7900d2f27a1bae1807be230702bc1196">
+	</div>
+	</div>
+<script id='highlander-comments-js-extra'>
+var HighlanderComments = {"loggingInText":"Logging In\u2026","submittingText":"Posting Comment\u2026","postCommentText":"Post Comment","connectingToText":"Connecting to %s","commentingAsText":"%1$s: You are commenting using your %2$s account.","logoutText":"Log Out","loginText":"Log In","connectURL":"https:\/\/wanderinginn.wordpress.com\/public.api\/connect\/?action=request&domain=wanderinginn.com","logoutURL":"https:\/\/wanderinginn.wordpress.com\/wp-login.php?action=logout&_wpnonce=027032d4fa","homeURL":"https:\/\/wanderinginn.com\/","postID":"3539","gravDefault":"identicon","enterACommentError":"Please enter a comment","enterEmailError":"Please enter your email address here","invalidEmailError":"Invalid email address","enterAuthorError":"Please enter your name here","gravatarFromEmail":"This picture will show whenever you leave a comment. Click to customize it.","logInToExternalAccount":"Log in to use details from one of these accounts.","change":"Change","changeAccount":"Change Account","comment_registration":"","userIsLoggedIn":"","isJetpack":"","text_direction":"ltr"};
+</script>
+<script crossorigin='anonymous' type='text/javascript' src='https://s0.wp.com/_static/??/wp-content/js/textarea-autosize.min.js,/wp-content/mu-plugins/highlander-comments/script.js?m=1663141412j'></script>
+	<div id="actionbar" style="display: none;"
+			class="actnbr-pub-twentyeleven actnbr-has-follow">
+		<ul>
+								<li class="actnbr-btn actnbr-hidden">
+								<a class="actnbr-action actnbr-actn-follow " href="">
+			<svg class="gridicon gridicons-reader-follow" height="24" width="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g><path d="M23 16v2h-3v3h-2v-3h-3v-2h3v-3h2v3h3zM20 2v9h-4v3h-3v4H4c-1.1 0-2-.9-2-2V2h18zM8 13v-1H4v1h4zm3-3H4v1h7v-1zm0-2H4v1h7V8zm7-4H4v2h14V4z"/></g></svg><span>Follow</span>
+		</a>
+		<a class="actnbr-action actnbr-actn-following  no-display" href="">
+			<svg class="gridicon gridicons-reader-following" height="24" width="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g><path d="M23 13.482L15.508 21 12 17.4l1.412-1.388 2.106 2.188 6.094-6.094L23 13.482zm-7.455 1.862L20 10.89V2H2v14c0 1.1.9 2 2 2h4.538l4.913-4.832 2.095 2.176zM8 13H4v-1h4v1zm3-2H4v-1h7v1zm0-2H4V8h7v1zm7-3H4V4h14v2z"/></g></svg><span>Following</span>
+		</a>
+							<div class="actnbr-popover tip tip-top-left actnbr-notice" id="follow-bubble">
+							<div class="tip-arrow"></div>
+							<div class="tip-inner actnbr-follow-bubble">
+															<ul>
+											<li class="actnbr-sitename">
+			<a href="https://wanderinginn.com">
+				<img alt='' src='https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=50' class='avatar avatar-50' height='50' width='50' />				The Wandering Inn			</a>
+		</li>
+										<form method="post" action="https://subscribe.wordpress.com" accept-charset="utf-8" style="display: none;">
+																						<div class="actnbr-follow-count">Join 2,697 other followers</div>
+																					<div>
+										<input type="email" name="email" placeholder="Enter your email address" class="actnbr-email-field" aria-label="Enter your email address" />
+										</div>
+										<input type="hidden" name="action" value="subscribe" />
+										<input type="hidden" name="blog_id" value="113840984" />
+										<input type="hidden" name="source" value="https://wanderinginn.com/2017/10/28/3-28-g/" />
+										<input type="hidden" name="sub-type" value="actionbar-follow" />
+										<input type="hidden" id="_wpnonce" name="_wpnonce" value="9bb017f338" />										<div class="actnbr-button-wrap">
+											<button type="submit" value="Sign me up">
+												Sign me up											</button>
+										</div>
+									</form>
+									<li class="actnbr-login-nudge">
+										<div>
+											Already have a WordPress.com account? <a href="https://wordpress.com/log-in?redirect_to=https%3A%2F%2Fr-login.wordpress.com%2Fremote-login.php%3Faction%3Dlink%26back%3Dhttps%253A%252F%252Fwanderinginn.com%252F2017%252F10%252F28%252F3-28-g%252F">Log in now.</a>										</div>
+									</li>
+								</ul>
+															</div>
+						</div>
+					</li>
+							<li class="actnbr-ellipsis actnbr-hidden">
+				<svg class="gridicon gridicons-ellipsis" height="24" width="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g><path d="M7 12c0 1.104-.896 2-2 2s-2-.896-2-2 .896-2 2-2 2 .896 2 2zm12-2c-1.104 0-2 .896-2 2s.896 2 2 2 2-.896 2-2-.896-2-2-2zm-7 0c-1.104 0-2 .896-2 2s.896 2 2 2 2-.896 2-2-.896-2-2-2z"/></g></svg>				<div class="actnbr-popover tip tip-top-left actnbr-more">
+					<div class="tip-arrow"></div>
+					<div class="tip-inner">
+						<ul>
+									<li class="actnbr-sitename">
+			<a href="https://wanderinginn.com">
+				<img alt='' src='https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=50' class='avatar avatar-50' height='50' width='50' />				The Wandering Inn			</a>
+		</li>
+								<li class="actnbr-folded-customize">
+								<a href="https://wanderinginn.wordpress.com/wp-admin/customize.php?url=https%3A%2F%2Fwanderinginn.wordpress.com%2F2017%2F10%2F28%2F3-28-g%2F">
+									<svg class="gridicon gridicons-customize" height="20" width="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g><path d="M2 6c0-1.505.78-3.08 2-4 0 .845.69 2 2 2 1.657 0 3 1.343 3 3 0 .386-.08.752-.212 1.09.74.594 1.476 1.19 2.19 1.81L8.9 11.98c-.62-.716-1.214-1.454-1.807-2.192C6.753 9.92 6.387 10 6 10c-2.21 0-4-1.79-4-4zm12.152 6.848l1.34-1.34c.607.304 1.283.492 2.008.492 2.485 0 4.5-2.015 4.5-4.5 0-.725-.188-1.4-.493-2.007L18 9l-2-2 3.507-3.507C18.9 3.188 18.225 3 17.5 3 15.015 3 13 5.015 13 7.5c0 .725.188 1.4.493 2.007L3 20l2 2 6.848-6.848c1.885 1.928 3.874 3.753 5.977 5.45l1.425 1.148 1.5-1.5-1.15-1.425c-1.695-2.103-3.52-4.092-5.448-5.977z"/></g></svg>									<span>Customize</span>
+								</a>
+							</li>
+																<li class="actnbr-folded-follow">
+												<a class="actnbr-action actnbr-actn-follow " href="">
+			<svg class="gridicon gridicons-reader-follow" height="24" width="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g><path d="M23 16v2h-3v3h-2v-3h-3v-2h3v-3h2v3h3zM20 2v9h-4v3h-3v4H4c-1.1 0-2-.9-2-2V2h18zM8 13v-1H4v1h4zm3-3H4v1h7v-1zm0-2H4v1h7V8zm7-4H4v2h14V4z"/></g></svg><span>Follow</span>
+		</a>
+		<a class="actnbr-action actnbr-actn-following  no-display" href="">
+			<svg class="gridicon gridicons-reader-following" height="24" width="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g><path d="M23 13.482L15.508 21 12 17.4l1.412-1.388 2.106 2.188 6.094-6.094L23 13.482zm-7.455 1.862L20 10.89V2H2v14c0 1.1.9 2 2 2h4.538l4.913-4.832 2.095 2.176zM8 13H4v-1h4v1zm3-2H4v-1h7v1zm0-2H4V8h7v1zm7-3H4V4h14v2z"/></g></svg><span>Following</span>
+		</a>
+										</li>
+																	<li class="actnbr-signup"><a href="https://wordpress.com/start/">Sign up</a></li>
+									<li class="actnbr-login"><a href="https://wordpress.com/log-in?redirect_to=https%3A%2F%2Fr-login.wordpress.com%2Fremote-login.php%3Faction%3Dlink%26back%3Dhttps%253A%252F%252Fwanderinginn.com%252F2017%252F10%252F28%252F3-28-g%252F">Log in</a></li>
+																	<li class="actnbr-shortlink"><a href="https://wp.me/p7HFeU-V5">Copy shortlink</a></li>
+																	<li class="flb-report"><a href="http://en.wordpress.com/abuse/">Report this content</a></li>
+																	<li class="actnbr-reader">
+										<a href="https://wordpress.com/read/blogs/113840984/posts/3539">
+											View post in Reader										</a>
+									</li>
+																	<li class="actnbr-subs">
+										<a href="https://subscribe.wordpress.com/">Manage subscriptions</a>
+									</li>
+																		<li class="actnbr-fold"><a href="">Collapse this bar</a></li>
+															</ul>
+					</div>
+				</div>
+			</li>
+		</ul>
+	</div>
+	
+<script>
+window.addEventListener( "load", function( event ) {
+	var link = document.createElement( "link" );
+	link.href = "https://s0.wp.com/wp-content/mu-plugins/actionbar/actionbar.css?v=20210915";
+	link.type = "text/css";
+	link.rel = "stylesheet";
+	document.head.appendChild( link );
+
+	var script = document.createElement( "script" );
+	script.src = "https://s0.wp.com/wp-content/mu-plugins/actionbar/actionbar.js?v=20220329";
+	script.defer = true;
+	document.body.appendChild( script );
+} );
+</script>
+
+	<script crossorigin='anonymous' type='text/javascript' src='https://s2.wp.com/_static/??-eJx9jd0OwiAMRl9I6AxmixfGRzEMqoFRRij48/ZWk3npXfOdc1J4FOXW3DA3iAwe78FheerIOxAUskvdI3+YW4lEUxVLemkKeZO2nroqqd9CZrBeuJptBbLcsMqlWrVu4X/REpiwKaMHuMjn33CtX9lLe6bTfhwPZpqOg4lvZ0RE/g=='></script>
+<script type="text/javascript">
+// <![CDATA[
+(function() {
+try{
+  if ( window.external &&'msIsSiteMode' in window.external) {
+    if (window.external.msIsSiteMode()) {
+      var jl = document.createElement('script');
+      jl.type='text/javascript';
+      jl.async=true;
+      jl.src='/wp-content/plugins/ie-sitemode/custom-jumplist.php';
+      var s = document.getElementsByTagName('script')[0];
+      s.parentNode.insertBefore(jl, s);
+    }
+  }
+}catch(e){}
+})();
+// ]]>
+</script><script src="//stats.wp.com/w.js?63" defer></script> <script type="text/javascript">
+_tkq = window._tkq || [];
+_stq = window._stq || [];
+_tkq.push(['storeContext', {'blog_id':'113840984','blog_tz':'0','user_lang':'en','blog_lang':'en','user_id':'0'}]);
+_stq.push(['view', {'blog':'113840984','v':'wpcom','tz':'0','user_id':'0','post':'3539','subd':'wanderinginn'}]);
+_stq.push(['extra', {'crypt':'UE40eW5QN0p8M2Y/RE1mNzc2NTVTamdsd0xoLz9RQkM2K298TXY9bERQMXc2MjhEaVZfb2wwakRoSj0mUkp1THptM1NdbkV1WjZIcU9mVWQmPUIvMlN6Jk8wW3NYVEJ3dWZOWExuWD9VNTEucGVTRmZwYTB2ZD82MHd0Y1Y0RlltYWdKeC9TU05lUzUxV1pzZWh8UlVlalotK3A/NWVna2ZGUkZsS18mamFwWmE5eHd3PyVGLEpuPVVoeFtzTFI9RkgtRE9EMFJLdF9aQ1o9aHE9RC5NTV1MT21JP2hXLTFyWT9MLU1VflU1My1OenZjQWdUcDFuRVtOUU15Q1BnOFZsa1RjSml4Ynphfk9KQnE/Jjh1aFN6OVdfRkgreDBBMDlrfkUvL1s3b2c1NkV5UThQUn4lSFtIeXovXXdiSkg='}]);
+_stq.push([ 'clickTrackerInit', '113840984', '3539' ]);
+	</script>
+<noscript><img src="https://pixel.wp.com/b.gif?v=noscript" style="height:1px;width:1px;overflow:hidden;position:absolute;bottom:1px;" alt="" /></noscript>
+<script>
+if ( 'object' === typeof wpcom_mobile_user_agent_info ) {
+
+	wpcom_mobile_user_agent_info.init();
+	var mobileStatsQueryString = "";
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedPlatformName )
+		mobileStatsQueryString += "&x_" + 'mobile_platforms' + '=' + wpcom_mobile_user_agent_info.matchedPlatformName;
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedUserAgentName )
+		mobileStatsQueryString += "&x_" + 'mobile_devices' + '=' + wpcom_mobile_user_agent_info.matchedUserAgentName;
+	
+	if( wpcom_mobile_user_agent_info.isIPad() )
+		mobileStatsQueryString += "&x_" + 'ipad_views' + '=' + 'views';
+
+	if( "" != mobileStatsQueryString ) {
+		new Image().src = document.location.protocol + '//pixel.wp.com/g.gif?v=wpcom-no-pv' + mobileStatsQueryString + '&baba=' + Math.random();
+	}
+	
+}
+</script>
+</body>
+</html>

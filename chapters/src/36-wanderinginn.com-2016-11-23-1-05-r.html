@@ -1,0 +1,1994 @@
+<!DOCTYPE html>
+<!--[if IE 6]>
+<html id="ie6" lang="en">
+<![endif]-->
+<!--[if IE 7]>
+<html id="ie7" lang="en">
+<![endif]-->
+<!--[if IE 8]>
+<html id="ie8" lang="en">
+<![endif]-->
+<!--[if !(IE 6) & !(IE 7) & !(IE 8)]><!-->
+<html lang="en">
+<!--<![endif]-->
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width" />
+<title>
+1.05 R | The Wandering Inn	</title>
+<link rel="profile" href="https://gmpg.org/xfn/11" />
+<link rel="stylesheet" type="text/css" media="all" href="https://s2.wp.com/wp-content/themes/pub/twentyeleven/style.css?ver=20190507" />
+<link rel="pingback" href="https://wanderinginn.com/xmlrpc.php">
+<!--[if lt IE 9]>
+<script src="https://s2.wp.com/wp-content/themes/pub/twentyeleven/js/html5.js?ver=3.7.0" type="text/javascript"></script>
+<![endif]-->
+<meta name='robots' content='max-image-preview:large' />
+
+<!-- Async WordPress.com Remote Login -->
+<script id="wpcom_remote_login_js">
+var wpcom_remote_login_extra_auth = '';
+function wpcom_remote_login_remove_dom_node_id( element_id ) {
+	var dom_node = document.getElementById( element_id );
+	if ( dom_node ) { dom_node.parentNode.removeChild( dom_node ); }
+}
+function wpcom_remote_login_remove_dom_node_classes( class_name ) {
+	var dom_nodes = document.querySelectorAll( '.' + class_name );
+	for ( var i = 0; i < dom_nodes.length; i++ ) {
+		dom_nodes[ i ].parentNode.removeChild( dom_nodes[ i ] );
+	}
+}
+function wpcom_remote_login_final_cleanup() {
+	wpcom_remote_login_remove_dom_node_classes( "wpcom_remote_login_msg" );
+	wpcom_remote_login_remove_dom_node_id( "wpcom_remote_login_key" );
+	wpcom_remote_login_remove_dom_node_id( "wpcom_remote_login_validate" );
+	wpcom_remote_login_remove_dom_node_id( "wpcom_remote_login_js" );
+	wpcom_remote_login_remove_dom_node_id( "wpcom_request_access_iframe" );
+	wpcom_remote_login_remove_dom_node_id( "wpcom_request_access_styles" );
+}
+
+// Watch for messages back from the remote login
+window.addEventListener( "message", function( e ) {
+	if ( e.origin === "https://r-login.wordpress.com" ) {
+		var data = {};
+		try {
+			data = JSON.parse( e.data );
+		} catch( e ) {
+			wpcom_remote_login_final_cleanup();
+			return;
+		}
+
+		if ( data.msg === 'LOGIN' ) {
+			// Clean up the login check iframe
+			wpcom_remote_login_remove_dom_node_id( "wpcom_remote_login_key" );
+
+			var id_regex = new RegExp( /^[0-9]+$/ );
+			var token_regex = new RegExp( /^.*|.*|.*$/ );
+			if (
+				token_regex.test( data.token )
+				&& id_regex.test( data.wpcomid )
+			) {
+				// We have everything we need to ask for a login
+				var script = document.createElement( "script" );
+				script.setAttribute( "id", "wpcom_remote_login_validate" );
+				script.src = '/remote-login.php?wpcom_remote_login=validate'
+					+ '&wpcomid=' + data.wpcomid
+					+ '&token=' + encodeURIComponent( data.token )
+					+ '&host=' + window.location.protocol
+					+ '//' + window.location.hostname
+					+ '&postid=493'
+					+ '&is_singular=1';
+				document.body.appendChild( script );
+			}
+
+			return;
+		}
+
+		// Safari ITP, not logged in, so redirect
+		if ( data.msg === 'LOGIN-REDIRECT' ) {
+			window.location = 'https://wordpress.com/log-in?redirect_to=' + window.location.href;
+			return;
+		}
+
+		// Safari ITP, storage access failed, remove the request
+		if ( data.msg === 'LOGIN-REMOVE' ) {
+			var css_zap = 'html { -webkit-transition: margin-top 1s; transition: margin-top 1s; } /* 9001 */ html { margin-top: 0 !important; } * html body { margin-top: 0 !important; } @media screen and ( max-width: 782px ) { html { margin-top: 0 !important; } * html body { margin-top: 0 !important; } }';
+			var style_zap = document.createElement( 'style' );
+			style_zap.type = 'text/css';
+			style_zap.appendChild( document.createTextNode( css_zap ) );
+			document.body.appendChild( style_zap );
+
+			var e = document.getElementById( 'wpcom_request_access_iframe' );
+			e.parentNode.removeChild( e );
+
+			document.cookie = 'wordpress_com_login_access=denied; path=/; max-age=31536000';
+
+			return;
+		}
+
+		// Safari ITP
+		if ( data.msg === 'REQUEST_ACCESS' ) {
+			console.log( 'request access: safari' );
+
+			// Check ITP iframe enable/disable knob
+			if ( wpcom_remote_login_extra_auth !== 'safari_itp_iframe' ) {
+				return;
+			}
+
+			// If we are in a "private window" there is no ITP.
+			var private_window = false;
+			try {
+				var opendb = window.openDatabase( null, null, null, null );
+			} catch( e ) {
+				private_window = true;
+			}
+
+			if ( private_window ) {
+				console.log( 'private window' );
+				return;
+			}
+
+			var iframe = document.createElement( 'iframe' );
+			iframe.id = 'wpcom_request_access_iframe';
+			iframe.setAttribute( 'scrolling', 'no' );
+			iframe.setAttribute( 'sandbox', 'allow-storage-access-by-user-activation allow-scripts allow-same-origin allow-top-navigation-by-user-activation' );
+			iframe.src = 'https://r-login.wordpress.com/remote-login.php?wpcom_remote_login=request_access&origin=' + encodeURIComponent( data.origin ) + '&wpcomid=' + encodeURIComponent( data.wpcomid );
+
+			var css = 'html { -webkit-transition: margin-top 1s; transition: margin-top 1s; } /* 9001 */ html { margin-top: 46px !important; } * html body { margin-top: 46px !important; } @media screen and ( max-width: 660px ) { html { margin-top: 71px !important; } * html body { margin-top: 71px !important; } #wpcom_request_access_iframe { display: block; height: 71px !important; } } #wpcom_request_access_iframe { border: 0px; height: 46px; position: fixed; top: 0; left: 0; width: 100%; min-width: 100%; z-index: 99999; background: #23282d; } ';
+
+			var style = document.createElement( 'style' );
+			style.type = 'text/css';
+			style.id = 'wpcom_request_access_styles';
+			style.appendChild( document.createTextNode( css ) );
+			document.body.appendChild( style );
+
+			document.body.appendChild( iframe );
+		}
+
+		if ( data.msg === 'DONE' ) {
+			wpcom_remote_login_final_cleanup();
+		}
+	}
+}, false );
+
+// Inject the remote login iframe after the page has had a chance to load
+// more critical resources
+window.addEventListener( "DOMContentLoaded", function( e ) {
+	var iframe = document.createElement( "iframe" );
+	iframe.style.display = "none";
+	iframe.setAttribute( "scrolling", "no" );
+	iframe.setAttribute( "id", "wpcom_remote_login_key" );
+	iframe.src = "https://r-login.wordpress.com/remote-login.php"
+		+ "?wpcom_remote_login=key"
+		+ "&origin=aHR0cHM6Ly93YW5kZXJpbmdpbm4uY29t"
+		+ "&wpcomid=113840984"
+		+ "&time=1664899841";
+	document.body.appendChild( iframe );
+}, false );
+</script>
+<link rel='dns-prefetch' href='//s1.wp.com' />
+<link rel='dns-prefetch' href='//wanderinginn.wordpress.com' />
+<link rel='dns-prefetch' href='//s0.wp.com' />
+<link rel='dns-prefetch' href='//s2.wp.com' />
+<link href='https://fonts.gstatic.com' crossorigin rel='preconnect' />
+<link rel="alternate" type="application/rss+xml" title="The Wandering Inn &raquo; Feed" href="https://wanderinginn.com/feed/" />
+<link rel="alternate" type="application/rss+xml" title="The Wandering Inn &raquo; Comments Feed" href="https://wanderinginn.com/comments/feed/" />
+<link rel="alternate" type="application/rss+xml" title="The Wandering Inn &raquo; 1.05 R Comments Feed" href="https://wanderinginn.com/2016/11/23/1-05-r/feed/" />
+	<script type="text/javascript">
+		/* <![CDATA[ */
+		function addLoadEvent(func) {
+			var oldonload = window.onload;
+			if (typeof window.onload != 'function') {
+				window.onload = func;
+			} else {
+				window.onload = function () {
+					oldonload();
+					func();
+				}
+			}
+		}
+		/* ]]> */
+	</script>
+	<script type="text/javascript">
+window._wpemojiSettings = {"baseUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/72x72\/","ext":".png","svgUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/svg\/","svgExt":".svg","source":{"concatemoji":"https:\/\/s0.wp.com\/wp-includes\/js\/wp-emoji-release.min.js?m=1652185836h&ver=6.0.2"}};
+/*! This file is auto-generated */
+!function(e,a,t){var n,r,o,i=a.createElement("canvas"),p=i.getContext&&i.getContext("2d");function s(e,t){var a=String.fromCharCode,e=(p.clearRect(0,0,i.width,i.height),p.fillText(a.apply(this,e),0,0),i.toDataURL());return p.clearRect(0,0,i.width,i.height),p.fillText(a.apply(this,t),0,0),e===i.toDataURL()}function c(e){var t=a.createElement("script");t.src=e,t.defer=t.type="text/javascript",a.getElementsByTagName("head")[0].appendChild(t)}for(o=Array("flag","emoji"),t.supports={everything:!0,everythingExceptFlag:!0},r=0;r<o.length;r++)t.supports[o[r]]=function(e){if(!p||!p.fillText)return!1;switch(p.textBaseline="top",p.font="600 32px Arial",e){case"flag":return s([127987,65039,8205,9895,65039],[127987,65039,8203,9895,65039])?!1:!s([55356,56826,55356,56819],[55356,56826,8203,55356,56819])&&!s([55356,57332,56128,56423,56128,56418,56128,56421,56128,56430,56128,56423,56128,56447],[55356,57332,8203,56128,56423,8203,56128,56418,8203,56128,56421,8203,56128,56430,8203,56128,56423,8203,56128,56447]);case"emoji":return!s([129777,127995,8205,129778,127999],[129777,127995,8203,129778,127999])}return!1}(o[r]),t.supports.everything=t.supports.everything&&t.supports[o[r]],"flag"!==o[r]&&(t.supports.everythingExceptFlag=t.supports.everythingExceptFlag&&t.supports[o[r]]);t.supports.everythingExceptFlag=t.supports.everythingExceptFlag&&!t.supports.flag,t.DOMReady=!1,t.readyCallback=function(){t.DOMReady=!0},t.supports.everything||(n=function(){t.readyCallback()},a.addEventListener?(a.addEventListener("DOMContentLoaded",n,!1),e.addEventListener("load",n,!1)):(e.attachEvent("onload",n),a.attachEvent("onreadystatechange",function(){"complete"===a.readyState&&t.readyCallback()})),(e=t.source||{}).concatemoji?c(e.concatemoji):e.wpemoji&&e.twemoji&&(c(e.twemoji),c(e.wpemoji)))}(window,document,window._wpemojiSettings);
+</script>
+<style type="text/css">
+img.wp-smiley,
+img.emoji {
+	display: inline !important;
+	border: none !important;
+	box-shadow: none !important;
+	height: 1em !important;
+	width: 1em !important;
+	margin: 0 0.07em !important;
+	vertical-align: -0.1em !important;
+	background: none !important;
+	padding: 0 !important;
+}
+</style>
+	<link crossorigin='anonymous' rel='stylesheet' id='all-css-0-1' href='https://s0.wp.com/_static/??-eJylkd1OAyEQhV9IdlyzaeOF8Vn4meBUYAkzWHl7Z5s0Vk2riTeEw8l35gBwrMavRbAI1NQjFYbYVTpsUZ2G8DYv08N0D65TCuDS6l9NItdsG8AyEk6e+Q7+FyQvmD+DqPjUAzIcGDIGspjU1uRLUZMd2EzCaP2YMpXfcfUu9RfoevlTUw1DqXarbMfaxcRG4c/3/xbRrFCJfAXP3ZwTtnfT81ztz/I3sCOFiKI4n/dG8P02UnWMca42ZDa6ZurZnL6FN+45P8273bLsH5d5f/gAOyLUIw==?cssminify=yes' type='text/css' media='all' />
+<style id='wp-block-library-inline-css'>
+.has-text-align-justify {
+	text-align:justify;
+}
+.wp-block-cover__image-background.has-parallax {
+	background-size: cover;
+}
+</style>
+<style id='global-styles-inline-css'>
+body{--wp--preset--color--black: #000;--wp--preset--color--cyan-bluish-gray: #abb8c3;--wp--preset--color--white: #fff;--wp--preset--color--pale-pink: #f78da7;--wp--preset--color--vivid-red: #cf2e2e;--wp--preset--color--luminous-vivid-orange: #ff6900;--wp--preset--color--luminous-vivid-amber: #fcb900;--wp--preset--color--light-green-cyan: #7bdcb5;--wp--preset--color--vivid-green-cyan: #00d084;--wp--preset--color--pale-cyan-blue: #8ed1fc;--wp--preset--color--vivid-cyan-blue: #0693e3;--wp--preset--color--vivid-purple: #9b51e0;--wp--preset--color--blue: #1982d1;--wp--preset--color--dark-gray: #373737;--wp--preset--color--medium-gray: #666;--wp--preset--color--light-gray: #e2e2e2;--wp--preset--gradient--vivid-cyan-blue-to-vivid-purple: linear-gradient(135deg,rgba(6,147,227,1) 0%,rgb(155,81,224) 100%);--wp--preset--gradient--light-green-cyan-to-vivid-green-cyan: linear-gradient(135deg,rgb(122,220,180) 0%,rgb(0,208,130) 100%);--wp--preset--gradient--luminous-vivid-amber-to-luminous-vivid-orange: linear-gradient(135deg,rgba(252,185,0,1) 0%,rgba(255,105,0,1) 100%);--wp--preset--gradient--luminous-vivid-orange-to-vivid-red: linear-gradient(135deg,rgba(255,105,0,1) 0%,rgb(207,46,46) 100%);--wp--preset--gradient--very-light-gray-to-cyan-bluish-gray: linear-gradient(135deg,rgb(238,238,238) 0%,rgb(169,184,195) 100%);--wp--preset--gradient--cool-to-warm-spectrum: linear-gradient(135deg,rgb(74,234,220) 0%,rgb(151,120,209) 20%,rgb(207,42,186) 40%,rgb(238,44,130) 60%,rgb(251,105,98) 80%,rgb(254,248,76) 100%);--wp--preset--gradient--blush-light-purple: linear-gradient(135deg,rgb(255,206,236) 0%,rgb(152,150,240) 100%);--wp--preset--gradient--blush-bordeaux: linear-gradient(135deg,rgb(254,205,165) 0%,rgb(254,45,45) 50%,rgb(107,0,62) 100%);--wp--preset--gradient--luminous-dusk: linear-gradient(135deg,rgb(255,203,112) 0%,rgb(199,81,192) 50%,rgb(65,88,208) 100%);--wp--preset--gradient--pale-ocean: linear-gradient(135deg,rgb(255,245,203) 0%,rgb(182,227,212) 50%,rgb(51,167,181) 100%);--wp--preset--gradient--electric-grass: linear-gradient(135deg,rgb(202,248,128) 0%,rgb(113,206,126) 100%);--wp--preset--gradient--midnight: linear-gradient(135deg,rgb(2,3,129) 0%,rgb(40,116,252) 100%);--wp--preset--duotone--dark-grayscale: url('#wp-duotone-dark-grayscale');--wp--preset--duotone--grayscale: url('#wp-duotone-grayscale');--wp--preset--duotone--purple-yellow: url('#wp-duotone-purple-yellow');--wp--preset--duotone--blue-red: url('#wp-duotone-blue-red');--wp--preset--duotone--midnight: url('#wp-duotone-midnight');--wp--preset--duotone--magenta-yellow: url('#wp-duotone-magenta-yellow');--wp--preset--duotone--purple-green: url('#wp-duotone-purple-green');--wp--preset--duotone--blue-orange: url('#wp-duotone-blue-orange');--wp--preset--font-size--small: 13px;--wp--preset--font-size--medium: 20px;--wp--preset--font-size--large: 36px;--wp--preset--font-size--x-large: 42px;--wp--preset--spacing--20: 0.44rem;--wp--preset--spacing--30: 0.67rem;--wp--preset--spacing--40: 1rem;--wp--preset--spacing--50: 1.5rem;--wp--preset--spacing--60: 2.25rem;--wp--preset--spacing--70: 3.38rem;--wp--preset--spacing--80: 5.06rem;}:where(.is-layout-flex){gap: 0.5em;}body .is-layout-flow > .alignleft{float: left;}body .is-layout-flow > .alignright{float: right;}body .is-layout-flow > .aligncenter{margin-left: auto !important;margin-right: auto !important;}body .is-layout-constrained > .alignleft{float: left;}body .is-layout-constrained > .alignright{float: right;}body .is-layout-constrained > .aligncenter{margin-left: auto !important;margin-right: auto !important;}body .is-layout-constrained > :where(:not(.alignleft):not(.alignright):not(.alignfull)){max-width: var(--wp--style--global--content-size);margin-left: auto !important;margin-right: auto !important;}body .is-layout-constrained > .alignwide{max-width: var(--wp--style--global--wide-size);}body .is-layout-flex{display: flex;}body .is-layout-flex{flex-wrap: wrap;align-items: center;}body .is-layout-flex > *{margin: 0;}:where(.wp-block-columns.is-layout-flex){gap: 2em;}.has-black-color{color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-color{color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-color{color: var(--wp--preset--color--white) !important;}.has-pale-pink-color{color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-color{color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-color{color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-color{color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-color{color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-color{color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-color{color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-color{color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-color{color: var(--wp--preset--color--vivid-purple) !important;}.has-black-background-color{background-color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-background-color{background-color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-background-color{background-color: var(--wp--preset--color--white) !important;}.has-pale-pink-background-color{background-color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-background-color{background-color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-background-color{background-color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-background-color{background-color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-background-color{background-color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-background-color{background-color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-background-color{background-color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-background-color{background-color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-background-color{background-color: var(--wp--preset--color--vivid-purple) !important;}.has-black-border-color{border-color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-border-color{border-color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-border-color{border-color: var(--wp--preset--color--white) !important;}.has-pale-pink-border-color{border-color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-border-color{border-color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-border-color{border-color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-border-color{border-color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-border-color{border-color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-border-color{border-color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-border-color{border-color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-border-color{border-color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-border-color{border-color: var(--wp--preset--color--vivid-purple) !important;}.has-vivid-cyan-blue-to-vivid-purple-gradient-background{background: var(--wp--preset--gradient--vivid-cyan-blue-to-vivid-purple) !important;}.has-light-green-cyan-to-vivid-green-cyan-gradient-background{background: var(--wp--preset--gradient--light-green-cyan-to-vivid-green-cyan) !important;}.has-luminous-vivid-amber-to-luminous-vivid-orange-gradient-background{background: var(--wp--preset--gradient--luminous-vivid-amber-to-luminous-vivid-orange) !important;}.has-luminous-vivid-orange-to-vivid-red-gradient-background{background: var(--wp--preset--gradient--luminous-vivid-orange-to-vivid-red) !important;}.has-very-light-gray-to-cyan-bluish-gray-gradient-background{background: var(--wp--preset--gradient--very-light-gray-to-cyan-bluish-gray) !important;}.has-cool-to-warm-spectrum-gradient-background{background: var(--wp--preset--gradient--cool-to-warm-spectrum) !important;}.has-blush-light-purple-gradient-background{background: var(--wp--preset--gradient--blush-light-purple) !important;}.has-blush-bordeaux-gradient-background{background: var(--wp--preset--gradient--blush-bordeaux) !important;}.has-luminous-dusk-gradient-background{background: var(--wp--preset--gradient--luminous-dusk) !important;}.has-pale-ocean-gradient-background{background: var(--wp--preset--gradient--pale-ocean) !important;}.has-electric-grass-gradient-background{background: var(--wp--preset--gradient--electric-grass) !important;}.has-midnight-gradient-background{background: var(--wp--preset--gradient--midnight) !important;}.has-small-font-size{font-size: var(--wp--preset--font-size--small) !important;}.has-medium-font-size{font-size: var(--wp--preset--font-size--medium) !important;}.has-large-font-size{font-size: var(--wp--preset--font-size--large) !important;}.has-x-large-font-size{font-size: var(--wp--preset--font-size--x-large) !important;}
+:where(.wp-block-columns.is-layout-flex){gap: 2em;}
+.wp-block-pullquote{font-size: 1.5em;line-height: 1.6;}
+.wp-block-navigation a:where(:not(.wp-element-button)){color: inherit;}
+</style>
+<link crossorigin='anonymous' rel='stylesheet' id='all-css-2-1' href='https://s1.wp.com/_static/??-eJyNj8EOwjAMQ3+IEjYBggPiW7YSSlnaVE26an9PuYGQ0G625SfZUJOxHBWjgj4woEAqI2htwYKEM0YYie0kWyuygRV10YXQ1GQ5rGYsE2eB25CnHyYUk6g4HwUcsmljBvUcv4y50+DzPzRju+GadNBaH/YNXcOlO/b9aX/edYfnC0ReZ8I=?cssminify=yes' type='text/css' media='all' />
+<style id='jetpack-global-styles-frontend-style-inline-css'>
+:root { --font-headings: unset; --font-base: unset; --font-headings-default: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif; --font-base-default: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif;}
+</style>
+<link crossorigin='anonymous' rel='stylesheet' id='all-css-4-1' href='https://s0.wp.com/wp-content/themes/h4/global.css?m=1420737423h&cssminify=yes' type='text/css' media='all' />
+<script id='wpcom-actionbar-placeholder-js-extra'>
+var actionbardata = {"siteID":"113840984","siteURL":"https:\/\/wanderinginn.com","xhrURL":"https:\/\/wanderinginn.com\/wp-admin\/admin-ajax.php","nonce":"1ba14e6909","isLoggedIn":"","statusMessage":"","subsEmailDefault":"instantly","proxyScriptUrl":"https:\/\/s0.wp.com\/wp-content\/js\/wpcom-proxy-request.js?ver=20211021","shortlink":"https:\/\/wp.me\/p7HFeU-7X","i18n":{"followedText":"New posts from this site will now appear in your <a href=\"https:\/\/wordpress.com\/read\">Reader<\/a>","foldBar":"Collapse this bar","unfoldBar":"Expand this bar"}};
+</script>
+<script crossorigin='anonymous' type='text/javascript' src='https://s1.wp.com/_static/??/wp-content/js/mobile-useragent-info.js,/wp-content/js/rlt-proxy.js?m=1637704497j'></script>
+<script type='text/javascript'>
+	window.addEventListener( 'DOMContentLoaded', function() {
+		rltInitialize( {"token":null,"iframeOrigins":["https:\/\/widgets.wp.com"]} );
+	} );
+</script>
+<link crossorigin='anonymous' rel='stylesheet' id='all-css-0-2' href='https://s0.wp.com/wp-content/mu-plugins/highlander-comments/style.css?m=1663315160h&cssminify=yes' type='text/css' media='all' />
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="https://wanderinginn.wordpress.com/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="https://s1.wp.com/wp-includes/wlwmanifest.xml" /> 
+<meta name="generator" content="WordPress.com" />
+<link rel="canonical" href="https://wanderinginn.com/2016/11/23/1-05-r/" />
+<link rel='shortlink' href='https://wp.me/p7HFeU-7X' />
+<link rel="alternate" type="application/json+oembed" href="https://public-api.wordpress.com/oembed/?format=json&amp;url=https%3A%2F%2Fwanderinginn.com%2F2016%2F11%2F23%2F1-05-r%2F&amp;for=wpcom-auto-discovery" /><link rel="alternate" type="application/xml+oembed" href="https://public-api.wordpress.com/oembed/?format=xml&amp;url=https%3A%2F%2Fwanderinginn.com%2F2016%2F11%2F23%2F1-05-r%2F&amp;for=wpcom-auto-discovery" />
+<!-- Jetpack Open Graph Tags -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="1.05 R" />
+<meta property="og:url" content="https://wanderinginn.com/2016/11/23/1-05-r/" />
+<meta property="og:description" content="As soon as she slammed the door shut, Ryoka collapsed against her bed. Static seemed to crawl over her eyes and roaring filled her ears. Pain. It was coming back. She would have lain there forever,…" />
+<meta property="article:published_time" content="2016-11-23T04:13:53+00:00" />
+<meta property="article:modified_time" content="2018-04-13T04:40:29+00:00" />
+<meta property="og:site_name" content="The Wandering Inn" />
+<meta property="og:image" content="https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=200" />
+<meta property="og:image:width" content="200" />
+<meta property="og:image:height" content="200" />
+<meta property="og:image:alt" content="" />
+<meta property="og:locale" content="en_US" />
+<meta property="article:publisher" content="https://www.facebook.com/WordPresscom" />
+<meta name="twitter:text:title" content="1.05 R" />
+<meta name="twitter:image" content="https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=240" />
+<meta name="twitter:card" content="summary" />
+
+<!-- End Jetpack Open Graph Tags -->
+<link rel="search" type="application/opensearchdescription+xml" href="https://wanderinginn.com/osd.xml" title="The Wandering Inn" />
+<link rel="search" type="application/opensearchdescription+xml" href="https://s1.wp.com/opensearch.xml" title="WordPress.com" />
+	<style>
+		/* Link color */
+		a,
+		#site-title a:focus,
+		#site-title a:hover,
+		#site-title a:active,
+		.entry-title a:hover,
+		.entry-title a:focus,
+		.entry-title a:active,
+		.widget_twentyeleven_ephemera .comments-link a:hover,
+		section.recent-posts .other-recent-posts a[rel="bookmark"]:hover,
+		section.recent-posts .other-recent-posts .comments-link a:hover,
+		.format-image footer.entry-meta a:hover,
+		#site-generator a:hover {
+			color: #1583af;
+		}
+		section.recent-posts .other-recent-posts .comments-link a:hover {
+			border-color: #1583af;
+		}
+		article.feature-image.small .entry-summary p a:hover,
+		.entry-header .comments-link a:hover,
+		.entry-header .comments-link a:focus,
+		.entry-header .comments-link a:active,
+		.feature-slider a.active {
+			background-color: #1583af;
+		}
+	</style>
+	<meta name="application-name" content="The Wandering Inn" /><meta name="msapplication-window" content="width=device-width;height=device-height" /><meta name="msapplication-tooltip" content="A tale of a girl, an inn, and a world full of levels." /><meta name="msapplication-task" content="name=Subscribe;action-uri=https://wanderinginn.com/feed/;icon-uri=https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=16" /><meta name="msapplication-task" content="name=Sign up for a free blog;action-uri=http://wordpress.com/signup/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Support;action-uri=http://support.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Forums;action-uri=http://forums.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="description" content="As soon as she slammed the door shut, Ryoka collapsed against her bed. Static seemed to crawl over her eyes and roaring filled her ears. Pain. It was coming back. She would have lain there forever, but the pain made her move. There was only one relief. Ryoka staggered over to a chest at the&hellip;" />
+<link rel="icon" href="https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=32" sizes="32x32" />
+<link rel="icon" href="https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=192" sizes="192x192" />
+<link rel="apple-touch-icon" href="https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=180" />
+<meta name="msapplication-TileImage" content="https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=270" />
+		<link rel="stylesheet" id="custom-css-css" type="text/css" href="https://s0.wp.com/?custom-css=1&#038;csblog=7HFeU&#038;cscache=6&#038;csrev=3" />
+		<!-- Your Google Analytics Plugin is missing the tracking ID -->
+</head>
+
+<body class="post-template-default single single-post postid-493 single-format-standard wp-embed-responsive customizer-styles-applied single-author singular two-column right-sidebar highlander-enabled highlander-dark">
+<div class="skip-link"><a class="assistive-text" href="#content">Skip to primary content</a></div><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-dark-grayscale"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0 0.49803921568627" /><feFuncG type="table" tableValues="0 0.49803921568627" /><feFuncB type="table" tableValues="0 0.49803921568627" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-grayscale"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0 1" /><feFuncG type="table" tableValues="0 1" /><feFuncB type="table" tableValues="0 1" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-purple-yellow"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0.54901960784314 0.98823529411765" /><feFuncG type="table" tableValues="0 1" /><feFuncB type="table" tableValues="0.71764705882353 0.25490196078431" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-blue-red"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0 1" /><feFuncG type="table" tableValues="0 0.27843137254902" /><feFuncB type="table" tableValues="0.5921568627451 0.27843137254902" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-midnight"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0 0" /><feFuncG type="table" tableValues="0 0.64705882352941" /><feFuncB type="table" tableValues="0 1" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-magenta-yellow"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0.78039215686275 1" /><feFuncG type="table" tableValues="0 0.94901960784314" /><feFuncB type="table" tableValues="0.35294117647059 0.47058823529412" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-purple-green"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0.65098039215686 0.40392156862745" /><feFuncG type="table" tableValues="0 1" /><feFuncB type="table" tableValues="0.44705882352941 0.4" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-blue-orange"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0.098039215686275 1" /><feFuncG type="table" tableValues="0 0.66274509803922" /><feFuncB type="table" tableValues="0.84705882352941 0.41960784313725" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><div id="page" class="hfeed">
+	<header id="branding">
+			<hgroup>
+				<h1 id="site-title"><span><a href="https://wanderinginn.com/" rel="home">The Wandering Inn</a></span></h1>
+				<h2 id="site-description">A tale of a girl, an inn, and a world full of levels.</h2>
+			</hgroup>
+
+						<a href="https://wanderinginn.com/">
+									<img src="https://wanderinginn.files.wordpress.com/2022/07/cropped-220725_merch_banner_launch-1.png" width="1000" height="296" alt="The Wandering Inn" />
+								</a>
+			
+									<form method="get" id="searchform" action="https://wanderinginn.com/">
+		<label for="s" class="assistive-text">Search</label>
+		<input type="text" class="field" name="s" id="s" placeholder="Search" />
+		<input type="submit" class="submit" name="submit" id="searchsubmit" value="Search" />
+	</form>
+			
+			<nav id="access">
+				<h3 class="assistive-text">Main menu</h3>
+				<div class="menu-menu-1-container"><ul id="menu-menu-1" class="menu"><li id="menu-item-1422" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-home menu-item-1422"><a href="https://wanderinginn.com/">Overview</a></li>
+<li id="menu-item-1912" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1912"><a href="https://wanderinginn.com/table-of-contents/">Table of Contents</a></li>
+<li id="menu-item-1998" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-1998"><a href="https://www.patreon.com/user?u=4240617">Patreon</a></li>
+<li id="menu-item-10438" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-10438"><a href="https://wanderinginn.com/social/">Social</a>
+<ul class="sub-menu">
+	<li id="menu-item-4811" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-4811"><a href="https://discord.gg/abwsa3y">Discord</a></li>
+	<li id="menu-item-4810" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-4810"><a href="https://www.reddit.com/r/WanderingInn/">Reddit</a></li>
+	<li id="menu-item-8944" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-8944"><a href="https://twitter.com/WanderingInn">Twitter</a></li>
+	<li id="menu-item-10440" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-10440"><a href="https://www.facebook.com/thewanderinginn/">Facebook</a></li>
+</ul>
+</li>
+<li id="menu-item-10446" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-10446"><a href="https://wanderinginn.com/publishing-3/">Publishing</a>
+<ul class="sub-menu">
+	<li id="menu-item-10448" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-10448"><a href="https://www.amazon.com/kindle-dbs/entity/author/B07XCYVYMW">E-books</a></li>
+	<li id="menu-item-10447" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-10447"><a href="https://www.audible.com/author/pirate-aba/B07XCYVYMW">Audiobooks</a></li>
+	<li id="menu-item-8761" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-8761"><a href="https://www.cloudscapecomics.com/last-tide/">The Last Tide (Comicbook)</a></li>
+</ul>
+</li>
+<li id="menu-item-1424" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1424"><a href="https://wanderinginn.com/guestbook/">Guestbook</a></li>
+<li id="menu-item-2935" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-2935"><a href="https://wanderinginn.com/fanworks/">Fanworks</a>
+<ul class="sub-menu">
+	<li id="menu-item-8557" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-8557"><a href="https://wanderinginn.com/fanworks-permissions/">Fanworks Permissions</a></li>
+</ul>
+</li>
+<li id="menu-item-1426" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1426"><a href="https://wanderinginn.com/reader-reviews/">Reader Reviews</a></li>
+<li id="menu-item-5002" class="menu-item menu-item-type-post_type menu-item-object-post menu-item-has-children menu-item-5002"><a href="https://wanderinginn.com/2018/10/19/glossary/">Glossary</a>
+<ul class="sub-menu">
+	<li id="menu-item-7035" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-7035"><a href="https://wanderinginn.com/fanworks/#B">Maps</a></li>
+</ul>
+</li>
+<li id="menu-item-5684" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-5684"><a href="https://wanderinginn.com/writing-faqs/">Writing FAQs</a></li>
+<li id="menu-item-11759" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-11759"><a href="https://aubergevagabonde.wordpress.com/">L&#8217;Auberge Vagabonde</a></li>
+<li id="menu-item-11765" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-11765"><a href="https://wanderinginn.com/contacts/">Contacts</a></li>
+<li id="menu-item-12493" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-12493"><a href="https://www.store.wanderinginn.com/">Merch Store</a></li>
+<li id="menu-item-12667" class="menu-item menu-item-type-post_type menu-item-object-post menu-item-12667"><a href="https://wanderinginn.com/2022/09/28/interlude-the-great-race/">Interlude – The Great Race</a></li>
+</ul></div>			</nav><!-- #access -->
+	</header><!-- #branding -->
+
+
+	<div id="main">
+
+		<div id="primary">
+			<div id="content" role="main">
+
+				
+					<nav id="nav-single">
+						<h3 class="assistive-text">Post navigation</h3>
+						<span class="nav-previous"><a href="https://wanderinginn.com/2016/11/20/1-04-r/" rel="prev"><span class="meta-nav">&larr;</span> Previous</a></span>
+						<span class="nav-next"><a href="https://wanderinginn.com/2016/11/27/1-28/" rel="next">Next <span class="meta-nav">&rarr;</span></a></span>
+					</nav><!-- #nav-single -->
+
+					
+<article id="post-493" class="post-493 post type-post status-publish format-standard hentry category-writing tag-fantasy tag-inn tag-web-novel tag-web-serial tag-writing">
+	<header class="entry-header">
+		<h1 class="entry-title">1.05 R</h1>
+
+				<div class="entry-meta">
+						<span class="sep">Posted on </span><a href="https://wanderinginn.com/2016/11/23/1-05-r/" title="9:13 am" rel="bookmark"><time class="entry-date" datetime="2016-11-23T09:13:53+00:00">November 23, 2016</time></a><span class="by-author"> <span class="sep"> by </span> <span class="author vcard"><a class="url fn n" href="https://wanderinginn.com/author/pirateaba/" title="View all posts by pirateaba" rel="author">pirateaba</a></span></span>		</div><!-- .entry-meta -->
+			</header><!-- .entry-header -->
+
+	<div class="entry-content">
+		<p>As soon as she slammed the door shut, Ryoka collapsed against her bed. Static seemed to crawl over her eyes and roaring filled her ears.</p>
+<p>Pain. It was coming back.</p>
+<p>She would have lain there forever, but the pain made her move. There was only one relief.</p>
+<p>Ryoka staggered over to a chest at the foot of her bed. She fumbled at it and realized it was locked. Key. Where was the damn key?</p>
+<p>The static was everywhere and the pain was getting worse. Ryoka had just finished opening the lock when she gagged and nearly threw up. It hurt.</p>
+<p>Inside the chest was a roll of odd bandages and several green potions. Ryoka instantly grabbed one and popped the cork.</p>
+<p>Sitting with her back against the bed, she stretched out her bad leg as far as she was able. The bandages were red with blood now, and the flesh was beginning to puff up. She’d pushed too far.</p>
+<p>Gingerly, blacking out with pain, Ryoka poured the green liquid over her leg and tried not to scream. But the effects were instantaneous.</p>
+<p>The pain—vanished. For an instant, a wonderful instant, all was well. Ryoka watched in blissful peace as the swelling around her leg faded, and below the bandages, the broken skin and torn flesh closed.</p>
+<p>But it didn’t last. After only a few seconds, pain started to return to the area. Dreadful, biting agony.</p>
+<p>The bones. The bits of shattered bones that couldn’t be healed. They cut into her flesh and stopped the healing. Ryoka stared down at her leg. It hurt, but far less now. At least, for the moment. She had a few hours to half a day, depending on what she did to her leg before her flesh would <em>tear</em> and—</p>
+<p>The bandages were now completely bloody, but Ryoka didn’t dare change them. They were the only things keeping the rest of her leg on her body.</p>
+<p>Magic. She sensed it in the cloth bindings. They’d been what—ten gold coins? More expensive than the healing potions, even. But they had magic in the stitching, or so the [Healer] had claimed. And she felt it. They were the only reason she could move about, let alone keep her leg…intact.</p>
+<p>The magic in the bandages provided stability, structure, and stasis. She could actually move about on a leg where she couldn’t feel anything below her knee due to the bindings holding her leg in place. And so long as she applied a healing potion every few hours, she could keep the damage from her leg at bay.</p>
+<p>But eventually, the magic always wore off. And then the swelling would begin, and if it kept on too long the leg would start to rot.</p>
+<p>Magic bandages and healing potions. Ryoka thumped her head back against the footrest of her bed. They could barely keep her injuries in check, but not heal them. What they were really doing was buying time. Time, until she could find a way to heal herself—</p>
+<p>Or lose the leg.</p>
+<p>She couldn’t feel it anymore. Rather, it was the broken stump just below her kneecap that screamed agony at her each time she agitated it. But her foot and lower leg?</p>
+<p>Nothing.</p>
+<p>The [Healer] had told her it was still attached, still living flesh so long as she kept healing it with a potion, but it wasn’t about to start healing on its own. It was too badly damaged.</p>
+<p>Maybe if there was a surgeon, one from her world. They could have realigned the bones and connected them with metal rods. If she’d been in a hospital she would have had a chance. But here?</p>
+<p>Ryoka put her face in her hands. Garia kept suggesting better [Healers], or treated her injuries as something that would heal given time. But Ryoka didn’t <em>have</em> any time left.</p>
+<p>“What do you think splintered bone means?”</p>
+<p>Garia didn’t get it. But then she hadn’t seen Ryoka’s leg in the moments afterwards. She hadn’t seen how it wasn’t <em>attached</em>, wasn’t <em>solid</em> anymore. The adventurers understood.</p>
+<p>Crushed bone. Splintered bone. Not a break or a fracture. It wasn’t like joining two pieces back together. Ryoka’s right leg was a mass of bone splinters without a chance of reattaching on their own.</p>
+<p>Medically, the answer was simple. Until the modern era, there would have been no chance any other way. And even then—her legs wouldn’t have ever been the same. Ryoka knew what had to be done. They’d told her as she sat in shock as the [Healer] poured potions on her leg and tried to save her flesh.</p>
+<p>Amputation. Either that or a spell that she couldn’t afford.</p>
+<p>For a while she’d hoped it was just her imagination. She’d bought the bandages from the [Healer], scraped together all the money she’d earned so far to buy enough healing potions to last until now, and prayed that her leg would start to heal. But each day passed with blood and pain and no relief.</p>
+<p>No one could help her. Ryoka knew that. Garia cared, and even the Horns of Hammerad had stopped by. But what could they do? A hundred—no, <em>hundreds</em> of gold coins. Why make them worry? Why waste energy reassuring them with useless words?</p>
+<p>So Ryoka pretended not to worry and did everything herself. Because of pride. Because she didn’t want to appear weak – because that in itself was weakness.</p>
+<p>Because there was nothing anyone could do to help her.</p>
+<p>Ryoka rested her head against her arm. Pain. Cut it away. They said it would be quick. No. But it was the only choice. She had—three healing potions left. Enough for a day or two. And then she’d be out of money and out of time. Unless she could pay. But she had no money.</p>
+<p>Well, she knew someone who had thousands, tens of thousands of gold coins, didn’t she? Of course. And it could be done. There was still a chance.</p>
+<p>But the cost—</p>
+<p>Ah, the cost.</p>
+<p>Ryoka closed her eyes. Damnation. That was the cost. And she still wasn’t sure if it was worth her leg. She’d thought about it long and hard. And she still wasn’t sure. But she wanted to know the cost. And to do that, she had to bargain.</p>
+<p>So what Ryoka was really doing, what she was really thinking as she sat in the wet puddle of the healing potion and blood was nothing. Nothing. She could worry, or fret, and she was afraid and in pain, but there was nothing she could really do. All she was doing, in truth, behind everything, was waiting.</p>
+<p>Waiting. Waiting for her to arrive. Waiting to make the choice.</p>
+<p>In her mind she could feel the wind on her face and feel the ground flying beneath her feet. In her mind she could see the consequences of her choice.</p>
+<p>A world burned by fire. The dead lying in piles. War, endless and putrid. That was the cost.</p>
+<p>Ryoka closed her eyes and tried not to cry.</p>
+<p>&nbsp;</p>
+<p>&#8212;-</p>
+<p>&nbsp;</p>
+<p>It was evening by the time Garia managed to excuse herself from the inn and make her way back to the Runner’s Guild. By that point she’d already imbibed quite a lot of liquid, most of it alcoholic.</p>
+<p>Garia had an extremely high tolerance for alcohol, so she only stumbled every now and then as she jogged towards the Runner’s Guild. She wasn’t intending on making a delivery of course; that would be dangerous in the fading light even without being drunk, but she wanted to pick up her payment for the week. She was running low on money after insisting she pay for her meal.</p>
+<p>She’d left the rest of the Horns of Hammerad in the semi-destroyed inn, still drinking and talking about how they could help Ryoka. It was strange. Garia had only heard of the Horns as one of the up-and-coming adventurer teams, but she hadn’t really believed the rumors about them being honor-bound like their leader.</p>
+<p>Well, everyone knew that Minotaurs were supposed to be honorable, but that was hard to believe when you saw one up close. A Minotaur’s word was as good as a Knight’s supposedly, but how did you square that with their cow heads and fierce tempers? But Calruz hadn’t been overly violent – he’d even paid for all the damage he’d caused.</p>
+<p>It was strange. The number of non-humans Garia had seen, let alone met she could probably count on both her hands. This far north you didn’t see any of the other races, not even Drakes or Gnolls. But Calruz had seemed so—so—human.</p>
+<p>And he liked Ryoka. And <em>that</em> was something Garia wasn’t going to think about. Instead, she was going to open the door to the Runner’s Guild without falling on her face and walk inside.</p>
+<p>Most of the Runners glanced up and then away, ignoring Garia as she entered. She wasn’t particularly powerful within the Runner’s Guild, but she was liked well enough that no one bothered her. That was what Garia preferred. Being unnoticed was safest.</p>
+<p>Garia noticed a commotion occurring around the receptionist’s counter, which made her heart sink. The unnoticed part of her reputation also meant she wouldn’t be helped until they sorted out what was going on. Glumly, Garia went to sit down at one of the tables when she heard someone calling her name.</p>
+<p>“Garia! How’s my favorite City Runner?”</p>
+<p>Garia’s heart skipped a beat and then started going into overdrive as she recognized the voice. Fals. She turned around and gave him what she hoped was an annoyed look.</p>
+<p>“I bet you say that to every Runner, Fals.”</p>
+<p>“Only the ones I like.”</p>
+<p>Fals walked over and smiled at Garia. He was handsome and tall, and Garia could see several female Runners glaring at her as he approached. She tried not to smile back too quickly.</p>
+<p>“Are you finished with your deliveries for the day?”</p>
+<p>“Yup. Nothing too special; I did a few trips to Lindol and back, but that’s it. How about you? Taking a late-night request?”</p>
+<p>Garia shook her head.</p>
+<p>“I’m just collecting payment. What’s with all the panic, though?”</p>
+<p>She pointed to the group of Runners and staff of the Runner’s Guild who were standing around in a cluster at the counter, arguing and looking panicked. Fals made a face.</p>
+<p>“You won’t believe this, but for the last few days Lady Magnolia’s been asking for a delivery. Trouble is, she only wants one Runner to do it. Guess who?”</p>
+<p>Garia didn’t even need to think.</p>
+<p>“Ryoka. Oh. And what did the Guild tell her?”</p>
+<p>“Oh, I don’t know the details…”</p>
+<p>Fals waved a hand self-deprecatingly, but that was just an act. Garia had no doubt he knew exactly what had been said, and probably had a part in shaping the message. <em>He</em> was one of the most influential Runners in all the northern city-states and the local Guildmasters listened to him.</p>
+<p>“The Guild told her Ryoka was indisposed. We kept offering replacement Runners, but Magnolia kept insisting that she only wanted Ryoka. And now…well, it sounds like she came in person and demanded some answers just a few minutes ago. I was going to see what happened myself. Want to listen?”</p>
+<p>Garia hesitated. It probably wasn’t wise to put herself in the spotlight—but then again, Fals was the one in charge. So she nodded and followed him across the room.</p>
+<p>Fals whistled as he passed the board full of delivery requests. He stopped and pointed to one unmarked request Garia recognized.</p>
+<p>“Wow. Look at that unmarked request. Whoever’s posted it is offering twenty gold coins for a delivery.”</p>
+<p>Garia peered at it.</p>
+<p>“It’s the same one I saw a week ago. Why hasn’t anyone taken it yet? I’d have thought you would have jumped at the opportunity, Fals.”</p>
+<p>He shook his head.</p>
+<p>“Are you kidding? I still want to live. Didn’t you see the location? The High Passes. That’s a death trap for anyone.”</p>
+<p>“Even for you?”</p>
+<p>He mock-glared at Garia.</p>
+<p>“Even for me. For any Runner who takes it. I hope no one’s stupid enough to head out there, but with that reward—I think we might lose a few.”</p>
+<p>“Then who will do it?”</p>
+<p>“Dunno. Maybe a Courier will do it if the reward keeps rising. But even a decently leveled [Runner] isn’t nearly fast enough to avoid the monsters around there. Maybe the one who posted it will give up after a month or two.”</p>
+<p>He shrugged.</p>
+<p>“But frankly, even if they doubled the reward no sane Runner would risk a delivery like that. Profit’s important, but our lives are worth way more.”</p>
+<p>Garia remembered something one of the adventurers had said. She frowned.</p>
+<p>“Fals? I know you’re one of our best Runners, but why aren’t there any older Runners than you? You’re only twenty two—”</p>
+<p>“Twenty <em>three</em>. I’m getting old, Garia. Please don’t rub it in.”</p>
+<p>She blushed and tried not to stammer.</p>
+<p>“—Twenty three, then. But why aren’t there any other Runners? I know a lot of us die or get hurt, but surely there should be some more, right?”</p>
+<p>Fals considered her question. He sighed, and raked his hand through his blonde locks.</p>
+<p>“We don’t have many experienced Runners because no one who does this job lives very long. We’re the only people crazy enough to deliver. Most folks change classes after they earn enough.”</p>
+<p>“I heard people say Runners only care about money.”</p>
+<p>Fals eyed her sternly.</p>
+<p>“What kind of people have you been talking to, Garia?”</p>
+<p>He didn’t wait for her response.</p>
+<p>“Never mind. Okay, sure, a lot of Runners are interested in the bottom line. But isn’t that normal? Adventurers, shopkeepers, merchants…even nobles care about money. Why shouldn’t we charge what we do and prioritize the best deliveries? We work a tough job! And we risk our lives every day, running from monsters, dealing with bad weather, natural disasters…it’s enough to make most folk quit within their first week.”</p>
+<p>He thumped at his chest.</p>
+<p>“But we—we’re Runners. We don’t quit! Everyone who makes it past a year is a real Runner, Garia. We’re the people who keep the northern cities—no, the entire world connected. Without us, nothing would get done on time. So if people call us money-grubbers, well, let them. We’ve got our own honor and we deserve every coin we get, am I right?”</p>
+<p>His words lit a spark in Garia’s heart, and within the other Runners within earshot. She nodded enthusiastically as other Runners called out to Fals.</p>
+<p>“That’s our lead Runner!”</p>
+<p>“No wonder you’re the best in the cities!”</p>
+<p>Persua appeared out of nowhere and purred at Fals. Garia jumped as the skinny girl smiled and fussed over him with her gaggle of Street Runners, edging Garia away.</p>
+<p>“No wonder they call you Fleetfoot Fals!”</p>
+<p>He grinned and shook her head.</p>
+<p>“That’s an old nickname, guys. And anyways, Ryoka’s faster. I wonder if she’s got some sort of skill?”</p>
+<p>Persua’s face soured. Garia scratched at her head.</p>
+<p>“Now that you mention it…she’s never mentioned what level she is. She must be high-level, though.”</p>
+<p>“Well, she may be quick, but she’s not running now, is she? Besides, she’s so <em>un</em>pleasant. Who’d want a Runner who never smiles like her?”</p>
+<p>Garia winced as Persua glared at her from behind Fals. For his part, Fals made a face and took a deliberate step next to Garia, preventing her from being shunted further away.</p>
+<p>“Right. About that. I know Ryoka broke a few rules recently, but she <em>is</em> a good runner. And we need all the Runners we can get.”</p>
+<p>He smiled at Persua, and the younger girl sighed and turned red as he met her eyes.</p>
+<p>“So…Persua. I don’t want you or your friends to bother Ryoka again, okay?”</p>
+<p>She sulked and pouted, but then gave Fals a sickly smile. He returned it with a slight wince that she didn’t appear to notice.</p>
+<p>“<em>Anything</em> for you, Fals. Not that we did anything to Ryoka in the first place or anything. She just happened to have an…accident.”</p>
+<p>“Well, let’s not have any more of those, are we clear? We’re all on the same team, right?”</p>
+<p>The other Runners nodded and voiced their agreement. Fals went around the room shaking hands and slapping Runners on the back. He eventually managed to get Persua to clear off by hinting that she and her cronies smelled sweaty, and finally he and Garia were left alone again. He sighed, but smiled at Garia.</p>
+<p>“See what I mean, though? We can’t be divided. Us Runners have to work together.”</p>
+<p>Garia glared at Fals. She whispered out of the corner of her mouth.</p>
+<p>“You <em>know</em> she was behind it. Everyone does.”</p>
+<p>He looked uncomfortable. Fals kicked at the ground with his expensive leather shoes and sighed. He combed his hair with one hand as he addressed Garia.</p>
+<p>“Ryoka broke a rule. They shouldn’t have gone that far, but I did warn her. We’ve got to work together, Garia. Even if one of us is faster, it’s better to share the wealth rather than compete. You’re new, but you understood that. Ryoka didn’t and now—well, now we’ve got trouble with Lady Magnolia <em>and</em> we’re down a City Runner.”</p>
+<p>This didn’t sit well with Garia. She grimaced and stared hard at Fals. But when he met her gaze with a rueful smile and shrug she colored and looked away.</p>
+<p>“I still don’t like it. Persua’s crazy. Ryoka won’t be able to run for at least a <em>year</em>! Even with potions to help her heal! Have you seen her leg?”</p>
+<p>Fals hesitated.</p>
+<p>“I heard it was just a bad break that the [Healers] can’t fix right away. Is it worse than that?”</p>
+<p>Garia looked miserable as she shook her head.</p>
+<p>“I don’t know. I’m no expert, and she’s got it wrapped in layers of bandages. They look magical though and—and I met a mage who said that the only way she’d get it healed was to pay hundreds of gold coins to a high-level [Healer].”</p>
+<p>He <em>hissed</em> through his teeth.</p>
+<p>“That’s—<em>no!</em> I can’t believe it! They <em>told</em> me they wouldn’t—”</p>
+<p>Garia interrupted Fals.</p>
+<p>“You <em>knew? </em>You knew and—I can’t believe you, Fals!”</p>
+<p>Garia’s voice rose incredulously. She advanced on Fals, making fists with her hands. He raised his hands defensively as he backed away towards the counter.</p>
+<p>“I had no choice! Look, you know what Persua and her friends are like. I told them not to do anything drastic, but even if I’d stopped them, some other runners would have organized something. You <em>know</em> the rules, Garia. Remember Perial, when he broke them?”</p>
+<p>Garia remembered Perial. She didn’t remember what he’d done wrong, but she remembered that a bunch of Runners had dropped rusty nails in his path and forced him to run through them.</p>
+<p>Fals closed his eyes tightly and then opened them. He looked tired.</p>
+<p>“Okay. That changes things. Look, Garia. I’ll—I’ll talk to the Guildmaster after I see it in person. Persua’s gone too far, even if Ryoka broke the rules.”</p>
+<p>“That still won’t fix her leg.”</p>
+<p>“No, but it’s all I can do. Okay? And I don’t know that any injury would really cost a hundred gold coins for a spell, Garia. I’ll see Ryoka myself, but even if her bones are broken beyond a healing potion’s ability to repair, how bad could it really be?”</p>
+<p>“It’s bad.”</p>
+<p>“We’ll see. I know a few good [Healers] and even a [Mage] that owes me a favor. If Ryoka’s really hurt that bad I’ll call in a few favors and get the Guild to help out. She’ll be on her feet by the end of the month, I promise. But can we see what the commotion is?”</p>
+<p>Garia nodded. She felt a lot more upbeat with Fal’s promise. He always kept his word. She followed him to the counter as the Runners parted for him. Fals addressed a harried-looking receptionist at the counter.</p>
+<p>“What’s going on? Is there more trouble with Magnolia?”</p>
+<p>“Trouble? Oh, there’s been trouble alright.”</p>
+<p>The receptionist laughed somewhat hysterically.</p>
+<p>“Lady Magnolia was here just half an hour ago. She came <em>in</em> <em>person</em> to complain to the Guildmaster, but he was out! She wanted to know where Ryoka was, and when she heard she was injured she was <em>not happy. </em>She even suggested that she might stop ordering through our Guild altogether!”</p>
+<p>Garia and Fals stared in horror at the receptionist. Lady Magnolia was one of the Guild’s biggest patrons. Besides that, she was important. Even on the other end of the continent there were people who would know her name.</p>
+<p>“Did she want anything else?”</p>
+<p>“She wanted to know where Ryoka was right now. Fortunately, we at least knew her address so she was <em>somewhat</em> satisfied, but what will we do? If she stops ordering—”</p>
+<p>Garia interrupted urgently.</p>
+<p>“Wait, she wanted to know where Ryoka was?”</p>
+<p>The receptionist blinked at her. Normally Garia would have been brushed off in an instant, but Fals was with her.</p>
+<p>“Yes, she wanted to know.”</p>
+<p>“And you <em>told</em> her?”</p>
+<p>The receptionist grew defensive at Garia’s accusatory tone.</p>
+<p>“What? It’s in the guild’s best interest to keep her happy. If she wants to know where one of our Runners is, we’ll tell her.”</p>
+<p>“But she wanted <em>Ryoka!</em> And if she knows where she is, she’ll go and meet her!”</p>
+<p>Fals groaned and pulled at his hair. He looked around frantically, but Magnolia was already long gone.</p>
+<p>“Have you even <em>met</em> Ryoka? Remember what happened when she met the Guildmaster? She doesn’t respect anyone! If Magnolia shows up, she’ll probably throw her out of her room! Or—or—”</p>
+<p>“Punch her.”</p>
+<p>Fals turned to Garia.</p>
+<p>“No. She wouldn’t do that. No one’s crazy enough to punch—she wouldn’t.”</p>
+<p>Garia looked nervous.</p>
+<p>“She punched a <em>Minotaur</em> when he tried to invite himself into her room this morning.”</p>
+<p>The receptionist and Fals both paled.</p>
+<p>“We’ve got to stop her. Or stop Ryoka.”</p>
+<p>“Follow me!”</p>
+<p>Garia turned and raced out of the Guild, Fals hot on her heels. She wasn’t one for prayers, but Garia still prayed that Ryoka would be civil, or at least acceptable before they got there. She didn’t have much hope, though.</p>
+<p>She knew Ryoka.</p>
+<p>&nbsp;</p>
+<p>&#8212;-</p>
+<p>&nbsp;</p>
+<p>Lady Magnolia sat in the small, cramped bedroom of The Rat’s Tail, a moderately prosperous inn in the city of Celum. She clearly did not belong there. For one thing, her expensive, patterned, latticed, light pink dress with floral embroidery probably cost more than the inn itself.</p>
+<p>But she sat on the rickety chair the innkeeper had personally delivered to Ryoka’s room, looking perfectly content while she chatted with its inhabitant. Behind her, Resse the head maid stood in one corner of the room, glaring daggers at the poverty, the dirt under the windowsill, and Ryoka herself.</p>
+<p>“My dear, I really was shocked to hear of your accident. Won’t you tell me what happened?”</p>
+<p>“I got bored and played tag with a cart.”</p>
+<p>“You are <em>always</em> full of unique answers, aren’t you Ryoka? I can’t imagine how you can tell jokes in the face of such an injury.”</p>
+<p>Not that Lady Magnolia had actually seen her injury, Ryoka reflected. She was lying on her bed, her sheets wrapped around her leg. Magnolia had walked in on her while she was resting and Ryoka hadn’t yet unwrapped her protective cushion from her bad leg.</p>
+<p>As she shifted, Lady Magnolia raised a quick hand.</p>
+<p>“No need to trouble yourself, Ryoka. I imagine you must be in quite a bit of pain, even if you’ve been using healing potions. No, I just wanted to talk to you.”</p>
+<p>“Offer me a deal, you mean.”</p>
+<p>Lady Magnolia blinked for a second, but in a flash she wore her same genuine smile again.</p>
+<p>“You <em>are</em> quick. Well, yes, to put it inelegantly I would like to offer you a deal. When I heard of your injury you may be sure I was astounded and not a little outraged—especially since I was given to understand that the event in question occurred only a few feet away from my mansion after you left.”</p>
+<p>“Took you a while to learn about it?”</p>
+<p>Once again, the smile on Magnolia’s face flickered for the briefest instant before it was back in full force. Only someone watching for it would have noticed, and Ryoka had been watching.</p>
+<p>“The Runner’s Guild has been…less than cooperative regarding your condition, as well as providing me with an explanation of how you were injured. I am still making discreet inquiries of my own, but I <em>will</em> have answers, believe me. But that is not why I’m here. I wish—”</p>
+<p>“You want to offer me a deal to heal my leg, right?”</p>
+<p>Ryoka shifted her weight in the bed discretely as Lady Magnolia blinked and recovered again. She ignored the maid glaring at her and reminded herself not to be so impatient. It would be funny if things didn’t hurt so much. But astute noblewoman and political wrangler that Lady Magnolia might be, she wasn’t nearly as unpredictable as she might like. Too bad nothing seemed to faze her either way.</p>
+<p>“Well then, let me skip straight to the details, Ryoka. I understand that since you are still injured, healing potions aren’t working. As it so happens I have—let us call her a friend of mine—who is able to cast [Restoration] and other spells of the 6<sup>th</sup> Tier.”</p>
+<p>Ryoka’s face didn’t change as she tried to understand what that meant. Clearly, it was impressive, but what was that about magic? Then she remembered.</p>
+<p>Tier Magic. It stood in stark contrast to the undisciplined magics, whatever that meant. But from what Ryoka had read in her extremely brief introduction to magic, Tiered Magic organized magic in…tiers.</p>
+<p>That was to say that a spell capable of being cast by all mages was generally thought of as 1<sup>st</sup> Tier Magic or 0 Tier Magic, while a spell that was 2<sup>nd</sup> Tier was more potent, requiring a better mage and longer periods of study to learn it. 3<sup>rd</sup> Tier magic was generally the bar for most mages, and they would know only one or two spells of that level. Anything higher got into the range of extremely powerful magic, exponentially stronger and just as hard to learn.</p>
+<p>That presumably meant that Magnolia’s friend was an incredible mage, but the book had said lower-level mages could cast higher Tier magic with enough practice and time. It also meant this mysterious friend was probably extremely powerful.</p>
+<p>Ryoka’s eyes narrowed. Magnolia smiled brightly at her.</p>
+<p>“I guess I should be impressed? But if your friend is so powerful, why can&#8217;t I visit her myself?”</p>
+<p>“Well, she’s <em>very</em> busy as you might expect for someone with access to that kind of magic. And I will admit—normally receiving an audience with her, let alone persuading her to cast that kind of exhausting magic would be quite the feat.”</p>
+<p>“But you can do it.”</p>
+<p>“Let us just say that she owes me a few favors.”</p>
+<p>Ryoka rolled her eyes.</p>
+<p>“And you want something in return. Get to the point.”</p>
+<p>Behind Lady Magnolia, Ressa snapped at Ryoka.</p>
+<p>“Be respectful! You are addressing a Lady of the five Founding Houses and—”</p>
+<p>“Ressa, please.”</p>
+<p>Ryoka bared her teeth as Magnolia settled her maid back down. She stared into Ressa’s eyes as the stern-looking maid attempted to vaporize her with her own stare.</p>
+<p>“Can your maid fight?”</p>
+<p>Lady Magnolia blinked in bemusement.</p>
+<p>“Ressa is quite skilled in a number of areas, my dear Ryoka. Among them is a talent for handling untoward guests, I must admit.”</p>
+<p>“And dealing with filth that approaches my lady.”</p>
+<p>Lady Magnolia <em>tsked</em> in disapproval, but Ryoka just shifted her weight on the bed.</p>
+<p>“Bring it.”</p>
+<p>The look in Ressa’s eyes suggested that if Lady Magnolia stepped out of the room—or even turned her head for a minute, quite a lot of violence would be brought. But once again, Magnolia waved a hand at her.</p>
+<p>“I wouldn’t try anything, dear Ressa. I do believe it might backfire on you, and besides, I don’t think that Ryoka Griffin would learn or even be humbled by a beating however soundly administered.”</p>
+<p>The look in Ressa’s eye suggested she would be willing to try. But she subsided and Ryoka turned her attention back to Magnolia.</p>
+<p>“So if I don’t accept your ‘generous offer’ you’ll be…what? Offended?”</p>
+<p>Lady Magnolia laughed again.</p>
+<p>“My dear, I’m only offended by those who have nothing to offer me. No, I imagine it would take some doing for you to cause me any real offense. If you refuse I would merely be—”</p>
+<p>“Annoyed?”</p>
+<p>“Disappointed. Very greatly so. After all, it is in my best interest and yours for you to be running again. For you it is your livelihood, and for me—well, I suspect you would be far more amicable when you’re not grumpy and irritable with pain.”</p>
+<p>“Maybe. Maybe not. Can you just tell me what you want in return already?”</p>
+<p>Lady Magnolia sighed.</p>
+<p>“Ryoka, I have to ask. I have a number of skills, one of which is [Charming Demeanor], yet it seems to have no effect on you. I’ve dealt with stubborn generals and obnoxious Dragons and had more of an effect. Would you care to explain your extraordinary resilience?”</p>
+<p>Ryoka shrugged.</p>
+<p>“I’ve met people more charming than you. I didn’t like them either. What do you want?”</p>
+<p>Lady Magnolia pursed her lips in gentle vexation.</p>
+<p>“Well. I’m prepared to pay whatever my friend desires and have her over here in a blink of an eye, even if I must pay for teleportation. But I do want something Ryoka. Nothing too arduous—merely answers to a number of burning questions I find myself saddled with.”</p>
+<p>“Answers. How many?”</p>
+<p>“How many? Ryoka my dear, I would hope for what I offer I would be allowed to ask as many questions as I dare. Not to put a fine point on it, but a spell to heal your leg is <em>costly</em>. Aren’t a few answers worth the price of asking?”</p>
+<p>Ryoka shook her head.</p>
+<p>“Not to me.”</p>
+<p>For once, Lady Magnolia seemed off-balance. She exchanged a quick glance with her maid.</p>
+<p>“Then what did you have in mind?”</p>
+<p>“Twenty answers to twenty questions.”</p>
+<p>“You must be joking. Ryoka my dear—”</p>
+<p>“I’m not going to tell you everything. I’d answer a limited number of questions, but not everything.”</p>
+<p>For the first time, Lady Magnolia seemed genuinely shocked. She cast around for a reply.</p>
+<p>“You know, it may have been naïve of me, but I had assumed coming here that I would be able to name my own price for discrete assistance. But you have a price of your own, I take it. Ryoka, is your leg worth say, four hundred questions?”</p>
+<p>Ryoka gritted her teeth.</p>
+<p>“No more than eighty—no, forty questions.”</p>
+<p>“&#8230;I cannot accept that. Even two hundred questions—do you harbor such dire secrets that you must put a price on this?”</p>
+<p>“If you’ve got to ask, you know the answer. Forty questions. Take it or leave it.”</p>
+<p>Lady Magnolia blew out her breath in exasperation.</p>
+<p>“I am in shock. Truly. And if I called your bluff?”</p>
+<p>Ryoka’s eyed narrowed. She removed the sheets around her leg and swung herself out of bed. Her flesh <em>screamed</em> at her, but the bindings on her leg held it in place.</p>
+<p>“There’s the door.”</p>
+<p>Lady Magnolia didn’t move. Her eyes were transfixed on Ryoka’s bound leg, and even Ressa looked ill. But Magnolia was genuinely shocked. She knew what bad injuries looked like.</p>
+<p>“Ryoka. <em>How</em> are you still moving around on that leg?”</p>
+<p>“Magic. Duh.”</p>
+<p>Lady Magnolia blinked. She looked up and met Ryoka’s eyes.</p>
+<p>“And how many healing potions have you used up so far?”</p>
+<p>Ryoka shrugged.</p>
+<p>“Forty? Fifty? I lost count.”</p>
+<p>“And you’ve been sitting here, without going to see a proper [Healer]? Why?”</p>
+<p>“Not enough money.”</p>
+<p>“And you didn’t visit me and request my assistance because…?”</p>
+<p>“If I tried to reach you, they’d run me over again.”</p>
+<p>Lady Magnolia’s frowned darkly.</p>
+<p>“No one would dare assault a guest on my doorstep.”</p>
+<p>Ryoka shrugged again.</p>
+<p>“It might happen. And I don’t want to lose both legs.”</p>
+<p>“I cannot believe—this goes beyond a mere act of sabotage. Whoever did this intended to cripple you. I trust you know this? Even an experienced [Healer] would have had a near-impossible task saving your leg.”</p>
+<p>Ryoka grinned. Her face was deathly pale, but she kept herself propped up on her elbows.</p>
+<p>“They wanted to amputate it right away. I said no.”</p>
+<p>“And you won’t accept my offer?”</p>
+<p>Lady Magnolia stared at Ryoka. Her eyes pierced the young woman to her core, searching for the truth. That was what Ryoka was afraid of. But she met the eyes and shook her head.</p>
+<p>“Forty questions. That’s all I’d answer. A finite number, not everything.”</p>
+<p>Once again, she received the impression she’d truly surprised Lady Magnolia as the older lady hesitated and seemed to grapple with Ryoka’s offer. But the noblewoman shook her head at last.</p>
+<p>“A good gambler knows when to bet and when to fold. My offer stands. Answers to all my questions and I will have your leg healed by the end of the hour, my word on it.”</p>
+<p>Ryoka bit the inside of her lip until it bled and tried not to let her disappointment show on her face. But then, Magnolia would sense it either way, right? But she didn’t say anything. Instead, Ryoka collapsed onto her bed and stared up at the ceiling.</p>
+<p>Magnolia stared at her, still seemingly in a state of shock.</p>
+<p>“Incredible. And you still refuse. What secrets do you hold that would be worth that price, Ryoka Griffin?”</p>
+<p>Ryoka didn’t answer. After a moment, Lady Magnolia stood up.</p>
+<p>“Very well. I believe you will change your mind. I will wait for your response.”</p>
+<p>Still, Ryoka didn’t respond. She heard rustling, and then Magnolia pressed something cold and hard into her hand. Ryoka raised her head slightly and saw it was a strange medallion—bronze and seemingly not that expensive, but inlaid with a precious blue sapphire in the center of the metalwork.</p>
+<p>“Simply shatter the gem in the center and I will know you accept my terms.”</p>
+<p>Lady Magnolia stared down at Ryoka as the young woman lay on her bed. She didn’t even glance up at the noblewoman. Instead, Ryoka smiled bitterly at the ceiling.</p>
+<p>“You play hardball, huh?”</p>
+<p>“I gamble with lives and opportunity, Ryoka my dear. And I am convinced that this is a gamble worth taking. Accept my offer.”</p>
+<p>“Don’t let the door hit you on the way out.”</p>
+<p>More silence, and then Ryoka sensed Lady Magnolia move towards the door. Ressa held it open for her, but the noblewoman paused in the doorway for a long minute.</p>
+<p>“Is information truly worth such a high price?”</p>
+<p>At last, Ryoka raised her head. She saw Lady Magnolia staring at her with what looked like genuine worry. Ryoka grinned. Her brow was covered with sweat and she was pale under her tan. She wasn’t really grinning, either. Just showing a lot of teeth.</p>
+<p>“You want trust. That’s too high a price for me.”</p>
+<p>Lady Magnolia paused and opened her mouth. Then she shook her head.</p>
+<p>“I will wait. But hurry, Ryoka. Your time is running out.”</p>
+<p>The door closed. Ryoka was left alone. She covered her eyes.</p>
+<p>“Damnit. Gods damn it all.”</p>
+<p>&nbsp;</p>
+<p>&#8212;-</p>
+<p>&nbsp;</p>
+<p>I’m an idiot. I have to cover my eyes to keep the tears from leaking. I’m such a complete and utter, stubborn idiot.</p>
+<p>I should have accepted her offer immediately. No—even if Magnolia wanted me to be her slave, or her maid, or to work for her for ten years I would have accepted her offer in a heartbeat.</p>
+<p>But she wanted me to tell her the truth. Damn it. Damn her and her insight. That’s the one thing I can’t give her. Ever.</p>
+<p>My leg is agony. But my heart is ice. And now that I’ve been given the offer, the path is clear. Two roads stretch out before me, and a world waits upon my choice.</p>
+<p>Is that dramatic? It’s too dramatic. But it is true.</p>
+<p>Stand up. I need another healing potion. My leg hurts—I need a clear head for it.</p>
+<p>I get up and open the chest. Pain shoots through my bad leg. Three healing potions. Damn it, again. I can’t waste them. Not if—</p>
+<p>Well, if I refuse there’s no point to them. They’re weak things, anyways. But they told me a stronger healing potion would start growing each fragment of bone out of my skin, and that would destroy my leg beyond any healing.</p>
+<p>Something. Oh. I see at the bottom of the chest the only thing I really own in this world. From my world. It lies at the bottom of my chest. Useless, without power. At least the earbuds are still attached, but again, useless without electricity.</p>
+<p>I look at the piece of plastic and metal lying at the bottom of the chest. Would she accept that instead? But I’d still have to tell her what it is, and that could be as potentially dangerous as—</p>
+<p>No. No, it’s worthless in any case. If there was power left in it I might be able to make the trade but—no. It’s information she wants. And that price is just too high for me to pay.</p>
+<p>“Information.”</p>
+<p>The word rots on my tongue. It sounds so stupid, so simple and easy to give away when you say it like that. And it would be simple for me to agree to answer however many questions.</p>
+<p>Except that Magnolia can read minds. Or sense untruths. And she’s cunning, smart enough to keep asking questions. If I gave her unlimited answers she’d have the entire truth eventually.</p>
+<p>I could lie. But she’d sense it if I didn’t intend to fulfill my bargain. Trapped, again.</p>
+<p>Pride be damned. I’ll go back and beg her if need be. The cost—I’ll think of it later. But even if it means selling part of my soul or my world’s secrets, I will run again.</p>
+<p>But…no. I can’t do that. No, never. Because if she asks questions—</p>
+<p>If she asks questions she’ll learn about my world. Good? That’s fine. Even if she knows, can she get there so easily? I don’t think it matters. If someone could travel between worlds so easily, we’d already know about it. Maybe she could, but we have guns and way more technology that she does.</p>
+<p>But that’s the catch, isn’t it? We have technology, and if she asks more questions, she’ll know about our world’s technology. Not just things like hygiene or bacteria, but the things that should never be told. Secrets, jumps forward in capability that would make any nation a superpower in an instant.</p>
+<p>Gunpowder. Firearms. Germ warfare. Steam power, electrical power, locomotion. Everything from interrogation techniques to how to build a tank or a bomb. Nuclear weapons.</p>
+<p>Does it sound stupid to say it like that? I don’t know how to make nukes. But I do know what goes into gunpowder. I aced chemistry class. I know exactly how a turbine works, and I’m pretty damn sure I remember all of the techniques the FBI illegally used on terrorists.</p>
+<p>Damn it. It’s a moral choice, isn’t it? Lose my leg, or give away the secrets of death and destruction. If it were anyone else I could lie, or tell only small truths. But she can read my damn mind. And I know exactly where to gather all the ingredients of gunpowder. And guns wouldn’t be hard to make, not in this world.</p>
+<p>Lady Magnolia. I know nothing about her. Just rumors and that she’s a powerful and influential lady with wealth and connections. Even if she appears nice—especially if she appears nice—I have no way of knowing if she’d use that power to help or harm.</p>
+<p>No. It’s simpler than that.</p>
+<p>Even if I could trust her, the secret would spread. That’s how it works. She’d want to see a demonstration, and someone would put the pieces together. Ressa, her maid, maybe. Sooner or later technology would spread. I’d be responsible for bringing guns into the world. And maybe it’s not that far away from that level of technology already but—</p>
+<p>“Belfast. Beruit. Phnom Penh. All flesh is grass.”</p>
+<p>When I was a girl, I went to the Newseum in Washington D.C. I saw the pictures on the walls. I looked at the children, the dying and the dead. My dad thought I was too young to understand.</p>
+<p>All flesh is grass. The “War Photographer” by Carol Ann Duffy. Is it a straight line between bringing the capabilities of gunpowder to the world and terrible war? No. But where there is knowledge, there is power. And even if she used her power to help her nation, that would only lead to war in the end.</p>
+<p>Napalm. Mixed petroleum with a natural or synthesized rubber like latex. It wouldn’t be hard to create the same kind of thing. Not with Magnolia’s influence.</p>
+<p>I want to run. I want to walk again.</p>
+<p>I’m no Walter White. But I remember too much. Too much National Geographic and other shows about the world. Not a perfect memory. But too close.</p>
+<p>Damn it. I can’t do it. I don’t want to be the one who creates a Hitler or gives another white…woman a gun and a mandate to conquer the world. But I want to run.</p>
+<p>I can’t figure it out. I can’t decide. I waited a week—a damn <em>week</em> for her to arrive. In pain and fear. And now that she offered me what I was dreaming of I should have leapt at it. But I hesitate. I draw back.</p>
+<p>I sit on the edge of the abyss and wonder if my soul burns well in hell. It’s not fair. All I ever want to do was run. I don’t want to lose my leg. I want to run. I want to live. I want to walk.</p>
+<p>I don’t want to see the child sitting alone. I don’t want to see the vulture. I don’t want it to be my fault.</p>
+<p>Alone, I sit in my room, sitting with the fate of two worlds in my hands. This world’s, and my world. I live to run. My legs are what define me.</p>
+<p>The medallion is cold in my hands. I could shatter the gem in an instant. Grind it against the floorboards. It would be so quick, so easy.</p>
+<p>It would—</p>
+<p>The door opens. I look up. A face like perfection and a dream stares at me. Half perfection, half mortal. The cruelest of both worlds. Ceria Springwalker.</p>
+<p>She hesitates, and then steps into the room. I expect hollow words and hollower promises. I expect to be let down, or to feel nothing but despair. But she doesn’t bring any of that.</p>
+<p>She brings salvation.</p>
+<p>&nbsp;</p>
+<p>&#8212;-</p>
+<p>&nbsp;</p>
+<p>“I know it’s bad.”</p>
+<p>Ryoka sat on the bed. Ceria stared at her leg, and then looked away.</p>
+<p>“I’ve seen an injury like that before. I’m aware it can’t be healed so easily. I’m not sure if your friend really understood—”</p>
+<p>“She doesn’t. It doesn’t matter. She can’t help. Neither can you.”</p>
+<p>“We owe you a debt. You might not understand it, but Calruz hired every member of the Horns of Hammerad because we believe in honor. If we can help, we will.”</p>
+<p>Ryoka bared her teeth.</p>
+<p>“Got a few hundred gold coins?”</p>
+<p>“No. That’s beyond us, frankly. Even if we sold our armor and weapons – and Calruz might, to impress you – I doubt we’d be able to get close to a [Healer] of that level. They’re in constant demand. Thousands camp around the home of a famous [Healer] in Tenbault each day, hoping she’ll tend to them. Even if we had the money they charge it would take a miracle.”</p>
+<p>Ryoka grunted. Her hand was clutching a medallion Ceria recognized. A simple spell was embedded in the gem in the center. She made no comment. Instead, Ceria looked at Ryoka. Ryoka gazed back.</p>
+<p>What the young woman saw, Ceria could guess. A half-breed, perhaps. A memory of what was lost, or maybe she just saw a mage, someone who pursued strange goals few understood. It didn’t matter. And for some reason, Ceria thought that the Runner known as Ryoka Griffin looked at her differently than the rest. But duty was duty. Honor was honor.</p>
+<p>“My peo—<em>I</em> don’t trust the nobility.”</p>
+<p>Ceria glanced sidelong at Ryoka, as if hoping for a conformation. Ryoka grunted.</p>
+<p>“I don’t trust anyone.”</p>
+<p>“I know that Lady Magnolia offered you…something. I saw her on the way in. You might want to accept, but all deals have a price. Even if she doesn’t say, she’ll want something.”</p>
+<p>“I know.”</p>
+<p>“A spell is probably the only way to cure your leg. But there’s magic that she offers, and then there’s…another way.”</p>
+<p>“Another way?”</p>
+<p>Ryoka looked at Ceria. Her eyes seemed to pierce the young half-elf to her core. Ceria Springwalker had lived for over sixty years, but she hadn’t ever seen someone as desperate as Ryoka.</p>
+<p>“Tell me.”</p>
+<p>The eyes seemed to be boring a path straight into her soul. Ceria took a deep breath.</p>
+<p>“…How do you feel about necromancy?”</p>
+<p>&nbsp;</p>
+<hr />
+<p><a href="https://wanderinginn.wordpress.com/2016/11/20/1-04-r/">Previous Chapter</a> <span style="float:right;"><a href="https://wanderinginn.wordpress.com/2016/11/27/1-28/">Next Chapter</a></span></p>
+			</div><!-- .entry-content -->
+
+	<footer class="entry-meta">
+		This entry was posted in <a href="https://wanderinginn.com/tag/writing/" rel="category tag">Writing</a> and tagged <a href="https://wanderinginn.com/tag/fantasy/" rel="tag">fantasy</a>, <a href="https://wanderinginn.com/tag/inn/" rel="tag">inn</a>, <a href="https://wanderinginn.com/tag/web-novel/" rel="tag">web novel</a>, <a href="https://wanderinginn.com/tag/web-serial/" rel="tag">web serial</a>, <a href="https://wanderinginn.com/tag/writing/" rel="tag">Writing</a> by <a href="https://wanderinginn.com/author/pirateaba/">pirateaba</a>. Bookmark the <a href="https://wanderinginn.com/2016/11/23/1-05-r/" title="Permalink to 1.05 R" rel="bookmark">permalink</a>.
+		
+			</footer><!-- .entry-meta -->
+</article><!-- #post-493 -->
+
+						<div id="comments">
+	
+	
+			<h2 id="comments-title">
+			36 thoughts on &ldquo;<span>1.05 R</span>&rdquo;		</h2>
+
+		
+		<ol class="commentlist">
+					<li class="comment byuser comment-author-pirateaba bypostauthor even thread-even depth-1 highlander-comment" id="li-comment-140">
+		<article id="comment-140" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/2f8ac70cd17f11c419846c441769523b?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn"><a href='http://pirateaba.wordpress.com' rel='external nofollow ugc' class='url'>pirateaba</a></span> on <a href="https://wanderinginn.com/2016/11/23/1-05-r/#comment-140"><time datetime="2016-11-23T09:14:59+00:00">November 23, 2016 at 9:14 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>See, this is one of the problems I run up against sometimes. This latest chapter is 7,550 words long and that&#8217;s too long for a single update, in my opinion. On the other hand, this chapter covered a lot of ground and I feel like if I split it up it would lose the impact and be too short. </p>
+<p>If I were writing a novel I could space it out better and improve the flow. But I think this is also just See, this is one of the problems I run up against sometimes. This latest chapter is 7,550 words long and that&#8217;s too long for a single update, in my opinion. On the other hand, this chapter covered a lot of ground and I feel like if I split it up it would lose the impact and be to short. </p>
+<p>I guess to offset this I might try for a shorter chapter on Saturday. Something with punch and brevity. Anyways, hope the chapter works for you. If not&#8230;throw tomatoes at a dog. And leave a comment!</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2016/11/23/1-05-r/?replytocom=140#respond' data-commentid="140" data-postid="493" data-belowelement="comment-140" data-respondelement="respond" data-replyto="Reply to pirateaba" aria-label='Reply to pirateaba'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment byuser comment-author-stevenneiman odd alt depth-2 highlander-comment" id="li-comment-8701">
+		<article id="comment-8701" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/7b4c991431d0952d0b9ae81dc9898440?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">stevenneiman</span> on <a href="https://wanderinginn.com/2016/11/23/1-05-r/#comment-8701"><time datetime="2017-11-26T03:50:15+00:00">November 26, 2017 at 3:50 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>I really think you should stop worrying about the post length. Write as much as you need to write for the post to feel complete. It could be 1,000 words or 10,000, and we would read it. And I have to agree, splitting this up would feel worse than keeping it together.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2016/11/23/1-05-r/?replytocom=8701#respond' data-commentid="8701" data-postid="493" data-belowelement="comment-8701" data-respondelement="respond" data-replyto="Reply to stevenneiman" aria-label='Reply to stevenneiman'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-kinghaart even depth-2 highlander-comment" id="li-comment-85939">
+		<article id="comment-85939" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/4f82c6140d993b437e93e70a7f7bfd63?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">kinghaart</span> on <a href="https://wanderinginn.com/2016/11/23/1-05-r/#comment-85939"><time datetime="2020-07-06T04:27:22+00:00">July 6, 2020 at 4:27 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Great chapter!  I came here as a fan of A Practical Guide to Evil, and the last line made me laugh out loud.  Enough that I made a word press account to comment and say that I&#8217;m really happy to see there are multiple books ahead of me!</p>
+<p>If you *wanted* to, you could have split the chapter right where Garia&#8217;s POV ends, but I think it worked fine as-is and I agree with a post on the last chapter that for web serials, ending with more &#8216;weight&#8217; is worth it.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2016/11/23/1-05-r/?replytocom=85939#respond' data-commentid="85939" data-postid="493" data-belowelement="comment-85939" data-respondelement="respond" data-replyto="Reply to kinghaart" aria-label='Reply to kinghaart'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-kirindas odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-142">
+		<article id="comment-142" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/7a1460f3bfb37256dfe6780107a4329f?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn"><a href='http://aquarilasscenario.blogspot.com/' rel='external nofollow ugc' class='url'>kirindas</a></span> on <a href="https://wanderinginn.com/2016/11/23/1-05-r/#comment-142"><time datetime="2016-11-23T09:37:35+00:00">November 23, 2016 at 9:37 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Thanks for the new chapter! Interesting development, totally didn&#8217;t expect that to happen. O_o</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2016/11/23/1-05-r/?replytocom=142#respond' data-commentid="142" data-postid="493" data-belowelement="comment-142" data-respondelement="respond" data-replyto="Reply to kirindas" aria-label='Reply to kirindas'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="li-comment-143">
+		<article id="comment-143" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/fce6f64f963012e987c85c70c1c1e2e1?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Beeschan</span> on <a href="https://wanderinginn.com/2016/11/23/1-05-r/#comment-143"><time datetime="2016-11-23T10:57:04+00:00">November 23, 2016 at 10:57 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Ryoka&#8217;s so strong, holy frick.</p>
+<p>And now she&#8217;s got another hope too.</p>
+<p>AHHH!</p>
+<p>I do wonder how she&#8217;d react if another human were to spill the beans she&#8217;s fighting to keep under the covers.  Like, say the twins enraptured by the king, or anyone else in a similar situation.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2016/11/23/1-05-r/?replytocom=143#respond' data-commentid="143" data-postid="493" data-belowelement="comment-143" data-respondelement="respond" data-replyto="Reply to Beeschan" aria-label='Reply to Beeschan'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment odd alt depth-2 highlander-comment" id="li-comment-145">
+		<article id="comment-145" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/ba091b1b281970658595cbefccfdb3b9?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">Dragrath</span> on <a href="https://wanderinginn.com/2016/11/23/1-05-r/#comment-145"><time datetime="2016-11-23T12:31:09+00:00">November 23, 2016 at 12:31 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Honestly I don&#8217;t see any way that the secrets she is trying to keep can be hidden. with the large number of crossovers from earth information will be leaked over eventually. In fact I get the suspicion that someone already knew something considering I doubt the appearance of all these earthlings is a coincidence. And some inventions have already been leaked.</p>
+<p>Necromancy could fully backfire though as it requires flesh to be dead which would mean spreading gang green that would have to be kept in check or managed by the necromancer. I don&#8217;t think I could trust a necromancer especially considering what we have seen about their reputation in this world. And trust is something Ryoka doesn&#8217;t really have&#8230;</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2016/11/23/1-05-r/?replytocom=145#respond' data-commentid="145" data-postid="493" data-belowelement="comment-145" data-respondelement="respond" data-replyto="Reply to Dragrath" aria-label='Reply to Dragrath'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment even depth-3 highlander-comment" id="li-comment-46833">
+		<article id="comment-46833" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/079377a7da13d5b48cf2fc9100227164?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">Byzantine</span> on <a href="https://wanderinginn.com/2016/11/23/1-05-r/#comment-46833"><time datetime="2018-10-06T01:33:51+00:00">October 6, 2018 at 1:33 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>If she knew how many people had been torn across worlds she would likely have given everything in a heartbeat.  Because then *she* would not be the one responsible for the horrors unleashed.  Just a drop in the bucket.</p>
+<p>But she doesn&#8217;t know that.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2016/11/23/1-05-r/?replytocom=46833#respond' data-commentid="46833" data-postid="493" data-belowelement="comment-46833" data-respondelement="respond" data-replyto="Reply to Byzantine" aria-label='Reply to Byzantine'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-144">
+		<article id="comment-144" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/a5b127876d07ad41664ca3305d388197?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Happy Erf reader</span> on <a href="https://wanderinginn.com/2016/11/23/1-05-r/#comment-144"><time datetime="2016-11-23T12:09:28+00:00">November 23, 2016 at 12:09 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Great reading! Dosen&#8217;t feel too long at all. The pacing is good and I personally feel that it is better to give the story the room it needs. Looking forward to the next update.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2016/11/23/1-05-r/?replytocom=144#respond' data-commentid="144" data-postid="493" data-belowelement="comment-144" data-respondelement="respond" data-replyto="Reply to Happy Erf reader" aria-label='Reply to Happy Erf reader'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-melsahvarei even thread-even depth-1 highlander-comment" id="li-comment-146">
+		<article id="comment-146" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/ff525ba6cb6817d75fdd5f8d1c0d7426?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Melsa Hvarei</span> on <a href="https://wanderinginn.com/2016/11/23/1-05-r/#comment-146"><time datetime="2016-11-26T01:34:24+00:00">November 26, 2016 at 1:34 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Just finished reading all everything up to this chapter. I&#8217;m absolutely loving it!</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2016/11/23/1-05-r/?replytocom=146#respond' data-commentid="146" data-postid="493" data-belowelement="comment-146" data-respondelement="respond" data-replyto="Reply to Melsa Hvarei" aria-label='Reply to Melsa Hvarei'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment byuser comment-author-pirateaba bypostauthor odd alt depth-2 highlander-comment" id="li-comment-147">
+		<article id="comment-147" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/2f8ac70cd17f11c419846c441769523b?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn"><a href='http://pirateaba.wordpress.com' rel='external nofollow ugc' class='url'>pirateaba</a></span> on <a href="https://wanderinginn.com/2016/11/23/1-05-r/#comment-147"><time datetime="2016-11-26T08:41:45+00:00">November 26, 2016 at 8:41 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Always glad to hear that! Thanks for reading!</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2016/11/23/1-05-r/?replytocom=147#respond' data-commentid="147" data-postid="493" data-belowelement="comment-147" data-respondelement="respond" data-replyto="Reply to pirateaba" aria-label='Reply to pirateaba'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		<li class="comment even thread-odd thread-alt depth-1 highlander-comment" id="li-comment-812">
+		<article id="comment-812" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/5a07031a9732ccfeda4c11e3e119d688?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn"><a href='http://gravatar.com/nakedkali' rel='external nofollow ugc' class='url'>nakedkali</a></span> on <a href="https://wanderinginn.com/2016/11/23/1-05-r/#comment-812"><time datetime="2017-02-17T05:42:36+00:00">February 17, 2017 at 5:42 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Of course you waited a week, she had to make sure you were just about out of healing potions.  The whole street theater with what she did with the Runners Guild was just the vicious icing on her (gourmet kitchen created) cruetlty cake.  I hate Magnolia what a nasty piece of work, was prepared to think she wasn&#8217;t so bad when we met King Twintorture, but now I&#8217;m back to my original opinion.<br />
+======</p>
+<p>You know your world better than any of us.  Based on what you have told us in the past and our limited information as readers, what we have here looks like a math failure.  Healing potions are less than 10 gold.  Ryoka has been earning 30 silver per day so for two weeks existence as a Runner she has earned 14*30=420 silver.  She&#8217;s been buying and selling books and has expenses, so she has less than this.  This has bought her fifty healing potions, so eight silver each.  Erin shouldn&#8217;t have been alarmed at the price of healing potions and Klbkch could have bought her some out of her Goblin Chieftain bounty.  She&#8217;s charging 1 s per bowl of acidflies and Klbkch ate six all by himself.</p>
+<p>If the cost of a healing potion is closer to 10 gold and the ratio of gold to silver is higher than 10 to 1, then Ryoka has been earning massively compared to what we know about Merchants, and even compared to Adventurers if they think 100 gold is a lot of money because Ryoka has had fifty potions.  (In the real world there&#8217;s an exchange rate based on just how rare and useful these metals are and JK Rowling totally fucked it in her story so long as Muggles and Wizards can interact.) Here in your world, maybe the gold and silver flow like water though, so really odd conversion rates may apply.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2016/11/23/1-05-r/?replytocom=812#respond' data-commentid="812" data-postid="493" data-belowelement="comment-812" data-respondelement="respond" data-replyto="Reply to nakedkali" aria-label='Reply to nakedkali'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment odd alt depth-2 highlander-comment" id="li-comment-958">
+		<article id="comment-958" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/90ab657a45632bf0b04c7ebe8b8d894f?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">Prince Pondincherry</span> on <a href="https://wanderinginn.com/2016/11/23/1-05-r/#comment-958"><time datetime="2017-02-21T23:58:01+00:00">February 21, 2017 at 11:58 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Maybe it&#8217;s a supply and demand thing and healing potions are cheaper where Ryoka lives than where Erin lives.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2016/11/23/1-05-r/?replytocom=958#respond' data-commentid="958" data-postid="493" data-belowelement="comment-958" data-respondelement="respond" data-replyto="Reply to Prince Pondincherry" aria-label='Reply to Prince Pondincherry'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="li-comment-957">
+		<article id="comment-957" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/90ab657a45632bf0b04c7ebe8b8d894f?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Prince Pondincherry</span> on <a href="https://wanderinginn.com/2016/11/23/1-05-r/#comment-957"><time datetime="2017-02-21T23:57:32+00:00">February 21, 2017 at 11:57 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Ryoka&#8217;s still awesome. &#8220;Magic, duh.&#8221;<br />
+I totally get where she&#8217;s coming from with the moral dilemma, but at the same time, modern technology and knowledge have led to tons of improvements in quality of life and even decreases in warfare in some places, so if I was in her spot, I&#8217;d almost certainly try to monetize my knowledge somehow. Of course, I&#8217;m an engineer so I would have done that to begin with, so I&#8217;d never actually be in her spot, so the comparison is kind of dumb, but whatever.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2016/11/23/1-05-r/?replytocom=957#respond' data-commentid="957" data-postid="493" data-belowelement="comment-957" data-respondelement="respond" data-replyto="Reply to Prince Pondincherry" aria-label='Reply to Prince Pondincherry'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-1206">
+		<article id="comment-1206" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/a2e0843fcfec960b099f456e233179bd?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Solaire</span> on <a href="https://wanderinginn.com/2016/11/23/1-05-r/#comment-1206"><time datetime="2017-03-15T03:49:50+00:00">March 15, 2017 at 3:49 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>At least she understands why military commands in America don&#8217;t easily give away military information or why companies make people sign contacts of not leaking information to outsiders.<br />
+Those are the few things I can respect her about.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2016/11/23/1-05-r/?replytocom=1206#respond' data-commentid="1206" data-postid="493" data-belowelement="comment-1206" data-respondelement="respond" data-replyto="Reply to Solaire" aria-label='Reply to Solaire'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-jongn even thread-even depth-1 highlander-comment" id="li-comment-2367">
+		<article id="comment-2367" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/1350525fac3226b12612d57e1c2126a7?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn"><a href='http://resourcelimits.wordpress.com' rel='external nofollow ugc' class='url'>jongn</a></span> on <a href="https://wanderinginn.com/2016/11/23/1-05-r/#comment-2367"><time datetime="2017-04-29T10:35:58+00:00">April 29, 2017 at 10:35 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>I spent 5 minutes figuring out how to log back in to WordPress for the first time in two years just to say one thing.</p>
+<p>Holy shit Ryoka is an idiot.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2016/11/23/1-05-r/?replytocom=2367#respond' data-commentid="2367" data-postid="493" data-belowelement="comment-2367" data-respondelement="respond" data-replyto="Reply to jongn" aria-label='Reply to jongn'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-6037">
+		<article id="comment-6037" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/22269199b6c561266ae540f0cb13f766?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Eve</span> on <a href="https://wanderinginn.com/2016/11/23/1-05-r/#comment-6037"><time datetime="2017-08-11T16:50:20+00:00">August 11, 2017 at 4:50 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>I&#8230;like that this went a different way as to what I was expecting. I&#8217;m not sure that I would have the strength to do what she did, but I&#8217;m also a lot less aware of the details of the world since I&#8217;m so self-involved lol.</p>
+<p>I&#8217;m really pleased with the last twist~</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2016/11/23/1-05-r/?replytocom=6037#respond' data-commentid="6037" data-postid="493" data-belowelement="comment-6037" data-respondelement="respond" data-replyto="Reply to Eve" aria-label='Reply to Eve'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-jacobpaige even thread-even depth-1 highlander-comment" id="li-comment-7871">
+		<article id="comment-7871" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/386ab6aa1646b7d5151165d214e1e26d?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn"><a href='http://jacobpaige.wordpress.com' rel='external nofollow ugc' class='url'>jacobpaige</a></span> on <a href="https://wanderinginn.com/2016/11/23/1-05-r/#comment-7871"><time datetime="2017-10-21T19:53:01+00:00">October 21, 2017 at 7:53 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Weren&#8217;t Clerics supposed to be so rare that there might not even be a single one still among the living? How does Fals not only know one, but is also owed a favor by them?</p>
+<p>Doesn&#8217;t that mean that Pisces is extremely high level compared to the norm? Why is it so easy for everyone to beat him up?</p>
+<p>Why is no one mentioning the possibility of prosthetics? Are there no artificers? No golem makers? I mean sure, it&#8217;d be expensive, but it sounds like it&#8217;d still be cheaper than the Cleric.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2016/11/23/1-05-r/?replytocom=7871#respond' data-commentid="7871" data-postid="493" data-belowelement="comment-7871" data-respondelement="respond" data-replyto="Reply to jacobpaige" aria-label='Reply to jacobpaige'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment byuser comment-author-pirateaba bypostauthor odd alt depth-2 highlander-comment" id="li-comment-7873">
+		<article id="comment-7873" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/2f8ac70cd17f11c419846c441769523b?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn"><a href='http://pirateaba.wordpress.com' rel='external nofollow ugc' class='url'>pirateaba</a></span> on <a href="https://wanderinginn.com/2016/11/23/1-05-r/#comment-7873"><time datetime="2017-10-21T21:28:55+00:00">October 21, 2017 at 9:28 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Whoops! Sorry&#8211;you read a part of the story I hadn&#8217;t edited yet. [Clerics] are indeed supposed to be a class nearly forgotten with no living ones. I wrote this chapter early on though, and left that detail in. I&#8217;ve amended it. Thanks for pointing it out!</p>
+<p>As to the other details&#8230;class specialization is a funny thing. Pisces is gifted and relatively high-level for his age, certainly, but Relc and Klbkch are specialized warriors with their own classes.</p>
+<p>Lastly, Ryoka&#8217;s not lost her leg yet! I&#8217;m sure that if it comes to it, other suggestions could be made, but we&#8217;ll see how it plays out. Thanks for reading!</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2016/11/23/1-05-r/?replytocom=7873#respond' data-commentid="7873" data-postid="493" data-belowelement="comment-7873" data-respondelement="respond" data-replyto="Reply to pirateaba" aria-label='Reply to pirateaba'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment byuser comment-author-jacobpaige even depth-3 highlander-comment" id="li-comment-7875">
+		<article id="comment-7875" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/386ab6aa1646b7d5151165d214e1e26d?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn"><a href='http://jacobpaige.wordpress.com' rel='external nofollow ugc' class='url'>jacobpaige</a></span> on <a href="https://wanderinginn.com/2016/11/23/1-05-r/#comment-7875"><time datetime="2017-10-21T21:32:37+00:00">October 21, 2017 at 9:32 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>You should probably check the rest of the arc then. Clerics are brought up several times as a viable option for rich people.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2016/11/23/1-05-r/?replytocom=7875#respond' data-commentid="7875" data-postid="493" data-belowelement="comment-7875" data-respondelement="respond" data-replyto="Reply to jacobpaige" aria-label='Reply to jacobpaige'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment byuser comment-author-pirateaba bypostauthor odd alt depth-4 highlander-comment" id="li-comment-7877">
+		<article id="comment-7877" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/2f8ac70cd17f11c419846c441769523b?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn"><a href='http://pirateaba.wordpress.com' rel='external nofollow ugc' class='url'>pirateaba</a></span> on <a href="https://wanderinginn.com/2016/11/23/1-05-r/#comment-7877"><time datetime="2017-10-21T21:42:20+00:00">October 21, 2017 at 9:42 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Drat. Good to know. Thanks!</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2016/11/23/1-05-r/?replytocom=7877#respond' data-commentid="7877" data-postid="493" data-belowelement="comment-7877" data-respondelement="respond" data-replyto="Reply to pirateaba" aria-label='Reply to pirateaba'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-stormbladeviper290817 even thread-odd thread-alt depth-1 highlander-comment" id="li-comment-9286">
+		<article id="comment-9286" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/b14edff3507ebdc06b61b97292e268a6?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">|| RadiantLegacy ||</span> on <a href="https://wanderinginn.com/2016/11/23/1-05-r/#comment-9286"><time datetime="2017-12-18T03:25:30+00:00">December 18, 2017 at 3:25 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Oh frick, this is not going the way I expected . . . . Dang, yo!</p>
+<p>As a second note, Ryoka is now my favorite character.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2016/11/23/1-05-r/?replytocom=9286#respond' data-commentid="9286" data-postid="493" data-belowelement="comment-9286" data-respondelement="respond" data-replyto="Reply to || RadiantLegacy ||" aria-label='Reply to || RadiantLegacy ||'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment odd alt thread-even depth-1 highlander-comment" id="li-comment-41351">
+		<article id="comment-41351" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/06a6619b2d5cea00e87faf8cf83a6fe4?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Dario Figueira</span> on <a href="https://wanderinginn.com/2016/11/23/1-05-r/#comment-41351"><time datetime="2018-08-18T12:55:15+00:00">August 18, 2018 at 12:55 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Typo:</p>
+<p>Resse the head maid</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2016/11/23/1-05-r/?replytocom=41351#respond' data-commentid="41351" data-postid="493" data-belowelement="comment-41351" data-respondelement="respond" data-replyto="Reply to Dario Figueira" aria-label='Reply to Dario Figueira'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-screeeeam even thread-odd thread-alt depth-1 highlander-comment" id="li-comment-42553">
+		<article id="comment-42553" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/1dc07af9c5a6d088ba68564b6e87a0e4?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn"><a href='http://gravatar.com/screeeeam' rel='external nofollow ugc' class='url'>screeeeam</a></span> on <a href="https://wanderinginn.com/2016/11/23/1-05-r/#comment-42553"><time datetime="2018-08-27T05:09:10+00:00">August 27, 2018 at 5:09 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>This chapter contained a lot of repetitiveness, especially during the conversation between Ryoka and Lady Magnolia. I suppose it was meant to emphasize the dilemma the character was facing, but it wound up making the chapter too long and unnecessarily repetitive. </p>
+<p>Furthermore, I found it odd that she considered the FBI&#8217;s interrogation techniques something worth hiding. Torture isn&#8217;t complex and in the grand scheme of things, it doesn&#8217;t pose a threat to the entire world, as she so dramatically put it. It&#8217;s naive to think that people in this world haven&#8217;t already developed their own interrogation techniques. I mean, they have truth-telling magic and possibly lots of other methods of extracting information. I think you should consider removing the reference to the FBI during editing.</p>
+<p>Otherwise, good chapter.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2016/11/23/1-05-r/?replytocom=42553#respond' data-commentid="42553" data-postid="493" data-belowelement="comment-42553" data-respondelement="respond" data-replyto="Reply to screeeeam" aria-label='Reply to screeeeam'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment odd alt thread-even depth-1 highlander-comment" id="li-comment-54966">
+		<article id="comment-54966" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/779cfd99efd44d7e087f9e00e0ba7aad?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">tyriantybalt</span> on <a href="https://wanderinginn.com/2016/11/23/1-05-r/#comment-54966"><time datetime="2019-02-19T20:48:36+00:00">February 19, 2019 at 8:48 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>{Love your stuff! I was told that leaving a comment is how to point out spelling mistakes? I noticed some, which I marked with an asterisk. I hope it doesn&#8217;t come off as rude, since I only noticed them because I&#8217;ve read everything five times now!}<br />
+&#8212;&#8212;&#8212;<br />
+She felt a lot more upbeat with *Fal&#8217;s promise.<br />
+&#8212;&#8212;&#8212;<br />
+Behind her, *Resse the head maid stood in one corner of the room, glaring daggers at the poverty, the dirt under the windowsill, and Ryoka herself.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2016/11/23/1-05-r/?replytocom=54966#respond' data-commentid="54966" data-postid="493" data-belowelement="comment-54966" data-respondelement="respond" data-replyto="Reply to tyriantybalt" aria-label='Reply to tyriantybalt'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-sunflowerofice even thread-odd thread-alt depth-1 highlander-comment" id="li-comment-63818">
+		<article id="comment-63818" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/d50de38f7a7127218c97f516b623ac45?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">sunflowerofice</span> on <a href="https://wanderinginn.com/2016/11/23/1-05-r/#comment-63818"><time datetime="2019-08-07T20:05:29+00:00">August 7, 2019 at 8:05 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>made me think of faust from shaman king where he, during a battle, cuts out his own broken leg bone and puts in a replacement one from the graveyard.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2016/11/23/1-05-r/?replytocom=63818#respond' data-commentid="63818" data-postid="493" data-belowelement="comment-63818" data-respondelement="respond" data-replyto="Reply to sunflowerofice" aria-label='Reply to sunflowerofice'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment odd alt thread-even depth-1 highlander-comment" id="li-comment-65985">
+		<article id="comment-65985" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/c1497fe6c2dc0c3d27c5ace2b1ddb65c?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">PvtRyan96</span> on <a href="https://wanderinginn.com/2016/11/23/1-05-r/#comment-65985"><time datetime="2019-09-13T11:50:15+00:00">September 13, 2019 at 11:50 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>So Ryoka, in addition to being a stubborn bitch, is also a racist. &#8220;Another white person to conquer the world.&#8221; Has she forgotten she&#8217;s of Japanese heritage!? Two of her greatgrandfathers might well have fought in WW2 on the Axis side, and Imperial Japan was so viscious the actual Nazis were impressed. Hypocricy is what this is.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2016/11/23/1-05-r/?replytocom=65985#respond' data-commentid="65985" data-postid="493" data-belowelement="comment-65985" data-respondelement="respond" data-replyto="Reply to PvtRyan96" aria-label='Reply to PvtRyan96'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-greatwyrmgold even thread-odd thread-alt depth-1 highlander-comment" id="li-comment-67811">
+		<article id="comment-67811" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/ba1171974a2bad0f6d87ec723d861f7a?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn"><a href='http://greatwyrmgab.wordpress.com' rel='external nofollow ugc' class='url'>greatwyrmgold</a></span> on <a href="https://wanderinginn.com/2016/11/23/1-05-r/#comment-67811"><time datetime="2019-10-11T11:09:01+00:00">October 11, 2019 at 11:09 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>I see Ceria&#8217;s studied at the St. Foundling Medical Institute.</p>
+<p>I wonder if Ryoka&#8217;s charm resistance has anything to do with her almost definitely being on the spectrum. I&#8217;d presume such people aren&#8217;t as common in the circles Magnolia frequents&#8230;especially since most places would want to hide their &#8220;not very sociable&#8221; members from a respected aristocrat.</p>
+<p>I was worried Ryoka would need to give into the demands of a sinister noble or horny mino&#8211;randy minotaur to get her leg fixed. I&#8217;m glad Ceria showed up instead; she seems less likely to have ulterior motives.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2016/11/23/1-05-r/?replytocom=67811#respond' data-commentid="67811" data-postid="493" data-belowelement="comment-67811" data-respondelement="respond" data-replyto="Reply to greatwyrmgold" aria-label='Reply to greatwyrmgold'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment odd alt depth-2 highlander-comment" id="li-comment-85949">
+		<article id="comment-85949" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/db5bac5528c7ef98590fbee125715697?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">Lord Haart</span> on <a href="https://wanderinginn.com/2016/11/23/1-05-r/#comment-85949"><time datetime="2020-07-06T09:38:00+00:00">July 6, 2020 at 9:38 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>St Foundling! 😁</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2016/11/23/1-05-r/?replytocom=85949#respond' data-commentid="85949" data-postid="493" data-belowelement="comment-85949" data-respondelement="respond" data-replyto="Reply to Lord Haart" aria-label='Reply to Lord Haart'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="li-comment-96321">
+		<article id="comment-96321" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/5d2ad08eb42a9309d65c7bbbb34acb0b?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Unit ZER0</span> on <a href="https://wanderinginn.com/2016/11/23/1-05-r/#comment-96321"><time datetime="2020-12-14T19:13:44+00:00">December 14, 2020 at 7:13 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Honestly, I don&#8217;t like Ryoka all that much. Information is power, yes. But what others do with it really isn&#8217;t your concern. Call me amoral, but as long as I can take care of myself, and those closest to me, I don&#8217;t care what happens to the rest of the world.</p>
+<p>Plus, she really needs an attitude adjustment. Pissing others off for no real reason other than self determination means her injury was basically self-inflicted.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2016/11/23/1-05-r/?replytocom=96321#respond' data-commentid="96321" data-postid="493" data-belowelement="comment-96321" data-respondelement="respond" data-replyto="Reply to Unit ZER0" aria-label='Reply to Unit ZER0'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-96398">
+		<article id="comment-96398" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/30a274ac42b9c3ae68bd5e189241c08e?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">say</span> on <a href="https://wanderinginn.com/2016/11/23/1-05-r/#comment-96398"><time datetime="2020-12-15T11:04:31+00:00">December 15, 2020 at 11:04 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Fals&#8217; character is one im familiar with and despise very very much</p>
+<p>Garia&#8217;s nice though, if gullible and naive. she&#8217;s well intentioned though so i can&#8217;t really hold her too much</p>
+<p>Ryoka being Ryoka. it&#8217;s sad how this whole mess started over bullshit politics and hurt feelings. and im looking at certain comments and i have to say, i really don&#8217;t see how Ryoka could be to blame for *anything* that happened because she can&#8217;t change how she is. she acts the way she does for a reason and that reason is intrinsically apart of who she is. </p>
+<p>Magnolia is dangerous. that&#8217;s what i think. i think Ryoka is right to be reluctant to trade away any secrets to her. she&#8217;s bad news&#8230; though i do like her character.</p>
+<p>i wonder if an industrial revolution would be so bad? wars will always be fought regardless of the tools used so idk if it would be. but when i think about it bombs and handheld weaponry cause death &amp; destruction on reaaally different magnitudes so yeah</p>
+<p>Zombie-leg Ryoka&#8230; cool. i&#8217;d like to see the look on Magnolia&#8217;s face lol</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2016/11/23/1-05-r/?replytocom=96398#respond' data-commentid="96398" data-postid="493" data-belowelement="comment-96398" data-respondelement="respond" data-replyto="Reply to say" aria-label='Reply to say'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="li-comment-101960">
+		<article id="comment-101960" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/a2202433336516a4a981ad62b45a5275?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Kae</span> on <a href="https://wanderinginn.com/2016/11/23/1-05-r/#comment-101960"><time datetime="2021-03-24T19:33:56+00:00">March 24, 2021 at 7:33 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>I’m sorry Ryoka has become a very flat and annoying character. But I guess every story needs it’s assholes? Hopefully something redeems her later in the story because at this point I dread the chapters with her as the lead. Her being a little racist doesn’t help matters either</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2016/11/23/1-05-r/?replytocom=101960#respond' data-commentid="101960" data-postid="493" data-belowelement="comment-101960" data-respondelement="respond" data-replyto="Reply to Kae" aria-label='Reply to Kae'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-104674">
+		<article id="comment-104674" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/7fd4b49aeaf10a235de296c209693fab?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Tortuga</span> on <a href="https://wanderinginn.com/2016/11/23/1-05-r/#comment-104674"><time datetime="2021-05-10T09:57:43+00:00">May 10, 2021 at 9:57 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Why was she so afraid of modern tech in the hands of magic users? Is a gun shot that much worse than a sword running someone through or a fireball incinerating someone? She&#8217;s hysterical. Would she have rather lives in a feudal society back when she was on earth? Silly.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2016/11/23/1-05-r/?replytocom=104674#respond' data-commentid="104674" data-postid="493" data-belowelement="comment-104674" data-respondelement="respond" data-replyto="Reply to Tortuga" aria-label='Reply to Tortuga'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment byuser comment-author-pauljosephski even depth-2 highlander-comment" id="li-comment-113549">
+		<article id="comment-113549" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/64ff7813db2254dfb3728d205ff91e2f?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">pauljosephski</span> on <a href="https://wanderinginn.com/2016/11/23/1-05-r/#comment-113549"><time datetime="2021-09-30T03:34:26+00:00">September 30, 2021 at 3:34 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Uhhh, yes it absolutely could be. For all of the power scaling we have seen so far, a .50 cal would be able to kill everything we have seen. Also magic+modern weaponry would be devastating</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2016/11/23/1-05-r/?replytocom=113549#respond' data-commentid="113549" data-postid="493" data-belowelement="comment-113549" data-respondelement="respond" data-replyto="Reply to pauljosephski" aria-label='Reply to pauljosephski'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-pauljosephski odd alt thread-even depth-1 highlander-comment" id="li-comment-113548">
+		<article id="comment-113548" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/64ff7813db2254dfb3728d205ff91e2f?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">pauljosephski</span> on <a href="https://wanderinginn.com/2016/11/23/1-05-r/#comment-113548"><time datetime="2021-09-30T03:32:32+00:00">September 30, 2021 at 3:32 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Ryoka seem a little too full of herself. She already has definitive proof that there are other earthlings in this new world, does she really think that none of them are going to start selling information?</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2016/11/23/1-05-r/?replytocom=113548#respond' data-commentid="113548" data-postid="493" data-belowelement="comment-113548" data-respondelement="respond" data-replyto="Reply to pauljosephski" aria-label='Reply to pauljosephski'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment even thread-odd thread-alt depth-1 highlander-comment" id="li-comment-123348">
+		<article id="comment-123348" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/dd8d65f876cad12c0b885a9262dbe4df?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Mickey</span> on <a href="https://wanderinginn.com/2016/11/23/1-05-r/#comment-123348"><time datetime="2022-03-12T08:03:10+00:00">March 12, 2022 at 8:03 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>I think Ryoka is both brave and foolish.</p>
+<p>Brave because she is choosing to give up the most important thing in the world to her, to avoid leaking destructive information from her world.</p>
+<p>Foolish because she is drastically, drastically overestimating the impact that what she knows would have on the world. For a number of reasons. As others have mentioned, she&#8217;s not the only arrival from Earth. But also, she is making two really unfounded assumptions:<br />
+1. That people don&#8217;t have advanced technology because they haven&#8217;t invented it, and<br />
+2. That the technology she knows from Earth would still work in this world.</p>
+<p>Earth doesn&#8217;t have magic. Why should this world have nuclear chemistry?</p>
+<p>On a completely separate note, the math doesn&#8217;t add up. Adventurers are extremely high-level, and regularly risk their lives in pursuit of treasure. Hundreds of gold wouldn&#8217;t even remotely be an impediment to them.</p>
+<p>Based on how much we have already seen people earn and spend in other parts of the story, the services of a healer who can cast a Tier 6 spell would cost tens of thousands of gold.</p>
+<p>If you change the quoted price above to 50,000 gold instead of 500 gold, all of the math works out a lot better from what I can see.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2016/11/23/1-05-r/?replytocom=123348#respond' data-commentid="123348" data-postid="493" data-belowelement="comment-123348" data-respondelement="respond" data-replyto="Reply to Mickey" aria-label='Reply to Mickey'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment odd alt thread-even depth-1 highlander-comment" id="li-comment-125886">
+		<article id="comment-125886" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/ecd0bc7f0497a954ba0c3231d47ccc78?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Jay</span> on <a href="https://wanderinginn.com/2016/11/23/1-05-r/#comment-125886"><time datetime="2022-04-18T16:11:16+00:00">April 18, 2022 at 4:11 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Wow this girl is an idiot.  Unless she is a metallurgist ,machinist  , and a chemist, and all of those who know how to work with archaic tools and material streams, the very best she may come up with is a inaccurate, slow to reload, thing that may not explode in the users hands, and cannot be used in the rain. This is a world where if a person learns to think right, they can hurl a fireball. The avatar of deadly knowledge she is not.</p>
+<p>Like she is a believable idiot, I mean dunning-Kruger is a thing, she is in a terrifying situation, and in pain so probably not thinking logically  </p>
+<p>But god damn she is an idiot.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2016/11/23/1-05-r/?replytocom=125886#respond' data-commentid="125886" data-postid="493" data-belowelement="comment-125886" data-respondelement="respond" data-replyto="Reply to Jay" aria-label='Reply to Jay'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		</ol>
+
+		
+		
+	
+		<div id="respond" class="comment-respond">
+		<h3 id="reply-title" class="comment-reply-title">Leave a Reply <small><a rel="nofollow" id="cancel-comment-reply-link" href="/2016/11/23/1-05-r/#respond" style="display:none;">Cancel reply</a></small></h3><form action="https://wanderinginn.com/wp-comments-post.php" method="post" id="commentform" class="comment-form"><input type="hidden" id="highlander_comment_nonce" name="highlander_comment_nonce" value="bd33e1bdd8" /><input type="hidden" name="_wp_http_referer" value="/2016/11/23/1-05-r/" />
+<input type="hidden" name="hc_post_as" id="hc_post_as" value="guest" />
+
+<div class="comment-form-field comment-textarea">
+	<label for="comment">Enter your comment here...</label>
+	<div id="comment-form-comment"><textarea id="comment" name="comment" title="Enter your comment here..."></textarea></div>
+</div>
+
+<div id="comment-form-identity">
+	<div id="comment-form-nascar">
+		<p>Fill in your details below or click an icon to log in:</p>
+		<ul>
+			<li class="selected" style="display:none;">
+				<a href="#comment-form-guest" id="postas-guest" class="nascar-signin-link"
+				 title="Login via Guest" 				>
+									</a>
+			</li>
+			<li>
+				<a href="#comment-form-load-service:WordPress.com" id="postas-wordpress" class="nascar-signin-link"
+				 title="Login via WordPress.com" 				>
+					<svg xmlns="http://www.w3.org/2000/svg" role="presentation" viewBox="0 0 24 24" ><rect x="0" fill="none" width="24" height="24"/><g><path fill="#FFF" d="M12.158 12.786l-2.698 7.84c.806.236 1.657.365 2.54.365 1.047 0 2.05-.18 2.986-.51-.024-.037-.046-.078-.065-.123l-2.762-7.57zM3.008 12c0 3.56 2.07 6.634 5.068 8.092L3.788 8.342c-.5 1.117-.78 2.354-.78 3.658zm15.06-.454c0-1.112-.398-1.88-.74-2.48-.456-.74-.883-1.368-.883-2.11 0-.825.627-1.595 1.51-1.595.04 0 .078.006.116.008-1.598-1.464-3.73-2.36-6.07-2.36-3.14 0-5.904 1.613-7.512 4.053.21.008.41.012.58.012.94 0 2.395-.114 2.395-.114.484-.028.54.684.057.74 0 0-.487.058-1.03.086l3.275 9.74 1.968-5.902-1.4-3.838c-.485-.028-.944-.085-.944-.085-.486-.03-.43-.77.056-.742 0 0 1.484.114 2.368.114.94 0 2.397-.114 2.397-.114.486-.028.543.684.058.74 0 0-.488.058-1.03.086l3.25 9.665.897-2.997c.456-1.17.684-2.137.684-2.907zm1.82-3.86c.04.286.06.593.06.924 0 .912-.17 1.938-.683 3.22l-2.746 7.94c2.672-1.558 4.47-4.454 4.47-7.77 0-1.564-.4-3.033-1.1-4.314zM12 22C6.486 22 2 17.514 2 12S6.486 2 12 2s10 4.486 10 10-4.486 10-10 10z"/></g></svg>				</a>
+			</li>
+			<li>
+				<a href="#comment-form-load-service:Twitter" id="postas-twitter" class="nascar-signin-link"
+				 title="Login via Twitter" 				>
+					<svg xmlns="http://www.w3.org/2000/svg" role="presentation" viewBox="0 0 24 24" ><rect x="0" fill="none" width="24" height="24"/><g><path fill="#FFF" d="M22.23 5.924c-.736.326-1.527.547-2.357.646.847-.508 1.498-1.312 1.804-2.27-.793.47-1.67.812-2.606.996C18.325 4.498 17.258 4 16.078 4c-2.266 0-4.103 1.837-4.103 4.103 0 .322.036.635.106.935-3.41-.17-6.433-1.804-8.457-4.287-.353.607-.556 1.312-.556 2.064 0 1.424.724 2.68 1.825 3.415-.673-.022-1.305-.207-1.86-.514v.052c0 1.988 1.415 3.647 3.293 4.023-.344.095-.707.145-1.08.145-.265 0-.522-.026-.773-.074.522 1.63 2.038 2.817 3.833 2.85-1.404 1.1-3.174 1.757-5.096 1.757-.332 0-.66-.02-.98-.057 1.816 1.164 3.973 1.843 6.29 1.843 7.547 0 11.675-6.252 11.675-11.675 0-.178-.004-.355-.012-.53.802-.578 1.497-1.3 2.047-2.124z"/></g></svg>				</a>
+			</li>
+			<li>
+				<a href="#comment-form-load-service:Facebook" id="postas-facebook" class="nascar-signin-link"
+				 title="Login via Facebook" 				>
+					<svg xmlns="http://www.w3.org/2000/svg" role="presentation" viewBox="0 0 24 24" ><rect x="0" fill="none" width="24" height="24"/><g><path fill="#FFF" d="M20.007 3H3.993C3.445 3 3 3.445 3 3.993v16.013c0 .55.445.994.993.994h8.62v-6.97H10.27V11.31h2.346V9.31c0-2.325 1.42-3.59 3.494-3.59.993 0 1.847.073 2.096.106v2.43h-1.438c-1.128 0-1.346.537-1.346 1.324v1.734h2.69l-.35 2.717h-2.34V21h4.587c.548 0 .993-.445.993-.993V3.993c0-.548-.445-.993-.993-.993z"/></g></svg>				</a>
+			</li>
+		</ul>
+	</div>
+
+	<div id="comment-form-guest" class="comment-form-service selected">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+<a href="https://gravatar.com/site/signup/" target="_blank">				<img src="https://1.gravatar.com/avatar/ad516503a11cd5ca435acc9bb6523536?s=25&amp;d=identicon&amp;forcedefault=y&amp;r=PG" alt="Gravatar" width="25" class="no-grav" />
+</a>			</div>
+
+				<div class="comment-form-fields">
+				<div class="comment-form-field comment-form-email">
+					<label for="email">Email <span class="required">(required)</span> <span class="nopublish">(Address never made public)</span></label>
+					<div class="comment-form-input"><input id="email" name="email" type="email" value="" /></div>
+				</div>
+				<div class="comment-form-field comment-form-author">
+					<label for="author">Name <span class="required">(required)</span></label>
+					<div class="comment-form-input"><input id="author" name="author" type="text" value="" /></div>
+				</div>
+				<div class="comment-form-field comment-form-url">
+					<label for="url">Website</label>
+					<div class="comment-form-input"><input id="url" name="url" type="url" value="" /></div>
+				</div>
+			</div>
+			
+		</div>
+	</div>
+
+	<div id="comment-form-wordpress" class="comment-form-service">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+				<img src="https://1.gravatar.com/avatar/ad516503a11cd5ca435acc9bb6523536?s=25&amp;d=identicon&amp;forcedefault=y&amp;r=PG" alt="WordPress.com Logo" width="25" class="no-grav" />
+			</div>
+
+				<div class="comment-form-fields">
+				<input type="hidden" name="wp_avatar" id="wordpress-avatar" class="comment-meta-wordpress" value="" />
+				<input type="hidden" name="wp_user_id" id="wordpress-user_id" class="comment-meta-wordpress" value="" />
+				<input type="hidden" name="wp_access_token" id="wordpress-access_token" class="comment-meta-wordpress" value="" />
+						<p class="comment-form-posting-as pa-wordpress">
+			<strong></strong>
+			You are commenting using your WordPress.com account.			<span class="comment-form-log-out">
+				(&nbsp;<a href="javascript:HighlanderComments.doExternalLogout( 'wordpress' );">Log&nbsp;Out</a>&nbsp;/&nbsp;
+				<a href="#" onclick="javascript:HighlanderComments.switchAccount();return false;">Change</a>&nbsp;)
+			</span>
+			<span class="pa-icon"><svg xmlns="http://www.w3.org/2000/svg" role="presentation" viewBox="0 0 24 24" ><rect x="0" fill="none" width="24" height="24"/><g><path fill="#FFF" d="M12.158 12.786l-2.698 7.84c.806.236 1.657.365 2.54.365 1.047 0 2.05-.18 2.986-.51-.024-.037-.046-.078-.065-.123l-2.762-7.57zM3.008 12c0 3.56 2.07 6.634 5.068 8.092L3.788 8.342c-.5 1.117-.78 2.354-.78 3.658zm15.06-.454c0-1.112-.398-1.88-.74-2.48-.456-.74-.883-1.368-.883-2.11 0-.825.627-1.595 1.51-1.595.04 0 .078.006.116.008-1.598-1.464-3.73-2.36-6.07-2.36-3.14 0-5.904 1.613-7.512 4.053.21.008.41.012.58.012.94 0 2.395-.114 2.395-.114.484-.028.54.684.057.74 0 0-.487.058-1.03.086l3.275 9.74 1.968-5.902-1.4-3.838c-.485-.028-.944-.085-.944-.085-.486-.03-.43-.77.056-.742 0 0 1.484.114 2.368.114.94 0 2.397-.114 2.397-.114.486-.028.543.684.058.74 0 0-.488.058-1.03.086l3.25 9.665.897-2.997c.456-1.17.684-2.137.684-2.907zm1.82-3.86c.04.286.06.593.06.924 0 .912-.17 1.938-.683 3.22l-2.746 7.94c2.672-1.558 4.47-4.454 4.47-7.77 0-1.564-.4-3.033-1.1-4.314zM12 22C6.486 22 2 17.514 2 12S6.486 2 12 2s10 4.486 10 10-4.486 10-10 10z"/></g></svg></span>
+		</p>
+					</div>
+	
+		</div>
+	</div>
+
+	<div id="comment-form-twitter" class="comment-form-service">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+				<img src="https://1.gravatar.com/avatar/ad516503a11cd5ca435acc9bb6523536?s=25&amp;d=identicon&amp;forcedefault=y&amp;r=PG" alt="Twitter picture" width="25" class="no-grav" />
+			</div>
+
+				<div class="comment-form-fields">
+				<input type="hidden" name="twitter_avatar" id="twitter-avatar" class="comment-meta-twitter" value="" />
+				<input type="hidden" name="twitter_user_id" id="twitter-user_id" class="comment-meta-twitter" value="" />
+				<input type="hidden" name="twitter_access_token" id="twitter-access_token" class="comment-meta-twitter" value="" />
+						<p class="comment-form-posting-as pa-twitter">
+			<strong></strong>
+			You are commenting using your Twitter account.			<span class="comment-form-log-out">
+				(&nbsp;<a href="javascript:HighlanderComments.doExternalLogout( 'twitter' );">Log&nbsp;Out</a>&nbsp;/&nbsp;
+				<a href="#" onclick="javascript:HighlanderComments.switchAccount();return false;">Change</a>&nbsp;)
+			</span>
+			<span class="pa-icon"><svg xmlns="http://www.w3.org/2000/svg" role="presentation" viewBox="0 0 24 24" ><rect x="0" fill="none" width="24" height="24"/><g><path fill="#FFF" d="M22.23 5.924c-.736.326-1.527.547-2.357.646.847-.508 1.498-1.312 1.804-2.27-.793.47-1.67.812-2.606.996C18.325 4.498 17.258 4 16.078 4c-2.266 0-4.103 1.837-4.103 4.103 0 .322.036.635.106.935-3.41-.17-6.433-1.804-8.457-4.287-.353.607-.556 1.312-.556 2.064 0 1.424.724 2.68 1.825 3.415-.673-.022-1.305-.207-1.86-.514v.052c0 1.988 1.415 3.647 3.293 4.023-.344.095-.707.145-1.08.145-.265 0-.522-.026-.773-.074.522 1.63 2.038 2.817 3.833 2.85-1.404 1.1-3.174 1.757-5.096 1.757-.332 0-.66-.02-.98-.057 1.816 1.164 3.973 1.843 6.29 1.843 7.547 0 11.675-6.252 11.675-11.675 0-.178-.004-.355-.012-.53.802-.578 1.497-1.3 2.047-2.124z"/></g></svg></span>
+		</p>
+					</div>
+	
+		</div>
+	</div>
+
+	<div id="comment-form-facebook" class="comment-form-service">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+				<img src="" alt="Facebook photo" width="25" class="no-grav" />
+			</div>
+
+				<div class="comment-form-fields">
+				<input type="hidden" name="fb_avatar" id="facebook-avatar" class="comment-meta-facebook" value="" />
+				<input type="hidden" name="fb_user_id" id="facebook-user_id" class="comment-meta-facebook" value="" />
+				<input type="hidden" name="fb_access_token" id="facebook-access_token" class="comment-meta-facebook" value="" />
+						<p class="comment-form-posting-as pa-facebook">
+			<strong></strong>
+			You are commenting using your Facebook account.			<span class="comment-form-log-out">
+				(&nbsp;<a href="javascript:HighlanderComments.doExternalLogout( 'facebook' );">Log&nbsp;Out</a>&nbsp;/&nbsp;
+				<a href="#" onclick="javascript:HighlanderComments.switchAccount();return false;">Change</a>&nbsp;)
+			</span>
+			<span class="pa-icon"><svg xmlns="http://www.w3.org/2000/svg" role="presentation" viewBox="0 0 24 24" ><rect x="0" fill="none" width="24" height="24"/><g><path fill="#FFF" d="M20.007 3H3.993C3.445 3 3 3.445 3 3.993v16.013c0 .55.445.994.993.994h8.62v-6.97H10.27V11.31h2.346V9.31c0-2.325 1.42-3.59 3.494-3.59.993 0 1.847.073 2.096.106v2.43h-1.438c-1.128 0-1.346.537-1.346 1.324v1.734h2.69l-.35 2.717h-2.34V21h4.587c.548 0 .993-.445.993-.993V3.993c0-.548-.445-.993-.993-.993z"/></g></svg></span>
+		</p>
+					</div>
+	
+		</div>
+	</div>
+
+
+	<div id="comment-form-load-service" class="comment-form-service">
+		<div class="comment-form-posting-as-cancel"><a href="javascript:HighlanderComments.cancelExternalWindow();">Cancel</a></div>
+		<p>Connecting to %s</p>
+	</div>
+
+</div>
+
+<script type="text/javascript">
+var highlander_expando_javascript = function () {
+
+	function hide( sel ) {
+		var el = document.querySelector( sel );
+		if ( el ) {
+			el.style.setProperty( 'display', 'none' );
+		}
+	}
+
+	function show( sel ) {
+		var el = document.querySelector( sel );
+		if ( el ) {
+			el.style.removeProperty( 'display' );
+		}
+	}
+
+	var input = document.createElement( 'input' );
+	var comment = document.querySelector( '#comment' );
+
+	if ( input && comment && 'placeholder' in input ) {
+		var label = document.querySelector( '.comment-textarea label' );
+		if ( label ) {
+			var text = label.textContent;
+			label.parentNode.removeChild( label );
+			comment.setAttribute( 'placeholder', text );
+		}
+	}
+
+	// Expando Mode: start small, then auto-resize on first click + text length
+	hide( '#comment-form-identity' );
+	hide( '#comment-form-subscribe' );
+	hide( '#commentform .form-submit' );
+
+	if ( comment ) {
+		comment.style.height = '10px';
+
+		var handler = function () {
+			comment.style.height = HighlanderComments.initialHeight + 'px';
+			show( '#comment-form-identity' );
+			show( '#comment-form-subscribe' );
+			show( '#commentform .form-submit' );
+			HighlanderComments.resizeCallback();
+
+			comment.removeEventListener( 'focus', handler );
+		};
+
+		comment.addEventListener( 'focus', handler );
+	}
+}
+
+if ( document.readyState !== 'loading' ) {
+	highlander_expando_javascript();
+} else {
+	document.addEventListener( 'DOMContentLoaded', highlander_expando_javascript );
+}
+
+</script>
+
+<div id="comment-form-subscribe">
+	<p class="comment-subscription-form"><input type="checkbox" name="subscribe" id="subscribe" value="subscribe" style="width: auto;"/> <label class="subscribe-label" id="subscribe-label" for="subscribe" style="display: inline;">Notify me of new comments via email.</label></p><p class="post-subscription-form"><input type="checkbox" name="subscribe_blog" id="subscribe_blog" value="subscribe" style="width: auto;"/> <label class="subscribe-label" id="subscribe-blog-label" for="subscribe_blog"  style="display: inline;">Notify me of new posts via email.</label></p></div>
+
+
+
+
+<p class="form-submit"><input name="submit" type="submit" id="comment-submit" class="submit button" value="Post Comment" /> <input type='hidden' name='comment_post_ID' value='493' id='comment_post_ID' />
+<input type='hidden' name='comment_parent' id='comment_parent' value='0' />
+</p><p style="display: none;"><input type="hidden" id="akismet_comment_nonce" name="akismet_comment_nonce" value="c3d85e915a" /></p>
+<input type="hidden" name="genseq" value="1664899841" />
+<p style="display: none !important;"><label>&#916;<textarea name="ak_hp_textarea" cols="45" rows="8" maxlength="100"></textarea></label><input type="hidden" id="ak_js_1" name="ak_js" value="127"/><script>document.getElementById( "ak_js_1" ).setAttribute( "value", ( new Date() ).getTime() );</script></p></form>	</div><!-- #respond -->
+	<div style="clear: both"></div>
+</div><!-- #comments -->
+
+				
+			</div><!-- #content -->
+		</div><!-- #primary -->
+
+
+	</div><!-- #main -->
+
+	<footer id="colophon">
+
+			
+
+			<div id="site-generator">
+				 								<a href="https://wordpress.com/?ref=footer_blog" rel="nofollow">Blog at WordPress.com.</a>
+			</div>
+	</footer><!-- #colophon -->
+</div><!-- #page -->
+
+<!--  -->
+<script type="text/javascript">
+	window._tkq = window._tkq || [];
+	if ( Math.random() < 0.01 ) {
+		window._tkq.push( [
+			'recordEvent',
+			'wpcom_wordads_noad',
+			{"theme":"pub\/twentyeleven","blog_id":113840984,"post_id":493,"reason_noadverts_plugin":1,"reason_upgrade":1,"reason_blog_null":1,"reason_post_null":1}
+		] );
+	}
+</script><script src='//0.gravatar.com/js/gprofiles.js?ver=202240z' id='grofiles-cards-js'></script>
+<script id='wpgroho-js-extra'>
+var WPGroHo = {"my_hash":""};
+</script>
+<script crossorigin='anonymous' type='text/javascript' src='https://s1.wp.com/wp-content/mu-plugins/gravatar-hovercards/wpgroho.js?m=1610363240h'></script>
+
+	<script>
+		// Initialize and attach hovercards to all gravatars
+		( function() {
+			function init() {
+				if ( typeof Gravatar === 'undefined' ) {
+					return;
+				}
+
+				if ( typeof Gravatar.init !== 'function' ) {
+					return;
+				}
+
+				Gravatar.profile_cb = function ( hash, id ) {
+					WPGroHo.syncProfileData( hash, id );
+				};
+
+				Gravatar.my_hash = WPGroHo.my_hash;
+				Gravatar.init( 'body', '#wp-admin-bar-my-account' );
+			}
+
+			if ( document.readyState !== 'loading' ) {
+				init();
+			} else {
+				document.addEventListener( 'DOMContentLoaded', init );
+			}
+		} )();
+	</script>
+
+		<div style="display:none">
+	<div class="grofile-hash-map-2f8ac70cd17f11c419846c441769523b">
+	</div>
+	<div class="grofile-hash-map-7b4c991431d0952d0b9ae81dc9898440">
+	</div>
+	<div class="grofile-hash-map-4f82c6140d993b437e93e70a7f7bfd63">
+	</div>
+	<div class="grofile-hash-map-7a1460f3bfb37256dfe6780107a4329f">
+	</div>
+	<div class="grofile-hash-map-fce6f64f963012e987c85c70c1c1e2e1">
+	</div>
+	<div class="grofile-hash-map-ba091b1b281970658595cbefccfdb3b9">
+	</div>
+	<div class="grofile-hash-map-079377a7da13d5b48cf2fc9100227164">
+	</div>
+	<div class="grofile-hash-map-a5b127876d07ad41664ca3305d388197">
+	</div>
+	<div class="grofile-hash-map-ff525ba6cb6817d75fdd5f8d1c0d7426">
+	</div>
+	<div class="grofile-hash-map-5a07031a9732ccfeda4c11e3e119d688">
+	</div>
+	<div class="grofile-hash-map-90ab657a45632bf0b04c7ebe8b8d894f">
+	</div>
+	<div class="grofile-hash-map-a2e0843fcfec960b099f456e233179bd">
+	</div>
+	<div class="grofile-hash-map-1350525fac3226b12612d57e1c2126a7">
+	</div>
+	<div class="grofile-hash-map-22269199b6c561266ae540f0cb13f766">
+	</div>
+	<div class="grofile-hash-map-386ab6aa1646b7d5151165d214e1e26d">
+	</div>
+	<div class="grofile-hash-map-b14edff3507ebdc06b61b97292e268a6">
+	</div>
+	<div class="grofile-hash-map-06a6619b2d5cea00e87faf8cf83a6fe4">
+	</div>
+	<div class="grofile-hash-map-1dc07af9c5a6d088ba68564b6e87a0e4">
+	</div>
+	<div class="grofile-hash-map-779cfd99efd44d7e087f9e00e0ba7aad">
+	</div>
+	<div class="grofile-hash-map-d50de38f7a7127218c97f516b623ac45">
+	</div>
+	<div class="grofile-hash-map-c1497fe6c2dc0c3d27c5ace2b1ddb65c">
+	</div>
+	<div class="grofile-hash-map-ba1171974a2bad0f6d87ec723d861f7a">
+	</div>
+	<div class="grofile-hash-map-db5bac5528c7ef98590fbee125715697">
+	</div>
+	<div class="grofile-hash-map-5d2ad08eb42a9309d65c7bbbb34acb0b">
+	</div>
+	<div class="grofile-hash-map-30a274ac42b9c3ae68bd5e189241c08e">
+	</div>
+	<div class="grofile-hash-map-a2202433336516a4a981ad62b45a5275">
+	</div>
+	<div class="grofile-hash-map-7fd4b49aeaf10a235de296c209693fab">
+	</div>
+	<div class="grofile-hash-map-64ff7813db2254dfb3728d205ff91e2f">
+	</div>
+	<div class="grofile-hash-map-dd8d65f876cad12c0b885a9262dbe4df">
+	</div>
+	<div class="grofile-hash-map-ecd0bc7f0497a954ba0c3231d47ccc78">
+	</div>
+	</div>
+<script id='highlander-comments-js-extra'>
+var HighlanderComments = {"loggingInText":"Logging In\u2026","submittingText":"Posting Comment\u2026","postCommentText":"Post Comment","connectingToText":"Connecting to %s","commentingAsText":"%1$s: You are commenting using your %2$s account.","logoutText":"Log Out","loginText":"Log In","connectURL":"https:\/\/wanderinginn.wordpress.com\/public.api\/connect\/?action=request&domain=wanderinginn.com","logoutURL":"https:\/\/wanderinginn.wordpress.com\/wp-login.php?action=logout&_wpnonce=027032d4fa","homeURL":"https:\/\/wanderinginn.com\/","postID":"493","gravDefault":"identicon","enterACommentError":"Please enter a comment","enterEmailError":"Please enter your email address here","invalidEmailError":"Invalid email address","enterAuthorError":"Please enter your name here","gravatarFromEmail":"This picture will show whenever you leave a comment. Click to customize it.","logInToExternalAccount":"Log in to use details from one of these accounts.","change":"Change","changeAccount":"Change Account","comment_registration":"","userIsLoggedIn":"","isJetpack":"","text_direction":"ltr"};
+</script>
+<script crossorigin='anonymous' type='text/javascript' src='https://s0.wp.com/_static/??/wp-content/js/textarea-autosize.min.js,/wp-content/mu-plugins/highlander-comments/script.js?m=1663141412j'></script>
+	<div id="actionbar" style="display: none;"
+			class="actnbr-pub-twentyeleven actnbr-has-follow">
+		<ul>
+								<li class="actnbr-btn actnbr-hidden">
+								<a class="actnbr-action actnbr-actn-follow " href="">
+			<svg class="gridicon gridicons-reader-follow" height="24" width="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g><path d="M23 16v2h-3v3h-2v-3h-3v-2h3v-3h2v3h3zM20 2v9h-4v3h-3v4H4c-1.1 0-2-.9-2-2V2h18zM8 13v-1H4v1h4zm3-3H4v1h7v-1zm0-2H4v1h7V8zm7-4H4v2h14V4z"/></g></svg><span>Follow</span>
+		</a>
+		<a class="actnbr-action actnbr-actn-following  no-display" href="">
+			<svg class="gridicon gridicons-reader-following" height="24" width="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g><path d="M23 13.482L15.508 21 12 17.4l1.412-1.388 2.106 2.188 6.094-6.094L23 13.482zm-7.455 1.862L20 10.89V2H2v14c0 1.1.9 2 2 2h4.538l4.913-4.832 2.095 2.176zM8 13H4v-1h4v1zm3-2H4v-1h7v1zm0-2H4V8h7v1zm7-3H4V4h14v2z"/></g></svg><span>Following</span>
+		</a>
+							<div class="actnbr-popover tip tip-top-left actnbr-notice" id="follow-bubble">
+							<div class="tip-arrow"></div>
+							<div class="tip-inner actnbr-follow-bubble">
+															<ul>
+											<li class="actnbr-sitename">
+			<a href="https://wanderinginn.com">
+				<img alt='' src='https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=50' class='avatar avatar-50' height='50' width='50' />				The Wandering Inn			</a>
+		</li>
+										<form method="post" action="https://subscribe.wordpress.com" accept-charset="utf-8" style="display: none;">
+																						<div class="actnbr-follow-count">Join 2,697 other followers</div>
+																					<div>
+										<input type="email" name="email" placeholder="Enter your email address" class="actnbr-email-field" aria-label="Enter your email address" />
+										</div>
+										<input type="hidden" name="action" value="subscribe" />
+										<input type="hidden" name="blog_id" value="113840984" />
+										<input type="hidden" name="source" value="https://wanderinginn.com/2016/11/23/1-05-r/" />
+										<input type="hidden" name="sub-type" value="actionbar-follow" />
+										<input type="hidden" id="_wpnonce" name="_wpnonce" value="9bb017f338" />										<div class="actnbr-button-wrap">
+											<button type="submit" value="Sign me up">
+												Sign me up											</button>
+										</div>
+									</form>
+									<li class="actnbr-login-nudge">
+										<div>
+											Already have a WordPress.com account? <a href="https://wordpress.com/log-in?redirect_to=https%3A%2F%2Fr-login.wordpress.com%2Fremote-login.php%3Faction%3Dlink%26back%3Dhttps%253A%252F%252Fwanderinginn.com%252F2016%252F11%252F23%252F1-05-r%252F">Log in now.</a>										</div>
+									</li>
+								</ul>
+															</div>
+						</div>
+					</li>
+							<li class="actnbr-ellipsis actnbr-hidden">
+				<svg class="gridicon gridicons-ellipsis" height="24" width="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g><path d="M7 12c0 1.104-.896 2-2 2s-2-.896-2-2 .896-2 2-2 2 .896 2 2zm12-2c-1.104 0-2 .896-2 2s.896 2 2 2 2-.896 2-2-.896-2-2-2zm-7 0c-1.104 0-2 .896-2 2s.896 2 2 2 2-.896 2-2-.896-2-2-2z"/></g></svg>				<div class="actnbr-popover tip tip-top-left actnbr-more">
+					<div class="tip-arrow"></div>
+					<div class="tip-inner">
+						<ul>
+									<li class="actnbr-sitename">
+			<a href="https://wanderinginn.com">
+				<img alt='' src='https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=50' class='avatar avatar-50' height='50' width='50' />				The Wandering Inn			</a>
+		</li>
+								<li class="actnbr-folded-customize">
+								<a href="https://wanderinginn.wordpress.com/wp-admin/customize.php?url=https%3A%2F%2Fwanderinginn.wordpress.com%2F2016%2F11%2F23%2F1-05-r%2F">
+									<svg class="gridicon gridicons-customize" height="20" width="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g><path d="M2 6c0-1.505.78-3.08 2-4 0 .845.69 2 2 2 1.657 0 3 1.343 3 3 0 .386-.08.752-.212 1.09.74.594 1.476 1.19 2.19 1.81L8.9 11.98c-.62-.716-1.214-1.454-1.807-2.192C6.753 9.92 6.387 10 6 10c-2.21 0-4-1.79-4-4zm12.152 6.848l1.34-1.34c.607.304 1.283.492 2.008.492 2.485 0 4.5-2.015 4.5-4.5 0-.725-.188-1.4-.493-2.007L18 9l-2-2 3.507-3.507C18.9 3.188 18.225 3 17.5 3 15.015 3 13 5.015 13 7.5c0 .725.188 1.4.493 2.007L3 20l2 2 6.848-6.848c1.885 1.928 3.874 3.753 5.977 5.45l1.425 1.148 1.5-1.5-1.15-1.425c-1.695-2.103-3.52-4.092-5.448-5.977z"/></g></svg>									<span>Customize</span>
+								</a>
+							</li>
+																<li class="actnbr-folded-follow">
+												<a class="actnbr-action actnbr-actn-follow " href="">
+			<svg class="gridicon gridicons-reader-follow" height="24" width="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g><path d="M23 16v2h-3v3h-2v-3h-3v-2h3v-3h2v3h3zM20 2v9h-4v3h-3v4H4c-1.1 0-2-.9-2-2V2h18zM8 13v-1H4v1h4zm3-3H4v1h7v-1zm0-2H4v1h7V8zm7-4H4v2h14V4z"/></g></svg><span>Follow</span>
+		</a>
+		<a class="actnbr-action actnbr-actn-following  no-display" href="">
+			<svg class="gridicon gridicons-reader-following" height="24" width="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g><path d="M23 13.482L15.508 21 12 17.4l1.412-1.388 2.106 2.188 6.094-6.094L23 13.482zm-7.455 1.862L20 10.89V2H2v14c0 1.1.9 2 2 2h4.538l4.913-4.832 2.095 2.176zM8 13H4v-1h4v1zm3-2H4v-1h7v1zm0-2H4V8h7v1zm7-3H4V4h14v2z"/></g></svg><span>Following</span>
+		</a>
+										</li>
+																	<li class="actnbr-signup"><a href="https://wordpress.com/start/">Sign up</a></li>
+									<li class="actnbr-login"><a href="https://wordpress.com/log-in?redirect_to=https%3A%2F%2Fr-login.wordpress.com%2Fremote-login.php%3Faction%3Dlink%26back%3Dhttps%253A%252F%252Fwanderinginn.com%252F2016%252F11%252F23%252F1-05-r%252F">Log in</a></li>
+																	<li class="actnbr-shortlink"><a href="https://wp.me/p7HFeU-7X">Copy shortlink</a></li>
+																	<li class="flb-report"><a href="http://en.wordpress.com/abuse/">Report this content</a></li>
+																	<li class="actnbr-reader">
+										<a href="https://wordpress.com/read/blogs/113840984/posts/493">
+											View post in Reader										</a>
+									</li>
+																	<li class="actnbr-subs">
+										<a href="https://subscribe.wordpress.com/">Manage subscriptions</a>
+									</li>
+																		<li class="actnbr-fold"><a href="">Collapse this bar</a></li>
+															</ul>
+					</div>
+				</div>
+			</li>
+		</ul>
+	</div>
+	
+<script>
+window.addEventListener( "load", function( event ) {
+	var link = document.createElement( "link" );
+	link.href = "https://s0.wp.com/wp-content/mu-plugins/actionbar/actionbar.css?v=20210915";
+	link.type = "text/css";
+	link.rel = "stylesheet";
+	document.head.appendChild( link );
+
+	var script = document.createElement( "script" );
+	script.src = "https://s0.wp.com/wp-content/mu-plugins/actionbar/actionbar.js?v=20220329";
+	script.defer = true;
+	document.body.appendChild( script );
+} );
+</script>
+
+	<script crossorigin='anonymous' type='text/javascript' src='https://s2.wp.com/_static/??-eJx9jd0OwiAMRl9I6AxmixfGRzEMqoFRRij48/ZWk3npXfOdc1J4FOXW3DA3iAwe78FheerIOxAUskvdI3+YW4lEUxVLemkKeZO2nroqqd9CZrBeuJptBbLcsMqlWrVu4X/REpiwKaMHuMjn33CtX9lLe6bTfhwPZpqOg4lvZ0RE/g=='></script>
+<script type="text/javascript">
+// <![CDATA[
+(function() {
+try{
+  if ( window.external &&'msIsSiteMode' in window.external) {
+    if (window.external.msIsSiteMode()) {
+      var jl = document.createElement('script');
+      jl.type='text/javascript';
+      jl.async=true;
+      jl.src='/wp-content/plugins/ie-sitemode/custom-jumplist.php';
+      var s = document.getElementsByTagName('script')[0];
+      s.parentNode.insertBefore(jl, s);
+    }
+  }
+}catch(e){}
+})();
+// ]]>
+</script><script src="//stats.wp.com/w.js?63" defer></script> <script type="text/javascript">
+_tkq = window._tkq || [];
+_stq = window._stq || [];
+_tkq.push(['storeContext', {'blog_id':'113840984','blog_tz':'0','user_lang':'en','blog_lang':'en','user_id':'0'}]);
+_stq.push(['view', {'blog':'113840984','v':'wpcom','tz':'0','user_id':'0','post':'493','subd':'wanderinginn'}]);
+_stq.push(['extra', {'crypt':'UE40eW5QN0p8M2Y/RE1mNzc2NTVTamdsd0xoLz9RQkM2K298TXY9bERQMXc2MjhEaVZfb2wwakRoSj0mUkp1THptM1NdbkV1WjZIcU9mVWQmPUIvMlN6Jk8wW3NYVEJ3dWZOWExuWD9VNTEucGVTRmZwYTB2ZD82MHd0Y1Y0RlltYWdKeC9TU05lUzUxV1pzZWh8UlVlalotK3A/NWVna2ZGUkZscCxrZ0Uudk8vQWtbZDh1JWVnME4yJXhaPTFbWWNWUUg3d0t6SnFUbDd3a0dbVll2b1FyZXNsWHhIUVVMdVUsQlZ8LDFjMl1xP1Zhd2NTYXlIYzZ5LS96S241ck1LPW01NUQzS05jLEhuOXl8cT1jTC95Qm5VWWNUOGhrd0Qsa2ddb3hERFdneE9LLTA1QzNBZ2tyK0JbfnEtVmo='}]);
+_stq.push([ 'clickTrackerInit', '113840984', '493' ]);
+	</script>
+<noscript><img src="https://pixel.wp.com/b.gif?v=noscript" style="height:1px;width:1px;overflow:hidden;position:absolute;bottom:1px;" alt="" /></noscript>
+<script>
+if ( 'object' === typeof wpcom_mobile_user_agent_info ) {
+
+	wpcom_mobile_user_agent_info.init();
+	var mobileStatsQueryString = "";
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedPlatformName )
+		mobileStatsQueryString += "&x_" + 'mobile_platforms' + '=' + wpcom_mobile_user_agent_info.matchedPlatformName;
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedUserAgentName )
+		mobileStatsQueryString += "&x_" + 'mobile_devices' + '=' + wpcom_mobile_user_agent_info.matchedUserAgentName;
+	
+	if( wpcom_mobile_user_agent_info.isIPad() )
+		mobileStatsQueryString += "&x_" + 'ipad_views' + '=' + 'views';
+
+	if( "" != mobileStatsQueryString ) {
+		new Image().src = document.location.protocol + '//pixel.wp.com/g.gif?v=wpcom-no-pv' + mobileStatsQueryString + '&baba=' + Math.random();
+	}
+	
+}
+</script>
+</body>
+</html>
+<!--
+	generated in 0.257 seconds
+	175779 bytes batcached for 300 seconds
+-->

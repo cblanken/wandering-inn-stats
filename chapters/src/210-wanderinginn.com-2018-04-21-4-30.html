@@ -1,0 +1,1633 @@
+<!DOCTYPE html>
+<!--[if IE 6]>
+<html id="ie6" lang="en">
+<![endif]-->
+<!--[if IE 7]>
+<html id="ie7" lang="en">
+<![endif]-->
+<!--[if IE 8]>
+<html id="ie8" lang="en">
+<![endif]-->
+<!--[if !(IE 6) & !(IE 7) & !(IE 8)]><!-->
+<html lang="en">
+<!--<![endif]-->
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width" />
+<title>
+4.30 | The Wandering Inn	</title>
+<link rel="profile" href="https://gmpg.org/xfn/11" />
+<link rel="stylesheet" type="text/css" media="all" href="https://s2.wp.com/wp-content/themes/pub/twentyeleven/style.css?ver=20190507" />
+<link rel="pingback" href="https://wanderinginn.com/xmlrpc.php">
+<!--[if lt IE 9]>
+<script src="https://s2.wp.com/wp-content/themes/pub/twentyeleven/js/html5.js?ver=3.7.0" type="text/javascript"></script>
+<![endif]-->
+<meta name='robots' content='max-image-preview:large' />
+
+<!-- Async WordPress.com Remote Login -->
+<script id="wpcom_remote_login_js">
+var wpcom_remote_login_extra_auth = '';
+function wpcom_remote_login_remove_dom_node_id( element_id ) {
+	var dom_node = document.getElementById( element_id );
+	if ( dom_node ) { dom_node.parentNode.removeChild( dom_node ); }
+}
+function wpcom_remote_login_remove_dom_node_classes( class_name ) {
+	var dom_nodes = document.querySelectorAll( '.' + class_name );
+	for ( var i = 0; i < dom_nodes.length; i++ ) {
+		dom_nodes[ i ].parentNode.removeChild( dom_nodes[ i ] );
+	}
+}
+function wpcom_remote_login_final_cleanup() {
+	wpcom_remote_login_remove_dom_node_classes( "wpcom_remote_login_msg" );
+	wpcom_remote_login_remove_dom_node_id( "wpcom_remote_login_key" );
+	wpcom_remote_login_remove_dom_node_id( "wpcom_remote_login_validate" );
+	wpcom_remote_login_remove_dom_node_id( "wpcom_remote_login_js" );
+	wpcom_remote_login_remove_dom_node_id( "wpcom_request_access_iframe" );
+	wpcom_remote_login_remove_dom_node_id( "wpcom_request_access_styles" );
+}
+
+// Watch for messages back from the remote login
+window.addEventListener( "message", function( e ) {
+	if ( e.origin === "https://r-login.wordpress.com" ) {
+		var data = {};
+		try {
+			data = JSON.parse( e.data );
+		} catch( e ) {
+			wpcom_remote_login_final_cleanup();
+			return;
+		}
+
+		if ( data.msg === 'LOGIN' ) {
+			// Clean up the login check iframe
+			wpcom_remote_login_remove_dom_node_id( "wpcom_remote_login_key" );
+
+			var id_regex = new RegExp( /^[0-9]+$/ );
+			var token_regex = new RegExp( /^.*|.*|.*$/ );
+			if (
+				token_regex.test( data.token )
+				&& id_regex.test( data.wpcomid )
+			) {
+				// We have everything we need to ask for a login
+				var script = document.createElement( "script" );
+				script.setAttribute( "id", "wpcom_remote_login_validate" );
+				script.src = '/remote-login.php?wpcom_remote_login=validate'
+					+ '&wpcomid=' + data.wpcomid
+					+ '&token=' + encodeURIComponent( data.token )
+					+ '&host=' + window.location.protocol
+					+ '//' + window.location.hostname
+					+ '&postid=4245'
+					+ '&is_singular=1';
+				document.body.appendChild( script );
+			}
+
+			return;
+		}
+
+		// Safari ITP, not logged in, so redirect
+		if ( data.msg === 'LOGIN-REDIRECT' ) {
+			window.location = 'https://wordpress.com/log-in?redirect_to=' + window.location.href;
+			return;
+		}
+
+		// Safari ITP, storage access failed, remove the request
+		if ( data.msg === 'LOGIN-REMOVE' ) {
+			var css_zap = 'html { -webkit-transition: margin-top 1s; transition: margin-top 1s; } /* 9001 */ html { margin-top: 0 !important; } * html body { margin-top: 0 !important; } @media screen and ( max-width: 782px ) { html { margin-top: 0 !important; } * html body { margin-top: 0 !important; } }';
+			var style_zap = document.createElement( 'style' );
+			style_zap.type = 'text/css';
+			style_zap.appendChild( document.createTextNode( css_zap ) );
+			document.body.appendChild( style_zap );
+
+			var e = document.getElementById( 'wpcom_request_access_iframe' );
+			e.parentNode.removeChild( e );
+
+			document.cookie = 'wordpress_com_login_access=denied; path=/; max-age=31536000';
+
+			return;
+		}
+
+		// Safari ITP
+		if ( data.msg === 'REQUEST_ACCESS' ) {
+			console.log( 'request access: safari' );
+
+			// Check ITP iframe enable/disable knob
+			if ( wpcom_remote_login_extra_auth !== 'safari_itp_iframe' ) {
+				return;
+			}
+
+			// If we are in a "private window" there is no ITP.
+			var private_window = false;
+			try {
+				var opendb = window.openDatabase( null, null, null, null );
+			} catch( e ) {
+				private_window = true;
+			}
+
+			if ( private_window ) {
+				console.log( 'private window' );
+				return;
+			}
+
+			var iframe = document.createElement( 'iframe' );
+			iframe.id = 'wpcom_request_access_iframe';
+			iframe.setAttribute( 'scrolling', 'no' );
+			iframe.setAttribute( 'sandbox', 'allow-storage-access-by-user-activation allow-scripts allow-same-origin allow-top-navigation-by-user-activation' );
+			iframe.src = 'https://r-login.wordpress.com/remote-login.php?wpcom_remote_login=request_access&origin=' + encodeURIComponent( data.origin ) + '&wpcomid=' + encodeURIComponent( data.wpcomid );
+
+			var css = 'html { -webkit-transition: margin-top 1s; transition: margin-top 1s; } /* 9001 */ html { margin-top: 46px !important; } * html body { margin-top: 46px !important; } @media screen and ( max-width: 660px ) { html { margin-top: 71px !important; } * html body { margin-top: 71px !important; } #wpcom_request_access_iframe { display: block; height: 71px !important; } } #wpcom_request_access_iframe { border: 0px; height: 46px; position: fixed; top: 0; left: 0; width: 100%; min-width: 100%; z-index: 99999; background: #23282d; } ';
+
+			var style = document.createElement( 'style' );
+			style.type = 'text/css';
+			style.id = 'wpcom_request_access_styles';
+			style.appendChild( document.createTextNode( css ) );
+			document.body.appendChild( style );
+
+			document.body.appendChild( iframe );
+		}
+
+		if ( data.msg === 'DONE' ) {
+			wpcom_remote_login_final_cleanup();
+		}
+	}
+}, false );
+
+// Inject the remote login iframe after the page has had a chance to load
+// more critical resources
+window.addEventListener( "DOMContentLoaded", function( e ) {
+	var iframe = document.createElement( "iframe" );
+	iframe.style.display = "none";
+	iframe.setAttribute( "scrolling", "no" );
+	iframe.setAttribute( "id", "wpcom_remote_login_key" );
+	iframe.src = "https://r-login.wordpress.com/remote-login.php"
+		+ "?wpcom_remote_login=key"
+		+ "&origin=aHR0cHM6Ly93YW5kZXJpbmdpbm4uY29t"
+		+ "&wpcomid=113840984"
+		+ "&time=1664899969";
+	document.body.appendChild( iframe );
+}, false );
+</script>
+<link rel='dns-prefetch' href='//s1.wp.com' />
+<link rel='dns-prefetch' href='//wanderinginn.wordpress.com' />
+<link rel='dns-prefetch' href='//s0.wp.com' />
+<link rel='dns-prefetch' href='//s2.wp.com' />
+<link href='https://fonts.gstatic.com' crossorigin rel='preconnect' />
+<link rel="alternate" type="application/rss+xml" title="The Wandering Inn &raquo; Feed" href="https://wanderinginn.com/feed/" />
+<link rel="alternate" type="application/rss+xml" title="The Wandering Inn &raquo; Comments Feed" href="https://wanderinginn.com/comments/feed/" />
+<link rel="alternate" type="application/rss+xml" title="The Wandering Inn &raquo; 4.30 Comments Feed" href="https://wanderinginn.com/2018/04/21/4-30/feed/" />
+	<script type="text/javascript">
+		/* <![CDATA[ */
+		function addLoadEvent(func) {
+			var oldonload = window.onload;
+			if (typeof window.onload != 'function') {
+				window.onload = func;
+			} else {
+				window.onload = function () {
+					oldonload();
+					func();
+				}
+			}
+		}
+		/* ]]> */
+	</script>
+	<script type="text/javascript">
+window._wpemojiSettings = {"baseUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/72x72\/","ext":".png","svgUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/svg\/","svgExt":".svg","source":{"concatemoji":"https:\/\/s0.wp.com\/wp-includes\/js\/wp-emoji-release.min.js?m=1652185836h&ver=6.0.2"}};
+/*! This file is auto-generated */
+!function(e,a,t){var n,r,o,i=a.createElement("canvas"),p=i.getContext&&i.getContext("2d");function s(e,t){var a=String.fromCharCode,e=(p.clearRect(0,0,i.width,i.height),p.fillText(a.apply(this,e),0,0),i.toDataURL());return p.clearRect(0,0,i.width,i.height),p.fillText(a.apply(this,t),0,0),e===i.toDataURL()}function c(e){var t=a.createElement("script");t.src=e,t.defer=t.type="text/javascript",a.getElementsByTagName("head")[0].appendChild(t)}for(o=Array("flag","emoji"),t.supports={everything:!0,everythingExceptFlag:!0},r=0;r<o.length;r++)t.supports[o[r]]=function(e){if(!p||!p.fillText)return!1;switch(p.textBaseline="top",p.font="600 32px Arial",e){case"flag":return s([127987,65039,8205,9895,65039],[127987,65039,8203,9895,65039])?!1:!s([55356,56826,55356,56819],[55356,56826,8203,55356,56819])&&!s([55356,57332,56128,56423,56128,56418,56128,56421,56128,56430,56128,56423,56128,56447],[55356,57332,8203,56128,56423,8203,56128,56418,8203,56128,56421,8203,56128,56430,8203,56128,56423,8203,56128,56447]);case"emoji":return!s([129777,127995,8205,129778,127999],[129777,127995,8203,129778,127999])}return!1}(o[r]),t.supports.everything=t.supports.everything&&t.supports[o[r]],"flag"!==o[r]&&(t.supports.everythingExceptFlag=t.supports.everythingExceptFlag&&t.supports[o[r]]);t.supports.everythingExceptFlag=t.supports.everythingExceptFlag&&!t.supports.flag,t.DOMReady=!1,t.readyCallback=function(){t.DOMReady=!0},t.supports.everything||(n=function(){t.readyCallback()},a.addEventListener?(a.addEventListener("DOMContentLoaded",n,!1),e.addEventListener("load",n,!1)):(e.attachEvent("onload",n),a.attachEvent("onreadystatechange",function(){"complete"===a.readyState&&t.readyCallback()})),(e=t.source||{}).concatemoji?c(e.concatemoji):e.wpemoji&&e.twemoji&&(c(e.twemoji),c(e.wpemoji)))}(window,document,window._wpemojiSettings);
+</script>
+<style type="text/css">
+img.wp-smiley,
+img.emoji {
+	display: inline !important;
+	border: none !important;
+	box-shadow: none !important;
+	height: 1em !important;
+	width: 1em !important;
+	margin: 0 0.07em !important;
+	vertical-align: -0.1em !important;
+	background: none !important;
+	padding: 0 !important;
+}
+</style>
+	<link crossorigin='anonymous' rel='stylesheet' id='all-css-0-1' href='https://s0.wp.com/_static/??-eJylkd1OAyEQhV9IdlyzaeOF8Vn4meBUYAkzWHl7Z5s0Vk2riTeEw8l35gBwrMavRbAI1NQjFYbYVTpsUZ2G8DYv08N0D65TCuDS6l9NItdsG8AyEk6e+Q7+FyQvmD+DqPjUAzIcGDIGspjU1uRLUZMd2EzCaP2YMpXfcfUu9RfoevlTUw1DqXarbMfaxcRG4c/3/xbRrFCJfAXP3ZwTtnfT81ztz/I3sCOFiKI4n/dG8P02UnWMca42ZDa6ZurZnL6FN+45P8273bLsH5d5f/gAOyLUIw==?cssminify=yes' type='text/css' media='all' />
+<style id='wp-block-library-inline-css'>
+.has-text-align-justify {
+	text-align:justify;
+}
+.wp-block-cover__image-background.has-parallax {
+	background-size: cover;
+}
+</style>
+<style id='global-styles-inline-css'>
+body{--wp--preset--color--black: #000;--wp--preset--color--cyan-bluish-gray: #abb8c3;--wp--preset--color--white: #fff;--wp--preset--color--pale-pink: #f78da7;--wp--preset--color--vivid-red: #cf2e2e;--wp--preset--color--luminous-vivid-orange: #ff6900;--wp--preset--color--luminous-vivid-amber: #fcb900;--wp--preset--color--light-green-cyan: #7bdcb5;--wp--preset--color--vivid-green-cyan: #00d084;--wp--preset--color--pale-cyan-blue: #8ed1fc;--wp--preset--color--vivid-cyan-blue: #0693e3;--wp--preset--color--vivid-purple: #9b51e0;--wp--preset--color--blue: #1982d1;--wp--preset--color--dark-gray: #373737;--wp--preset--color--medium-gray: #666;--wp--preset--color--light-gray: #e2e2e2;--wp--preset--gradient--vivid-cyan-blue-to-vivid-purple: linear-gradient(135deg,rgba(6,147,227,1) 0%,rgb(155,81,224) 100%);--wp--preset--gradient--light-green-cyan-to-vivid-green-cyan: linear-gradient(135deg,rgb(122,220,180) 0%,rgb(0,208,130) 100%);--wp--preset--gradient--luminous-vivid-amber-to-luminous-vivid-orange: linear-gradient(135deg,rgba(252,185,0,1) 0%,rgba(255,105,0,1) 100%);--wp--preset--gradient--luminous-vivid-orange-to-vivid-red: linear-gradient(135deg,rgba(255,105,0,1) 0%,rgb(207,46,46) 100%);--wp--preset--gradient--very-light-gray-to-cyan-bluish-gray: linear-gradient(135deg,rgb(238,238,238) 0%,rgb(169,184,195) 100%);--wp--preset--gradient--cool-to-warm-spectrum: linear-gradient(135deg,rgb(74,234,220) 0%,rgb(151,120,209) 20%,rgb(207,42,186) 40%,rgb(238,44,130) 60%,rgb(251,105,98) 80%,rgb(254,248,76) 100%);--wp--preset--gradient--blush-light-purple: linear-gradient(135deg,rgb(255,206,236) 0%,rgb(152,150,240) 100%);--wp--preset--gradient--blush-bordeaux: linear-gradient(135deg,rgb(254,205,165) 0%,rgb(254,45,45) 50%,rgb(107,0,62) 100%);--wp--preset--gradient--luminous-dusk: linear-gradient(135deg,rgb(255,203,112) 0%,rgb(199,81,192) 50%,rgb(65,88,208) 100%);--wp--preset--gradient--pale-ocean: linear-gradient(135deg,rgb(255,245,203) 0%,rgb(182,227,212) 50%,rgb(51,167,181) 100%);--wp--preset--gradient--electric-grass: linear-gradient(135deg,rgb(202,248,128) 0%,rgb(113,206,126) 100%);--wp--preset--gradient--midnight: linear-gradient(135deg,rgb(2,3,129) 0%,rgb(40,116,252) 100%);--wp--preset--duotone--dark-grayscale: url('#wp-duotone-dark-grayscale');--wp--preset--duotone--grayscale: url('#wp-duotone-grayscale');--wp--preset--duotone--purple-yellow: url('#wp-duotone-purple-yellow');--wp--preset--duotone--blue-red: url('#wp-duotone-blue-red');--wp--preset--duotone--midnight: url('#wp-duotone-midnight');--wp--preset--duotone--magenta-yellow: url('#wp-duotone-magenta-yellow');--wp--preset--duotone--purple-green: url('#wp-duotone-purple-green');--wp--preset--duotone--blue-orange: url('#wp-duotone-blue-orange');--wp--preset--font-size--small: 13px;--wp--preset--font-size--medium: 20px;--wp--preset--font-size--large: 36px;--wp--preset--font-size--x-large: 42px;--wp--preset--spacing--20: 0.44rem;--wp--preset--spacing--30: 0.67rem;--wp--preset--spacing--40: 1rem;--wp--preset--spacing--50: 1.5rem;--wp--preset--spacing--60: 2.25rem;--wp--preset--spacing--70: 3.38rem;--wp--preset--spacing--80: 5.06rem;}:where(.is-layout-flex){gap: 0.5em;}body .is-layout-flow > .alignleft{float: left;}body .is-layout-flow > .alignright{float: right;}body .is-layout-flow > .aligncenter{margin-left: auto !important;margin-right: auto !important;}body .is-layout-constrained > .alignleft{float: left;}body .is-layout-constrained > .alignright{float: right;}body .is-layout-constrained > .aligncenter{margin-left: auto !important;margin-right: auto !important;}body .is-layout-constrained > :where(:not(.alignleft):not(.alignright):not(.alignfull)){max-width: var(--wp--style--global--content-size);margin-left: auto !important;margin-right: auto !important;}body .is-layout-constrained > .alignwide{max-width: var(--wp--style--global--wide-size);}body .is-layout-flex{display: flex;}body .is-layout-flex{flex-wrap: wrap;align-items: center;}body .is-layout-flex > *{margin: 0;}:where(.wp-block-columns.is-layout-flex){gap: 2em;}.has-black-color{color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-color{color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-color{color: var(--wp--preset--color--white) !important;}.has-pale-pink-color{color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-color{color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-color{color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-color{color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-color{color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-color{color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-color{color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-color{color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-color{color: var(--wp--preset--color--vivid-purple) !important;}.has-black-background-color{background-color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-background-color{background-color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-background-color{background-color: var(--wp--preset--color--white) !important;}.has-pale-pink-background-color{background-color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-background-color{background-color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-background-color{background-color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-background-color{background-color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-background-color{background-color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-background-color{background-color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-background-color{background-color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-background-color{background-color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-background-color{background-color: var(--wp--preset--color--vivid-purple) !important;}.has-black-border-color{border-color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-border-color{border-color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-border-color{border-color: var(--wp--preset--color--white) !important;}.has-pale-pink-border-color{border-color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-border-color{border-color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-border-color{border-color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-border-color{border-color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-border-color{border-color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-border-color{border-color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-border-color{border-color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-border-color{border-color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-border-color{border-color: var(--wp--preset--color--vivid-purple) !important;}.has-vivid-cyan-blue-to-vivid-purple-gradient-background{background: var(--wp--preset--gradient--vivid-cyan-blue-to-vivid-purple) !important;}.has-light-green-cyan-to-vivid-green-cyan-gradient-background{background: var(--wp--preset--gradient--light-green-cyan-to-vivid-green-cyan) !important;}.has-luminous-vivid-amber-to-luminous-vivid-orange-gradient-background{background: var(--wp--preset--gradient--luminous-vivid-amber-to-luminous-vivid-orange) !important;}.has-luminous-vivid-orange-to-vivid-red-gradient-background{background: var(--wp--preset--gradient--luminous-vivid-orange-to-vivid-red) !important;}.has-very-light-gray-to-cyan-bluish-gray-gradient-background{background: var(--wp--preset--gradient--very-light-gray-to-cyan-bluish-gray) !important;}.has-cool-to-warm-spectrum-gradient-background{background: var(--wp--preset--gradient--cool-to-warm-spectrum) !important;}.has-blush-light-purple-gradient-background{background: var(--wp--preset--gradient--blush-light-purple) !important;}.has-blush-bordeaux-gradient-background{background: var(--wp--preset--gradient--blush-bordeaux) !important;}.has-luminous-dusk-gradient-background{background: var(--wp--preset--gradient--luminous-dusk) !important;}.has-pale-ocean-gradient-background{background: var(--wp--preset--gradient--pale-ocean) !important;}.has-electric-grass-gradient-background{background: var(--wp--preset--gradient--electric-grass) !important;}.has-midnight-gradient-background{background: var(--wp--preset--gradient--midnight) !important;}.has-small-font-size{font-size: var(--wp--preset--font-size--small) !important;}.has-medium-font-size{font-size: var(--wp--preset--font-size--medium) !important;}.has-large-font-size{font-size: var(--wp--preset--font-size--large) !important;}.has-x-large-font-size{font-size: var(--wp--preset--font-size--x-large) !important;}
+:where(.wp-block-columns.is-layout-flex){gap: 2em;}
+.wp-block-pullquote{font-size: 1.5em;line-height: 1.6;}
+.wp-block-navigation a:where(:not(.wp-element-button)){color: inherit;}
+</style>
+<link crossorigin='anonymous' rel='stylesheet' id='all-css-2-1' href='https://s1.wp.com/_static/??-eJyNj8EOwjAMQ3+IEjYBggPiW7YSSlnaVE26an9PuYGQ0G625SfZUJOxHBWjgj4woEAqI2htwYKEM0YYie0kWyuygRV10YXQ1GQ5rGYsE2eB25CnHyYUk6g4HwUcsmljBvUcv4y50+DzPzRju+GadNBaH/YNXcOlO/b9aX/edYfnC0ReZ8I=?cssminify=yes' type='text/css' media='all' />
+<style id='jetpack-global-styles-frontend-style-inline-css'>
+:root { --font-headings: unset; --font-base: unset; --font-headings-default: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif; --font-base-default: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif;}
+</style>
+<link crossorigin='anonymous' rel='stylesheet' id='all-css-4-1' href='https://s0.wp.com/wp-content/themes/h4/global.css?m=1420737423h&cssminify=yes' type='text/css' media='all' />
+<script id='wpcom-actionbar-placeholder-js-extra'>
+var actionbardata = {"siteID":"113840984","siteURL":"https:\/\/wanderinginn.com","xhrURL":"https:\/\/wanderinginn.com\/wp-admin\/admin-ajax.php","nonce":"1ba14e6909","isLoggedIn":"","statusMessage":"","subsEmailDefault":"instantly","proxyScriptUrl":"https:\/\/s0.wp.com\/wp-content\/js\/wpcom-proxy-request.js?ver=20211021","shortlink":"https:\/\/wp.me\/p7HFeU-16t","i18n":{"followedText":"New posts from this site will now appear in your <a href=\"https:\/\/wordpress.com\/read\">Reader<\/a>","foldBar":"Collapse this bar","unfoldBar":"Expand this bar"}};
+</script>
+<script crossorigin='anonymous' type='text/javascript' src='https://s1.wp.com/_static/??/wp-content/js/mobile-useragent-info.js,/wp-content/js/rlt-proxy.js?m=1637704497j'></script>
+<script type='text/javascript'>
+	window.addEventListener( 'DOMContentLoaded', function() {
+		rltInitialize( {"token":null,"iframeOrigins":["https:\/\/widgets.wp.com"]} );
+	} );
+</script>
+<link crossorigin='anonymous' rel='stylesheet' id='all-css-0-2' href='https://s0.wp.com/wp-content/mu-plugins/highlander-comments/style.css?m=1663315160h&cssminify=yes' type='text/css' media='all' />
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="https://wanderinginn.wordpress.com/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="https://s1.wp.com/wp-includes/wlwmanifest.xml" /> 
+<meta name="generator" content="WordPress.com" />
+<link rel="canonical" href="https://wanderinginn.com/2018/04/21/4-30/" />
+<link rel='shortlink' href='https://wp.me/p7HFeU-16t' />
+<link rel="alternate" type="application/json+oembed" href="https://public-api.wordpress.com/oembed/?format=json&amp;url=https%3A%2F%2Fwanderinginn.com%2F2018%2F04%2F21%2F4-30%2F&amp;for=wpcom-auto-discovery" /><link rel="alternate" type="application/xml+oembed" href="https://public-api.wordpress.com/oembed/?format=xml&amp;url=https%3A%2F%2Fwanderinginn.com%2F2018%2F04%2F21%2F4-30%2F&amp;for=wpcom-auto-discovery" />
+<!-- Jetpack Open Graph Tags -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="4.30" />
+<meta property="og:url" content="https://wanderinginn.com/2018/04/21/4-30/" />
+<meta property="og:description" content="Blood dripped from Regrika Blackpaw’s sword and onto the ground. Erin couldn’t take her eyes off it. Ulrien was dead. The brave Gold-rank adventurer and leader of Griffon Hunt lay on the ground, he…" />
+<meta property="article:published_time" content="2018-04-21T11:25:48+00:00" />
+<meta property="article:modified_time" content="2018-04-24T09:59:12+00:00" />
+<meta property="og:site_name" content="The Wandering Inn" />
+<meta property="og:image" content="https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=200" />
+<meta property="og:image:width" content="200" />
+<meta property="og:image:height" content="200" />
+<meta property="og:image:alt" content="" />
+<meta property="og:locale" content="en_US" />
+<meta property="article:publisher" content="https://www.facebook.com/WordPresscom" />
+<meta name="twitter:text:title" content="4.30" />
+<meta name="twitter:image" content="https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=240" />
+<meta name="twitter:card" content="summary" />
+
+<!-- End Jetpack Open Graph Tags -->
+<link rel="search" type="application/opensearchdescription+xml" href="https://wanderinginn.com/osd.xml" title="The Wandering Inn" />
+<link rel="search" type="application/opensearchdescription+xml" href="https://s1.wp.com/opensearch.xml" title="WordPress.com" />
+	<style>
+		/* Link color */
+		a,
+		#site-title a:focus,
+		#site-title a:hover,
+		#site-title a:active,
+		.entry-title a:hover,
+		.entry-title a:focus,
+		.entry-title a:active,
+		.widget_twentyeleven_ephemera .comments-link a:hover,
+		section.recent-posts .other-recent-posts a[rel="bookmark"]:hover,
+		section.recent-posts .other-recent-posts .comments-link a:hover,
+		.format-image footer.entry-meta a:hover,
+		#site-generator a:hover {
+			color: #1583af;
+		}
+		section.recent-posts .other-recent-posts .comments-link a:hover {
+			border-color: #1583af;
+		}
+		article.feature-image.small .entry-summary p a:hover,
+		.entry-header .comments-link a:hover,
+		.entry-header .comments-link a:focus,
+		.entry-header .comments-link a:active,
+		.feature-slider a.active {
+			background-color: #1583af;
+		}
+	</style>
+	<meta name="application-name" content="The Wandering Inn" /><meta name="msapplication-window" content="width=device-width;height=device-height" /><meta name="msapplication-tooltip" content="A tale of a girl, an inn, and a world full of levels." /><meta name="msapplication-task" content="name=Subscribe;action-uri=https://wanderinginn.com/feed/;icon-uri=https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=16" /><meta name="msapplication-task" content="name=Sign up for a free blog;action-uri=http://wordpress.com/signup/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Support;action-uri=http://support.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Forums;action-uri=http://forums.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="description" content="Blood dripped from Regrika Blackpaw’s sword and onto the ground. Erin couldn’t take her eyes off it. Ulrien was dead. The brave Gold-rank adventurer and leader of Griffon Hunt lay on the ground, headless. His greatsword was still embedded in Regrika’s leg. The Gnoll didn’t seem concerned by it. She flicked her sword down and&hellip;" />
+<link rel="icon" href="https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=32" sizes="32x32" />
+<link rel="icon" href="https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=192" sizes="192x192" />
+<link rel="apple-touch-icon" href="https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=180" />
+<meta name="msapplication-TileImage" content="https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=270" />
+		<link rel="stylesheet" id="custom-css-css" type="text/css" href="https://s0.wp.com/?custom-css=1&#038;csblog=7HFeU&#038;cscache=6&#038;csrev=3" />
+		<!-- Your Google Analytics Plugin is missing the tracking ID -->
+</head>
+
+<body class="post-template-default single single-post postid-4245 single-format-standard wp-embed-responsive customizer-styles-applied single-author singular two-column right-sidebar highlander-enabled highlander-dark">
+<div class="skip-link"><a class="assistive-text" href="#content">Skip to primary content</a></div><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-dark-grayscale"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0 0.49803921568627" /><feFuncG type="table" tableValues="0 0.49803921568627" /><feFuncB type="table" tableValues="0 0.49803921568627" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-grayscale"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0 1" /><feFuncG type="table" tableValues="0 1" /><feFuncB type="table" tableValues="0 1" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-purple-yellow"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0.54901960784314 0.98823529411765" /><feFuncG type="table" tableValues="0 1" /><feFuncB type="table" tableValues="0.71764705882353 0.25490196078431" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-blue-red"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0 1" /><feFuncG type="table" tableValues="0 0.27843137254902" /><feFuncB type="table" tableValues="0.5921568627451 0.27843137254902" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-midnight"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0 0" /><feFuncG type="table" tableValues="0 0.64705882352941" /><feFuncB type="table" tableValues="0 1" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-magenta-yellow"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0.78039215686275 1" /><feFuncG type="table" tableValues="0 0.94901960784314" /><feFuncB type="table" tableValues="0.35294117647059 0.47058823529412" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-purple-green"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0.65098039215686 0.40392156862745" /><feFuncG type="table" tableValues="0 1" /><feFuncB type="table" tableValues="0.44705882352941 0.4" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-blue-orange"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0.098039215686275 1" /><feFuncG type="table" tableValues="0 0.66274509803922" /><feFuncB type="table" tableValues="0.84705882352941 0.41960784313725" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><div id="page" class="hfeed">
+	<header id="branding">
+			<hgroup>
+				<h1 id="site-title"><span><a href="https://wanderinginn.com/" rel="home">The Wandering Inn</a></span></h1>
+				<h2 id="site-description">A tale of a girl, an inn, and a world full of levels.</h2>
+			</hgroup>
+
+						<a href="https://wanderinginn.com/">
+									<img src="https://wanderinginn.files.wordpress.com/2022/07/cropped-220725_merch_banner_launch-1.png" width="1000" height="296" alt="The Wandering Inn" />
+								</a>
+			
+									<form method="get" id="searchform" action="https://wanderinginn.com/">
+		<label for="s" class="assistive-text">Search</label>
+		<input type="text" class="field" name="s" id="s" placeholder="Search" />
+		<input type="submit" class="submit" name="submit" id="searchsubmit" value="Search" />
+	</form>
+			
+			<nav id="access">
+				<h3 class="assistive-text">Main menu</h3>
+				<div class="menu-menu-1-container"><ul id="menu-menu-1" class="menu"><li id="menu-item-1422" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-home menu-item-1422"><a href="https://wanderinginn.com/">Overview</a></li>
+<li id="menu-item-1912" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1912"><a href="https://wanderinginn.com/table-of-contents/">Table of Contents</a></li>
+<li id="menu-item-1998" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-1998"><a href="https://www.patreon.com/user?u=4240617">Patreon</a></li>
+<li id="menu-item-10438" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-10438"><a href="https://wanderinginn.com/social/">Social</a>
+<ul class="sub-menu">
+	<li id="menu-item-4811" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-4811"><a href="https://discord.gg/abwsa3y">Discord</a></li>
+	<li id="menu-item-4810" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-4810"><a href="https://www.reddit.com/r/WanderingInn/">Reddit</a></li>
+	<li id="menu-item-8944" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-8944"><a href="https://twitter.com/WanderingInn">Twitter</a></li>
+	<li id="menu-item-10440" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-10440"><a href="https://www.facebook.com/thewanderinginn/">Facebook</a></li>
+</ul>
+</li>
+<li id="menu-item-10446" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-10446"><a href="https://wanderinginn.com/publishing-3/">Publishing</a>
+<ul class="sub-menu">
+	<li id="menu-item-10448" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-10448"><a href="https://www.amazon.com/kindle-dbs/entity/author/B07XCYVYMW">E-books</a></li>
+	<li id="menu-item-10447" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-10447"><a href="https://www.audible.com/author/pirate-aba/B07XCYVYMW">Audiobooks</a></li>
+	<li id="menu-item-8761" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-8761"><a href="https://www.cloudscapecomics.com/last-tide/">The Last Tide (Comicbook)</a></li>
+</ul>
+</li>
+<li id="menu-item-1424" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1424"><a href="https://wanderinginn.com/guestbook/">Guestbook</a></li>
+<li id="menu-item-2935" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-2935"><a href="https://wanderinginn.com/fanworks/">Fanworks</a>
+<ul class="sub-menu">
+	<li id="menu-item-8557" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-8557"><a href="https://wanderinginn.com/fanworks-permissions/">Fanworks Permissions</a></li>
+</ul>
+</li>
+<li id="menu-item-1426" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1426"><a href="https://wanderinginn.com/reader-reviews/">Reader Reviews</a></li>
+<li id="menu-item-5002" class="menu-item menu-item-type-post_type menu-item-object-post menu-item-has-children menu-item-5002"><a href="https://wanderinginn.com/2018/10/19/glossary/">Glossary</a>
+<ul class="sub-menu">
+	<li id="menu-item-7035" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-7035"><a href="https://wanderinginn.com/fanworks/#B">Maps</a></li>
+</ul>
+</li>
+<li id="menu-item-5684" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-5684"><a href="https://wanderinginn.com/writing-faqs/">Writing FAQs</a></li>
+<li id="menu-item-11759" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-11759"><a href="https://aubergevagabonde.wordpress.com/">L&#8217;Auberge Vagabonde</a></li>
+<li id="menu-item-11765" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-11765"><a href="https://wanderinginn.com/contacts/">Contacts</a></li>
+<li id="menu-item-12493" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-12493"><a href="https://www.store.wanderinginn.com/">Merch Store</a></li>
+<li id="menu-item-12667" class="menu-item menu-item-type-post_type menu-item-object-post menu-item-12667"><a href="https://wanderinginn.com/2022/09/28/interlude-the-great-race/">Interlude – The Great Race</a></li>
+</ul></div>			</nav><!-- #access -->
+	</header><!-- #branding -->
+
+
+	<div id="main">
+
+		<div id="primary">
+			<div id="content" role="main">
+
+				
+					<nav id="nav-single">
+						<h3 class="assistive-text">Post navigation</h3>
+						<span class="nav-previous"><a href="https://wanderinginn.com/2018/04/17/4-29/" rel="prev"><span class="meta-nav">&larr;</span> Previous</a></span>
+						<span class="nav-next"><a href="https://wanderinginn.com/2018/04/24/4-31/" rel="next">Next <span class="meta-nav">&rarr;</span></a></span>
+					</nav><!-- #nav-single -->
+
+					
+<article id="post-4245" class="post-4245 post type-post status-publish format-standard hentry category-writing tag-fantasy tag-inn tag-web-novel tag-web-serial tag-writing">
+	<header class="entry-header">
+		<h1 class="entry-title">4.30</h1>
+
+				<div class="entry-meta">
+						<span class="sep">Posted on </span><a href="https://wanderinginn.com/2018/04/21/4-30/" title="11:25 am" rel="bookmark"><time class="entry-date" datetime="2018-04-21T11:25:48+00:00">April 21, 2018</time></a><span class="by-author"> <span class="sep"> by </span> <span class="author vcard"><a class="url fn n" href="https://wanderinginn.com/author/pirateaba/" title="View all posts by pirateaba" rel="author">pirateaba</a></span></span>		</div><!-- .entry-meta -->
+			</header><!-- .entry-header -->
+
+	<div class="entry-content">
+		<p>Blood dripped from Regrika Blackpaw’s sword and onto the ground. Erin couldn’t take her eyes off it.</p>
+<p>Ulrien was dead. The brave Gold-rank adventurer and leader of Griffon Hunt lay on the ground, headless. His greatsword was still embedded in Regrika’s leg. The Gnoll didn’t seem concerned by it. She flicked her sword down and knocked the blade loose. As she did, the adventurers attacked.</p>
+<p>Halrac howled as he put two arrows to his bow and shot them.</p>
+<p>“[Double Shot]!”</p>
+<p>The Gnoll turned and raised her shield. An explosion of fire and some kind of acid burst over her shield. Some sprayed across her face. She didn’t flinch. She turned and then caught another blow from Jelaqua on her other side. She was too quick, too strong!</p>
+<p>Erin stared at Ulrien as Regrika fought, stepping around his body. He was dead. Just like that. His magical amulet had protected him from one blow, but not two. It felt impossible. He was a Gold-rank adventurer, and he was Ulrien! She had never really talked to him one-on-one, but he was like a rock. Solid. Dependable. He held his team together and never seemed to get worried.</p>
+<p>He couldn’t die so easily. That was what she felt. Someone screamed. Revi hurled five talismans and glowing figures rose from the floor. Regrika cut one down and then another before the summoned beings could fully appear. She turned and ran her sword deep into Moore’s abdomen. The half-Giant grunted, and then <em>punched</em> her. The impact made the floor shake.</p>
+<p>His fist broke.</p>
+<p>Erin stood behind the table where Zel and Ilvriss had disappeared with the Drake [Mage], Ikriss. She stared at Ulrien. He’d been the first to agree to help her when she’d told him and the others what she suspected. Without hesitation. She’d accused a Named Adventurer and he’d asked her to explain herself while the others were exclaiming or asking if she was crazy. And when she asked for help, set the trap up—he’d agreed at once.</p>
+<p>He’d said yes, although Revi was throwing a fit and Typhenous said that it would ruin their reputation if Erin were wrong. But Ulrien had looked her in the eye for a few moments and then nodded. That was all. He’d trusted her.</p>
+<p>He’d said yes. And now he was dead. Erin looked at him, and then remembered Brunkr. Then she looked up and saw Regrika was laughing. The Gnoll spun, catching a cascade of magical bullets shooting from Typhenous’ fingertips on her shield and then kicked a chair at Halrac.</p>
+<p>The [Scout] dodged out of the way as the wood smashed into one of the tables he was taking cover behind. The impact knocked the table back, sending it skidding to the far wall. Erin stared in disbelief. All that from a kicked chair? She was too strong!</p>
+<p>“<em>Get away, you idiot!</em>”</p>
+<p>Someone seized her shoulder. Revi pulled Erin back as she raised a glowing talisman. She hurled it to the ground and a third figure rose. Three of the glowing warriors, all String People, took positions between her and Regrika. Two were warriors, one had a staff. They charged the Gnoll as the spectral mage swung his staff and shot shards of ice and earth at the Gnoll.</p>
+<p>The spells lashed the Gnoll’s form without effect. She cut down one warrior with a slash as he approached. Her blade cut right through the shield he’d raised and into his head. He vanished in a shower of yellow motes of light. The second stabbed into Regrika’s armored side; his blade skated across the metal without effect.</p>
+<p>A spike flail’s head caught Regrika across the back of the head as she swung her shield and scythed through the second summoned warrior. Regrika didn’t stumble, but slashed backwards. Jelaqua sprang back, cursing.</p>
+<p>“The hell is <em>that?</em> My flail’s not doing a thing!”</p>
+<p>Regrika slashed at Jelaqua and the Selphid backed up, shielded by a rain of spells coming from Typhenous, Revi, and Moore. Bolts of energy splashed across Regrika’s body, a cluster of vines ensnared her legs—she raised her shield and caught a glowing purple orb from Typehnous. Again, the spell was blocked as the orb <em>exploded</em>, sending fragments of light shooting across the room. Where the fragments landed the floor, walls, and furniture burst into flame.</p>
+<p>“My spells aren’t working!”</p>
+<p>Revi screamed at the others. Typhenous pointed at Regrika with his staff as she advanced on Jelaqua, but her shield was up, blocking his direction. Moore’s vines were entangling her as the half-Giant chanted and pointed his staff, clutching his belly with his other hand, but they barely slowed her.</p>
+<p>A flash of movement. Regrika half-turned. Too late. Seborn buried two knives in her shield arm, slashing her exposed black fur. He dodged away as she swung at him, his form blurring into a shadow. His voice was astonished.</p>
+<p>“My knives did nothing! Her fur—”</p>
+<p>His blades glowed with magic, but they’d left no imprint on Regrika’s arm. She grinned at him, and then turned to block another spell from Typhenous. Jelaqua strode forwards, gritting her teeth and shouting at Seborn.</p>
+<p>“I’m Rampaging! Get back!”</p>
+<p>The Selphid threw herself forward, her arms and body turning into a blur. She moved too quickly for Erin to follow and lashed with her two-handed flail in every direction, striking, dodging, and striking again.</p>
+<p>Erin watched, numb, and saw it was another bad matchup. If Ulrien had died because Regrika was too strong and too well protected somehow, Jelaqua was a victim of the same problem. She rained blows on the Gnoll from every direction. She was like lightning, unpredictable and impossible to block or evade, much less dodge. But Regrika stood in the whirlwind of steel and didn’t fall back. The flail struck her repeatedly <em>and she did not move.</em> The flail did nothing to her. Her body was too strong.</p>
+<p>Why?</p>
+<p>Her sword rose. This time Halrac shot three arrows in rapid succession into her back. Crackling lightning earthed itself on Regrika’s armor; to no effect. Typhenous’ spell was blocked. Moore’s spray of thorns showed Regrika’s left side and Seborn cut at the same leg Ulrien had struck. A frying pan hit Regrika in the back of the head.</p>
+<p>Nothing stopped her. Jelaqua’s blurring arms paused and she raised her flail to block. The sword knocked the flail out of her grip. The Selphid swore and the sword took the top of her head off as she ducked. She fell.</p>
+<p>Regrika kicked Jelaqua’s body across the room, catching Seborn and tossing him into a wall. She grinned, and locked eyes with Erin. The knife spun towards her eye and Regrika twisted her head. The blade missed.</p>
+<p>She charged across the room, her footsteps like thunder on the floor. The other adventurers shouted, and Erin tried to run. Too slow. Revi raised a glowing fragment of horn and the bloody sword cut her from shoulder to hip. She fell, bloodless. Regrika stood over Erin and grinned. Then she paused. She looked up to the ceiling and spoke one word.</p>
+<p>“Master?”</p>
+<p>&nbsp;</p>
+<p>&#8212;-</p>
+<p>&nbsp;</p>
+<p>She’d killed two Gold-rank adventurers already. The feeling of killing the third, of slicing the [Summoner] in half, gave Venitra a rush of pleasure. She raised her shield and caught a third spell from the old mage as he screamed curses at her.</p>
+<p>He was the only threat. His spells could damage her if not blocked. However, her shield was enchanted and capable of resisting any magic he might use. So long as she kept him in view and didn’t let the others escape, they were helpless. Her analysis of the situation was flawless, she knew.</p>
+<p>In battle, Venitra’s mind was cool and calculating. She was not affected by the chaos of combat and she could think with perfect clarify as spells and arrows flew around her. It was her luxury to indulge in emotion, but she was not bound by it.</p>
+<p>Three dead, and now the innkeeper. Venitra would take extreme pleasure in this. She raised her sword, heedless of the voices of the other adventurers and the arrow that broke on the back of her head. Her body was made of spelled bone; the [Scout] could not injure her with his enchanted arrows, not while he thought she was made of flesh or warded by magic. Her entire body was armor. In many ways her shield was useless. She <em>was</em> a shield.</p>
+<p>&nbsp;</p>
+<p><strong>Venitra.</strong></p>
+<p>&nbsp;</p>
+<p>A voice, a presence connected to her mind. A revelation from above. Venitra paused. In the heat of battle she looked up.</p>
+<p>“Master?”</p>
+<p>He spoke to her in a flash of images, a torrent of thought. Thought was far faster than any spell, or the quickest arrow. Her master reached into Venitra’s mind and appraised all that had occurred in the moments between Ijvani removing Zel Shivertail and the other Drake.</p>
+<p>&nbsp;</p>
+<p><strong>I see. I will attend to Ijvani. She is outmatched by far but will keep Shivertail and the Lord of the Wall occupied. You will go after Ryoka.</strong></p>
+<p><strong> </strong></p>
+<p>“Yes, my lord.”</p>
+<p>If they were spoken as words, it was only because Venitra felt more comfortable this way. Time had slowed to a crawl in this instantaneous communication between the two. The second arrow the [Scout] had loosed was still in the air, crawling towards Venitra’s right shoulder. They thought and spoke together in the moments between.</p>
+<p>&nbsp;</p>
+<p><strong>Dispose of the Gold-rank adventurers if you are able, but do not waste time on them. Learn from this battle. They are inferior to you, but still a threat. Go after Ryoka Griffin with all haste. Bring me back her head, undamaged. She is in Celum. Trace the spell Ijvani laid on her.</strong></p>
+<p>&nbsp;</p>
+<p>“It will be done, master.”</p>
+<p>&nbsp;</p>
+<p><strong>I will assist you if necessary, but I must focus on Ijvani as well. Lastly, Venitra. You will not kill Erin Solstice. Nor will you allow her to be harmed. That is an order.</strong></p>
+<p><strong> </strong></p>
+<p>“But master!”</p>
+<p>Erin Solstice was frozen in front of her, eyes wide, hand raised to ward off a sword blow that would end her. Venitra longed to strike, but she felt her master’s will pressing down on her. She felt his displeasure and reluctantly obeyed. His mental sending faded away in her mind with a final rebuke.</p>
+<p>&nbsp;</p>
+<p><strong>Enough. Go.</strong></p>
+<p>&nbsp;</p>
+<p>The arrow caught Venitra’s shoulder and exploded into shrapnel. Venitra snarled in her guise as Regrika Blackpaw and spun. She walked away from Erin and towards the [Scout] who already had another arrow drawn. The girl would live. For now.</p>
+<p>&nbsp;</p>
+<p>&#8212;-</p>
+<p>&nbsp;</p>
+<p>Zel Shivertail fell out of the sky, cursing and still slashing at the Drake [Mage] in front of him. He caught only air. Then he hit the ground.</p>
+<p>“<em>Argh!</em>”</p>
+<p>The impact knocked the wind out of him and cracked the paving stones he’d landed on. Zel lay there for a second and then rolled upright. He looked around and then up. He should have been dead. If not for his Skills, he probably would have been; he’d fallen from rooftop level onto the ground wearing armor.</p>
+<p>But because he did have Skills, he was alive. Zel glanced around and realized he was in Liscor. The dark streets were empty. But where—</p>
+<p>“[Grand Fireball].”</p>
+<p>He heard the voice from above. Zel turned and saw the blazing glow. He turned and ran.</p>
+<p>The explosion kicked him across the street. The heat burnt his scales. Zel shouted in pain and fury as he caught flame. But he lived through it. And he turned to see the Drake with purple scales, staff in hand, standing on the roof of a burning building.</p>
+<p>Watching him.</p>
+<p>Ikriss raised his staff and Zel sprinted down an alleyway. He felt the ground erupt behind him and heard screaming. From inside the buildings. Dead gods, there were innocent people sleeping inside! But the crazed [Mage] didn’t seem to care. More spells ripped up the street and Zel ran through the alley into another street.</p>
+<p>One of the rules for fighting a mage was never to let them see you. And to get close. He hunkered down and heard a sound in the distance. It sounded like…cursing?</p>
+<p>He looked up. On the roof of another building he spotted a Drake in expensive armor, looking around as he clung to the tiles with one claw. A bared sword was in the other.</p>
+<p>“Ilvriss!”</p>
+<p>At the sound of his name, the other Drake looked over and spotted Zel. He dropped to the ground. It was a long fall, but the Drake landed as lightly as a cat. Some kind of protective spell, no doubt. He ran over to the [General], crouched, sword at the ready.</p>
+<p>“What the hell happened, Shivertail? That mage teleported us—”</p>
+<p>“He’s blasting the street looking for me!”</p>
+<p>Zel spoke grimly as he heard more <em>thumps</em> and now more screams. People were waking up. He started as he saw the earth rise at the far end of the street. The paved road ripped upwards and formed a jagged wall of stone.</p>
+<p>“He’s trying to box us in.”</p>
+<p>Ilvriss hissed, his tail lashing with fury. He twisted at one of the rings on his fingers. It flashed, summoning his bodyguards, no doubt. Zel nodded.</p>
+<p>“Or slow us down. Regrika Blackpaw’s back at the inn!”</p>
+<p>“I know that! Let the Gold-rank adventurers fight her. I want that traitor <em>dead.</em>”</p>
+<p>Zel didn’t argue with that. He looked around the alley, and then raced back down it with Ilvriss behind him. They ran into the next street and Ilvriss cursed.</p>
+<p>One of the buildings, an apartment, was fully aflame. Zel could hear people screaming inside, but he had no time to go to them. Ikriss was standing in the center of the street. He had erected walls of stone around him and was standing in front of some glowing runes. Ilvriss raised his sword and walked to one side of the street. Zel advanced on the other.</p>
+<p>“Surrender now and we won’t kill you, traitor!”</p>
+<p>Ilvriss roared at the other mage. The Drake smiled, his face glowing in the light from his staff.</p>
+<p>“My duty is to keep you here. Or kill you. I think I can, no matter what I have been told about you, Shivertail.”</p>
+<p>He raised his staff and pointed. Zel had been waiting for this moment and dove to one side. He felt something burn his leg and rolled upright. Ilvriss was charging the mage. He stepped onto the first rune and the ground <em>exploded</em>.</p>
+<p>“<em>Ilvriss!</em>”</p>
+<p>The Lord of the Wall charged through the smoke, one of his amulets shining like the sun. More wards exploded around him and he lunged at Ikriss, too fast for the mage to dodge. His blade cut into the other Drake’s stomach—</p>
+<p>And Ikriss vanished. The illusion that had been him faded and Zel cursed. He looked around and heard Ikriss’ voice everywhere.</p>
+<p>“Warriors are such simple creatures. They shoot arrows, swing a sword—what can you do against illusions? Without magic, nothing. You are nothing, Zel Shivertail.”</p>
+<p>Something—Zel turned, and Ilvriss appeared. This time, the fireball blasted Zel straight in the chest. He vanished, and Ikriss grinned as the explosion of fire destroyed half the street.</p>
+<p>Someone walked through the flames. A claw sliced through the second illusion of Ikriss. Zel coughed and felt the fire and his melted breastplate burning his scales. They burned, like putting his claws on a hot kettle or a stovetop. He coughed, looking around for the [Mage].</p>
+<p>“You may be right. We warriors don’t have the same tricks mages do. But we don’t die easily, either.”</p>
+<p>Ilvriss was cursing, raising one of his rings and shouting into it. Screams echoed from the burning building. Zel heard a child’s voice. He waited, his blood boiling.</p>
+<p>The Drake [Mage] reappeared at the other end of the street, no longer smiling. He stared at Zel.</p>
+<p>“…That’s cheating.”</p>
+<p>Zel didn’t reply back. He charged, and Ikriss began casting spells at both Ilvriss and Zel. The night was full of death. Zel prayed the Gold-rank adventurers could handle Regrika Blackpaw. Ikriss was far too strong to be merely Gold-rank. He had to hope that they could defeat her, Named Adventurer or not.</p>
+<p>He roared as he charged and Ikriss’ eyes grew wide. The mage turned and vanished. A Golem rose, shaping itself out of the flagstones and broken earth. Zel sunk a claw into its side and ripped a chunk of it away. He should have been fighting Blackpaw. She was too strong. That was what his [Dangersense] was telling him. Too strong for Gold-rank adventurers.</p>
+<p>Far too strong.</p>
+<p>&nbsp;</p>
+<p>&#8212;-</p>
+<p>&nbsp;</p>
+<p>Erin had seen Gazi Pathseeker fight, once. She had deflected arrows from every angle, fought a group of Guardsmen and not taken a single scratch. That was what made her a Named Adventurer. In Regrika’s case, it was not her sight. It was her limitless, contemptuous strength.</p>
+<p>She could not be stopped. Her sword bit through a table Seborn was using as cover and the [Rogue] leapt. She slashed at his back and the Drowned Man <em>blurred</em>, using a Skill to get out of range in time. Moore swung his staff and Regrika raised her shield to block. She slashed, and he blocked.</p>
+<p>The impact of sword meeting staff was thunder in the common room of the inn. Moore’s huge arms strained and he grunted from the impact. He jabbed at Regrika with his staff, and she dodged the blow. She opened up his arm with one cut. He cried out, a loud, painful voice.</p>
+<p>“<em>Moore!</em>”</p>
+<p>Someone shouted his name. Regrika turned and Erin stared, holding a chair in her hands, about to throw. Jelaqua Ivirith charged into Regrika from behind, her flail’s two heads spinning into the Gnoll’s back. The top of Jelaqua’s head from her eyebrows up was <em>gone</em>, but the Selphid moved as if she were entirely whole. No blood ran from her wound. And the inside of the head was…empty.</p>
+<p>“Selphids.”</p>
+<p>That was all Regrika said. She backhanded Jelaqua with a shield and sent the Selphid tumbling backwards, unconcious. Moore was backed into a wall. He tensed as she turned, and thrust his staff into the ground.</p>
+<p>A wall of earth shot up, breaking the floorboards and blocking him from Regrika. She slashed through the earth, sending it spraying and found—</p>
+<p>A hole. Moore crashed <em>through</em> the wall, spraying glass and wood as he leapt into the snow outside. The Gnoll laughed. She whirled, and a fireball engulfed her in an explosion. When she appeared out of the smoke her shield was raised.</p>
+<p>And she was unharmed.</p>
+<p>“<em>Dead gods take it all!</em>”</p>
+<p>Typhenous screamed and then paled as he realized Regrika was running towards him. He raised his staff.</p>
+<p>“Halrac! [Astral Binding]!”</p>
+<p>Shimmering ties of light shot out and constricted Regrika. For a moment. She tore through them and found Typhenous rushing for the door. She ran after him.</p>
+<p>“Stop.”</p>
+<p>Two arrows broke on her back. Regrika’s fur burned. A bit of lightning crackled over her armor. She turned her head and smiled at Halrac.</p>
+<p>“You cannot harm me. I am perfection.”</p>
+<p>A pot bounced off the back of her head. Halrac stood up, six feet away from Regrika. His eyes were burning as he pulled an arrow with a black tip from his quiver and set it to his bow.</p>
+<p>“I will kill you.”</p>
+<p>“Try.”</p>
+<p>She lunged at him. Erin screamed as Halrac dodged sideways. Like Seborn he used a Skill—but it wasn’t enough. The sword missed, but Regrika kicked him as he passed. The impact sent Halrac crashing into one wall. Erin heard his ribs break.</p>
+<p>“No! <em>No, no, no! Stop!</em>”</p>
+<p>She charged Regrika with a knife. She heard Seborn shout at her. She didn’t care. The knife slashed at Regrika’s arm as the Gnoll looked at her. It felt as though Erin were cutting at a rock. Her kitchen knife did no damage to the Gnoll.</p>
+<p>Erin knew it wouldn’t. Nothing she’d thrown had worked. Halrac’s arrows hadn’t worked. So she dropped the knife and clenched a fist.</p>
+<p>“<em>[Minotaur Punch]!</em>”</p>
+<p>She threw it with all her strength. Regrika’s face was almost too high for Erin to reach. Her fist struck the Gnoll’s chin and Erin felt the impact travel down her arm. Regrika stared down at her.</p>
+<p>And smiled.</p>
+<p>Pain. Erin felt as though she had hit a rock. She raised her left arm and punched again.</p>
+<p>“<em>[Minotaur Punch]!</em>”</p>
+<p>A second blow. This time Erin felt and heard something <em>crunch</em> in her hands. She didn’t care. She punched again.</p>
+<p>“[Minotaur Punch]! [Minotaur Punch]! <em>[Minotaur—]</em>”</p>
+<p>Her right hand broke. Erin cried out as she felt her fingers break. Blood seeped through her torn skin. And Regrika stood in front of her. Unhurt. She raised both her arms upwards and stood tall. Her bloody sword and shield pointed towards the ceiling as the Gnoll posed.</p>
+<p>Like a statue. She let Erin hit her, cut at her, ignoring her. Smiling. Seborn appeared behind her and slashed. His knives dug into her arm, cutting. Regrika stood through it all and then looked down at Erin. Her eyes were contemptuous.</p>
+<p>“Insignificant.”</p>
+<p>The room was emptying. Moore had vanished. Typhenous had fled. Seborn vanished as Regrika turned away from Erin. The girl was crying, her hands dripping with blood. Regrika was unharmed save for a bloodless cut on her legs and scratches on the rest of her body. She looked around for her next victim and found him standing across the inn, next to the door.</p>
+<p>Halrac’s bow was raised. He had a single arrow drawn to his chest. His eyes were locked on Regrika.</p>
+<p>“[Piercing Shot].”</p>
+<p>The arrow struck her in the chest as Regrika covered her face, slipping underneath her guard. There was a <em>crack</em> that made Erin’s ears ring. The arrow that hit Regrika did not explode, or break, or do anything else. But it pierced Regrika’s armor. It buried itself halfway into her chest.</p>
+<p>The Gnoll blinked down at the arrow. Halrac lowered his bow, staring. There was no blood coming from her wound. And Regrika didn’t seem hurt, just surprised. She stared at the arrow and slowly drew it out of her. It snapped in her hands and she touched the hole in her chest.</p>
+<p>Bloodless. But it had broken her armor. When she looked up. Regrika’s smile was gone. Her eyes were filled with fury.</p>
+<p>“You <em>hurt</em> me. <em>Me!</em>”</p>
+<p>Halrac’s second arrow was explosive. As the Gnoll lunged, the force of it blew Erin off her feet. She got up, ears ringing. Regrika’s armor <em>cracked.</em> The metal fractured slightly from the explosion. Erin stared. Did metal do that?</p>
+<p>The Gnoll <em>screamed</em> in fury and charged Halrac. He dove towards the open door. She charged after him.</p>
+<p>“Halrac!”</p>
+<p>Erin tried to go after him. Her hands were nothing but pain, but she had to do something!</p>
+<p>“Don’t go after him! Help me up!”</p>
+<p>Someone shouted at her from behind. Erin turned. Who had spoken? Jelaqua was passed out on the ground. Seborn had vanished. Moore and Typhenous had fled and Halrac was running too. Then who—</p>
+<p>A hand shot up. Erin stared in horror. Revi’s arm moved as her head turned towards Erin. That was one part of her torso. Her other arm and the rest of her body lay on the ground, cleanly separated by Regrika’s blade.</p>
+<p>“Don’t just stand there you idiot! <em>Help me</em> before that monster comes back!”</p>
+<p>That broke the paralysis. Erin rushed over to Revi. All of the Stitch-Girl’s summoned minions were gone, destroyed by Regrika, but their armor and weapons lay scattered around her. Revi’s head looked up at Erin. There was pain in her eyes, but she still spoke.</p>
+<p>“Sew me up! There’s a needle in my pockets. Don’t worry about neatness, just get me together. Now!”</p>
+<p>“But how—I thought—”</p>
+<p>“You can’t kill a Stitch-Girl with a sword! Hurry! Halrac’s running for his life. If that Gnoll catches him—”</p>
+<p>Erin fumbled for Revi’s pocket. She stabbed the needle deep into her finger when she found it, and barely noticed the pain. Her right hand was useless. Her left…Revi cursed at her as Erin clumsily pulled one of the threads through the needle. Each second felt like forever.</p>
+<p>“Hurry, hurry, <em>hurry! </em>If she comes back—”</p>
+<p>A heavy tread. Erin froze and Revi’s eyes went wide. Regrika appeared in the doorway, smiling. Only this time fury was in her eyes.</p>
+<p>“Clever. The rats have fled. They jumped down a hole in the snow. Into a dungeon. But you? You’re still here. And I can kill you.”</p>
+<p>She pointed at Revi. The [Summoner] went very pale. One of her hands grabbed Erin’s needle and began to stitch the rest of her body together as Erin rose.</p>
+<p>“I won’t let—”</p>
+<p>Regrika shoved Erin aside. Erin grabbed at her, trying to pull her back. Her feet skidded across the broken floor as Regrika walked over to Revi. The Stitch-Girl was nearly complete, but she still couldn’t move her lower half. She looked up, eyes full of fear. Regrika grinned.</p>
+<p>“Please step away from the guest.”</p>
+<p>Someone spoke. Regrika whirled and stared. Erin turned. A figure was standing in the doorway with a drawn bow. For a second Erin’s mind saw Halrac, and then the figure moved and she realized it wasn’t him.</p>
+<p>It was Bird. Two of his arms held the bow, his other two held something in his hands. He was alone, and he stared at Regrika. She stared back.</p>
+<p>“An Antinium?”</p>
+<p>He nodded.</p>
+<p>“I am Bird. I am a guard at the inn.”</p>
+<p>The Gnoll smiled.</p>
+<p>“A dead one. You should have fled.”</p>
+<p>“I was asleep.”</p>
+<p>The Gnoll blinked. Bird looked past her and at Erin.</p>
+<p>“I was asleep in my tower. I woke up to hunt birds. I assume that this person is a danger to you and or the residents of your inn?”</p>
+<p>Erin stared at him. Regrika stared at him. Revi took the moment to keep stitching her torso together. The Antinium waited and then turned to Regrika.</p>
+<p>“Know that I am obliged to hurt you with brutal force. You are not a bird, so I will shoot you and not eat you. Unless you are tasty.”</p>
+<p>The Gnoll stared at him. Then she began to walk towards him. Bird loosed the arrow. It <em>snapped</em> as it struck her between the eyes. The Antinium paused.</p>
+<p>“Ah. I saw that happen earlier too. I woke up and watched the battle, by the way.”</p>
+<p>“You cannot harm me.”</p>
+<p>Regrika’s voice was arrogance, her stride lazy as she crossed the inn towards the Antinium. Bird nodded.</p>
+<p>“I noticed. This is my tactical analysis of what I should do in a situation like this.”</p>
+<p>His other two hands rose. They were holding something. A bucket. Bird hurled it at Regrika. She didn’t block it. The dark liquid splashed over her and Regrika stopped. Erin froze. She couldn’t see well in the darkness, but she could <em>smell </em>it. Bird turned.</p>
+<p>“That was feces from the outhouse. I gathered it. It is an antagonistic action meant to irritate. I am bait. The poo is not from birds, by the way.”</p>
+<p>He ran out the door. Regrika was staring at the excrement covering her body. She brushed off a clump, and then she went insane.</p>
+<p>“<em>You have disgraced my image! You! I will kill you!</em>”</p>
+<p>She rushed out the door. Erin turned to Revi. The Stitch-Girl shouted at her.</p>
+<p>“Hurry! I can’t reach my back!”</p>
+<p>This time Erin plunged the needle into the cloth as fast as she could. When the last clumsy stitch was in place, the cloth lower half became real. Revi gasped, sat up.</p>
+<p>“We have to run. Where’s the back door?”</p>
+<p>“I don’t have one!”</p>
+<p>“The hole, then. Corusdeer!”</p>
+<p>She raised the bit of horn in her hands and a spectral deer cantered into focus. Revi leapt onto its back and extended a hand.</p>
+<p>“Come on! We’re dead if she comes back!”</p>
+<p>“I can’t. I can’t run away from her! She killed—”</p>
+<p>Erin choked on the words. She killed Brunkr. And Ulrien. Revi slapped her.</p>
+<p>“You can’t save anyone if you’re dead! Come <em>on!</em>”</p>
+<p>“She won’t hurt me. I don’t think she can. I don’t know why.”</p>
+<p>Erin replied numbly. It wasn’t just her instincts that were telling her this. Regrika had ignored her several times. Erin didn’t know why, but she felt certain that she was safe. She, and she alone.</p>
+<p>Revi opened her mouth, and then paused. There was <em>crunching</em> outside, the same footfalls. She paled and the summoned Corusdeer swung around. Revi shot through the hole Moore had made. Erin turned.</p>
+<p>Regrika walked back through the doorway. She stank. Her eyes were blazing, but there was no broken chitin on her blade or the Antinium’s green blood. Erin stared at Regrika. The Gnoll paused as she stepped through the broken inn. She looked around for Revi and then at Erin.</p>
+<p>“I will remember you. And I will come back. I will slaughter all those who were here. The mages, the Selphid, the [Scout] and the Antinium. They will all suffer.”</p>
+<p>“Who are you?”</p>
+<p>Erin spoke quietly. She looked Regrika in the eye. The Gnoll laughed.</p>
+<p>“I was sent here by my master for one reason. To kill Ryoka Griffin.”</p>
+<p>She turned to the door leading to Celum. Erin felt her heart stop. She blocked Regrika’s way. The Gnoll shoved Erin aside.</p>
+<p>“Stop! No! You can’t!”</p>
+<p>Erin battered at her, but again, it was useless. She tried to pull Regrika back with her good hand. It was impossible. She grabbed onto the Gnoll’s leg, tried to pull her back using a table as an anchor. The table <em>jerked</em> across the ground and Erin felt her arm being pulled out of its socket. Regrika didn’t slow. She opened the door and looked down at Erin as the girl clung to her with all her strength.</p>
+<p>“I do not see why he values you. You are pathetic. And you cannot stop me. No one can.”</p>
+<p>She bent and contemptuously prised Erin’s hand from her leg without effort. Then she stepped through the door to Celum. It swung shut behind her.</p>
+<p>And then she was gone.</p>
+<p>&nbsp;</p>
+<p>&#8212;-</p>
+<p>&nbsp;</p>
+<p>The fight in the inn had taken less than half an hour. Celum was quiet when Venitra strode out of Octavia’s alchemy shop, smashing through her window without bothering to use the door. Those who were on the streets did not pay much attention to the Gnoll until they saw her bloody sword and raised the alarm.</p>
+<p>In Liscor, the night was broken by shouts and howling. Zel Shivertail dove to the side as a bolt of crackling <em>red </em>lightning shot down the street, nearly missing him. The electricity arced and struck his breastplate, making him hiss, but most of the energy grounded itself harmlessly on a metal railing of one of the houses.</p>
+<p>“Ancestors damn it! Where the hell <em>is</em> he?”</p>
+<p>Zel roared at a Drake taking cover behind him. Ilvriss glared and raised his sword as he peeked around the side of a wall.</p>
+<p>“I don’t know! My amulet has a radius of about ten feet. I can’t search while that traitor’s blasting me with spells!”</p>
+<p>The two Drakes ducked as another spell—a boulder thrown by magic—crashed near their position. Zel looked around. The street was a disaster area, and Ikriss was standing in the center of it, raining spells down on their position.</p>
+<p>Only, it wasn’t Ikriss. There was another Drake mage with purple scales standing on a rooftop, and another in the doorway of a building. The [Mage] had created multiple copies of himself, all illusions, and it was impossible to tell which was which.</p>
+<p>“They might all be illusions out there! We need a [Mage] to dispel the illusions or we’ll be chasing our tails until that bastard gets us! Where’s the Watch? Where are your helpers?”</p>
+<p>Zel shouted at Ilvriss. The Lord of the Wall cursed.</p>
+<p>“Behind one of the walls, or fighting one of the Golems that was summoned! We have to either break an opening or—<em>incoming!</em>”</p>
+<p>Both Drakes had heard the whistling noise at the same time. They abandoned their hiding spot as a boulder fell down from above. Ikriss pointed and Zel saw more hovering boulders in the sky. The Drake [Mage] had figured out that spells were ineffectual against both Zel and Ilvriss and had decided to crush them instead.</p>
+<p>Ilvriss’ rings flared as he caught a bolt of red-lighting. He shouted as he charged the [Mage] and his sword cut through the illusionary Ikriss. Again. Zel cursed and looked for somewhere else to hide. They couldn’t kill the mage and he was trying to cut off their space. Sooner or later he’d be hit, and when that happened, there <em>were</em> ways to kill him, even with his resistance to spells.</p>
+<p>And in the meantime, people were dying. Ikriss’ spells had burned one building. People had leapt to their deaths rather than die in the blaze. His other spells were blasting holes in the city. Two of the summoned constructs were battling the Watch. As Ilvriss and Zel met up again, crawling under a collapsed building, Zel spotted an arm buried in the rubble. It had scales, yellow, covered in dust. And it was far too small.</p>
+<p>It was too much. He was a [General of the Line], a protector of his people. And they were dying while he took cover. Zel clenched his fist.</p>
+<p>“We’re ending this now, Ilvriss. I’ll distract him. You try and locate the mage with your amulet. I’ll take on his spells.”</p>
+<p>“Are you insane, Shivertail? He won’t bother with magic—he’ll crush you!”</p>
+<p>“I’ll dodge. People are dying, Ilvriss.”</p>
+<p>The Lord of the Wall hesitated. Then he nodded.</p>
+<p>“Don’t die.”</p>
+<p>Zel nodded. He walked out from behind his cover. All of the projections of Ikriss looked at him.</p>
+<p>“Giving up, Zel Shivertail?”</p>
+<p>“Give me your best shot, mage.”</p>
+<p>The Drake bared his teeth. His tail lashed the ground as he saw Ikriss pointing. The levitating boulders angled themselves towards him. Then Ikriss paused. All of his projections suddenly looked left. Zel looked as well, and saw blue.</p>
+<p>Her carapace shone in the moonlight. It sparkled. Unlike the other Antinium with their brown bodies, the pigmentation of Xrn’s body had a luster of its own. It was surpassed only by her eyes. They shone green and blue and red, colors mixing together and swirling in the darkness.</p>
+<p>“The Small Queen.”</p>
+<p>Ikriss inhaled. His illusions shifted their grip on their staffs, suddenly nervous. Zel stared warily at Xrn. She had a staff of her own. She raised her other hand in greeting.</p>
+<p>“Zel Shivertail. I did not expect to see you here. But this situation makes more sense the more I see.”</p>
+<p>“Why are <em>you</em> here? This doesn’t concern you. This Drake is your enemy.”</p>
+<p>Ikriss’ voice sounded worried and panicked by turns. Xrn looked at him. He raised his staff threateningly. She only nodded towards the devastation around her.</p>
+<p>“I thought I sensed someone casting destructive magic. Klbkch refused to believe me at first, but he is on his way with many Soldiers.”</p>
+<p>Zel wasn’t sure if he should be relieved or worried. Ikriss was certainly unhappy. He shifted, staring at the ground, and then glared at Xrn.</p>
+<p>“I have no quarrel with you, Antinium. Stand aside and I will rid your people of Zel Shivertail. Get in my way and I will destroy you.”</p>
+<p>His words made Zel tense. Ikriss was clearly his enemy. But Xrn was an unknown quantity. If she teamed up with him—</p>
+<p>The Small Queen regarded Ikriss with a tilted head. She sighed.</p>
+<p>“You killed children and innocents with your spells. You, a Drake. I do not understand it. The Antinium are called monsters because we sacrifice our own. But we do not murder each other.”</p>
+<p>Both Ikriss and Zel stared at her. Xrn turned her head away from the image of Ikriss she was staring at and began talking to the air next to her.</p>
+<p>“My orders from the Grand Queen are not to use force unless attacked first. Especially not against groups like adventurers to avoid starting a war. So I will not cast any spells. Unless you hit me with one. Please, do.”</p>
+<p>The Drake shifted his grip on the staff. He didn’t move. Xrn nodded. Zel looked at her warily. If she wasn’t going to fight, but just stand there—</p>
+<p>Stand there. Xrn was speaking and staring at a blank patch of…nothing, although she’d clearly been addressing Ikriss. She was staring at it intently. Zel’s heart pounded. He abandoned his position and <em>charged</em> towards Xrn. Not at her, but a bit to the left. At the patch of air.</p>
+<p>The [General] rushed past Xrn. She didn’t budge. His claws opened and he aimed for the exact spot where she’d been looking. For a second he thought nothing was there, and then he heard a sound. <em>Something </em>cursed and shifted. Zel lashed out. His claws were sharper than steel and he caught something—</p>
+<p>Ikriss appeared, stumbling, his side laid open, but bloodless. He glared at Zel and spoke.</p>
+<p>“[Lesser Teleport]!”</p>
+<p>He vanished. Zel whirled around, saw nothing. He stared back at Xrn. She glanced at him, and then casually stared up. Zel looked up and saw her gaze was on a rooftop two buildings over.</p>
+<p>“Lovely night, isn’t it?”</p>
+<p>He didn’t respond. Zel charged towards the building. Halfway there he heard a cough. Xrn’s gaze was now on a building collapsed by rubble. Ilvriss ran towards Zel, sword drawn.</p>
+<p>“The Ant’s looking—?”</p>
+<p>“That’s right.”</p>
+<p>Zel grinned and Ilvriss stared at Xrn before gripping his sword with both hands. The Drakes advanced. Zel muttered to Ilvriss.</p>
+<p>“Hard target. I felt like I was cutting into armor, not flesh. Go for limb amputations and use force.”</p>
+<p>“Got it.”</p>
+<p>They circled the rubble. Nothing was there. Ilvriss gripped at his amulet. There was a <em>flash</em>, and Ikriss blurred into place. For a second Zel thought he saw something else, something black and shiny—but then the Drake shot up. He threw fire at both Drakes, retreating. He vanished as Ilvriss leapt at him, sword swinging.</p>
+<p>“This isn’t <em>fair!</em>”</p>
+<p>“Life seldom is.”</p>
+<p>Xrn carefully turned her head, staring at an open patch of ground across the street. Both Zel and Ilvriss charged. This time Ikriss raised his staff and Ilvriss threw something. There was a <em>screech</em> and whatever spell the Drake was trying to use failed. Zel and Ilvriss tore into him from both sides.</p>
+<p>Zel ripped part of the mage’s arm away, slicing through…something hard. Ilvriss grunted as he cut through the mage’s leg. Ikriss fell, grabbing at his leg. He wasn’t bleeding.</p>
+<p>“Got him!”</p>
+<p>Ilvriss put a foot on the mage’s chest and ran him through. He twisted the sword, pulled it out, and stabbed it in again. The body beneath him convulsed, and then the corpse, the thing that <em>should</em> have been a corpse, muttered a spell.</p>
+<p>“[Aerial Burst].”</p>
+<p>Both Drakes flew backwards. Xrn raised her staff and held her ground, a bubble of violet light appearing around her. Ikriss got up, holding his leg, using his staff for support. He was babbling, and his voice was…changed. It was suddenly feminine, and echoed slightly.</p>
+<p>“<em>I’m going to die. Me. Oh no. Master, help, help&#8230;!</em>”</p>
+<p>Zel ran at him…her? Ikriss turned to him, and there was genuine fear on his face. Zel slashed at his head, and felt a connection. Then there was light. Ikriss vanished.</p>
+<p>“<em>Damn!</em>”</p>
+<p>Zel roared and spun to Xrn. She was looking around. She shook her head.</p>
+<p>“Nowhere. He vanished. I could have sworn I felt someone else’s magic there. That was a powerful teleportation spell, far beyond what he could have used. An artifact? Hm. Shivertail, why was that Drake trying to kill you?”</p>
+<p>“No time. Ilvriss! The inn!”</p>
+<p>Zel roared. Ilvriss pulled himself out of a collapsed wall, swearing. The two Drakes raced for one of the walls Ikriss had raised. They got over it after Xrn blew a hole in it for them to cross. They found two destroyed Earth Golems, at least sixty [Guardsmen], Watch Captain Zevara, and an army of Antinium Soldiers behind them.</p>
+<p>“Hey, it’s General Zel!”</p>
+<p>One of the Guardsmen, Relc, called out. He had a spear in hand and he was standing on top of one of the fallen Golems. He leapt down as Klbkch and Zevara both strode towards them. Zevara’s eyes flicked towards Xrn. She looked warily at Klbkch.</p>
+<p>“General Shivertail? Is the Antinium—?”</p>
+<p>“No. We were attacked by Ikriss. He and Regrika Blackpaw are murderers. I have reason to believe they killed Brunkr. We were teleported here and Regrika is back at the inn!”</p>
+<p>The Drake’s eyes widened. She looked at Zel, and then towards the gates.</p>
+<p>“Regrika Blackpaw? But—”</p>
+<p>“I want everyone with a level higher than twenty at that inn, <em>now!</em> Erin Solstice and two Gold-rank teams are there, but a Named Adventurer might be too much for them.”</p>
+<p>“Erin? Wait, what’s—”</p>
+<p>“The inn! <em>Go!</em>”</p>
+<p>Zel roared it at the confused people around him. Relc’s eyes widened. He turned and began sprinting down the streets. Klbkch was already pointing and shouting. Antinium streamed out of the city, and Zel ran after them. They found Revi and Bird fleeing towards them. And in the inn—</p>
+<p>Death. And no Regrika. She was already in Celum. And by that point, they were too late to catch her.</p>
+<p>&nbsp;</p>
+<p>&#8212;-</p>
+<p>&nbsp;</p>
+<p>Venitra strode through the city of Celum, blade at the ready, closing in on Ryoka Griffin’s position. She knew where the Human girl was exactly, thanks to the magic Ijvani had cast. The Humans in the streets cried out and ran when they saw her approaching with blood splattered across her armor. Venitra cared not.</p>
+<p>She was unstoppable. The Gold-rank adventurers had damaged her. <em>Her.</em> And the Antinium had—<em>soiled—</em>her form. The form her master had given her! Venitra had burned him into her memory. She would tear him apart slowly. But she had a mission. It trumped all things.</p>
+<p>Ryoka was in a little inn called the Frenzied Hare. Venitra strode through the door, hearing conversations stop. She spotted the Runner at a table with four other adventurers. The Horns of Hammerad looked up. They froze when they saw Venitra, or rather, Regrika Blackpaw covered in blood. Ryoka slowly got up, her eyes wide.</p>
+<p>“Miss Blackpaw, what’s—”</p>
+<p>Venitra lunged. Her sword shot across the table towards Ryoka. The Human—dodged. She twisted in her seat and threw herself across Yvlon’s lap. As Regrika cursed, she cut left. She was trying to cut straight through Yvlon, but her sword slashed across the woman’s breastplate instead. Yvlon shouted and Ryoka ran for the door.</p>
+<p>“Come back here and die, Ryoka Griffin!”</p>
+<p>The undead woman roared, not caring that she was ruining her guise as Regrika Blackpaw. She was too incensed to care. Ryoka disappeared out the door in a blur. Venitra ran after her and felt something slowing her. She looked down.</p>
+<p>Ice was covering her lower half. She saw Ceria pointing, and walls of ice rose in front of the undead woman, blocking her way. Venitra raised her shield and punched through the wall of ice, shattering it. She swung her sword and the ice binding her broke.</p>
+<p>“Stop!”</p>
+<p>The Horns of Hammerad spread out around Venitra, looking afraid, but determined. Venitra longed to cut them all down, but she ran for the door. Ryoka was more important.</p>
+<p>“You are attacking our comrade. I would advise you to surrender, Named Adventurer or n—”</p>
+<p>Her shield smashed into Ksmvr as he tried to bar her way. The Antinium fell. Yvlon lunged for Venitra, sword flashing.</p>
+<p>She had no <em>time</em> for this! Venitra ignored Yvlon’s sword and accessed a part of her she seldom used. Her master had done more than create her body. He had imbued her with certain enchantments.</p>
+<p>“[Mists of Madness].”</p>
+<p>The spell erupted from her body in the form of a cloud which engulfed the inn and spilled out onto the street. She heard the other adventurers shout, and then the inn went insane. The cowering Humans suddenly turned on each other, some clawing at each other’s faces, others grabbing weapons and hitting each other, themselves—some sat in corners and gibbered, or became different people.</p>
+<p>“A simple matter.”</p>
+<p>Venitra strode out of the inn, sensing which way Ryoka had gone. She began to run as the insanity-causing mists began to affect the entire street. The [Guardsmen] who’d come running became crazed killers themselves.</p>
+<p>&nbsp;</p>
+<p><strong>Venitra. What is taking you so long?</strong></p>
+<p><strong> </strong></p>
+<p>Her master’s voice. Venitra cowered internally as she ran.</p>
+<p>“I am pursuing Ryoka Griffin right now, master! I was delayed but she cannot escape—”</p>
+<p>The Runner was moving fast. Venitra was faster. She barreled <em>through</em> the wall of a building and out the other side. Ryoka turned, eyes wide, and reversed direction as she ran down a street. Venitra ran after her. Az’kerash’s voice thundered in her head.</p>
+<p>&nbsp;</p>
+<p><strong>Where? No—I see by the spell you are close. Hurry, Venitra. Ijvani has retreated due to her wounds. Ryoka must not escape!</strong></p>
+<p>&nbsp;</p>
+<p>“Yes, master! I am almost—”</p>
+<p>Someone stabbed Venitra in the back. She paused, turned, and lashed out with her sword. There was a blur of motion and her sword cut through air. She saw the blur resolve itself into a figure standing several feet away. He had a flaming rapier in his hand and crackling magic lightning in the other.</p>
+<p>Pisces coughed, waving away the madness-causing mists that still clung to his robe. He was frowning, but the spell hadn’t affected him. He smiled weakly and nodded to Venitra.</p>
+<p>“A mental attack is only half as efficacious on the second attempt. I am afraid…I have already experienced my own insane delusions once.”</p>
+<p>His rapier was at the ready. His stance was set, his eyes watchful. Venitra turned away in disgust. As she did, Pisces blurred forwards and stabbed her in her arm. He seemed astonished when his rapier did nothing but slide off Venitra’s bone body.</p>
+<p>“Begone, pest!”</p>
+<p>She lashed out at him. Pisces blurred away, using the [Flash Step] spell. She turned to run, and he appeared next to her, rapier dancing across her side. Stab, stab, <em>cut. </em>Three precise strikes, all failures. Then he vanished. Venitra roared in Regrika’s voice, irritated by his futile attacks.</p>
+<p>&nbsp;</p>
+<p><strong>Venitra, stop paying attention to him and pursue Ryoka Griffin!</strong></p>
+<p>&nbsp;</p>
+<p>Her master’s voice made Venitra turn and immediately begin running. Pisces struck her twice more in the back as she did, and then blasted her face with lightning. Venitra swung her sword, trying to catch him, but he was a gnat, buzzing around her, too quick to catch!</p>
+<p>But he could not harm her either. His rapier, enchanted with magical flames, was weak, and his spells were laughable. Venitra had been enchanted to withstand spells from Named Adventurers! She could not be so easily—</p>
+<p>“[Bone Fracture].”</p>
+<p>A hand on her arm. A sensation. Venitra felt her arm, cut slightly by Seborn’s knives, <em>crack</em>. She stopped and stared down in horror at her arm. Running along her perfectly shaped arm was the tiniest, most miniscule of breaks. She stared at Pisces. He disappeared as her shield swung at his head. He appeared at the other end of the street. He stared at her.</p>
+<p>“You are no Gnoll. What…what <em>are</em> you? Who made you?”</p>
+<p>He knew. In that moment, Venitra knew he had to die. She ran at him. Pisces became a blur, dodging away. He was faster than Ryoka Griffin thanks to his magic!</p>
+<p>“You will not escape!”</p>
+<p>Venitra roared at him. She tapped into the enchantments on her body, about to use another one. Her master’s voice halted her.</p>
+<p>&nbsp;</p>
+<p><strong>Hold, Venitra. Ryoka Griffin is getting away.</strong></p>
+<p><em> </em></p>
+<p>“But master, he <em>knows!</em>”</p>
+<p>&nbsp;</p>
+<p><strong>So I have witnessed. I will deal with him. He is…different. Hunt down Ryoka Griffin, now!</strong></p>
+<p>&nbsp;</p>
+<p>Her master’s words were never wrong. Venitra turned. She saw Pisces appear in front of her. He raised his hand, about to use the spell again, when his eyes went wide. He touched his hand to his head.</p>
+<p>“Who is speaking to me? Who—?”</p>
+<p>Venitra ran past him. She envied Pisces. He was speaking to her master. There could be no higher honor. She ran down the street, no longer hampered by anything or anyone. Venitra ran straight to Ryoka Griffin, charging through walls, running over anyone she encountered in the street. The Runner was too slow to evade her.</p>
+<p>She burst through a wall and there was Ryoka Griffin. The Runner’s eyes widened and she turned. Too slow this time. Venitra’s hand shot out and she grabbed Ryoka’s arm. Then her face.</p>
+<p>“I have you now.”</p>
+<p>Venitra’s fingers tightened on Ryoka’s head as the young woman lashed at her chest, punching, kicking. Venitra felt nothing but satisfaction as she tightened her grip. Then she remembered her master’s injunction and stopped before she fractured Ryoka’s skull.</p>
+<p>But her arms. Venitra could start with them. She seized Ryoka’s arm and grabbed one of her fingers. She bent the pinkie finger of Ryoka’s right hand back, <em>back</em>, and then tore it off. The girl screamed. It was the sound Venitra had waited for all this time.</p>
+<p>&nbsp;</p>
+<p><strong>Venitra, what are you doing?</strong></p>
+<p><strong> </strong></p>
+<p>She flinched as Ryoka convulsed in her grip. Venitra’s voice was sulky, reticent.</p>
+<p>“Master, I was only—”</p>
+<p>&nbsp;</p>
+<p><strong>I told you to <em>find</em> Ryoka Griffin, not waste time! You have disobeyed me once. Why are you wasting time with nothing when—</strong></p>
+<p>&nbsp;</p>
+<p>“Master? I have Ryoka Griffin!”</p>
+<p>What was going on? Venitra stared at Ryoka. The girl was sobbing in her arms, blood running from her detached finger. Az’kerash’s voice paused in her mind.</p>
+<p>&nbsp;</p>
+<p><strong>What?</strong></p>
+<p>&nbsp;</p>
+<p>“I have Ryoka Griffin. In my hands.”</p>
+<p>Venitra repeated herself slowly, disbelievingly. Was something wrong with her master’s spell? Inconceivable. And yet, he did not see Ryoka Griffin through her eyes. Either he was wrong or the spell was wrong. Either way, it was impossible.</p>
+<p>&nbsp;</p>
+<p><strong>Venitra. What are you looking at?</strong></p>
+<p>&nbsp;</p>
+<p>Az’kerash’s mental tone was slow, quiet. Venitra hesitated.</p>
+<p>“Ryoka Griffin, master.”</p>
+<p>&nbsp;</p>
+<p><strong>No. You are not. There is nothing there.</strong></p>
+<p><strong> </strong></p>
+<p>The world paused. Venitra turned and stared at Ryoka Griffin’s face. She saw tears in the girl’s eyes, an anguished face—and then a smile. Ryoka straightened. She looked Venitra in the eye and laughed as her hand bled and Venitra held her pinkie. Then she spoke.</p>
+<p>&nbsp;</p>
+<p><span style="color:#8ae8ff;">“What? Did ye think she’d really sit here and wait for death? More the fool ye art, then.”</span></p>
+<p>&nbsp;</p>
+<p>The girl blurred in front of Venitra. Her finger and body vanished. Something blue and indistinct hovered in front of Venitra’s face. She stared at it.</p>
+<p>And her master lost his temper.</p>
+<p>&nbsp;</p>
+<p>&#8212;-</p>
+<p>&nbsp;</p>
+<p>“Where is she? <em>Find her!</em>”</p>
+<p>Az’kerash’s voice was never raised. His wrath was cold and deliberate, never a product of emotion. That made this moment and his raised voice all the more terrible now. He paced back and forth in his castle, staring at the image of Celum as Venitra ran through it. His servants cowered. Ijvani, her skull fractured and her black metal bones torn and broken in many places, flinched as she bent over an orb.</p>
+<p>They were scrying for Ryoka Griffin. The spell that she had cast had been—altered—somehow. It pointed to the Winter Sprite. But Ryoka Griffin was elsewhere. They had to find her.</p>
+<p>“There.”</p>
+<p>It wasn’t Ijvani who spoke, but the other spellcaster among Az’kerash’s chosen. Bea. The rotting woman turned to their master, an image of Ryoka Griffin in her hands. She was running through the snow, the world racing around her.</p>
+<p>Az’kerash, the Necromancer, reacted at once. He closed his eyes and put one delicate finger to his brow. When he spoke, it was to Venitra, hundreds of miles away from their location.</p>
+<p>“Venitra, your quarry is southeast of Celum. She is heading towards…”</p>
+<p>He paused.</p>
+<p>“Towards the High Passes? No. That cannot be—<em>catch her</em>, Venitra! Use the [Haste] spell, now!”</p>
+<p>Ijvani did not hear the reply, but in the image of Venitra that was being projected to her in her orb, she saw Regrika Blackpaw suddenly blur and race out of the city. She closed the connection and flinched as her master turned towards her.</p>
+<p>“<em>Master, I am sorry. I failed—</em>”</p>
+<p>“You did little wrong, Ijvani. Against Zel Shivertail and a Lord of the Wall, I would not expect you to triumph. Let alone with the Small Queen interfering. Why did she help Shivertail? How would that serve the Antinium? Why is a Winter Sprite—”</p>
+<p>He broke off. Ijvani shrank, feeling her broken form leaking mana. Zel had cut through her ribs with his claws, and the Drake with the sword had cut off her leg! It didn’t hurt of course, but the loss of one of her limbs was painful in a mental way.</p>
+<p>Far worse was seeing her master distressed. Ijvani looked around the room. All of her master’s servants in the castle were here. Oom, dark, wearing a long trench coat and hat, face obscured. Bea, rotting, rotten. Lovely in her putrefaction. And Kerash. He was an undead Gnoll, a giant among his kind even in death. He was as tall as Venitra and proud. And dead.</p>
+<p>All of them bowed their heads as Az’kerash strode past him. His black eyes and white pupils were narrowed in his ire.</p>
+<p>“Shivertail. He may suspect. Ijvani, your illusion broke down twice during the battle for a few moments. Besides that—this is too good an opportunity to waste. He is a thorn. I will have him removed.”</p>
+<p>“<em>Master?</em> <em>Do you wish me and Venitra to kill him?</em>”</p>
+<p>Ijvani wasn’t sure she could be of much help. The [General] had survived some of her best spells! Venitra might be able to kill him, but alone…Az’kerash shook his head.</p>
+<p>“No. Venitra will catch Ryoka Griffin. I will not wait for her. I have used one of my scrolls of [Greater Teleportation]. I must spend more, it seems. Bea, Kerash, Oom. You three will accompany Ijvani. I will teleport you all—you will each carry a scroll of [Greater Teleportation] with you.”</p>
+<p>His servants held their breaths. Well, none of them needed to breathe, even Oom, so that was figurative. But they were all astonished. The scrolls of [Greater Teleportation] were limited. Even their master could not acquire more. And four, one for each of them? They stared at their master as Az’kerash spoke.</p>
+<p>“You will appear in Liscor and kill Shivertail and as many Antinium and Drakes as possible. Bea, I leave the slaughter of Antinium and lesser soldiers to you. Ijvani, you will support Kerash in disposing of the dangerous elements, such as the Gold-rank adventurers. Oom, you were created to deal with enemies like Zel Shivertail. Kill him without giving him any opportunity to run.”</p>
+<p>“Yes, master.”</p>
+<p>They bowed as one and lined up before their master. Az’kerash walked past them. Kerash, axe in hand. Bea, smiling. Oom, faceless. And Ijvani, wounded but eyes alight with power. He nodded and glanced back towards one of the images of Liscor. In it, shapes milled about, soldiers rushing towards the inn.</p>
+<p>“You will teleport in as a group. Try to catch Shivertail alone. He is surrounded by too many strong individuals for an open engagement. The long-distance teleportation spell will take thirty minutes to complete; possibly longer…I will not waste <em>eight</em> scrolls. As for the battle, if you believe yourself in danger, return here with the scroll rather than risk yourselves. I have need of you all. None of you are permitted to die.”</p>
+<p>They shivered in delight. They were needed. Their master needed them. He began to trace a complicated pattern on the floor, glowing lines spreading out as he pointed. Az’kerash began to calculate their destination, lips moving slowly. Because he was their master, he could speak and act while he cast the spell.</p>
+<p>“A last note. The innkeeper. I do not know where she will be when you appear. But if she becomes a casualty&#8230;I will understand. Zel Shivertail’s death matters above all. After he dies, you will regroup. The Slayer is there, as is the Small Queen. And one of the Antinium Queens. If I must reveal part of my forces in some form tonight, I will reap the rewards of it. However, I intend to keep my secret. Kill all witnesses. Is that clear?”</p>
+<p>“Yes master.”</p>
+<p>They spoke as one. And watched as the image of Ryoka Griffin fleeing grew closer to the image of Venitra. They were both running through the snow. And no one could catch either one.</p>
+<p>Time was running out for Ryoka. And for Zel Shivertail, and Liscor.</p>
+<p>&nbsp;</p>
+<p>&#8212;-</p>
+<p>&nbsp;</p>
+<p>Ryoka ran. The snow blurred around her. Her legs churned through the ice, biting into the packed snow. She was barefoot. Her feet bled as they landed on shards of ice. She wore no jacket, no long pants. She was in shorts and t-shirt.</p>
+<p>This was the fastest way she could move. Ryoka ran, and felt her legs and body freezing. She was bleeding, leaving a crimson trail in the snow.</p>
+<p>Time. She fumbled at her belt. She had left her belt pouches behind, abandoned her bag of holding. But she had taken something with her. Vials of liquid. She grabbed one with frozen fingertips and removed the cork. The liquid sloshed and some splashed out into the snow. Ryoka ignored it and lifted the sparkling violet liquid up in one shaking hand.</p>
+<p>She poured the potion into her mouth, choking as she tried to swallow and breathe at the same time. The liquid burned going down. And then the fire spread. Her frozen body began to warm. Ryoka felt her feet tingle and her toes began to feel once more. Her feet began to heal, the cuts closing.</p>
+<p>A second potion, as she tossed the empty healing vial away. This one was green and made energy rush through Ryoka’s frame. Her legs began to move quicker. The stamina potion reinvigorated her, healed the aching muscles, and gave her more energy to keep sprinting. Ryoka kept running, trying not to puke.</p>
+<p>These were the eighth and ninth potions she’d downed. The side effects of so many potions was making her sick. She had vomited while running. Twice.</p>
+<p>But she couldn’t stop. Ryoka knew she’d been running for hours. Hours. The instant after she’d written her goodbye letter, she’d gone through the door to Celum, leaving a disguised Ivolethe behind.</p>
+<p>Now the snow and dark night blew around her. It was dark. Ryoka couldn’t tell how long she’d been running; only that it was too long. She had to hurry up. She had to get to the High Passes in time.</p>
+<p>It took half a day of running to get there. Ryoka had to be there <em>faster</em>. She didn’t know how long Ivolethe’s disguise would last, or if she’d slip up when Venitra and Ijvani spoke to her. Would they know? And if they did, what would they do?</p>
+<p>No choice. It was that or let them kill her friends one by one. Ryoka pumped her arms and legs, willing them to run faster. The mountains, the impossibly high peaks loomed in the darkness ahead. So close and too far.</p>
+<p>Ryoka felt like she was running in slow motion. <em>Slow! So slow!</em> She’d seen Valceif run, seen Hawk run—even Relc was faster than she was! She had to go faster.</p>
+<p>Or her friends would die. Erin would die. Mrsha and Lyonette would die. She had to run.</p>
+<p>Something moved in the darkness. Ryoka flinched, expecting wolves, a traveler. But the glow was blue and familiar. She saw it streak ahead of her, and then saw Ivolethe’s tiny form, flying, glowing ahead of her. And just like that, Ryoka knew she’d ran out of time.</p>
+<p>“Ivolethe!”</p>
+<p>She screamed at the faerie, her breath snatched away by the breeze. The faerie looked back and Ryoka saw her flying ahead, flying through the wind. So quick, so effortless.</p>
+<p>She did not speak. Of course not. She’d told Ryoka she was bending all the rules to play a prank like this. That it was a prank was the only reason she could get away. She couldn’t help now.</p>
+<p>It was just Ryoka. So the girl ran as fast and as hard as she ever had. She tried. She really did. She tried to run like the wind. She tried to run <em>with</em> the wind. But it blew in her face.</p>
+<p>And the faerie flew on, looking back. Ryoka raced after her, trying. How did it go? <em>Step as if you want to walk into the sky. That is how faeries fly.</em></p>
+<p>But she was no faerie. She was mortal, afraid, weak. Ryoka felt sick. She tried to feel the wind. It was no good. She was trying, trying so hard! Why couldn’t she do it? Why…why….?</p>
+<p>Why was life so unfair? She was trying. But the wind blew and the snow chilled her. And then Ryoka heard the voice from behind.</p>
+<p><span style="font-size:200%;">“I am coming.”</span></p>
+<p>It was a sound no mortal throat could make. No lungs could contain enough air, no mortal throat could make that sound. It echoed for miles, thundering. Fear made Ryoka run faster. She was coming. She was here.</p>
+<p>Venitra.</p>
+<p>There was a shape blurring through the snow behind Ryoka, in the distance, but moving incredibly fast. Venitra ran, magic making her move at twice, three times her normal speed. Ryoka despaired when she saw that. It wasn’t fair! The bone woman ran towards her. Now her voice was louder.</p>
+<p><span style="font-size:300%;">“You cannot escape me.”</span></p>
+<p>She had promised to kill Ryoka slowly. Kill her and everyone she loved. Ryoka felt her fingers breaking. She ran, pumping her legs. Too slow.</p>
+<p>Ivolethe flew ahead of her, looking back. Ryoka thought she saw other faeries flying in the snow now. Or was it her delusion? The wind blew into her face. She chased the blue glow. But it was always ahead of her. And the magic—where was the magic?</p>
+<p>It was never there when Ryoka needed it. She reached out, lungs burning, legs failing. Ivolethe was disappearing. But the faerie’s tiny head was looking back, urging Ryoka on. Telling her to follow. To run like the wind.</p>
+<p>But Ryoka couldn’t. Tears froze on her face. She ran and whispered a word.</p>
+<p>“Please.”</p>
+<p>Her lungs burned. The word disappeared. Ivolethe’s gaze was caught with hers. Too slow. Venitra appeared out of the blizzard and lunged.</p>
+<p>“<em>I have you!</em>”</p>
+<p>Her golden eyes burned. Ryoka swerved desperately, trying to avoid her. Venitra missed and Ryoka felt her powerful hands snap together where Ryoka’s neck would be. She ran, trying to lose the woman. But Venitra was too quick.</p>
+<p>“You cannot escape me!”</p>
+<p>Ryoka grabbed at her belt pouch and threw a bag. It turned into vines as thick as her legs, tangling around Venitra. The undead roared and tore the Tripvine bag away in moments. She caught up with Ryoka in another.</p>
+<p>“<em>You cannot get away!</em>”</p>
+<p>One step. Two. Ryoka ran and tried to run into the sky. She ran after that tantalizing glow, that bit of blue magic in the storm.</p>
+<p>She failed. Venitra seized hold of her. Her arms were tight on Ryoka’s neck.</p>
+<p>“Now who will save you? No one.”</p>
+<p>Her words ran together, almost too quick to follow, a product of the [Haste] spell. Ryoka closed her eyes. Waiting. Venitra dropped Ryoka and seized hold of her arm. Ryoka twisted, trying to run as one of her fingers was seized in an iron grip. She looked for Ivolethe. She’d always thought the faerie would protect her! But there was no Ivolethe. One of Ryoka’s fingers bent. It snapped.</p>
+<p>She screamed. The second was caught. Again. And then Ryoka did scream.</p>
+<p>“<em>Ivolethe!</em>”</p>
+<p>There was no flash of blue in the blizzard. No sign of her at all. She could not help. Venitra laughed. A third finger was gripped, and Ryoka stared around. But the faerie had not come for her. She and her sisters were gone. There was no blue.</p>
+<p>But there was green. A flash moved past Ryoka in the snow. She blinked and then she heard a voice.</p>
+<p>“<em>[Relc Kick]!</em>”</p>
+<p>A foot smashed into Venitra’s head. She blinked and let go of Ryoka. The girl dropped and Relc appeared. He stared at the Gnoll Named Adventurer and then at Ryoka.</p>
+<p>“Run, you idiot! I thought you were supposed to be <em>fast!</em>”</p>
+<p>Ryoka got to her feet. She ran. Relc faced Regrika Blackpaw as the Gnoll stared at him. She had her sword and shield. He had a wooden spear with a steel tip, solid, thick, and unenchanted. She struck at him. He leapt backwards.</p>
+<p>“Whoa! That’s a [Haste] spell! You cheating bastard!”</p>
+<p>The Human girl ran through the snow. The High Passes were ahead. Venitra, Regrika, hesitated. She turned. A spear tip caught her in the back of the head. Relc yelped.</p>
+<p>“What the <em>hell?</em> What’s your head made of? Rocks?”</p>
+<p>She turned and ran, blurring after Ryoka. Too fast for the Runner to evade or outrun. Regrika was nearly on top of Ryoka when she heard a shout.</p>
+<p>“[Lightning Sprint]! [Triple Thrust]!”</p>
+<p>A shape moved past her, fast, <em>faster</em> than she was. Three spears seemed to appear at once, striking Regrika in the face, side, and arm. She turned, swung her sword. Relc dodged back again, panting.</p>
+<p>“Okay, seriously. I’m retired, you know? And this is a lot faster than I’d like. Can’t you, I dunno, <em>bleed?</em>”</p>
+<p>She snarled at him. Relc snarled back. They fought in the snow. Regrika lunged at Relc, sword swinging. He dodged back, feinting, not willing to block her strikes. His spear shot out, was blocked by her armor, her shield. A thrust hit her in the face, glanced off.</p>
+<p>“<em>This </em>is why I wanted my enchanted spear! But noooo—”</p>
+<p>Relc yelped and zipped back a few steps as Regrika lunged again. He was panting hard now, his face greying with exhaustion. He held up a hand, chest heaving.</p>
+<p>“Okay, okay, I may be a bit out of shape. And my Skills don’t last forever. Why don’t you…is that [Haste] spell expired yet?”</p>
+<p>She charged at him. Relc struck her twice with his spear. She rammed forwards with her shield and he had to block. His spear <em>splintered </em>from the impact and he fell back. Relc stared at the bits of spears in his hand and then at Venitra. He curled a fist.</p>
+<p>“[Relc Punch]! Relc Punch! Damn it, I could really use an actual Skill like that!”</p>
+<p>He punched her twice as she swung at him. She caught his chest and laid it open with a strike. Relc cried out and ran, fumbling at his belt for a healing potion.</p>
+<p>“Too old for this! Good luck, Runner Girl!”</p>
+<p>Venitra let him go. She turned to the High Passes. In the distance, a girl was running through the snow. Goats were racing after her. Stone gargoyles stirred in their frozen nests. Venitra ran. She caught Ryoka five seconds later.</p>
+<p>&nbsp;</p>
+<p>&#8212;-</p>
+<p>&nbsp;</p>
+<p>This was how it ended. Ivolethe closed her eyes as Venitra swung Ryoka bodily into a rock face. The girl cried out. Venitra turned and beheaded one of the fearless goats that were trying to bite her leg.</p>
+<p>Her sisters floated in the air around Ivolethe. They chattered, some laughing, others mocking Ryoka. Some sympathized with the girl, other the undead bound by spells and loyalty to her master. Some cared. Others did not.</p>
+<p>But Ivolethe alone knew the scene below mattered. She alone remembered Ryoka’s name. She alone called her friend.</p>
+<p>But she had done too much. Too much. The rules had been bent, and trespassed in places. Ivolethe had done all she could. And it was not enough.</p>
+<p>&nbsp;</p>
+<p><span style="color:#8ae8ff;">“Sister, sister. Do not interfere. Our King watches. He knows!”</span></p>
+<p>&nbsp;</p>
+<p>One of her sisters, young and impetuous, cautioned Ivolethe. Another, old as time, spoke.</p>
+<p>&nbsp;</p>
+<p><span style="color:#8ae8ff;">“It is not worth it. Not for her. Not for a mortal.”</span></p>
+<p>&nbsp;</p>
+<p>All agreed. The Frost Faerie floated in the air, their transient forms of ice turning slowly to water. Ivolethe looked at them. Slowly, she nodded.</p>
+<p>&nbsp;</p>
+<p><span style="color:#8ae8ff;">“You are right, sisters. She is not. A mortal is not, for all her passion. For all her wonder. She is not worth interfering with, not worth breaking the rules. Not as she is.”</span></p>
+<p>&nbsp;</p>
+<p>They agreed. Some laughed. Others wept. They were more than creatures of snow and ice. Their natures were changing. They were changing. Ivolethe looked down at the ground. To break the rules was to be punished. That was how rules worked. But they were rules for a reason.</p>
+<p>They could be broken, if you were willing to pay the price. She swept downwards. Hands grabbed at her.</p>
+<p>&nbsp;</p>
+<p><span style="color:#8ae8ff;">“Sister, <em>no!</em> Did you not say?”</span></p>
+<p><span style="color:#8ae8ff;">“It is not worth the cost! Not for a mortal! You said, you said!”</span></p>
+<p><span style="color:#8ae8ff;">“Yes.”</span></p>
+<p>&nbsp;</p>
+<p>Ivolethe’s voice was distant. She flew, ignoring the cries of her sisters, summoning the last of her strength. Her body froze, colder than winter. Her voice echoed.</p>
+<p>&nbsp;</p>
+<p><span style="color:#8ae8ff;">“It is not worth it. Not for what she is. But perhaps. For what she might <em>become.</em> And for one reason more. Because she is my <em>friend</em>.”</span></p>
+<p>&nbsp;</p>
+<p>She dove and the world froze around her. Venitra, laughing, froze with Ryoka in her arms. Her hands froze and Ryoka fell. The girl stared. The High Passes, cold and snowing, froze. Ice, such as had never been seen before or since on this world covered the sky, the earth, and the undead woman.</p>
+<p>Ice. The frost of the beginning and end chilled the earth for a moment and froze the air itself. Venitra stood, astonished, frozen, and her master stopped, his eyes wide. Ryoka stared up at Ivolethe as the faerie smiled down at her.</p>
+<p>A small smile. A friend’s smile. Then the air <em>bent</em>. There was wrongness here. Something had happened. Someone had broken a rule. The Frost Faeries flew around Ivolethe, screaming.</p>
+<p>&nbsp;</p>
+<p><span style="color:#8ae8ff;">“You broke it! The rule! <em>You broke the rules!</em>”</span></p>
+<p>&nbsp;</p>
+<p>Ivolethe stood in the air, looking down at Ryoka, her friend. She was smiling. She opened her mouth, and in that moment the wind ceased. The other faeries quieted, and Ryoka heard Ivolethe’s words.</p>
+<p>&nbsp;</p>
+<p><span style="color:#8ae8ff;">“Remember. Remember it all. This is truth. This is wonder. This is magic.”</span></p>
+<p>&nbsp;</p>
+<p>Then she leapt up. She flew towards the sky, laughing, daring her King. She cried out.</p>
+<p>&nbsp;</p>
+<p><span style="color:#8ae8ff;">“Blow winds and come, wrack! Lord what fools these immortals be! Come! Come and see what cold cannot freeze and winds cannot erase! I am no coward! Let the storm rage on! Let the earth hear my cry! I am Ivolethe! <em>And I will not let my friend die!</em>”</span></p>
+<p>&nbsp;</p>
+<p>The world paused, and Ryoka looked up. She saw a host in the sky, watching figures, made of snow and ice. And felt a presence. The lone glow of Ivolethe’s light spiraled up, higher and higher to that celestial host. And then fell. Ivolethe fell to earth in front of Ryoka. And broke.</p>
+<p>The Frost Faerie’s body of ice shattered to pieces on the ground below. Where once had been life was just melted water. Memory. Nothing more.</p>
+<p>The world groaned and was silent. The Frost Faeries around Ryoka hushed. And the ice around Venitra began to melt. Ryoka got up. She turned and ran. And wept.</p>
+<p>&nbsp;</p>
+<p>&#8212;-</p>
+<p>&nbsp;</p>
+<p>He was old. And tired. And sleeping. Teriarch woke as she ran into his cave, woke as his spells alerted him. He opened an eye.</p>
+<p>“What now? I thought I told you we would never meet again, girl. There is nothing for you here. Nothing I will give. Why tempt my wrath? Why try?”</p>
+<p>A broken voice was his reply. Ryoka stood in the cavern of the Dragon, bleeding, fingers broken, weeping. As Teriarch woke and realized what he saw, she shouted at him, screamed.</p>
+<p>“Why? Because I can’t do it myself! I can’t! And <em>you—</em>you didn’t know! Do you even care?”</p>
+<p>“Care? What’s going on? Why are your fingers—”</p>
+<p>Teriarch stared at Ryoka, befuddled. She strode towards him, and the gold Dragon looked into her eyes. Ryoka’s voice was hoarse, and she was trembling. Still crying.</p>
+<p>“My friends! Everyone I love! He’ll kill them all! Is this a game to you? Didn’t you <em>think</em> about what the consequences would be? Why do they have to die—why did he have to die because of a damn letter? A birthday letter? Why didn’t you protect them? Why did they have to die?”</p>
+<p>“Who? What’s going on?”</p>
+<p>She didn’t answer him, not right away. Ryoka trembled. She inhaled several times. Then she spoke. She looked at Teriarch and shouted it at him, at the Dragon, in his cave of wonderful and useless treasures.</p>
+<p>“You know who! Him! Perril Chandler, the bastard who lives in the Blood Fields! The one you wanted me to find! The Necromancer! <em>Az’kerash!</em>”</p>
+<p>Ryoka said it. She shouted it at Teriarch. The Dragon inhaled. He hesitated, struck by guilt. Then by anger. He opened his mouth to tell her it wasn’t his business, that he didn’t care.</p>
+<p>He never got the chance. Ryoka clutched at her chest. Something was wrong. Something was happening. Teriarch saw magic around her. His ears heard her heart squeezing, heard her breath catch. And then the spell activated.</p>
+<p>Ryoka’s heart burst. She collapsed. Teriarch stared at Ryoka Griffin as she fell to the ground. He stared. She lay on the ground, dead. Teriarch reached out with a trembling claw and touched her. Then he opened his wings and <em>roared.</em></p>
+<p>&nbsp;</p>
+<hr />
+<p><a href="https://wanderinginn.com/2018/04/17/4-29/">Previous Chapter</a> <span style="float:right;"><a href="https://wanderinginn.com/2018/04/24/4-31">Next Chapter</a></span></p>
+			</div><!-- .entry-content -->
+
+	<footer class="entry-meta">
+		This entry was posted in <a href="https://wanderinginn.com/tag/writing/" rel="category tag">Writing</a> and tagged <a href="https://wanderinginn.com/tag/fantasy/" rel="tag">fantasy</a>, <a href="https://wanderinginn.com/tag/inn/" rel="tag">inn</a>, <a href="https://wanderinginn.com/tag/web-novel/" rel="tag">web novel</a>, <a href="https://wanderinginn.com/tag/web-serial/" rel="tag">web serial</a>, <a href="https://wanderinginn.com/tag/writing/" rel="tag">Writing</a> by <a href="https://wanderinginn.com/author/pirateaba/">pirateaba</a>. Bookmark the <a href="https://wanderinginn.com/2018/04/21/4-30/" title="Permalink to 4.30" rel="bookmark">permalink</a>.
+		
+			</footer><!-- .entry-meta -->
+</article><!-- #post-4245 -->
+
+						<div id="comments">
+	
+	
+			<h2 id="comments-title">
+			158 thoughts on &ldquo;<span>4.30</span>&rdquo;		</h2>
+
+				<nav id="comment-nav-above">
+			<h1 class="assistive-text">Comment navigation</h1>
+			<div class="nav-previous"><a href="https://wanderinginn.com/2018/04/21/4-30/comment-page-1/#comments" >&larr; Older Comments</a></div>
+			<div class="nav-next"></div>
+		</nav>
+		
+		<ol class="commentlist">
+					<li class="comment even thread-even depth-1 highlander-comment" id="li-comment-13165">
+		<article id="comment-13165" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/ce63d3859c05897c939feef48d0862ad?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Author Unknown</span> on <a href="https://wanderinginn.com/2018/04/21/4-30/comment-page-2/#comment-13165"><time datetime="2018-04-27T20:28:51+00:00">April 27, 2018 at 8:28 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>I was really expecting Pawn to get his [Acolyte] on and break out some [Turn Undead]</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/04/21/4-30/comment-page-2/?replytocom=13165#respond' data-commentid="13165" data-postid="4245" data-belowelement="comment-13165" data-respondelement="respond" data-replyto="Reply to Author Unknown" aria-label='Reply to Author Unknown'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment byuser comment-author-ricoanthony16 odd alt depth-2 highlander-comment" id="li-comment-94818">
+		<article id="comment-94818" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/5c0e3677d73e1d4778c6fc4bc6ccc3a7?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn"><a href='http://ricoanthony16.wordpress.com' rel='external nofollow ugc' class='url'>ricoanthony16</a></span> on <a href="https://wanderinginn.com/2018/04/21/4-30/comment-page-2/#comment-94818"><time datetime="2020-11-28T11:43:38+00:00">November 28, 2020 at 11:43 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>She was not affected by the chaos of combat and she could think with perfect clarify (clarity) as spells and arrows flew around her.<br />
+I got caught up in the story, so this may be in the last chapter.<br />
+Some sympathized with the girl, other (others?) the undead bound by spells and loyalty to her master. </p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/04/21/4-30/comment-page-2/?replytocom=94818#respond' data-commentid="94818" data-postid="4245" data-belowelement="comment-94818" data-respondelement="respond" data-replyto="Reply to ricoanthony16" aria-label='Reply to ricoanthony16'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		<li class="comment even thread-odd thread-alt depth-1 highlander-comment" id="li-comment-53017">
+		<article id="comment-53017" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/dd0adb1f3ec9d53bcb0b34af3f3e1f35?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn"><a href='http://hx-community.net' rel='external nofollow ugc' class='url'>Maddin</a></span> on <a href="https://wanderinginn.com/2018/04/21/4-30/comment-page-2/#comment-53017"><time datetime="2019-01-17T13:39:38+00:00">January 17, 2019 at 1:39 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>That was really touching. My eyes are full of unshed tears!</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/04/21/4-30/comment-page-2/?replytocom=53017#respond' data-commentid="53017" data-postid="4245" data-belowelement="comment-53017" data-respondelement="respond" data-replyto="Reply to Maddin" aria-label='Reply to Maddin'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment odd alt depth-2 highlander-comment" id="li-comment-69317">
+		<article id="comment-69317" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/5d8de493168e0493a9409b55200af50e?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">Falloutgramma</span> on <a href="https://wanderinginn.com/2018/04/21/4-30/comment-page-2/#comment-69317"><time datetime="2019-10-25T20:46:51+00:00">October 25, 2019 at 8:46 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Yes crying</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/04/21/4-30/comment-page-2/?replytocom=69317#respond' data-commentid="69317" data-postid="4245" data-belowelement="comment-69317" data-respondelement="respond" data-replyto="Reply to Falloutgramma" aria-label='Reply to Falloutgramma'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-tyriantybalt even thread-even depth-1 highlander-comment" id="li-comment-55156">
+		<article id="comment-55156" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/779cfd99efd44d7e087f9e00e0ba7aad?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn"><a href='http://tyriantybalt.wordpress.com' rel='external nofollow ugc' class='url'>tyriantybalt</a></span> on <a href="https://wanderinginn.com/2018/04/21/4-30/comment-page-2/#comment-55156"><time datetime="2019-02-20T17:22:26+00:00">February 20, 2019 at 5:22 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>&#8212;&#8212;&#8212;<br />
+Bolts of energy splashed across Regrika’s body, a cluster of vines ensnared her legs—she raised her shield and caught a glowing purple orb from *Typehnous.<br />
+&#8212;&#8212;&#8212;<br />
+She backhanded Jelaqua with a shield and sent the Selphid tumbling backwards, *unconcious.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/04/21/4-30/comment-page-2/?replytocom=55156#respond' data-commentid="55156" data-postid="4245" data-belowelement="comment-55156" data-respondelement="respond" data-replyto="Reply to tyriantybalt" aria-label='Reply to tyriantybalt'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-60854">
+		<article id="comment-60854" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/b4615c0f066b3049dcb04379549e4d58?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Onyavar</span> on <a href="https://wanderinginn.com/2018/04/21/4-30/comment-page-2/#comment-60854"><time datetime="2019-06-11T07:35:58+00:00">June 11, 2019 at 7:35 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>ak&#8230;<br />
+argh.<br />
+So many deaths here. So much drama. So much &#8216;whodunnit&#8217; with Erin smugly listing all the clues that clued her in, and the undead calmly waiting for her to finish the entire reasoning.</p>
+<p>I know the next chapters already exist for more than a year, but I wonder how they go. Is it better writing to resurrect Ryoka through some obscure mechanic? Because she has no levels, or because Teriarch knows good enough magic, or because the Queen of Liscor uses her brain to create the next Queen in ritual, or because the Winter King turns her soul into a frost fairy&#8230;</p>
+<p>Or does this fine, angry, busy character finally get some rest? I mean, that would be sad, but in a storytelling sense Ryoka has fulfilled her purpose. Most writers would let her stay dead, especially because Ryoka invoked her death willingly. Suicide by spell? Hm. Is Teaba a ruthless writer or a softhearted one &#8211; here is the decisive turn.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/04/21/4-30/comment-page-2/?replytocom=60854#respond' data-commentid="60854" data-postid="4245" data-belowelement="comment-60854" data-respondelement="respond" data-replyto="Reply to Onyavar" aria-label='Reply to Onyavar'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="li-comment-71745">
+		<article id="comment-71745" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/df9869ea56c60e97deb9608ce66e7146?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Rima</span> on <a href="https://wanderinginn.com/2018/04/21/4-30/comment-page-2/#comment-71745"><time datetime="2019-11-24T20:41:54+00:00">November 24, 2019 at 8:41 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>I think I’m slightly in love with Bird. Omg he made sure to mention it was Not bird poo.<br />
+Also, will Erin have a love interest? She is so warm and full of life I wish she could share it with someone who has her back.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/04/21/4-30/comment-page-2/?replytocom=71745#respond' data-commentid="71745" data-postid="4245" data-belowelement="comment-71745" data-respondelement="respond" data-replyto="Reply to Rima" aria-label='Reply to Rima'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-76698">
+		<article id="comment-76698" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/0609f8c6e3cf869613e08c639119a4fa?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Leaf</span> on <a href="https://wanderinginn.com/2018/04/21/4-30/comment-page-2/#comment-76698"><time datetime="2020-02-02T15:47:03+00:00">February 2, 2020 at 3:47 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Unfortunately my guess is Ryoka comes back to life she has already been shown to know and be able to do just about anything, I figure beating death will be no different.  I don’t say unfortunately because I want her to be dead, it’s just that I get tired of deaths being so often a temporary thing and therefore meaningless.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/04/21/4-30/comment-page-2/?replytocom=76698#respond' data-commentid="76698" data-postid="4245" data-belowelement="comment-76698" data-respondelement="respond" data-replyto="Reply to Leaf" aria-label='Reply to Leaf'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment even depth-2 highlander-comment" id="li-comment-108534">
+		<article id="comment-108534" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/ea71d74f284a83f46b52406be5b51a3a?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">NattyNatty2x4</span> on <a href="https://wanderinginn.com/2018/04/21/4-30/comment-page-2/#comment-108534"><time datetime="2021-07-18T15:44:43+00:00">July 18, 2021 at 3:44 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Agreed, it&#8217;s a false danger if the main characters don&#8217;t stay dead. This &#8220;just kidding&#8221; kinda stuff ruins a story</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/04/21/4-30/comment-page-2/?replytocom=108534#respond' data-commentid="108534" data-postid="4245" data-belowelement="comment-108534" data-respondelement="respond" data-replyto="Reply to NattyNatty2x4" aria-label='Reply to NattyNatty2x4'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-even depth-1 highlander-comment" id="li-comment-101524">
+		<article id="comment-101524" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/450d1d5352afe8d7b40f097607fc5f5c?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn"><a href='http:www.louisesor.wordpress.com' rel='external nofollow ugc' class='url'>Louise Sorensen</a></span> on <a href="https://wanderinginn.com/2018/04/21/4-30/comment-page-2/#comment-101524"><time datetime="2021-03-17T02:53:43+00:00">March 17, 2021 at 2:53 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>😭</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/04/21/4-30/comment-page-2/?replytocom=101524#respond' data-commentid="101524" data-postid="4245" data-belowelement="comment-101524" data-respondelement="respond" data-replyto="Reply to Louise Sorensen" aria-label='Reply to Louise Sorensen'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment even thread-odd thread-alt depth-1 highlander-comment" id="li-comment-127037">
+		<article id="comment-127037" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/768ad0c2c11593ace1e333866fdd97e0?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Gensokyo Bus Driver</span> on <a href="https://wanderinginn.com/2018/04/21/4-30/comment-page-2/#comment-127037"><time datetime="2022-05-05T20:41:09+00:00">May 5, 2022 at 8:41 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>This Az&#8217;Kerash guy does remind of Overlord.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/04/21/4-30/comment-page-2/?replytocom=127037#respond' data-commentid="127037" data-postid="4245" data-belowelement="comment-127037" data-respondelement="respond" data-replyto="Reply to Gensokyo Bus Driver" aria-label='Reply to Gensokyo Bus Driver'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		</ol>
+
+				<nav id="comment-nav-below">
+			<h1 class="assistive-text">Comment navigation</h1>
+			<div class="nav-previous"><a href="https://wanderinginn.com/2018/04/21/4-30/comment-page-1/#comments" >&larr; Older Comments</a></div>
+			<div class="nav-next"></div>
+		</nav>
+		
+		
+	
+		<div id="respond" class="comment-respond">
+		<h3 id="reply-title" class="comment-reply-title">Leave a Reply <small><a rel="nofollow" id="cancel-comment-reply-link" href="/2018/04/21/4-30/#respond" style="display:none;">Cancel reply</a></small></h3><form action="https://wanderinginn.com/wp-comments-post.php" method="post" id="commentform" class="comment-form"><input type="hidden" id="highlander_comment_nonce" name="highlander_comment_nonce" value="bd33e1bdd8" /><input type="hidden" name="_wp_http_referer" value="/2018/04/21/4-30/" />
+<input type="hidden" name="hc_post_as" id="hc_post_as" value="guest" />
+
+<div class="comment-form-field comment-textarea">
+	<label for="comment">Enter your comment here...</label>
+	<div id="comment-form-comment"><textarea id="comment" name="comment" title="Enter your comment here..."></textarea></div>
+</div>
+
+<div id="comment-form-identity">
+	<div id="comment-form-nascar">
+		<p>Fill in your details below or click an icon to log in:</p>
+		<ul>
+			<li class="selected" style="display:none;">
+				<a href="#comment-form-guest" id="postas-guest" class="nascar-signin-link"
+				 title="Login via Guest" 				>
+									</a>
+			</li>
+			<li>
+				<a href="#comment-form-load-service:WordPress.com" id="postas-wordpress" class="nascar-signin-link"
+				 title="Login via WordPress.com" 				>
+					<svg xmlns="http://www.w3.org/2000/svg" role="presentation" viewBox="0 0 24 24" ><rect x="0" fill="none" width="24" height="24"/><g><path fill="#FFF" d="M12.158 12.786l-2.698 7.84c.806.236 1.657.365 2.54.365 1.047 0 2.05-.18 2.986-.51-.024-.037-.046-.078-.065-.123l-2.762-7.57zM3.008 12c0 3.56 2.07 6.634 5.068 8.092L3.788 8.342c-.5 1.117-.78 2.354-.78 3.658zm15.06-.454c0-1.112-.398-1.88-.74-2.48-.456-.74-.883-1.368-.883-2.11 0-.825.627-1.595 1.51-1.595.04 0 .078.006.116.008-1.598-1.464-3.73-2.36-6.07-2.36-3.14 0-5.904 1.613-7.512 4.053.21.008.41.012.58.012.94 0 2.395-.114 2.395-.114.484-.028.54.684.057.74 0 0-.487.058-1.03.086l3.275 9.74 1.968-5.902-1.4-3.838c-.485-.028-.944-.085-.944-.085-.486-.03-.43-.77.056-.742 0 0 1.484.114 2.368.114.94 0 2.397-.114 2.397-.114.486-.028.543.684.058.74 0 0-.488.058-1.03.086l3.25 9.665.897-2.997c.456-1.17.684-2.137.684-2.907zm1.82-3.86c.04.286.06.593.06.924 0 .912-.17 1.938-.683 3.22l-2.746 7.94c2.672-1.558 4.47-4.454 4.47-7.77 0-1.564-.4-3.033-1.1-4.314zM12 22C6.486 22 2 17.514 2 12S6.486 2 12 2s10 4.486 10 10-4.486 10-10 10z"/></g></svg>				</a>
+			</li>
+			<li>
+				<a href="#comment-form-load-service:Twitter" id="postas-twitter" class="nascar-signin-link"
+				 title="Login via Twitter" 				>
+					<svg xmlns="http://www.w3.org/2000/svg" role="presentation" viewBox="0 0 24 24" ><rect x="0" fill="none" width="24" height="24"/><g><path fill="#FFF" d="M22.23 5.924c-.736.326-1.527.547-2.357.646.847-.508 1.498-1.312 1.804-2.27-.793.47-1.67.812-2.606.996C18.325 4.498 17.258 4 16.078 4c-2.266 0-4.103 1.837-4.103 4.103 0 .322.036.635.106.935-3.41-.17-6.433-1.804-8.457-4.287-.353.607-.556 1.312-.556 2.064 0 1.424.724 2.68 1.825 3.415-.673-.022-1.305-.207-1.86-.514v.052c0 1.988 1.415 3.647 3.293 4.023-.344.095-.707.145-1.08.145-.265 0-.522-.026-.773-.074.522 1.63 2.038 2.817 3.833 2.85-1.404 1.1-3.174 1.757-5.096 1.757-.332 0-.66-.02-.98-.057 1.816 1.164 3.973 1.843 6.29 1.843 7.547 0 11.675-6.252 11.675-11.675 0-.178-.004-.355-.012-.53.802-.578 1.497-1.3 2.047-2.124z"/></g></svg>				</a>
+			</li>
+			<li>
+				<a href="#comment-form-load-service:Facebook" id="postas-facebook" class="nascar-signin-link"
+				 title="Login via Facebook" 				>
+					<svg xmlns="http://www.w3.org/2000/svg" role="presentation" viewBox="0 0 24 24" ><rect x="0" fill="none" width="24" height="24"/><g><path fill="#FFF" d="M20.007 3H3.993C3.445 3 3 3.445 3 3.993v16.013c0 .55.445.994.993.994h8.62v-6.97H10.27V11.31h2.346V9.31c0-2.325 1.42-3.59 3.494-3.59.993 0 1.847.073 2.096.106v2.43h-1.438c-1.128 0-1.346.537-1.346 1.324v1.734h2.69l-.35 2.717h-2.34V21h4.587c.548 0 .993-.445.993-.993V3.993c0-.548-.445-.993-.993-.993z"/></g></svg>				</a>
+			</li>
+		</ul>
+	</div>
+
+	<div id="comment-form-guest" class="comment-form-service selected">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+<a href="https://gravatar.com/site/signup/" target="_blank">				<img src="https://1.gravatar.com/avatar/ad516503a11cd5ca435acc9bb6523536?s=25&amp;d=identicon&amp;forcedefault=y&amp;r=PG" alt="Gravatar" width="25" class="no-grav" />
+</a>			</div>
+
+				<div class="comment-form-fields">
+				<div class="comment-form-field comment-form-email">
+					<label for="email">Email <span class="required">(required)</span> <span class="nopublish">(Address never made public)</span></label>
+					<div class="comment-form-input"><input id="email" name="email" type="email" value="" /></div>
+				</div>
+				<div class="comment-form-field comment-form-author">
+					<label for="author">Name <span class="required">(required)</span></label>
+					<div class="comment-form-input"><input id="author" name="author" type="text" value="" /></div>
+				</div>
+				<div class="comment-form-field comment-form-url">
+					<label for="url">Website</label>
+					<div class="comment-form-input"><input id="url" name="url" type="url" value="" /></div>
+				</div>
+			</div>
+			
+		</div>
+	</div>
+
+	<div id="comment-form-wordpress" class="comment-form-service">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+				<img src="https://1.gravatar.com/avatar/ad516503a11cd5ca435acc9bb6523536?s=25&amp;d=identicon&amp;forcedefault=y&amp;r=PG" alt="WordPress.com Logo" width="25" class="no-grav" />
+			</div>
+
+				<div class="comment-form-fields">
+				<input type="hidden" name="wp_avatar" id="wordpress-avatar" class="comment-meta-wordpress" value="" />
+				<input type="hidden" name="wp_user_id" id="wordpress-user_id" class="comment-meta-wordpress" value="" />
+				<input type="hidden" name="wp_access_token" id="wordpress-access_token" class="comment-meta-wordpress" value="" />
+						<p class="comment-form-posting-as pa-wordpress">
+			<strong></strong>
+			You are commenting using your WordPress.com account.			<span class="comment-form-log-out">
+				(&nbsp;<a href="javascript:HighlanderComments.doExternalLogout( 'wordpress' );">Log&nbsp;Out</a>&nbsp;/&nbsp;
+				<a href="#" onclick="javascript:HighlanderComments.switchAccount();return false;">Change</a>&nbsp;)
+			</span>
+			<span class="pa-icon"><svg xmlns="http://www.w3.org/2000/svg" role="presentation" viewBox="0 0 24 24" ><rect x="0" fill="none" width="24" height="24"/><g><path fill="#FFF" d="M12.158 12.786l-2.698 7.84c.806.236 1.657.365 2.54.365 1.047 0 2.05-.18 2.986-.51-.024-.037-.046-.078-.065-.123l-2.762-7.57zM3.008 12c0 3.56 2.07 6.634 5.068 8.092L3.788 8.342c-.5 1.117-.78 2.354-.78 3.658zm15.06-.454c0-1.112-.398-1.88-.74-2.48-.456-.74-.883-1.368-.883-2.11 0-.825.627-1.595 1.51-1.595.04 0 .078.006.116.008-1.598-1.464-3.73-2.36-6.07-2.36-3.14 0-5.904 1.613-7.512 4.053.21.008.41.012.58.012.94 0 2.395-.114 2.395-.114.484-.028.54.684.057.74 0 0-.487.058-1.03.086l3.275 9.74 1.968-5.902-1.4-3.838c-.485-.028-.944-.085-.944-.085-.486-.03-.43-.77.056-.742 0 0 1.484.114 2.368.114.94 0 2.397-.114 2.397-.114.486-.028.543.684.058.74 0 0-.488.058-1.03.086l3.25 9.665.897-2.997c.456-1.17.684-2.137.684-2.907zm1.82-3.86c.04.286.06.593.06.924 0 .912-.17 1.938-.683 3.22l-2.746 7.94c2.672-1.558 4.47-4.454 4.47-7.77 0-1.564-.4-3.033-1.1-4.314zM12 22C6.486 22 2 17.514 2 12S6.486 2 12 2s10 4.486 10 10-4.486 10-10 10z"/></g></svg></span>
+		</p>
+					</div>
+	
+		</div>
+	</div>
+
+	<div id="comment-form-twitter" class="comment-form-service">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+				<img src="https://1.gravatar.com/avatar/ad516503a11cd5ca435acc9bb6523536?s=25&amp;d=identicon&amp;forcedefault=y&amp;r=PG" alt="Twitter picture" width="25" class="no-grav" />
+			</div>
+
+				<div class="comment-form-fields">
+				<input type="hidden" name="twitter_avatar" id="twitter-avatar" class="comment-meta-twitter" value="" />
+				<input type="hidden" name="twitter_user_id" id="twitter-user_id" class="comment-meta-twitter" value="" />
+				<input type="hidden" name="twitter_access_token" id="twitter-access_token" class="comment-meta-twitter" value="" />
+						<p class="comment-form-posting-as pa-twitter">
+			<strong></strong>
+			You are commenting using your Twitter account.			<span class="comment-form-log-out">
+				(&nbsp;<a href="javascript:HighlanderComments.doExternalLogout( 'twitter' );">Log&nbsp;Out</a>&nbsp;/&nbsp;
+				<a href="#" onclick="javascript:HighlanderComments.switchAccount();return false;">Change</a>&nbsp;)
+			</span>
+			<span class="pa-icon"><svg xmlns="http://www.w3.org/2000/svg" role="presentation" viewBox="0 0 24 24" ><rect x="0" fill="none" width="24" height="24"/><g><path fill="#FFF" d="M22.23 5.924c-.736.326-1.527.547-2.357.646.847-.508 1.498-1.312 1.804-2.27-.793.47-1.67.812-2.606.996C18.325 4.498 17.258 4 16.078 4c-2.266 0-4.103 1.837-4.103 4.103 0 .322.036.635.106.935-3.41-.17-6.433-1.804-8.457-4.287-.353.607-.556 1.312-.556 2.064 0 1.424.724 2.68 1.825 3.415-.673-.022-1.305-.207-1.86-.514v.052c0 1.988 1.415 3.647 3.293 4.023-.344.095-.707.145-1.08.145-.265 0-.522-.026-.773-.074.522 1.63 2.038 2.817 3.833 2.85-1.404 1.1-3.174 1.757-5.096 1.757-.332 0-.66-.02-.98-.057 1.816 1.164 3.973 1.843 6.29 1.843 7.547 0 11.675-6.252 11.675-11.675 0-.178-.004-.355-.012-.53.802-.578 1.497-1.3 2.047-2.124z"/></g></svg></span>
+		</p>
+					</div>
+	
+		</div>
+	</div>
+
+	<div id="comment-form-facebook" class="comment-form-service">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+				<img src="" alt="Facebook photo" width="25" class="no-grav" />
+			</div>
+
+				<div class="comment-form-fields">
+				<input type="hidden" name="fb_avatar" id="facebook-avatar" class="comment-meta-facebook" value="" />
+				<input type="hidden" name="fb_user_id" id="facebook-user_id" class="comment-meta-facebook" value="" />
+				<input type="hidden" name="fb_access_token" id="facebook-access_token" class="comment-meta-facebook" value="" />
+						<p class="comment-form-posting-as pa-facebook">
+			<strong></strong>
+			You are commenting using your Facebook account.			<span class="comment-form-log-out">
+				(&nbsp;<a href="javascript:HighlanderComments.doExternalLogout( 'facebook' );">Log&nbsp;Out</a>&nbsp;/&nbsp;
+				<a href="#" onclick="javascript:HighlanderComments.switchAccount();return false;">Change</a>&nbsp;)
+			</span>
+			<span class="pa-icon"><svg xmlns="http://www.w3.org/2000/svg" role="presentation" viewBox="0 0 24 24" ><rect x="0" fill="none" width="24" height="24"/><g><path fill="#FFF" d="M20.007 3H3.993C3.445 3 3 3.445 3 3.993v16.013c0 .55.445.994.993.994h8.62v-6.97H10.27V11.31h2.346V9.31c0-2.325 1.42-3.59 3.494-3.59.993 0 1.847.073 2.096.106v2.43h-1.438c-1.128 0-1.346.537-1.346 1.324v1.734h2.69l-.35 2.717h-2.34V21h4.587c.548 0 .993-.445.993-.993V3.993c0-.548-.445-.993-.993-.993z"/></g></svg></span>
+		</p>
+					</div>
+	
+		</div>
+	</div>
+
+
+	<div id="comment-form-load-service" class="comment-form-service">
+		<div class="comment-form-posting-as-cancel"><a href="javascript:HighlanderComments.cancelExternalWindow();">Cancel</a></div>
+		<p>Connecting to %s</p>
+	</div>
+
+</div>
+
+<script type="text/javascript">
+var highlander_expando_javascript = function () {
+
+	function hide( sel ) {
+		var el = document.querySelector( sel );
+		if ( el ) {
+			el.style.setProperty( 'display', 'none' );
+		}
+	}
+
+	function show( sel ) {
+		var el = document.querySelector( sel );
+		if ( el ) {
+			el.style.removeProperty( 'display' );
+		}
+	}
+
+	var input = document.createElement( 'input' );
+	var comment = document.querySelector( '#comment' );
+
+	if ( input && comment && 'placeholder' in input ) {
+		var label = document.querySelector( '.comment-textarea label' );
+		if ( label ) {
+			var text = label.textContent;
+			label.parentNode.removeChild( label );
+			comment.setAttribute( 'placeholder', text );
+		}
+	}
+
+	// Expando Mode: start small, then auto-resize on first click + text length
+	hide( '#comment-form-identity' );
+	hide( '#comment-form-subscribe' );
+	hide( '#commentform .form-submit' );
+
+	if ( comment ) {
+		comment.style.height = '10px';
+
+		var handler = function () {
+			comment.style.height = HighlanderComments.initialHeight + 'px';
+			show( '#comment-form-identity' );
+			show( '#comment-form-subscribe' );
+			show( '#commentform .form-submit' );
+			HighlanderComments.resizeCallback();
+
+			comment.removeEventListener( 'focus', handler );
+		};
+
+		comment.addEventListener( 'focus', handler );
+	}
+}
+
+if ( document.readyState !== 'loading' ) {
+	highlander_expando_javascript();
+} else {
+	document.addEventListener( 'DOMContentLoaded', highlander_expando_javascript );
+}
+
+</script>
+
+<div id="comment-form-subscribe">
+	<p class="comment-subscription-form"><input type="checkbox" name="subscribe" id="subscribe" value="subscribe" style="width: auto;"/> <label class="subscribe-label" id="subscribe-label" for="subscribe" style="display: inline;">Notify me of new comments via email.</label></p><p class="post-subscription-form"><input type="checkbox" name="subscribe_blog" id="subscribe_blog" value="subscribe" style="width: auto;"/> <label class="subscribe-label" id="subscribe-blog-label" for="subscribe_blog"  style="display: inline;">Notify me of new posts via email.</label></p></div>
+
+
+
+
+<p class="form-submit"><input name="submit" type="submit" id="comment-submit" class="submit button" value="Post Comment" /> <input type='hidden' name='comment_post_ID' value='4245' id='comment_post_ID' />
+<input type='hidden' name='comment_parent' id='comment_parent' value='0' />
+</p><p style="display: none;"><input type="hidden" id="akismet_comment_nonce" name="akismet_comment_nonce" value="a028baa28a" /></p>
+<input type="hidden" name="genseq" value="1664899969" />
+<p style="display: none !important;"><label>&#916;<textarea name="ak_hp_textarea" cols="45" rows="8" maxlength="100"></textarea></label><input type="hidden" id="ak_js_1" name="ak_js" value="6"/><script>document.getElementById( "ak_js_1" ).setAttribute( "value", ( new Date() ).getTime() );</script></p></form>	</div><!-- #respond -->
+	<div style="clear: both"></div>
+</div><!-- #comments -->
+
+				
+			</div><!-- #content -->
+		</div><!-- #primary -->
+
+
+	</div><!-- #main -->
+
+	<footer id="colophon">
+
+			
+
+			<div id="site-generator">
+				 								<a href="https://wordpress.com/?ref=footer_blog" rel="nofollow">Blog at WordPress.com.</a>
+			</div>
+	</footer><!-- #colophon -->
+</div><!-- #page -->
+
+<!--  -->
+<script type="text/javascript">
+	window._tkq = window._tkq || [];
+	if ( Math.random() < 0.01 ) {
+		window._tkq.push( [
+			'recordEvent',
+			'wpcom_wordads_noad',
+			{"theme":"pub\/twentyeleven","blog_id":113840984,"post_id":4245,"reason_noadverts_plugin":1,"reason_upgrade":1,"reason_blog_null":1,"reason_post_null":1}
+		] );
+	}
+</script><script src='//0.gravatar.com/js/gprofiles.js?ver=202240z' id='grofiles-cards-js'></script>
+<script id='wpgroho-js-extra'>
+var WPGroHo = {"my_hash":""};
+</script>
+<script crossorigin='anonymous' type='text/javascript' src='https://s1.wp.com/wp-content/mu-plugins/gravatar-hovercards/wpgroho.js?m=1610363240h'></script>
+
+	<script>
+		// Initialize and attach hovercards to all gravatars
+		( function() {
+			function init() {
+				if ( typeof Gravatar === 'undefined' ) {
+					return;
+				}
+
+				if ( typeof Gravatar.init !== 'function' ) {
+					return;
+				}
+
+				Gravatar.profile_cb = function ( hash, id ) {
+					WPGroHo.syncProfileData( hash, id );
+				};
+
+				Gravatar.my_hash = WPGroHo.my_hash;
+				Gravatar.init( 'body', '#wp-admin-bar-my-account' );
+			}
+
+			if ( document.readyState !== 'loading' ) {
+				init();
+			} else {
+				document.addEventListener( 'DOMContentLoaded', init );
+			}
+		} )();
+	</script>
+
+		<div style="display:none">
+	<div class="grofile-hash-map-ce63d3859c05897c939feef48d0862ad">
+	</div>
+	<div class="grofile-hash-map-5c0e3677d73e1d4778c6fc4bc6ccc3a7">
+	</div>
+	<div class="grofile-hash-map-dd0adb1f3ec9d53bcb0b34af3f3e1f35">
+	</div>
+	<div class="grofile-hash-map-5d8de493168e0493a9409b55200af50e">
+	</div>
+	<div class="grofile-hash-map-779cfd99efd44d7e087f9e00e0ba7aad">
+	</div>
+	<div class="grofile-hash-map-b4615c0f066b3049dcb04379549e4d58">
+	</div>
+	<div class="grofile-hash-map-df9869ea56c60e97deb9608ce66e7146">
+	</div>
+	<div class="grofile-hash-map-0609f8c6e3cf869613e08c639119a4fa">
+	</div>
+	<div class="grofile-hash-map-ea71d74f284a83f46b52406be5b51a3a">
+	</div>
+	<div class="grofile-hash-map-450d1d5352afe8d7b40f097607fc5f5c">
+	</div>
+	<div class="grofile-hash-map-768ad0c2c11593ace1e333866fdd97e0">
+	</div>
+	</div>
+<script id='highlander-comments-js-extra'>
+var HighlanderComments = {"loggingInText":"Logging In\u2026","submittingText":"Posting Comment\u2026","postCommentText":"Post Comment","connectingToText":"Connecting to %s","commentingAsText":"%1$s: You are commenting using your %2$s account.","logoutText":"Log Out","loginText":"Log In","connectURL":"https:\/\/wanderinginn.wordpress.com\/public.api\/connect\/?action=request&domain=wanderinginn.com","logoutURL":"https:\/\/wanderinginn.wordpress.com\/wp-login.php?action=logout&_wpnonce=027032d4fa","homeURL":"https:\/\/wanderinginn.com\/","postID":"4245","gravDefault":"identicon","enterACommentError":"Please enter a comment","enterEmailError":"Please enter your email address here","invalidEmailError":"Invalid email address","enterAuthorError":"Please enter your name here","gravatarFromEmail":"This picture will show whenever you leave a comment. Click to customize it.","logInToExternalAccount":"Log in to use details from one of these accounts.","change":"Change","changeAccount":"Change Account","comment_registration":"","userIsLoggedIn":"","isJetpack":"","text_direction":"ltr"};
+</script>
+<script crossorigin='anonymous' type='text/javascript' src='https://s0.wp.com/_static/??/wp-content/js/textarea-autosize.min.js,/wp-content/mu-plugins/highlander-comments/script.js?m=1663141412j'></script>
+	<div id="actionbar" style="display: none;"
+			class="actnbr-pub-twentyeleven actnbr-has-follow">
+		<ul>
+								<li class="actnbr-btn actnbr-hidden">
+								<a class="actnbr-action actnbr-actn-follow " href="">
+			<svg class="gridicon gridicons-reader-follow" height="24" width="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g><path d="M23 16v2h-3v3h-2v-3h-3v-2h3v-3h2v3h3zM20 2v9h-4v3h-3v4H4c-1.1 0-2-.9-2-2V2h18zM8 13v-1H4v1h4zm3-3H4v1h7v-1zm0-2H4v1h7V8zm7-4H4v2h14V4z"/></g></svg><span>Follow</span>
+		</a>
+		<a class="actnbr-action actnbr-actn-following  no-display" href="">
+			<svg class="gridicon gridicons-reader-following" height="24" width="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g><path d="M23 13.482L15.508 21 12 17.4l1.412-1.388 2.106 2.188 6.094-6.094L23 13.482zm-7.455 1.862L20 10.89V2H2v14c0 1.1.9 2 2 2h4.538l4.913-4.832 2.095 2.176zM8 13H4v-1h4v1zm3-2H4v-1h7v1zm0-2H4V8h7v1zm7-3H4V4h14v2z"/></g></svg><span>Following</span>
+		</a>
+							<div class="actnbr-popover tip tip-top-left actnbr-notice" id="follow-bubble">
+							<div class="tip-arrow"></div>
+							<div class="tip-inner actnbr-follow-bubble">
+															<ul>
+											<li class="actnbr-sitename">
+			<a href="https://wanderinginn.com">
+				<img alt='' src='https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=50' class='avatar avatar-50' height='50' width='50' />				The Wandering Inn			</a>
+		</li>
+										<form method="post" action="https://subscribe.wordpress.com" accept-charset="utf-8" style="display: none;">
+																						<div class="actnbr-follow-count">Join 2,697 other followers</div>
+																					<div>
+										<input type="email" name="email" placeholder="Enter your email address" class="actnbr-email-field" aria-label="Enter your email address" />
+										</div>
+										<input type="hidden" name="action" value="subscribe" />
+										<input type="hidden" name="blog_id" value="113840984" />
+										<input type="hidden" name="source" value="https://wanderinginn.com/2018/04/21/4-30/" />
+										<input type="hidden" name="sub-type" value="actionbar-follow" />
+										<input type="hidden" id="_wpnonce" name="_wpnonce" value="9bb017f338" />										<div class="actnbr-button-wrap">
+											<button type="submit" value="Sign me up">
+												Sign me up											</button>
+										</div>
+									</form>
+									<li class="actnbr-login-nudge">
+										<div>
+											Already have a WordPress.com account? <a href="https://wordpress.com/log-in?redirect_to=https%3A%2F%2Fr-login.wordpress.com%2Fremote-login.php%3Faction%3Dlink%26back%3Dhttps%253A%252F%252Fwanderinginn.com%252F2018%252F04%252F21%252F4-30%252F">Log in now.</a>										</div>
+									</li>
+								</ul>
+															</div>
+						</div>
+					</li>
+							<li class="actnbr-ellipsis actnbr-hidden">
+				<svg class="gridicon gridicons-ellipsis" height="24" width="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g><path d="M7 12c0 1.104-.896 2-2 2s-2-.896-2-2 .896-2 2-2 2 .896 2 2zm12-2c-1.104 0-2 .896-2 2s.896 2 2 2 2-.896 2-2-.896-2-2-2zm-7 0c-1.104 0-2 .896-2 2s.896 2 2 2 2-.896 2-2-.896-2-2-2z"/></g></svg>				<div class="actnbr-popover tip tip-top-left actnbr-more">
+					<div class="tip-arrow"></div>
+					<div class="tip-inner">
+						<ul>
+									<li class="actnbr-sitename">
+			<a href="https://wanderinginn.com">
+				<img alt='' src='https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=50' class='avatar avatar-50' height='50' width='50' />				The Wandering Inn			</a>
+		</li>
+								<li class="actnbr-folded-customize">
+								<a href="https://wanderinginn.wordpress.com/wp-admin/customize.php?url=https%3A%2F%2Fwanderinginn.wordpress.com%2F2018%2F04%2F21%2F4-30%2F">
+									<svg class="gridicon gridicons-customize" height="20" width="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g><path d="M2 6c0-1.505.78-3.08 2-4 0 .845.69 2 2 2 1.657 0 3 1.343 3 3 0 .386-.08.752-.212 1.09.74.594 1.476 1.19 2.19 1.81L8.9 11.98c-.62-.716-1.214-1.454-1.807-2.192C6.753 9.92 6.387 10 6 10c-2.21 0-4-1.79-4-4zm12.152 6.848l1.34-1.34c.607.304 1.283.492 2.008.492 2.485 0 4.5-2.015 4.5-4.5 0-.725-.188-1.4-.493-2.007L18 9l-2-2 3.507-3.507C18.9 3.188 18.225 3 17.5 3 15.015 3 13 5.015 13 7.5c0 .725.188 1.4.493 2.007L3 20l2 2 6.848-6.848c1.885 1.928 3.874 3.753 5.977 5.45l1.425 1.148 1.5-1.5-1.15-1.425c-1.695-2.103-3.52-4.092-5.448-5.977z"/></g></svg>									<span>Customize</span>
+								</a>
+							</li>
+																<li class="actnbr-folded-follow">
+												<a class="actnbr-action actnbr-actn-follow " href="">
+			<svg class="gridicon gridicons-reader-follow" height="24" width="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g><path d="M23 16v2h-3v3h-2v-3h-3v-2h3v-3h2v3h3zM20 2v9h-4v3h-3v4H4c-1.1 0-2-.9-2-2V2h18zM8 13v-1H4v1h4zm3-3H4v1h7v-1zm0-2H4v1h7V8zm7-4H4v2h14V4z"/></g></svg><span>Follow</span>
+		</a>
+		<a class="actnbr-action actnbr-actn-following  no-display" href="">
+			<svg class="gridicon gridicons-reader-following" height="24" width="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g><path d="M23 13.482L15.508 21 12 17.4l1.412-1.388 2.106 2.188 6.094-6.094L23 13.482zm-7.455 1.862L20 10.89V2H2v14c0 1.1.9 2 2 2h4.538l4.913-4.832 2.095 2.176zM8 13H4v-1h4v1zm3-2H4v-1h7v1zm0-2H4V8h7v1zm7-3H4V4h14v2z"/></g></svg><span>Following</span>
+		</a>
+										</li>
+																	<li class="actnbr-signup"><a href="https://wordpress.com/start/">Sign up</a></li>
+									<li class="actnbr-login"><a href="https://wordpress.com/log-in?redirect_to=https%3A%2F%2Fr-login.wordpress.com%2Fremote-login.php%3Faction%3Dlink%26back%3Dhttps%253A%252F%252Fwanderinginn.com%252F2018%252F04%252F21%252F4-30%252F">Log in</a></li>
+																	<li class="actnbr-shortlink"><a href="https://wp.me/p7HFeU-16t">Copy shortlink</a></li>
+																	<li class="flb-report"><a href="http://en.wordpress.com/abuse/">Report this content</a></li>
+																	<li class="actnbr-reader">
+										<a href="https://wordpress.com/read/blogs/113840984/posts/4245">
+											View post in Reader										</a>
+									</li>
+																	<li class="actnbr-subs">
+										<a href="https://subscribe.wordpress.com/">Manage subscriptions</a>
+									</li>
+																		<li class="actnbr-fold"><a href="">Collapse this bar</a></li>
+															</ul>
+					</div>
+				</div>
+			</li>
+		</ul>
+	</div>
+	
+<script>
+window.addEventListener( "load", function( event ) {
+	var link = document.createElement( "link" );
+	link.href = "https://s0.wp.com/wp-content/mu-plugins/actionbar/actionbar.css?v=20210915";
+	link.type = "text/css";
+	link.rel = "stylesheet";
+	document.head.appendChild( link );
+
+	var script = document.createElement( "script" );
+	script.src = "https://s0.wp.com/wp-content/mu-plugins/actionbar/actionbar.js?v=20220329";
+	script.defer = true;
+	document.body.appendChild( script );
+} );
+</script>
+
+	<script crossorigin='anonymous' type='text/javascript' src='https://s2.wp.com/_static/??-eJx9jd0OwiAMRl9I6AxmixfGRzEMqoFRRij48/ZWk3npXfOdc1J4FOXW3DA3iAwe78FheerIOxAUskvdI3+YW4lEUxVLemkKeZO2nroqqd9CZrBeuJptBbLcsMqlWrVu4X/REpiwKaMHuMjn33CtX9lLe6bTfhwPZpqOg4lvZ0RE/g=='></script>
+<script type="text/javascript">
+// <![CDATA[
+(function() {
+try{
+  if ( window.external &&'msIsSiteMode' in window.external) {
+    if (window.external.msIsSiteMode()) {
+      var jl = document.createElement('script');
+      jl.type='text/javascript';
+      jl.async=true;
+      jl.src='/wp-content/plugins/ie-sitemode/custom-jumplist.php';
+      var s = document.getElementsByTagName('script')[0];
+      s.parentNode.insertBefore(jl, s);
+    }
+  }
+}catch(e){}
+})();
+// ]]>
+</script><script src="//stats.wp.com/w.js?63" defer></script> <script type="text/javascript">
+_tkq = window._tkq || [];
+_stq = window._stq || [];
+_tkq.push(['storeContext', {'blog_id':'113840984','blog_tz':'0','user_lang':'en','blog_lang':'en','user_id':'0'}]);
+_stq.push(['view', {'blog':'113840984','v':'wpcom','tz':'0','user_id':'0','post':'4245','subd':'wanderinginn'}]);
+_stq.push(['extra', {'crypt':'UE40eW5QN0p8M2Y/RE1mNzc2NTVTamdsd0xoLz9RQkM2K298TXY9bERQMXc2MjhEaVZfb2wwakRoSj0mUkp1THptM1NdbkV1WjZIcU9mVWQmPUIvMlN6Jk8wW3NYVEJ3dWZOWExuWD9VNTEucGVTRmZwYTB2ZD82MHd0Y1Y0RlltYWdKeC9TU05lUzUxV1pzZWh8UlVlalotK3A/NWVna2ZGUkZscDg3JmNZby5Ta2glR3JXcmNjJWw0aEFTM2JMam4vQmddOE5DY1VdSWlrNklMaUVCLW8wdS9YVXdwTUl+ZSZBXVFDTHpITHZsSTdPNE9pY2x0Sj0xVGlYeUUuTF1SW1plRlFyVWJ0TGdqVlhxWDZqLC18K2Exam5WMkF3OF1yQS4tQkErc0ZKTGVJVCx1P2gscHJFJVRpTHRZODc='}]);
+_stq.push([ 'clickTrackerInit', '113840984', '4245' ]);
+	</script>
+<noscript><img src="https://pixel.wp.com/b.gif?v=noscript" style="height:1px;width:1px;overflow:hidden;position:absolute;bottom:1px;" alt="" /></noscript>
+<script>
+if ( 'object' === typeof wpcom_mobile_user_agent_info ) {
+
+	wpcom_mobile_user_agent_info.init();
+	var mobileStatsQueryString = "";
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedPlatformName )
+		mobileStatsQueryString += "&x_" + 'mobile_platforms' + '=' + wpcom_mobile_user_agent_info.matchedPlatformName;
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedUserAgentName )
+		mobileStatsQueryString += "&x_" + 'mobile_devices' + '=' + wpcom_mobile_user_agent_info.matchedUserAgentName;
+	
+	if( wpcom_mobile_user_agent_info.isIPad() )
+		mobileStatsQueryString += "&x_" + 'ipad_views' + '=' + 'views';
+
+	if( "" != mobileStatsQueryString ) {
+		new Image().src = document.location.protocol + '//pixel.wp.com/g.gif?v=wpcom-no-pv' + mobileStatsQueryString + '&baba=' + Math.random();
+	}
+	
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,2012 @@
+<!DOCTYPE html>
+<!--[if IE 6]>
+<html id="ie6" lang="en">
+<![endif]-->
+<!--[if IE 7]>
+<html id="ie7" lang="en">
+<![endif]-->
+<!--[if IE 8]>
+<html id="ie8" lang="en">
+<![endif]-->
+<!--[if !(IE 6) & !(IE 7) & !(IE 8)]><!-->
+<html lang="en">
+<!--<![endif]-->
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width" />
+<title>
+5.16 S | The Wandering Inn	</title>
+<link rel="profile" href="https://gmpg.org/xfn/11" />
+<link rel="stylesheet" type="text/css" media="all" href="https://s2.wp.com/wp-content/themes/pub/twentyeleven/style.css?ver=20190507" />
+<link rel="pingback" href="https://wanderinginn.com/xmlrpc.php">
+<!--[if lt IE 9]>
+<script src="https://s2.wp.com/wp-content/themes/pub/twentyeleven/js/html5.js?ver=3.7.0" type="text/javascript"></script>
+<![endif]-->
+<meta name='robots' content='max-image-preview:large' />
+
+<!-- Async WordPress.com Remote Login -->
+<script id="wpcom_remote_login_js">
+var wpcom_remote_login_extra_auth = '';
+function wpcom_remote_login_remove_dom_node_id( element_id ) {
+	var dom_node = document.getElementById( element_id );
+	if ( dom_node ) { dom_node.parentNode.removeChild( dom_node ); }
+}
+function wpcom_remote_login_remove_dom_node_classes( class_name ) {
+	var dom_nodes = document.querySelectorAll( '.' + class_name );
+	for ( var i = 0; i < dom_nodes.length; i++ ) {
+		dom_nodes[ i ].parentNode.removeChild( dom_nodes[ i ] );
+	}
+}
+function wpcom_remote_login_final_cleanup() {
+	wpcom_remote_login_remove_dom_node_classes( "wpcom_remote_login_msg" );
+	wpcom_remote_login_remove_dom_node_id( "wpcom_remote_login_key" );
+	wpcom_remote_login_remove_dom_node_id( "wpcom_remote_login_validate" );
+	wpcom_remote_login_remove_dom_node_id( "wpcom_remote_login_js" );
+	wpcom_remote_login_remove_dom_node_id( "wpcom_request_access_iframe" );
+	wpcom_remote_login_remove_dom_node_id( "wpcom_request_access_styles" );
+}
+
+// Watch for messages back from the remote login
+window.addEventListener( "message", function( e ) {
+	if ( e.origin === "https://r-login.wordpress.com" ) {
+		var data = {};
+		try {
+			data = JSON.parse( e.data );
+		} catch( e ) {
+			wpcom_remote_login_final_cleanup();
+			return;
+		}
+
+		if ( data.msg === 'LOGIN' ) {
+			// Clean up the login check iframe
+			wpcom_remote_login_remove_dom_node_id( "wpcom_remote_login_key" );
+
+			var id_regex = new RegExp( /^[0-9]+$/ );
+			var token_regex = new RegExp( /^.*|.*|.*$/ );
+			if (
+				token_regex.test( data.token )
+				&& id_regex.test( data.wpcomid )
+			) {
+				// We have everything we need to ask for a login
+				var script = document.createElement( "script" );
+				script.setAttribute( "id", "wpcom_remote_login_validate" );
+				script.src = '/remote-login.php?wpcom_remote_login=validate'
+					+ '&wpcomid=' + data.wpcomid
+					+ '&token=' + encodeURIComponent( data.token )
+					+ '&host=' + window.location.protocol
+					+ '//' + window.location.hostname
+					+ '&postid=4781'
+					+ '&is_singular=1';
+				document.body.appendChild( script );
+			}
+
+			return;
+		}
+
+		// Safari ITP, not logged in, so redirect
+		if ( data.msg === 'LOGIN-REDIRECT' ) {
+			window.location = 'https://wordpress.com/log-in?redirect_to=' + window.location.href;
+			return;
+		}
+
+		// Safari ITP, storage access failed, remove the request
+		if ( data.msg === 'LOGIN-REMOVE' ) {
+			var css_zap = 'html { -webkit-transition: margin-top 1s; transition: margin-top 1s; } /* 9001 */ html { margin-top: 0 !important; } * html body { margin-top: 0 !important; } @media screen and ( max-width: 782px ) { html { margin-top: 0 !important; } * html body { margin-top: 0 !important; } }';
+			var style_zap = document.createElement( 'style' );
+			style_zap.type = 'text/css';
+			style_zap.appendChild( document.createTextNode( css_zap ) );
+			document.body.appendChild( style_zap );
+
+			var e = document.getElementById( 'wpcom_request_access_iframe' );
+			e.parentNode.removeChild( e );
+
+			document.cookie = 'wordpress_com_login_access=denied; path=/; max-age=31536000';
+
+			return;
+		}
+
+		// Safari ITP
+		if ( data.msg === 'REQUEST_ACCESS' ) {
+			console.log( 'request access: safari' );
+
+			// Check ITP iframe enable/disable knob
+			if ( wpcom_remote_login_extra_auth !== 'safari_itp_iframe' ) {
+				return;
+			}
+
+			// If we are in a "private window" there is no ITP.
+			var private_window = false;
+			try {
+				var opendb = window.openDatabase( null, null, null, null );
+			} catch( e ) {
+				private_window = true;
+			}
+
+			if ( private_window ) {
+				console.log( 'private window' );
+				return;
+			}
+
+			var iframe = document.createElement( 'iframe' );
+			iframe.id = 'wpcom_request_access_iframe';
+			iframe.setAttribute( 'scrolling', 'no' );
+			iframe.setAttribute( 'sandbox', 'allow-storage-access-by-user-activation allow-scripts allow-same-origin allow-top-navigation-by-user-activation' );
+			iframe.src = 'https://r-login.wordpress.com/remote-login.php?wpcom_remote_login=request_access&origin=' + encodeURIComponent( data.origin ) + '&wpcomid=' + encodeURIComponent( data.wpcomid );
+
+			var css = 'html { -webkit-transition: margin-top 1s; transition: margin-top 1s; } /* 9001 */ html { margin-top: 46px !important; } * html body { margin-top: 46px !important; } @media screen and ( max-width: 660px ) { html { margin-top: 71px !important; } * html body { margin-top: 71px !important; } #wpcom_request_access_iframe { display: block; height: 71px !important; } } #wpcom_request_access_iframe { border: 0px; height: 46px; position: fixed; top: 0; left: 0; width: 100%; min-width: 100%; z-index: 99999; background: #23282d; } ';
+
+			var style = document.createElement( 'style' );
+			style.type = 'text/css';
+			style.id = 'wpcom_request_access_styles';
+			style.appendChild( document.createTextNode( css ) );
+			document.body.appendChild( style );
+
+			document.body.appendChild( iframe );
+		}
+
+		if ( data.msg === 'DONE' ) {
+			wpcom_remote_login_final_cleanup();
+		}
+	}
+}, false );
+
+// Inject the remote login iframe after the page has had a chance to load
+// more critical resources
+window.addEventListener( "DOMContentLoaded", function( e ) {
+	var iframe = document.createElement( "iframe" );
+	iframe.style.display = "none";
+	iframe.setAttribute( "scrolling", "no" );
+	iframe.setAttribute( "id", "wpcom_remote_login_key" );
+	iframe.src = "https://r-login.wordpress.com/remote-login.php"
+		+ "?wpcom_remote_login=key"
+		+ "&origin=aHR0cHM6Ly93YW5kZXJpbmdpbm4uY29t"
+		+ "&wpcomid=113840984"
+		+ "&time=1664900004";
+	document.body.appendChild( iframe );
+}, false );
+</script>
+<link rel='dns-prefetch' href='//s1.wp.com' />
+<link rel='dns-prefetch' href='//wanderinginn.wordpress.com' />
+<link rel='dns-prefetch' href='//s0.wp.com' />
+<link rel='dns-prefetch' href='//s2.wp.com' />
+<link href='https://fonts.gstatic.com' crossorigin rel='preconnect' />
+<link rel="alternate" type="application/rss+xml" title="The Wandering Inn &raquo; Feed" href="https://wanderinginn.com/feed/" />
+<link rel="alternate" type="application/rss+xml" title="The Wandering Inn &raquo; Comments Feed" href="https://wanderinginn.com/comments/feed/" />
+<link rel="alternate" type="application/rss+xml" title="The Wandering Inn &raquo; 5.16 S Comments Feed" href="https://wanderinginn.com/2018/09/01/5-16-s/feed/" />
+	<script type="text/javascript">
+		/* <![CDATA[ */
+		function addLoadEvent(func) {
+			var oldonload = window.onload;
+			if (typeof window.onload != 'function') {
+				window.onload = func;
+			} else {
+				window.onload = function () {
+					oldonload();
+					func();
+				}
+			}
+		}
+		/* ]]> */
+	</script>
+	<script type="text/javascript">
+window._wpemojiSettings = {"baseUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/72x72\/","ext":".png","svgUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/svg\/","svgExt":".svg","source":{"concatemoji":"https:\/\/s0.wp.com\/wp-includes\/js\/wp-emoji-release.min.js?m=1652185836h&ver=6.0.2"}};
+/*! This file is auto-generated */
+!function(e,a,t){var n,r,o,i=a.createElement("canvas"),p=i.getContext&&i.getContext("2d");function s(e,t){var a=String.fromCharCode,e=(p.clearRect(0,0,i.width,i.height),p.fillText(a.apply(this,e),0,0),i.toDataURL());return p.clearRect(0,0,i.width,i.height),p.fillText(a.apply(this,t),0,0),e===i.toDataURL()}function c(e){var t=a.createElement("script");t.src=e,t.defer=t.type="text/javascript",a.getElementsByTagName("head")[0].appendChild(t)}for(o=Array("flag","emoji"),t.supports={everything:!0,everythingExceptFlag:!0},r=0;r<o.length;r++)t.supports[o[r]]=function(e){if(!p||!p.fillText)return!1;switch(p.textBaseline="top",p.font="600 32px Arial",e){case"flag":return s([127987,65039,8205,9895,65039],[127987,65039,8203,9895,65039])?!1:!s([55356,56826,55356,56819],[55356,56826,8203,55356,56819])&&!s([55356,57332,56128,56423,56128,56418,56128,56421,56128,56430,56128,56423,56128,56447],[55356,57332,8203,56128,56423,8203,56128,56418,8203,56128,56421,8203,56128,56430,8203,56128,56423,8203,56128,56447]);case"emoji":return!s([129777,127995,8205,129778,127999],[129777,127995,8203,129778,127999])}return!1}(o[r]),t.supports.everything=t.supports.everything&&t.supports[o[r]],"flag"!==o[r]&&(t.supports.everythingExceptFlag=t.supports.everythingExceptFlag&&t.supports[o[r]]);t.supports.everythingExceptFlag=t.supports.everythingExceptFlag&&!t.supports.flag,t.DOMReady=!1,t.readyCallback=function(){t.DOMReady=!0},t.supports.everything||(n=function(){t.readyCallback()},a.addEventListener?(a.addEventListener("DOMContentLoaded",n,!1),e.addEventListener("load",n,!1)):(e.attachEvent("onload",n),a.attachEvent("onreadystatechange",function(){"complete"===a.readyState&&t.readyCallback()})),(e=t.source||{}).concatemoji?c(e.concatemoji):e.wpemoji&&e.twemoji&&(c(e.twemoji),c(e.wpemoji)))}(window,document,window._wpemojiSettings);
+</script>
+<style type="text/css">
+img.wp-smiley,
+img.emoji {
+	display: inline !important;
+	border: none !important;
+	box-shadow: none !important;
+	height: 1em !important;
+	width: 1em !important;
+	margin: 0 0.07em !important;
+	vertical-align: -0.1em !important;
+	background: none !important;
+	padding: 0 !important;
+}
+</style>
+	<link crossorigin='anonymous' rel='stylesheet' id='all-css-0-1' href='https://s0.wp.com/_static/??-eJylkd1OAyEQhV9IdlyzaeOF8Vn4meBUYAkzWHl7Z5s0Vk2riTeEw8l35gBwrMavRbAI1NQjFYbYVTpsUZ2G8DYv08N0D65TCuDS6l9NItdsG8AyEk6e+Q7+FyQvmD+DqPjUAzIcGDIGspjU1uRLUZMd2EzCaP2YMpXfcfUu9RfoevlTUw1DqXarbMfaxcRG4c/3/xbRrFCJfAXP3ZwTtnfT81ztz/I3sCOFiKI4n/dG8P02UnWMca42ZDa6ZurZnL6FN+45P8273bLsH5d5f/gAOyLUIw==?cssminify=yes' type='text/css' media='all' />
+<style id='wp-block-library-inline-css'>
+.has-text-align-justify {
+	text-align:justify;
+}
+.wp-block-cover__image-background.has-parallax {
+	background-size: cover;
+}
+</style>
+<style id='global-styles-inline-css'>
+body{--wp--preset--color--black: #000;--wp--preset--color--cyan-bluish-gray: #abb8c3;--wp--preset--color--white: #fff;--wp--preset--color--pale-pink: #f78da7;--wp--preset--color--vivid-red: #cf2e2e;--wp--preset--color--luminous-vivid-orange: #ff6900;--wp--preset--color--luminous-vivid-amber: #fcb900;--wp--preset--color--light-green-cyan: #7bdcb5;--wp--preset--color--vivid-green-cyan: #00d084;--wp--preset--color--pale-cyan-blue: #8ed1fc;--wp--preset--color--vivid-cyan-blue: #0693e3;--wp--preset--color--vivid-purple: #9b51e0;--wp--preset--color--blue: #1982d1;--wp--preset--color--dark-gray: #373737;--wp--preset--color--medium-gray: #666;--wp--preset--color--light-gray: #e2e2e2;--wp--preset--gradient--vivid-cyan-blue-to-vivid-purple: linear-gradient(135deg,rgba(6,147,227,1) 0%,rgb(155,81,224) 100%);--wp--preset--gradient--light-green-cyan-to-vivid-green-cyan: linear-gradient(135deg,rgb(122,220,180) 0%,rgb(0,208,130) 100%);--wp--preset--gradient--luminous-vivid-amber-to-luminous-vivid-orange: linear-gradient(135deg,rgba(252,185,0,1) 0%,rgba(255,105,0,1) 100%);--wp--preset--gradient--luminous-vivid-orange-to-vivid-red: linear-gradient(135deg,rgba(255,105,0,1) 0%,rgb(207,46,46) 100%);--wp--preset--gradient--very-light-gray-to-cyan-bluish-gray: linear-gradient(135deg,rgb(238,238,238) 0%,rgb(169,184,195) 100%);--wp--preset--gradient--cool-to-warm-spectrum: linear-gradient(135deg,rgb(74,234,220) 0%,rgb(151,120,209) 20%,rgb(207,42,186) 40%,rgb(238,44,130) 60%,rgb(251,105,98) 80%,rgb(254,248,76) 100%);--wp--preset--gradient--blush-light-purple: linear-gradient(135deg,rgb(255,206,236) 0%,rgb(152,150,240) 100%);--wp--preset--gradient--blush-bordeaux: linear-gradient(135deg,rgb(254,205,165) 0%,rgb(254,45,45) 50%,rgb(107,0,62) 100%);--wp--preset--gradient--luminous-dusk: linear-gradient(135deg,rgb(255,203,112) 0%,rgb(199,81,192) 50%,rgb(65,88,208) 100%);--wp--preset--gradient--pale-ocean: linear-gradient(135deg,rgb(255,245,203) 0%,rgb(182,227,212) 50%,rgb(51,167,181) 100%);--wp--preset--gradient--electric-grass: linear-gradient(135deg,rgb(202,248,128) 0%,rgb(113,206,126) 100%);--wp--preset--gradient--midnight: linear-gradient(135deg,rgb(2,3,129) 0%,rgb(40,116,252) 100%);--wp--preset--duotone--dark-grayscale: url('#wp-duotone-dark-grayscale');--wp--preset--duotone--grayscale: url('#wp-duotone-grayscale');--wp--preset--duotone--purple-yellow: url('#wp-duotone-purple-yellow');--wp--preset--duotone--blue-red: url('#wp-duotone-blue-red');--wp--preset--duotone--midnight: url('#wp-duotone-midnight');--wp--preset--duotone--magenta-yellow: url('#wp-duotone-magenta-yellow');--wp--preset--duotone--purple-green: url('#wp-duotone-purple-green');--wp--preset--duotone--blue-orange: url('#wp-duotone-blue-orange');--wp--preset--font-size--small: 13px;--wp--preset--font-size--medium: 20px;--wp--preset--font-size--large: 36px;--wp--preset--font-size--x-large: 42px;--wp--preset--spacing--20: 0.44rem;--wp--preset--spacing--30: 0.67rem;--wp--preset--spacing--40: 1rem;--wp--preset--spacing--50: 1.5rem;--wp--preset--spacing--60: 2.25rem;--wp--preset--spacing--70: 3.38rem;--wp--preset--spacing--80: 5.06rem;}:where(.is-layout-flex){gap: 0.5em;}body .is-layout-flow > .alignleft{float: left;}body .is-layout-flow > .alignright{float: right;}body .is-layout-flow > .aligncenter{margin-left: auto !important;margin-right: auto !important;}body .is-layout-constrained > .alignleft{float: left;}body .is-layout-constrained > .alignright{float: right;}body .is-layout-constrained > .aligncenter{margin-left: auto !important;margin-right: auto !important;}body .is-layout-constrained > :where(:not(.alignleft):not(.alignright):not(.alignfull)){max-width: var(--wp--style--global--content-size);margin-left: auto !important;margin-right: auto !important;}body .is-layout-constrained > .alignwide{max-width: var(--wp--style--global--wide-size);}body .is-layout-flex{display: flex;}body .is-layout-flex{flex-wrap: wrap;align-items: center;}body .is-layout-flex > *{margin: 0;}:where(.wp-block-columns.is-layout-flex){gap: 2em;}.has-black-color{color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-color{color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-color{color: var(--wp--preset--color--white) !important;}.has-pale-pink-color{color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-color{color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-color{color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-color{color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-color{color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-color{color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-color{color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-color{color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-color{color: var(--wp--preset--color--vivid-purple) !important;}.has-black-background-color{background-color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-background-color{background-color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-background-color{background-color: var(--wp--preset--color--white) !important;}.has-pale-pink-background-color{background-color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-background-color{background-color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-background-color{background-color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-background-color{background-color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-background-color{background-color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-background-color{background-color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-background-color{background-color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-background-color{background-color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-background-color{background-color: var(--wp--preset--color--vivid-purple) !important;}.has-black-border-color{border-color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-border-color{border-color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-border-color{border-color: var(--wp--preset--color--white) !important;}.has-pale-pink-border-color{border-color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-border-color{border-color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-border-color{border-color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-border-color{border-color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-border-color{border-color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-border-color{border-color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-border-color{border-color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-border-color{border-color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-border-color{border-color: var(--wp--preset--color--vivid-purple) !important;}.has-vivid-cyan-blue-to-vivid-purple-gradient-background{background: var(--wp--preset--gradient--vivid-cyan-blue-to-vivid-purple) !important;}.has-light-green-cyan-to-vivid-green-cyan-gradient-background{background: var(--wp--preset--gradient--light-green-cyan-to-vivid-green-cyan) !important;}.has-luminous-vivid-amber-to-luminous-vivid-orange-gradient-background{background: var(--wp--preset--gradient--luminous-vivid-amber-to-luminous-vivid-orange) !important;}.has-luminous-vivid-orange-to-vivid-red-gradient-background{background: var(--wp--preset--gradient--luminous-vivid-orange-to-vivid-red) !important;}.has-very-light-gray-to-cyan-bluish-gray-gradient-background{background: var(--wp--preset--gradient--very-light-gray-to-cyan-bluish-gray) !important;}.has-cool-to-warm-spectrum-gradient-background{background: var(--wp--preset--gradient--cool-to-warm-spectrum) !important;}.has-blush-light-purple-gradient-background{background: var(--wp--preset--gradient--blush-light-purple) !important;}.has-blush-bordeaux-gradient-background{background: var(--wp--preset--gradient--blush-bordeaux) !important;}.has-luminous-dusk-gradient-background{background: var(--wp--preset--gradient--luminous-dusk) !important;}.has-pale-ocean-gradient-background{background: var(--wp--preset--gradient--pale-ocean) !important;}.has-electric-grass-gradient-background{background: var(--wp--preset--gradient--electric-grass) !important;}.has-midnight-gradient-background{background: var(--wp--preset--gradient--midnight) !important;}.has-small-font-size{font-size: var(--wp--preset--font-size--small) !important;}.has-medium-font-size{font-size: var(--wp--preset--font-size--medium) !important;}.has-large-font-size{font-size: var(--wp--preset--font-size--large) !important;}.has-x-large-font-size{font-size: var(--wp--preset--font-size--x-large) !important;}
+:where(.wp-block-columns.is-layout-flex){gap: 2em;}
+.wp-block-pullquote{font-size: 1.5em;line-height: 1.6;}
+.wp-block-navigation a:where(:not(.wp-element-button)){color: inherit;}
+</style>
+<link crossorigin='anonymous' rel='stylesheet' id='all-css-2-1' href='https://s1.wp.com/_static/??-eJyNj8EOwjAMQ3+IEjYBggPiW7YSSlnaVE26an9PuYGQ0G625SfZUJOxHBWjgj4woEAqI2htwYKEM0YYie0kWyuygRV10YXQ1GQ5rGYsE2eB25CnHyYUk6g4HwUcsmljBvUcv4y50+DzPzRju+GadNBaH/YNXcOlO/b9aX/edYfnC0ReZ8I=?cssminify=yes' type='text/css' media='all' />
+<style id='jetpack-global-styles-frontend-style-inline-css'>
+:root { --font-headings: unset; --font-base: unset; --font-headings-default: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif; --font-base-default: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif;}
+</style>
+<link crossorigin='anonymous' rel='stylesheet' id='all-css-4-1' href='https://s0.wp.com/wp-content/themes/h4/global.css?m=1420737423h&cssminify=yes' type='text/css' media='all' />
+<script id='wpcom-actionbar-placeholder-js-extra'>
+var actionbardata = {"siteID":"113840984","siteURL":"https:\/\/wanderinginn.com","xhrURL":"https:\/\/wanderinginn.com\/wp-admin\/admin-ajax.php","nonce":"1ba14e6909","isLoggedIn":"","statusMessage":"","subsEmailDefault":"instantly","proxyScriptUrl":"https:\/\/s0.wp.com\/wp-content\/js\/wpcom-proxy-request.js?ver=20211021","shortlink":"https:\/\/wp.me\/p7HFeU-1f7","i18n":{"followedText":"New posts from this site will now appear in your <a href=\"https:\/\/wordpress.com\/read\">Reader<\/a>","foldBar":"Collapse this bar","unfoldBar":"Expand this bar"}};
+</script>
+<script crossorigin='anonymous' type='text/javascript' src='https://s1.wp.com/_static/??/wp-content/js/mobile-useragent-info.js,/wp-content/js/rlt-proxy.js?m=1637704497j'></script>
+<script type='text/javascript'>
+	window.addEventListener( 'DOMContentLoaded', function() {
+		rltInitialize( {"token":null,"iframeOrigins":["https:\/\/widgets.wp.com"]} );
+	} );
+</script>
+<link crossorigin='anonymous' rel='stylesheet' id='all-css-0-2' href='https://s0.wp.com/wp-content/mu-plugins/highlander-comments/style.css?m=1663315160h&cssminify=yes' type='text/css' media='all' />
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="https://wanderinginn.wordpress.com/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="https://s1.wp.com/wp-includes/wlwmanifest.xml" /> 
+<meta name="generator" content="WordPress.com" />
+<link rel="canonical" href="https://wanderinginn.com/2018/09/01/5-16-s/" />
+<link rel='shortlink' href='https://wp.me/p7HFeU-1f7' />
+<link rel="alternate" type="application/json+oembed" href="https://public-api.wordpress.com/oembed/?format=json&amp;url=https%3A%2F%2Fwanderinginn.com%2F2018%2F09%2F01%2F5-16-s%2F&amp;for=wpcom-auto-discovery" /><link rel="alternate" type="application/xml+oembed" href="https://public-api.wordpress.com/oembed/?format=xml&amp;url=https%3A%2F%2Fwanderinginn.com%2F2018%2F09%2F01%2F5-16-s%2F&amp;for=wpcom-auto-discovery" />
+<!-- Jetpack Open Graph Tags -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="5.16 S" />
+<meta property="og:url" content="https://wanderinginn.com/2018/09/01/5-16-s/" />
+<meta property="og:description" content="“Uncle?” The Drake was dozing, or just daydreaming absentmindedly. He looked up, startled, and then smiled. “Selys! I was wondering when I’d see my favorite niece.” “Your favorite one? What about a…" />
+<meta property="article:published_time" content="2018-09-01T12:11:54+00:00" />
+<meta property="article:modified_time" content="2018-09-04T13:22:13+00:00" />
+<meta property="og:site_name" content="The Wandering Inn" />
+<meta property="og:image" content="https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=200" />
+<meta property="og:image:width" content="200" />
+<meta property="og:image:height" content="200" />
+<meta property="og:image:alt" content="" />
+<meta property="og:locale" content="en_US" />
+<meta property="article:publisher" content="https://www.facebook.com/WordPresscom" />
+<meta name="twitter:text:title" content="5.16 S" />
+<meta name="twitter:image" content="https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=240" />
+<meta name="twitter:card" content="summary" />
+
+<!-- End Jetpack Open Graph Tags -->
+<link rel="search" type="application/opensearchdescription+xml" href="https://wanderinginn.com/osd.xml" title="The Wandering Inn" />
+<link rel="search" type="application/opensearchdescription+xml" href="https://s1.wp.com/opensearch.xml" title="WordPress.com" />
+	<style>
+		/* Link color */
+		a,
+		#site-title a:focus,
+		#site-title a:hover,
+		#site-title a:active,
+		.entry-title a:hover,
+		.entry-title a:focus,
+		.entry-title a:active,
+		.widget_twentyeleven_ephemera .comments-link a:hover,
+		section.recent-posts .other-recent-posts a[rel="bookmark"]:hover,
+		section.recent-posts .other-recent-posts .comments-link a:hover,
+		.format-image footer.entry-meta a:hover,
+		#site-generator a:hover {
+			color: #1583af;
+		}
+		section.recent-posts .other-recent-posts .comments-link a:hover {
+			border-color: #1583af;
+		}
+		article.feature-image.small .entry-summary p a:hover,
+		.entry-header .comments-link a:hover,
+		.entry-header .comments-link a:focus,
+		.entry-header .comments-link a:active,
+		.feature-slider a.active {
+			background-color: #1583af;
+		}
+	</style>
+	<meta name="application-name" content="The Wandering Inn" /><meta name="msapplication-window" content="width=device-width;height=device-height" /><meta name="msapplication-tooltip" content="A tale of a girl, an inn, and a world full of levels." /><meta name="msapplication-task" content="name=Subscribe;action-uri=https://wanderinginn.com/feed/;icon-uri=https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=16" /><meta name="msapplication-task" content="name=Sign up for a free blog;action-uri=http://wordpress.com/signup/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Support;action-uri=http://support.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Forums;action-uri=http://forums.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="description" content="“Uncle?” The Drake was dozing, or just daydreaming absentmindedly. He looked up, startled, and then smiled. “Selys! I was wondering when I’d see my favorite niece.” “Your favorite one? What about all the others ones you have?” Selys Shivertail smiled a bit as she walked over to the table, passing by a white Gnoll cub&hellip;" />
+<link rel="icon" href="https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=32" sizes="32x32" />
+<link rel="icon" href="https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=192" sizes="192x192" />
+<link rel="apple-touch-icon" href="https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=180" />
+<meta name="msapplication-TileImage" content="https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=270" />
+		<link rel="stylesheet" id="custom-css-css" type="text/css" href="https://s0.wp.com/?custom-css=1&#038;csblog=7HFeU&#038;cscache=6&#038;csrev=3" />
+		<!-- Your Google Analytics Plugin is missing the tracking ID -->
+</head>
+
+<body class="post-template-default single single-post postid-4781 single-format-standard wp-embed-responsive customizer-styles-applied single-author singular two-column right-sidebar highlander-enabled highlander-dark">
+<div class="skip-link"><a class="assistive-text" href="#content">Skip to primary content</a></div><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-dark-grayscale"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0 0.49803921568627" /><feFuncG type="table" tableValues="0 0.49803921568627" /><feFuncB type="table" tableValues="0 0.49803921568627" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-grayscale"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0 1" /><feFuncG type="table" tableValues="0 1" /><feFuncB type="table" tableValues="0 1" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-purple-yellow"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0.54901960784314 0.98823529411765" /><feFuncG type="table" tableValues="0 1" /><feFuncB type="table" tableValues="0.71764705882353 0.25490196078431" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-blue-red"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0 1" /><feFuncG type="table" tableValues="0 0.27843137254902" /><feFuncB type="table" tableValues="0.5921568627451 0.27843137254902" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-midnight"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0 0" /><feFuncG type="table" tableValues="0 0.64705882352941" /><feFuncB type="table" tableValues="0 1" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-magenta-yellow"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0.78039215686275 1" /><feFuncG type="table" tableValues="0 0.94901960784314" /><feFuncB type="table" tableValues="0.35294117647059 0.47058823529412" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-purple-green"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0.65098039215686 0.40392156862745" /><feFuncG type="table" tableValues="0 1" /><feFuncB type="table" tableValues="0.44705882352941 0.4" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-blue-orange"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0.098039215686275 1" /><feFuncG type="table" tableValues="0 0.66274509803922" /><feFuncB type="table" tableValues="0.84705882352941 0.41960784313725" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><div id="page" class="hfeed">
+	<header id="branding">
+			<hgroup>
+				<h1 id="site-title"><span><a href="https://wanderinginn.com/" rel="home">The Wandering Inn</a></span></h1>
+				<h2 id="site-description">A tale of a girl, an inn, and a world full of levels.</h2>
+			</hgroup>
+
+						<a href="https://wanderinginn.com/">
+									<img src="https://wanderinginn.files.wordpress.com/2022/07/cropped-220725_merch_banner_launch-1.png" width="1000" height="296" alt="The Wandering Inn" />
+								</a>
+			
+									<form method="get" id="searchform" action="https://wanderinginn.com/">
+		<label for="s" class="assistive-text">Search</label>
+		<input type="text" class="field" name="s" id="s" placeholder="Search" />
+		<input type="submit" class="submit" name="submit" id="searchsubmit" value="Search" />
+	</form>
+			
+			<nav id="access">
+				<h3 class="assistive-text">Main menu</h3>
+				<div class="menu-menu-1-container"><ul id="menu-menu-1" class="menu"><li id="menu-item-1422" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-home menu-item-1422"><a href="https://wanderinginn.com/">Overview</a></li>
+<li id="menu-item-1912" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1912"><a href="https://wanderinginn.com/table-of-contents/">Table of Contents</a></li>
+<li id="menu-item-1998" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-1998"><a href="https://www.patreon.com/user?u=4240617">Patreon</a></li>
+<li id="menu-item-10438" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-10438"><a href="https://wanderinginn.com/social/">Social</a>
+<ul class="sub-menu">
+	<li id="menu-item-4811" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-4811"><a href="https://discord.gg/abwsa3y">Discord</a></li>
+	<li id="menu-item-4810" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-4810"><a href="https://www.reddit.com/r/WanderingInn/">Reddit</a></li>
+	<li id="menu-item-8944" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-8944"><a href="https://twitter.com/WanderingInn">Twitter</a></li>
+	<li id="menu-item-10440" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-10440"><a href="https://www.facebook.com/thewanderinginn/">Facebook</a></li>
+</ul>
+</li>
+<li id="menu-item-10446" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-10446"><a href="https://wanderinginn.com/publishing-3/">Publishing</a>
+<ul class="sub-menu">
+	<li id="menu-item-10448" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-10448"><a href="https://www.amazon.com/kindle-dbs/entity/author/B07XCYVYMW">E-books</a></li>
+	<li id="menu-item-10447" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-10447"><a href="https://www.audible.com/author/pirate-aba/B07XCYVYMW">Audiobooks</a></li>
+	<li id="menu-item-8761" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-8761"><a href="https://www.cloudscapecomics.com/last-tide/">The Last Tide (Comicbook)</a></li>
+</ul>
+</li>
+<li id="menu-item-1424" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1424"><a href="https://wanderinginn.com/guestbook/">Guestbook</a></li>
+<li id="menu-item-2935" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-2935"><a href="https://wanderinginn.com/fanworks/">Fanworks</a>
+<ul class="sub-menu">
+	<li id="menu-item-8557" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-8557"><a href="https://wanderinginn.com/fanworks-permissions/">Fanworks Permissions</a></li>
+</ul>
+</li>
+<li id="menu-item-1426" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1426"><a href="https://wanderinginn.com/reader-reviews/">Reader Reviews</a></li>
+<li id="menu-item-5002" class="menu-item menu-item-type-post_type menu-item-object-post menu-item-has-children menu-item-5002"><a href="https://wanderinginn.com/2018/10/19/glossary/">Glossary</a>
+<ul class="sub-menu">
+	<li id="menu-item-7035" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-7035"><a href="https://wanderinginn.com/fanworks/#B">Maps</a></li>
+</ul>
+</li>
+<li id="menu-item-5684" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-5684"><a href="https://wanderinginn.com/writing-faqs/">Writing FAQs</a></li>
+<li id="menu-item-11759" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-11759"><a href="https://aubergevagabonde.wordpress.com/">L&#8217;Auberge Vagabonde</a></li>
+<li id="menu-item-11765" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-11765"><a href="https://wanderinginn.com/contacts/">Contacts</a></li>
+<li id="menu-item-12493" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-12493"><a href="https://www.store.wanderinginn.com/">Merch Store</a></li>
+<li id="menu-item-12667" class="menu-item menu-item-type-post_type menu-item-object-post menu-item-12667"><a href="https://wanderinginn.com/2022/09/28/interlude-the-great-race/">Interlude – The Great Race</a></li>
+</ul></div>			</nav><!-- #access -->
+	</header><!-- #branding -->
+
+
+	<div id="main">
+
+		<div id="primary">
+			<div id="content" role="main">
+
+				
+					<nav id="nav-single">
+						<h3 class="assistive-text">Post navigation</h3>
+						<span class="nav-previous"><a href="https://wanderinginn.com/2018/08/28/5-15/" rel="prev"><span class="meta-nav">&larr;</span> Previous</a></span>
+						<span class="nav-next"><a href="https://wanderinginn.com/2018/09/01/5-17-s/" rel="next">Next <span class="meta-nav">&rarr;</span></a></span>
+					</nav><!-- #nav-single -->
+
+					
+<article id="post-4781" class="post-4781 post type-post status-publish format-standard hentry category-writing tag-fantasy tag-inn tag-web-novel tag-web-serial tag-writing">
+	<header class="entry-header">
+		<h1 class="entry-title">5.16 S</h1>
+
+				<div class="entry-meta">
+						<span class="sep">Posted on </span><a href="https://wanderinginn.com/2018/09/01/5-16-s/" title="12:11 pm" rel="bookmark"><time class="entry-date" datetime="2018-09-01T12:11:54+00:00">September 1, 2018</time></a><span class="by-author"> <span class="sep"> by </span> <span class="author vcard"><a class="url fn n" href="https://wanderinginn.com/author/pirateaba/" title="View all posts by pirateaba" rel="author">pirateaba</a></span></span>		</div><!-- .entry-meta -->
+			</header><!-- .entry-header -->
+
+	<div class="entry-content">
+		<p>“Uncle?”</p>
+<p>The Drake was dozing, or just daydreaming absentmindedly. He looked up, startled, and then smiled.</p>
+<p>“Selys! I was wondering when I’d see my favorite niece.”</p>
+<p>“Your <em>favorite</em> one? What about all the others ones you have?”</p>
+<p>Selys Shivertail smiled a bit as she walked over to the table, passing by a white Gnoll cub lying on the floor and snoozing. She sat at the table and eyed the cup and pitcher the Drake was drinking from.</p>
+<p>“Drinking alone? Or am I interrupting?”</p>
+<p>He chuckled and pulled a chair out.</p>
+<p>“Hardly. But don’t drink from the pitcher—it’ll knock you off your tail. I’m always glad for company—I was just sitting and reminiscing.”</p>
+<p>“Sounds good to me. And yeah, Erin makes weird drinks. You should have seen this blue fruit drink she used to make.”</p>
+<p>Selys sat at the table. It was quiet in the inn, the only sound being the low buzz of Mrsha’s snores. Zel Shivertail looked at Selys with a smile. She smiled, a bit awkwardly.</p>
+<p>“It’s been a long time, Uncle Zel. When was the last time you visited? Four years ago?”</p>
+<p>“Could be. I’d visit more, but you know how it is. Duties and so on.”</p>
+<p>“You mean, fighting a war between the Trisstral Alliance and Salazsar?”</p>
+<p>“Ah. You heard about that?”</p>
+<p>Selys rolled her eyes and her tail curled slightly in mock annoyance.</p>
+<p>“Uncle, you picked a fight with a <em>Walled City!</em> Of course everyone was talking about it!”</p>
+<p>“It was more of a trade dispute. Salazsar was trying to enforce its claim over its gemstone monopoly and I was asked so…I won the dispute, as you may recall.”</p>
+<p>“And then the Goblin Lord showed up and you followed him here. You stay pretty busy, don’t you?”</p>
+<p>“If I said I came here to visit you and your aunt, would that win me any points?”</p>
+<p>The young Drake woman laughed. Zel grinned as he eyed her from head to tail. She hadn’t changed much. Selys was a young Drake in her prime, just past twenty years of age. She didn’t look much different from other city Drakes her age.</p>
+<p>She was dressed stylishly despite the winter chill—contrasting colors was in—and she was a hard worker, stubborn at times, opinionated at others. But a far cry from Zel who was older, a [General] who still wore his armor in the inn out of sheer habit. But they were family, however distant.</p>
+<p>“Favorite niece. I thought you were just humoring me whenever you visited when I was young, but Tekshia told me you’d like me to say hi.”</p>
+<p>The younger Drake looked thoughtfully at her Uncle. He shrugged, a bit awkwardly.</p>
+<p>“Don’t tell anyone I said that or it’ll cause some kind of incident. But I do mean it. Of all the Drakes claiming to be related to me, you’re the only one who doesn’t treat me like a hero or a symbol.”</p>
+<p>Selys frowned.</p>
+<p>“Really? There’s got to be one…”</p>
+<p>Zel smiled.</p>
+<p>“That would be you.”</p>
+<p>“Huh.”</p>
+<p>The two Drakes sat at the table for a little bit in silence. It wasn’t a bad silence; for all they were part strangers, they had known each other too long to be uncomfortable with each other.</p>
+<p>“That’s not good. If I’m your favorite niece, how’s the rest of the family? You see me once every year at most.”</p>
+<p>The Drake [General] grimaced and turned his face. Selys still saw it. He replied casually as he could.</p>
+<p>“Intimacy leads to strife. At least, among the Drakes. There’s not a single older member of my family who I’ve had a half-decent conversation with. Well, except for a few distant relatives. Your Aunt Tekshia is one of them I’m glad to say.”</p>
+<p>“That’s good.”</p>
+<p>“Indeed.”</p>
+<p>“…Did you see her? She said she’d talked to you.”</p>
+<p>Zel nodded. He traced a pattern on the grain of the table’s surface with one claw.</p>
+<p>“I visited her on the second day I arrived at Liscor. She kept asking me whether I’ll have grandchildren. Aside from that it was cordial.”</p>
+<p>Selys paused. An unspoken secret floated between the two. Zel knew that Selys knew, but Selys avoided the topic as adroitly as any [Receptionist].</p>
+<p>“Grandmother is like that. I hope you had a good time otherwise. She likes hearing war stories, you know.”</p>
+<p>“I did entertain her with a few tales. She liked me talking about knocking out Wall Lord Ilvriss. He’s in the city, you know.”</p>
+<p>“I heard. Why’s he in Liscor? Didn’t he lose his entire army to the Goblin Lord? Is he coming north for revenge too?”</p>
+<p>Zel hesitated. Selys didn’t need to hear about his mysterious meeting with Ryoka Griffin or the dark news she had imparted to him. She was a [Receptionist], not an adventurer. Ancestors, a [Receptionist]. It was such a mundane job. And he had known her parents…</p>
+<p>The [General] caught himself glancing at Selys, only to realize she was staring at him from the side. She looked away, blushing, her tail twitching. Zel eyed her, and then sighed.</p>
+<p>“Ask.”</p>
+<p>“I didn’t say anything!”</p>
+<p>“No, but you were thinking it. I won’t be offended. Believe me, I’ve met Drakes with far less tact than you’re showing, and that was my father. What’s on your mind?”</p>
+<p>The Drake waited as Selys mustered her thoughts. He expected any one of a hundred questions for her to ask. He hoped it was nothing that would open a rift between them, but she had been younger when he’d seen her last. And too afraid then to ask. So he waited.</p>
+<p>When Selys did come up with a question, it surprised Zel.</p>
+<p>“Are you…lonely?”</p>
+<p>The Drake blinked at her. Selys looked back at him. He wavered.</p>
+<p>“What do you mean?”</p>
+<p>“You don’t have anyone in your life. And you keep moving from city to city. Everyone always talks about you like a hero—unless you’re telling the Walled Cities how stupid they are for fighting and not dealing with the Antinium, that is. But is it lonely? You don’t have subordinates. You used to teach other [Generals] like Garusa Weatherfur. But now…”</p>
+<p>Selys trailed off. Zel looked at her and felt old. What a question. Four years ago Selys was a junior [Receptionist] in the Adventurer’s Guild still arguing with her grandmother. Now she was an adult. He blinked and realized she was waiting for his answer. Zel coughed and replied after a moment’s hesitation.</p>
+<p>“I’m a soldier, Selys. A [General]. I don’t have time for personal relationships most of the time, and I’m not inclined to cause a stir.”</p>
+<p>“I know. But if—no, never mind. Why are you staying at Erin’s inn, anyways? She said you liked it here because of her cooking. But is that really it? You could stay at any inn in Liscor you wanted.”</p>
+<p>Selys’, tail twitched as she smiled at her uncle. She wanted to ask him more, he could tell. But maybe she wasn’t ready. Selys turned the conversation away and Zel felt a pang. Maybe in two more  years he could talk to her about—well, it wasn’t as if he needed someone’s shoulder to lean on, especially not his niece. But he smiled as he replied.</p>
+<p>“I like it here. It’s peaceful.”</p>
+<p>Selys half-turned in her chair to eye Mrsha.</p>
+<p>“That’s true. But only half the time. Erin’s inn <em>always</em> has something weird going on, Uncle. Have you seen her do anything crazy?”</p>
+<p>He laughed.</p>
+<p>“Occasionally. But I still appreciate staying here. Despite her mistakes, Miss Solstice is quite caring, and her staff works hard. The little Gnoll also keeps me on my toes. I…well, it’s better being here.”</p>
+<p>“So you’ll stay here longer? Or are you going? No one asked you to fight the Goblin Lord, you know.”</p>
+<p>“No. But it’s my duty.”</p>
+<p>Selys’ forehead wrinkled. It reminded Zel of her growing up, making the same expression when she was vexed.</p>
+<p>“Don’t you get a <em>break?</em> You’re a hero of <em>two</em> Antinium Wars! Don’t you wish you could tell everyone to leave you alone for a while?”</p>
+<p>Zel paused. He’d taken a sip of the drink in his cup and the inn pressed down on him for a moment. He lowered the cup and sat quietly for a moment.</p>
+<p>“Sometimes, Selys. Sometimes. But whatever I want doesn’t matter. I have to be the shield of the Drakes—I am that symbol, for however much I’m ignored politically. Drakes are a curious people. We fight, we squabble and tear each other down, but we sacrifice for each other too.”</p>
+<p>She looked at him, ready to be angry. But that anger drained away as she looked at her uncle’s face. Zel shrugged self-consciously.</p>
+<p>“Sorry about the philosophy. I suppose I’m just nostalgic. Miss Erin served me what she calls her ‘faerie flower drink’ and it’s quite something.”</p>
+<p>“Oh, <em>that?</em> Don’t drink that!”</p>
+<p>Selys reached over and pushed the cup away from Zel. She rolled her eyes.</p>
+<p>“Honestly! I told Erin that’s not a drink you give—are you okay, Uncle?”</p>
+<p>“Never better. And I’m quite alright, Selys. Don’t worry about it—it was an interesting experience.”</p>
+<p>Zel sat up in his chair as Selys regarded the pitcher with a disgusted look. He smiled.</p>
+<p>“Enough about me. I’m sure you’ve heard all the stories—most of them untrue, I’ll wager. What about you, Selys? Tell me about your job. Are you still working in the Adventurer’s Guild?”</p>
+<p>“Yes. And there’s nothing interesting about it, Uncle. It’s just a job.”</p>
+<p>“Tekshia tells me you work hard.”</p>
+<p>“Hah! She never says that to my face! Look, I get paid and then I have fun. It’s nothing, Uncle. I’m not a child anymore.”</p>
+<p>“So you’ve given up on being a dashing adventurer?”</p>
+<p>Selys’ scales reddened, standing out on her green complexion.</p>
+<p>“That was when I was <em>twelve</em> Uncle!”</p>
+<p>“I still remember you practicing with a sword and begging me to teach you how to claw fight.”</p>
+<p>“Ancestors,<em> please</em> don’t bring that up!”</p>
+<p>The young Drake woman covered her face in embarrassment. Zel laughed and relented.</p>
+<p>“Very well. Your job is satisfyingly boring, then?”</p>
+<p>Selys nodded in relief.</p>
+<p>“The most excitement I have is coming here. Did you know I met Erin the first week she arrived here? She walked into the Adventurer’s Guild.”</p>
+<p>“Really? Tell me about that.”</p>
+<p>“If you insist. Okay, I was working at the desk when she just walked in and asked if this place was a smithy! She didn’t read the sign or anything. Which, if you know Erin is typical of her…”</p>
+<p>Selys scooted her chair closer to the table. Zel smiled as he abandoned his drink and his quiet mood. He let Selys talk about meeting Erin, her job, her attempts at dating, the fights she’d had with her grandmother, and then they ate dinner together. They were more friends than uncle and niece and when Selys said goodbye, it was fondly, with a kiss on the cheek.</p>
+<p>“Next time you can visit me. Just not when I’m at work, okay, Uncle? If you walk into the Adventurer’s Guild, every Drake and Gnoll will want to shake your claw or kiss your feet or something.”</p>
+<p>“I’ll remember that.”</p>
+<p>Zel smiled as Selys bade him goodbye. Three days later, he left for the north. Selys heard of his alliance with Magnolia Reinhart two days after that. She never talked to him again. But sometimes she remembered what her grandmother had told her. And she wondered—</p>
+<p>&nbsp;</p>
+<p>&#8212;-</p>
+<p>&nbsp;</p>
+<p>“Selys?”</p>
+<p>The Drake jerked and sat up. Selys Shivertail looked around as memory was upstaged by reality. She saw Erin looking at her, and realized half the adventurers in the room were looking at her. Guiltily, Selys sat up.</p>
+<p>“Sorry, what’d I miss?”</p>
+<p>“We were getting to the monster—or thing these Goblins found in the dungeon.”</p>
+<p>Typhenous stroked his beard as he stood with his team around the table. Selys, sitting at another table Erin had pulled closer, glanced at the five Goblins sitting in the center of an audience of people. Five adventuring teams filled the inn—the Silver Swords, the Halfseekers, Griffon Hunt, the Horns of Hammerad, and the team of Vuliel Drae. Added to them was Olesm and Selys, both of whom had been summoned at the news of what had transpired in the dungeon—between the Goblins and Vuliel Drae.</p>
+<p>It was a headache and Selys was already wondering how her grandmother would take the news. Probably by telling Vuliel Drae to go right back in the dungeon and get eaten. She glanced at Olesm, wondering how the [Strategist] was taking the news. Then she realized the Goblins were talking.</p>
+<p>Well, sort of talking. Between the five of them they’d said very little. Their ‘speaker’, the Goblin that Erin said was named Numbtongue was reticent, and the others preferred to gesture with their hands and bodies. They’d plotted a course through the dungeon, pausing to answer questions from the adventures of what they’d seen. It was the mundane descriptions and pausing to ask ‘what does that mean?’ that had made Selys trail off.</p>
+<p>Now however, the adventurers were focused listening to the description of Face Collector, the monster that the Goblins had met. The name was what Erin had dubbed him and it bothered Selys that his description was so close to Skinner’s. It bothered the other adventurers too.</p>
+<p>“Tell us again what you saw. And one of you answer in <em>words</em>. I’m sick of sign language.”</p>
+<p>Revi glared at the other Goblins. They glanced at each other and four of them poked Numbtongue. He glared, but answered.</p>
+<p>“Head. Sticking out from around corner. Watching us. Like this.”</p>
+<p>Headscratcher got up and hurried over to the inn’s door. He opened it, stared at the rain pounding down, and then hurried into the kitchen instead. All of the adventurers stared as Headscratcher’s head poked out, wide and staring. Selys grimaced as she imagined <em>that </em>staring at her down a dark tunnel.</p>
+<p>Erin shuddered.</p>
+<p>“That’s creepy! You said there was a head staring at you? Just like that?”</p>
+<p>All four Goblins nodded. Halrac looked at Jelaqua.</p>
+<p>“Ring a bell?”</p>
+<p>The Selphid shook her head.</p>
+<p>“Nothing. And I’ve seen freaks in Baleros who collect all kinds of things. But that’s [Soldiers] and [Bounty Hunters]. Not a monster. Ylawes, you run into something like this?”</p>
+<p>“Not us. And that paralysis effect—”</p>
+<p>“What did the heads look like?”</p>
+<p>Yvlon interrupted the Gold-rank adventurers. She stared hard at Numbtongue. He hesitated.</p>
+<p>“Bald. Man. Older. Beard.”</p>
+<p>He looked at the others and they nodded. Yvlon turned to Selys. The blond woman was grim.</p>
+<p>“Does that match any of the descriptions of the missing adventurers?”</p>
+<p>All eyes turned to Selys. She hesitated as she flipped through her notes. Adventurers came and went, but she had a few written descriptions of some of the adventuring teams who’d gone into the dungeon and never come back.</p>
+<p>“Uh—bald? Human? It could be one of two adventurers that went missing in the dungeon. Oh wait—one of those is female. Probably this guy, then.”</p>
+<p>She nodded at the others. The adventures listened as she read a description out and the Redfang Goblins confirmed it. Selys saw two of the members of Vuliel Drae look at each other in horror. It was a grim meeting, for all the Goblins had emerged from the dungeon with treasure.</p>
+<p><em>Treasure! </em>Selys would have been shocked at the latest developments, but today she couldn’t find the energy. She was…occupied. So much so that the continuing discussion was just wearying to her, rather than important.</p>
+<p>“<strong>Raskghar ambushes, some kind of guardian monster with a paralysis effect—and an excessively punitive magical trap. Think this dungeon’s anything but a vengeance dungeon, Jelaqua?</strong>”</p>
+<p>Seborn looked up as he sat on a table, cleaning one of his daggers. Jelaqua sighed.</p>
+<p>“It’s got treasure, Seborn.”</p>
+<p>“<strong>I know. But we might be in over our heads.</strong>”</p>
+<p>Falene cleared her throat politely.</p>
+<p>“Let’s focus on what we know before we worry about the dangers. These Goblins acquired the treasures Vuliel Drae noticed—”</p>
+<p>“Right! Which means they should belong to us!”</p>
+<p>The short Dwarf woman burst out angrily. Everyone turned to stare at her. Anith, the Jackal Beastkin, covered his face.</p>
+<p>“Dasha, please don’t embarrass us.”</p>
+<p>“What, don’t we get a cut?”</p>
+<p>Ylawes looked at his team members.</p>
+<p>“That <em>is</em> a fair point.”</p>
+<p>“Right. How about we give money to the idiots who didn’t tell us they caused the attack on Liscor?”</p>
+<p>Revi looked like she could spit iron. Typhenous sighed.</p>
+<p>“Revi, please let it go for the moment.”</p>
+<p>“No! Honest adventurers come clean about their mistakes! What do you think would happen if <em>we</em> lied about a disaster like that?”</p>
+<p>Ylawes glared at her.</p>
+<p>“That doesn’t mean they don’t have rights to compensation for information, Miss Revi.”</p>
+<p>“Up yours, Byres!”</p>
+<p>The adventurers broke out into loud arguments punctuated by angry flashes of magic crackling through the air. Halrac breathed out slowly, irritation written all over his face.</p>
+<p>“Hey.”</p>
+<p>Selys felt a tug at her arm. She turned and saw Erin gesturing towards her kitchen. Grateful for a reprieve, Selys followed her friend into the kitchen as the argument got louder. Selys sighed in relief.</p>
+<p>“Thanks Erin, I could use a break.”</p>
+<p>Erin looked at her Drake friend.</p>
+<p>“You alright, Selys? You were spacing out.”</p>
+<p>“Spacing…out?”</p>
+<p>Selys frowned. Erin corrected herself.</p>
+<p>“Going like this.”</p>
+<p>She gave Selys a vacant, unfocused look. Her Drake friend looked dismayed. Erin grinned.</p>
+<p>“It wasn’t that obvious. But you seem distracted. Something wrong?”</p>
+<p>“Oh. It’s…well, it’s a bit of bad news, Erin. Sorry, I know I should be invested. This is my job, after all. But it’s just that—well—”</p>
+<p>The [Receptionist] grappled with how to tell Erin. The [Innkeeper] waited patiently, occupying herself by finding a keg she’d stored in one corner of her kitchen.</p>
+<p>“Look, it’s—”</p>
+<p>“Hey Erin! Revi’s about to pick a fight! Can you do something—oh.”</p>
+<p>A Drake edged into the kitchen, looking nervous. It was Olesm. The [Strategist] saw Selys and Erin and broke off. Selys bit her lip and her tail twitched in agitation. Erin sighed.</p>
+<p>“Darn it! And I was just about to bring out my secret weapon. Hey <em>Drassi!</em> Help me lift this!”</p>
+<p>Another Drake hurried into the kitchen. She waved at Selys and Selys waved back. Drassi was one of her good friends, but the [Barmaid] was on her shift so she headed back out of the kitchen at once with Erin to calm the fight with a stiff drink for everyone. It worked on Revi because, according to Erin, she was nicer drunk than she was sober.</p>
+<p>“Sorry. I didn’t mean to interrupt.”</p>
+<p>Olesm looked somewhat awkward. He and Selys weren’t friends except through Erin. She shrugged. Selys had a bad feeling in her chest, like a cold lump.</p>
+<p>“Forget about it. I was just telling Erin about what’s happening tomorrow. You know, right?”</p>
+<p>“Tomorrow? Oh—”</p>
+<p>Olesm paused. He looked at Selys.</p>
+<p>“You know about that? I got a classified report, but how do <em>you</em> know?”</p>
+<p>She glared at him. For a [Strategist], Olesm was an idiot.</p>
+<p>“What’s my last name, scales-for-brains?”</p>
+<p>“Um. <em>Oh—</em>I’m so—”</p>
+<p>The Drake turned red and stammered. Selys shook her head.</p>
+<p>“Forget about it. I guess it’s just as well that I had to come here—on my day off—to deal with this. It’s not like my week can get any worse.”</p>
+<p>“I’m sorry about that. It’s my day off, too. But this is a matter for the city and you <em>are</em> the best [Receptionist] in the Adventurer’s Guild.”</p>
+<p>“How wonderful for me.”</p>
+<p>Selys’ mood was dark and she really just wanted Olesm to follow Erin out so she could have a minute to herself. The last thing she wanted was to talk. Unfortunately, Olesm’s sense of tact was horrible.</p>
+<p>“I know this is a bad time, but uh, did you get a chance to bring up my proposal? The paperwork’s all done, but I haven’t gotten back a reply from the Adventurer’s Guild. I sent two follow-up requests via Street Runner—”</p>
+<p>She couldn’t deal with this right now. Selys flared at Olesm.</p>
+<p>“I’m working on it, Olesm! It’s not my call to make! You can recommend your idea as much as you want, but since it involves an adventurer <em>and</em> monsters, my grandmother has to sign off on it. And you <em>know</em> she’s not going to.”</p>
+<p>“But the proposal—”</p>
+<p>“Take it up with her, Olesm!”</p>
+<p>Selys stalked out of the kitchen, her tail lashing so hard it nearly smacked into Lyonette. The [Barmaid] stopped as she held Mrsha.</p>
+<p>“Sorry.”</p>
+<p>“It’s nothing. I was just taking Mrsha out of the line of fire if there’s another fight. Mrsha, here’s Selys! Say hi!”</p>
+<p>The Gnoll blinked at Selys. She’d been running about excitedly ever since the adventurers had come back smelling of blood and adrenaline. Now she was tired out. She waved at Selys and the Drake found the energy to smile at her.</p>
+<p>“Hi Mrsha. Are you sleepy?”</p>
+<p>“I think she’ll have a nap upstairs. Excuse us.”</p>
+<p>Lyonette hurried off as Selys reappeared back in the room. Everyone was drinking, and the flames of anger had reduced to dim embers, so to speak. Selys noticed Pisces hovering next to the three artifacts that had been collected. A bundle of cloth, a bell, and a necklace. No one had dared to unwrap the artifacts, but he was having a go at trying to discern what they did.</p>
+<p>“Okay, okay. Let’s agree that the artifacts are the Goblin’s. I guess. Dead gods, that’s insane to say! But what if we <em>paid</em> for them?”</p>
+<p>“Up to them.”</p>
+<p>“Oh, come <em>on</em>! You can’t be—”</p>
+<p>“That’s the law, Revi.”</p>
+<p>“They’re <em>Goblins.</em>”</p>
+<p>Jelaqua stirred as Revi dragged her fingers through her hair.</p>
+<p>“Excuse me, but our team had a Goblin in it. Not a good example, I know. But the Halfseekers have had this argument before. What applies to Goblins gets tossed at Selphids and Drowned Men more than you’d think.”</p>
+<p>The Stitch-Woman colored.</p>
+<p>“I didn’t mean your team! This is different!”</p>
+<p>“What is different? Species? Gender? If you make an exception for those you call monster, how soon until that label applies to us?”</p>
+<p>Moore raised his head as he spoke slowly. No one had a reply to that. Revi looked like she wanted to stitch her mouth closed in embarrassment. Selys was wondering whether she should ask what was happening to Vuliel Drae when the door to Liscor swung open.</p>
+<p>“Watch Captain!”</p>
+<p>Olesm looked surprised as Zevara entered the room. She nodded to him and halted as she eyed the Goblins. And Vuliel Drae. She didn’t comment on either though, and instead made a beeline towards Erin.</p>
+<p>“Miss Solstice, I hate to interrupt, but I need a word. Excuse us.”</p>
+<p>The adventurers let Erin walk away with Zevara, into the kitchen again. Knowing what this was about, Selys followed. She saw Zevara talking with Erin.</p>
+<p>“No, your Goblins aren’t in trouble as far as I know, Miss Solstice. Ancestors, there’s no law forbidding Goblins from raiding a dungeon! And no, I’m not discussing Vuliel Drae either. This is—incredibly—another matter that involves your inn.”</p>
+<p>“Really? What?”</p>
+<p>“We need to reserve your magic doorway. All day tomorrow and probably the day after that. We’ll have people coming through. We’ll pay you for the time and we’ll work out the mana costs, but I’m telling you now. I know it’s sudden, but—”</p>
+<p>“Why? Is something big happening?”</p>
+<p>Zevara looked surprised. The Watch Captain glanced at Selys.</p>
+<p>“Miss Shivertail didn’t tell you?”</p>
+<p>Erin turned to look at Selys, who avoided meeting her gaze.</p>
+<p>“No…”</p>
+<p>The Watch Captain paused. She glanced from Selys as if asking whether she’d prefer to say. Selys shrugged, so Zevara went on after a lengthy pause.</p>
+<p>“I don’t know if you’d heard. But General Shivertail’s body was recovered from the battlefield by the Humans after the Goblin Lord retreated. Magnolia Reinhart took charge of preserving and transporting it. It took a while due to the situation in the north, but a carriage is due to arrive in Celum tomorrow. We will be requesting the use of your door to transport the…remains here.”</p>
+<p>Selys felt a jolt in her stomach. She pressed her sheaf of parchment to her chest and closed her eyes. She heard nothing from Erin, and then a faint voice.</p>
+<p>“Oh.”</p>
+<p>There was a sudden noise that made all three women look up. Upstairs, Mrsha suddenly began howling. Selys closed her eyes.</p>
+<p>It was hard to be alive, today.</p>
+<p>&nbsp;</p>
+<p>&#8212;-</p>
+<p>&nbsp;</p>
+<p>She couldn’t stay. Not after all that. Mrsha had heard Zevara’s comment despite being upstairs and the ensuing commotion had caused chaos at Erin’s inn. Not least because there were five<em> Goblins</em> in her inn. Selys was still—she couldn’t believe that Erin—she knew that—</p>
+<p>Her head was a mess. The [Receptionist] left through Erin’s door to Liscor and stomped through the wet streets. Her wet cloak was being used to shield her notes from the rain, so Selys got drenched on the way back to the Adventurer’s Guild. It was raining. It always rained in the spring. Selys had no idea why, but something about the spring and the fact that Liscor was surrounded by mountains caused the intense rainfall each year. Or maybe it was a magical effect. All she knew was that it made her mood worse, for all the skies reflected her feelings.</p>
+<p>The storm drains leading into Liscor’s sewers were overflowing in parts and Selys had to splash through backlogs of filthy sewer water and rain. Something was clogging the drains—dead moth corpses, probably. It was a nightmare because without those drains Liscor would flood, surrounded as it was by water on all sides.</p>
+<p>And <em>that</em> was a problem that took top priority in Watch Captain Zevara’s books. So she’d given Selys an order to follow up on Olesm’s request to the Adventurer’s Guild, which had, incredibly, made Selys feel even <em>worse.</em></p>
+<p>“Damn Watch Captain, giving me orders. Stupid tail-wagging idiot. I’d like to see <em>her</em> try and reason with—”</p>
+<p>Selys kicked into the Adventurer’s Guild, letting the door rebound off a wall and slam shut behind her. She saw a few heads look up. No one wanted to be in the guild on a night like this. There was a [Receptionist] at the desk and a few Bronze-rank adventurers trying to claim bounties on Quillfish. Selys would have happily stabbed them all to death if it meant having an hour’s peace.</p>
+<p>Sadly, that was not to be. The [Receptionist] behind the desk was a younger Drake with pale pink scales named Nolsca. She opened her mouth to either comment about Selys dripping onto the floor which she’d have to clean up, or ask for help with the desk. She met Selys’ gaze and shut up.</p>
+<p>“Is the Guildmistress still here?”</p>
+<p>“Yes, Selys.”</p>
+<p>“Good, I’ve got to see her.”</p>
+<p>Selys stomped up the stairs to the second floor, wishing a pox on the idiot who’d decided to put a four copper coin bounty on Quillfish. Drakes were supposed to be filial towards their elders, but Selys didn’t care. A pox probably wouldn’t even slow Tekshia Shivertail down.</p>
+<p>The elderly Drake was sitting in her office when Selys kicked the door open. Her grandmother was sitting in her chair, going over reports—and holding a spear in one hand. Selys paused as Tekshia lowered the spear that had been poised to throw at her granddaughter’s chest.</p>
+<p>“Selys, what have I told you about knocking? I could have thrown this!”</p>
+<p>The old Drake scowled at Selys. Selys, whose heart was slowly coming down out of her mouth, spluttered.</p>
+<p>“<em>Thrown</em> it? Who did you expect was coming in here?”</p>
+<p>“Anyone. [Assassins], a hired thug, some kind of monster—you don’t get to be as old as I do without being prepared! What have I told you about knocking? And why are you wet? Didn’t you bring a cloak?”</p>
+<p>Selys ground her teeth together.</p>
+<p>“I did. I got wet covering all the <em>documents</em> you made me take with me.”</p>
+<p>“You should have put them in a carrying case! Honestly Selys…here.”</p>
+<p>Tekshia <em>tsked</em> as she got up from her chair and fished around her desk. She had a hand towel for some reason and offered it to Selys. Grumpily, Selys accepted the towel and began to dry herself. Tekshia sat back down and eyed Selys disapprovingly.</p>
+<p>“Well, how bad is it? Do I have to send a [Gravedigger] out?”</p>
+<p>“No.”</p>
+<p>“Not enough pieces? An [Undertaker] to record the names, then?”</p>
+<p>“No, <em>Grandmother.</em> No one’s dead!”</p>
+<p>“You mean they haven’t killed that Vuliel Drae team? What kind of soft adventurers do they let into Gold-rank these days?”</p>
+<p>“They’re not murderers, Grandma!”</p>
+<p>Selys was mildly horrified at what Tekshia was implying. Her only response was a snort from the old Drake. Tekshia had shrunk with age so she was shorter than Selys, and her appearance was deceptively frail at first glance. She still had far too much muscle for someone her age and her faded and patchy scales were the only real sign of her age. Tekshia had been a beauty in her youth and she liked to say that she was still a match for Selys, much to her granddaughter’s horror.</p>
+<p>She was far different from Selys in many respects, not least of which was her old-fashioned views. She had grown up in a time when everything was tougher and Drakes took matters into their own claws, according to her. Selys didn’t doubt it. The younger Drake sighed as she tossed her dry notes onto Tekshia’s table.</p>
+<p>“I don’t see what everyone’s so mad about. Yeah, Vuliel Drae caused a disaster, but why are they getting treated worse than the adventurers who survived Liscor’s crypt? We nearly lost the city that time, too! What’s the difference?”</p>
+<p>Tekshia’s brows shot together. She picked up one of the scrolls of parchment Selys had written on and tossed it to one side before glaring at her granddaughter.</p>
+<p>“The difference, Selys, is that the Horns of Hammerad and the other teams went out fighting. They retreated and immediately tried to hail the city—<em>after</em> all but one team had fallen fighting the undead. They took responsibility for what they did. As you’ll recall, they forfeited all their possessions to the city. This team hid from the moths <em>they</em> provoked and then lied to everyone after they escaped the dungeon. There is a difference.”</p>
+<p>“Okay, but…killing them? <em>Really?</em>”</p>
+<p>The old Drake shrugged as she played with her spear. It was a normal spear as far as Selys knew. Barbed, a wicked weapon but not the worst thing Tekshia had owned. She used to use an enchanted glaive—but she’d switched weapons for fear of her prized artifact being stolen. Selys couldn’t imagine anyone stealing from Tekshia and living to tell the tale.</p>
+<p>“There was a saying back when I was an adventurer, Selys. ‘The weak grow strong. Cowards are fine. The only hero is a dead one. But traitors and liars die first.’”</p>
+<p>“Okay, but that was then. Are you really saying Vuliel Drae <em>lying</em> about what happened is the worst thing they did?”</p>
+<p>Tekshia shook her head.</p>
+<p>“Running away is acceptable—Named Adventurers will flee just like Bronze-rank ones. Even incompetence can be understood. Disasters happen. But failing to take responsibility for your actions? Lying to your fellow adventurers and your Guild? That is the one sin we do not tolerate.”</p>
+<p>Selys gave up and threw her claws in the air.</p>
+<p>“Fine. If it’s <em>such</em> a bad crime, you can figure out what their punishment is. They’ve confessed to everything—I have Olesm’s statement and his signature, and witnesses from three Gold-team leaders like you wanted. And the Goblins got a bunch of treasures, by the way. Just thought I’d let you know.”</p>
+<p>“I don’t care about them. If they found out more about the dungeon, write up a report and I’ll decide who should know what. But those Goblins are not adventurers.”</p>
+<p>Tekshia looked pointedly at Selys as she said that. The younger Drake flushed. She had gotten into so much trouble when she’d tried to spring Erin’s crazy proposal on her grandmother.</p>
+<p>“They went into a dungeon, Grandma. And got <em>treasure</em>. Three artifacts! Why not let them be a team?”</p>
+<p>“I will <em>not</em> have a band of monsters roaming around as a sanctioned adventuring team. This was your Human friend’s insane idea and I don’t have to listen to it.”</p>
+<p>“<em>Come on,</em> Grandma! Please?”</p>
+<p>Selys didn’t know why she was arguing on Erin’s behalf. That was friendship for you. She could see why Erin wanted it for the Goblins—they’d be allowed to take requests and collect bounties on monster parts. A Goblin team? That would make them…halfway respectable. But Tekshia was more stubborn than a Gnoll with a bone.</p>
+<p>“Give me some assurance, Selys. Just one and I’ll agree to it.”</p>
+<p>“How am I supposed to do that?”</p>
+<p>“Figure out a way. Now, was there anything else? It’s late and you should be in bed.”</p>
+<p>Tekshia eyed her granddaughter sternly. Selys tried not to scream. It was <em>unfair</em>. Tekshia still treated her like a child, despite Selys being the most experienced [Receptionist] in the Guild! Not that that was saying much—it was hard to work for Tekshia, and the Adventurer’s Guild had been a quiet place with little opportunity to advance one’s class until now. But for all she’d worked hard, Selys’ opinions never seemed to matter to Tekshia. She could argue as long as she wanted, but Tekshia never agreed to try out any of Selys’ proposals.</p>
+<p>Aggravating. But at least Selys had one card left to play. She smiled angrily at her grandmother.</p>
+<p>“Just one thing, Grandma. Watch Captain Zevara <em>and</em> Olesm want me to get you to sign the proposal letting Pisces put undead in Liscor’s sewers.”</p>
+<p>“No.”</p>
+<p>The reply came back instantly. Tekshia didn’t so much as blink. Selys groaned.</p>
+<p>“Come <em>on</em>, Grandmother! The sewers are <em>flooding!</em> I walked through two streets filled with water! There are rat corpses clogging the tunnels, more of those damn moths—none of the adventurers are going to do it!”</p>
+<p>“I don’t trust necromancers. Neither should you. This Pisces is a former criminal. If his creations go rogue—”</p>
+<p>“They won’t.”</p>
+<p>“How do you know? What happened to that skeleton the [Necromancer] made? The one that has an open bounty on it?”</p>
+<p>Selys bit her tongue. Why did the facts have to get in the way of every argument?</p>
+<p>“That was different! This is a small undead…thing. He’ll let it work and it’ll be under his control. He’ll check on it regularly, that’s what the report says!”</p>
+<p>The old Drake leaned over her desk.</p>
+<p>“Really? Do you trust him? Will you take responsibility if things go wrong, Selys? Because it is <em>my</em> job to do just that. And I do not know, nor do I care to know this necromancer.”</p>
+<p>Selys met her Grandmother’s gaze for as long as she could. It was impossible to stare her down. At last, Selys had to look away.</p>
+<p>“I don’t know him, but he says—”</p>
+<p>“That’s what I thought. Until you’re willing to give me something, you can tell the Watch Captain what I told you.”</p>
+<p>The young [Receptionist] was about ready to punch her Grandmother, family or not. She resisted the impulse, not because violence against the elderly was abhorrent to her, but because she knew that if she took a swing, Tekshia would probably knock her senseless and spank her. There had been an…incident when Selys was eighteen.</p>
+<p>Instead of physical confrontation, Selys resulted to words.</p>
+<p>“Watch Captain Zevara says she’ll authorize it if you don’t. With or without the Guild’s permission, it’s going to happen, Grandma.”</p>
+<p>“Does she now?”</p>
+<p>Tekshia’s eyes narrowed. Selys knew her Grandmother was trapped and took bitter satisfaction in this small victory. The Adventurer’s Guild had a say in the city’s affairs, but the Watch Captain could overrule them. It was messy politics, but having a proposal go over Tekshia’s head wasn’t good for her influence. The [Guildmistress] of Liscor’s Adventuring Guild muttered several extremely vulgar insults about Zevara’s tail and other body parts, and then looked up.</p>
+<p>“Fine. But you’re supervising him the entire time he and his creation are down there.”</p>
+<p>“<em>Me?</em>”</p>
+<p>Selys had been all ready to gloat. She felt as though someone had placed a rug under her feet and yanked it out from under her. Tekshia believed in hardwood floors. Easier to clean and they didn’t stain. She gaped at her Grandmother.</p>
+<p>“Why do <em>I</em> have to follow Pisces into the sewers? Wait, why does he have to go into the sewers? The entire point is so that <em>none of us</em> have to be down there!”</p>
+<p>“I want you to make sure his creation is doing its job. Watch it work for an hour. Or two.”</p>
+<p>“<em>An hour—</em>”</p>
+<p>“Tomorrow, I think.”</p>
+<p>“But that’s—”</p>
+<p>“Watch him. That’s an order, Selys.”</p>
+<p>Tekshia didn’t give her granddaughter a chance to shout, scream, or throw a fit. She had a Skill she employed in moments like this—[Implacable Order]. When she said something would happen, it would happen and Selys could only obey or try to refuse, not argue about it. For a moment Selys considered refusing. Then a minute. Tekshia looked over Selys’ notes, grunting at the mention of the Face Collector as Selys fought internally. At last, she heard her granddaughter sigh.</p>
+<p>“I hate you.”</p>
+<p>“Thank you, my dear. What’s this about a monster that collects heads? Face Collector? Why not call it Head Collector instead?”</p>
+<p>“It doesn’t sound as good? I didn’t come up with the name.”</p>
+<p>“Pah. First this Skinner creation, now this. It makes me wonder what insane group built the dungeon. This fixation with flesh and body parts…it speaks to a disturbing trend. See if you can find any mention of an older Drake nation that focused on necromancy and the like. Or have that [Strategist] do it. I’ll write him a note. Or you can ask this [Necromancer] you like so much.”</p>
+<p>“I don’t like him, grandma. He’s an arrogant snob. Although…”</p>
+<p>Selys smiled wickedly as she remembered something that would get under Tekshia’s scales.</p>
+<p>“…he <em>is</em> a good kisser.”</p>
+<p>The elderly Drake looked up sharply. Selys looked innocent. Tekshia breathed out slowly, and then her mood changed. She glanced out her window at the rain pelting the streets below and shook her head.</p>
+<p>“Tomorrow at midday will be the time when Zel’s body arrives. Selys, I want you to come, but only if you’re willing.”</p>
+<p>Selys froze. She’d nearly been able to forget about that for a moment. She looked at Tekshia and gulped.</p>
+<p>“Come? For what? To see…”</p>
+<p>“Only if you want to. But I meant after that.”</p>
+<p>There was a painfully kind look in her grandmother’s eyes.  She got up slowly, her bones <em>creaking</em>, and walked towards the window.</p>
+<p>“His…condition will be a matter for Watch Captain Zevara and I. You don’t have to see that.”</p>
+<p>“I want to see.”</p>
+<p>“Very well.”</p>
+<p>Tekshia’s shoulders were stiff. She paused and went on.</p>
+<p>“What I meant was afterwards. Wall Lord Ilvriss has agreed to lend us his scrying orb, so we’ll be in touch with the rest of the family.”</p>
+<p>“The rest of—oh.”</p>
+<p>There were only two Shivertails living in Liscor. There had once been four—Selys’ father and her mother, who had married into the family. They’d settled in Liscor, but there was a large extended family that Selys had never met. There had been nothing particularly special about them until Zel Shivertail had made their name famous. Now they were considered lesser nobility in some respects, Selys understood. She had never so much as exchanged a [Message] or letter with one of them. And she knew her grandmother didn’t speak to her relatives that much either.</p>
+<p>“What will they—what do they want?”</p>
+<p>“Aside from seeing him? Legal matters. They’ve moved quickly. Too quickly, the greedy idiots. Couldn’t they have waited…? You’ll need to be present while it’s read to us by the [Mage] they hired.”</p>
+<p>“Read what?”</p>
+<p>Tekshia looked at Selys, irritated until she saw the honest confusion.</p>
+<p>“His will. It’s a matter of deep interest to your relatives.”</p>
+<p>Selys closed her eyes. The dull nausea flooded her chest again.</p>
+<p>“Of course it is.”</p>
+<p>&nbsp;</p>
+<p>&#8212;-</p>
+<p>&nbsp;</p>
+<p>“A will? I didn’t know you had those.”</p>
+<p>The next day, Selys was eating breakfast at Erin’s inn, a rare occasion. She had the morning off and Selys really didn’t feel like eating in her small apartment or having a meal with her Drake and Gnoll friends. So she’d come to Erin’s.</p>
+<p>In retrospect it was just as bad as hanging out with her friends and eating alone. Erin was helpful, solicitous and she made an amazing omelette, but she didn’t understand Drake culture and Selys had to explain it to her.</p>
+<p>Maybe that was better, though. Talking to someone helped. There was also Mrsha to consider. The Gnoll was lying on Selys’ lap, her head being stroked gently by Lyonette. Her eyes were still puffy from crying, but not red—Gnolls didn’t have whites so the difference was harder to spot. But sadness? Sadness was easy.</p>
+<p>Selys shifted and offered Mrsha a bite of her cheesy omelette. The Gnoll just curled up, though Selys could hear her belly rumbling. Lyonette shook her head and Selys guiltily ate another bite.</p>
+<p>“Of course we have wills, Erin. What do you think we are, savages?”</p>
+<p>“Hey, I don’t know what—you don’t have lawyers, well you do, but they aren’t called—look, I thought it was new—although we probably had them in the Middle Ages, so…”</p>
+<p>Erin grumbled to herself. Selys waited until she started making sense.</p>
+<p>“So you have wills. Got it. And that’s really important in Drake society?”</p>
+<p>“Everyone over the age of thirty has one, Erin. Everyone with anything to give away has one. I don’t have one, but that’s because I barely have more than a few gold coins saved up. I should probably make one.”</p>
+<p>“Wow. That’s so dark.”</p>
+<p>“Dark?”</p>
+<p>“Yeah? Why are you thinking about all that? Is it important to Drakes?”</p>
+<p>“Of course it is! Erin, how have you lived near Drakes and Gnolls for so long without understanding this?”</p>
+<p>Erin looked bewildered. She glanced at Lyonette who was nodding.</p>
+<p>“Okay. Someone explain this to me. Why do wills matter so much?”</p>
+<p>Selys smiled ruefully. Trust Erin not to get it. She was so observant—and yet, she didn’t like to believe the bad in people either.</p>
+<p>“Erin, we’re <em>possessive. </em>Haven’t you noticed?”</p>
+<p>Erin blinked.</p>
+<p>“Well, yeah. Sometimes I hear about Drakes being greedy and fighting over stuff. But that’s normal, right? Humans do it too.”</p>
+<p>“Not like Drakes.”</p>
+<p>“Sort of like Drakes.”</p>
+<p>“<em>Erin—</em>whatever Humans do, however greedy you get, I don’t think you understand how bad Drakes can be. Remember how I said we have wars between cities all the time? And how we’re descended from Dragons?”</p>
+<p>“Okay, so you’re greedy. But is it <em>really…?</em>”</p>
+<p>Lyonette was nodding. Erin glanced at her. The young woman cleared her throat.</p>
+<p>“Someone once said that if the world was destroyed and there was only dust left, Drakes would fight over who had the most dust.”</p>
+<p>“Yeah, that sounds about right. Erin, you’ve only really hung around Relc, me, Drassi, and Olesm, haven’t you? And there’s not much to fight over in your inn. Sorry, but there isn’t.”</p>
+<p>“‘S cool. I know I don’t have much. Wait, so what <em>do</em> you fight over?”</p>
+<p>“Things that are <em>ours</em>. That’s why it’s not bad in your inn. But let’s say I was living in an apartment with my grandmother. Which I used to. We’d fight over pillows, cups, chairs—and since it was all Grandma’s to start with, she’d kick my tail if I tried to keep it!”</p>
+<p>Selys’ own tail lashed angrily at the memories. Erin winced.</p>
+<p>“Okay, you fight over stuff. But I mean, that happens…”</p>
+<p>“I think we need an example.”</p>
+<p>Lyonette leaned over to Selys. The Drake nodded. She and Lyonette barely knew each other, but the Erin education team was a group effort. She cast around and saw a Drake eating breakfast by himself.</p>
+<p>“There.”</p>
+<p>She pointed at Olesm. Erin frowned.</p>
+<p>“Olesm? But he’s nice! He never gets greedy. At all.”</p>
+<p>Selys smirked.</p>
+<p>“Oh really? Olesm’s not nearly as bad as most. But he does it too. He doesn’t share his food, have you noticed?”</p>
+<p>Erin opened her mouth to object, and then closed it. Selys could see her running through all the times when Olesm had been eating here. Slowly, she got up and walked over to his table. Olesm looked up and smiled at her.</p>
+<p>“Hey Erin, thanks for the meal! This burger and fries thing is really good for when I’m in a hurry.”</p>
+<p>She smiled at him.</p>
+<p>“No problem, Olesm! Hey, I’m a bit hungry. Mind if I have a fry?”</p>
+<p>She reached for a fry. Olesm gently covered his plate.</p>
+<p>“Sorry Erin, but I’ve got to eat and run. Captain Zevara wants me on duty and uh, they’re my fries.”</p>
+<p>“I know, but it’s just one, right? Let me have a bite from your plate, come on.”</p>
+<p>“Ah…”</p>
+<p>The Drake hunched over his plate as Erin edged around him. Erin looked perplexed.</p>
+<p>“Just one? I made them.”</p>
+<p>“No, come on, <em>Erin…</em>”</p>
+<p>Selys and Lyonette watched Erin try to sneak around Olesm and him gently protest while shielding his plate. He was as sociable as ever, but no matter how Erin tried she couldn’t get him to part with a fry and Olesm was gobbling them faster and faster. Eventually she gave up and returned to Lyonette and Selys.</p>
+<p>“Okay, I think I get it. But Olesm wasn’t so bad! And it was really funny.”</p>
+<p>Selys just looked at her friend.</p>
+<p>“Erin, you tried for five minutes. Did you get a French fry? Even one?”</p>
+<p>Erin opened her mouth. Then she stood up.</p>
+<p>“Hey Olesm! Give me a fry!”</p>
+<p>“No!”</p>
+<p>Olesm practically shoved the rest of his food into his mouth. He ran out of the inn as Erin tried to get the food. Selys watched Erin try to tackle the Drake and sighed.</p>
+<p>“And that’s Olesm. There’s a reason why Drakes have wills and it’s to stop blood feuds over inheritance.”</p>
+<p>Lyonette looked at her sympathetically and Mrsha raised her head. Selys sighed.</p>
+<p>“Do you think it’ll be important, you being there?”</p>
+<p>“No. I’m just a distant relative. But Drake laws says that we should be present or at least told, so…”</p>
+<p>Selys shook her head. She got up as Erin tried to pin Olesm to the ground to steal one of his French fries. He punched her and then apologized. Erin rubbed her cheek and decked him.</p>
+<p>All in all, it was a fitting start to the day. And it was still raining.</p>
+<p>&nbsp;</p>
+<p>&#8212;-</p>
+<p>&nbsp;</p>
+<p>Somehow, for some reason, Selys still had to work at her desk for the morning. Tekshia Shivertail had given her the rest of the day off, but Selys had to cover the first shift. It made her angry. So what if the guild was busy? Her uncle’s body was coming <em>today!</em> Why couldn’t her grandmother give her a day off? Just one?</p>
+<p>It was a miserable day, filled with wet adventurers complaining about monsters and petty problems. There was something about the smell of wet Gnoll that Selys couldn’t ignore, no matter how long she stood at the desk. If there was one mercy, and it was a small one, it was that no one mentioned her uncle to her. They complained to her face, loudly, like any other [Receptionist].</p>
+<p>No one had ever really connected Selys’ name to the great General Shivertail, the Tidebreaker, hero of the Drakes. It wasn’t as if she’d gone around telling people her last name, anyways. Selys lived in Liscor, far from the city where Zel Shivertail had first risen to fame defending against the onslaught of the Antinium. And Tekshia Shivertail was a known figure, a former adventurer who’d retired and run the Adventurer’s Guild for over three decades now.</p>
+<p>So no one knew or cared. And they were rude and annoying, so Selys could vent some of her anger on them as well. She glared at a Human woman who was protesting how she’d been refused service by a Drake [Shopkeeper].</p>
+<p>“And then he called me a <em>smelly Human!</em> I told the Watch and they didn’t do anything!”</p>
+<p>Selys rolled her eyes.</p>
+<p>“So what?”</p>
+<p>“So <em>what?</em> I’m a Silver-rank adventurer! That Drake should open his shop to me! What if it was an emergency?”</p>
+<p>“Was it?”</p>
+<p>“No, but—”</p>
+<p>Selys sighed. Loudly.</p>
+<p>“Right, well you can file a complaint. Or drop it. And let me tell you that if you file a complaint, no one will care.”</p>
+<p>She watched the Human’s face go red.</p>
+<p>“This is outrageous! In Celum—”</p>
+<p>Again, Selys took a bit of satisfaction in cutting the Human off.</p>
+<p>“This isn’t a Human city, Miss. Adventurers don’t get special treatment and [Shopkeepers] can choose who they sell to. If you want your potions so badly, try Krshia. She’s a Gnoll—has a lot of good potions for a low price. You can find her on Market Street every day running her stall.”</p>
+<p>“And that’s it?”</p>
+<p>“Yeah. Did you want something else?”</p>
+<p>It was like watching one of the fish in the waters around here gape. Selys watched the mouth open and close and then leaned around the woman.</p>
+<p>“<em>Next!</em>”</p>
+<p>For a second she thought there might be trouble. But the female adventurer just stalked off after making a sound like a dying Razorbeak. Selys waved to the next adventurer impatiently.</p>
+<p>This was her life. It wasn’t glamorous or fun. It was just a job and Selys took a minimal amount of pride in it. She wasn’t an insane [Innkeeper] like Erin who could reach Level 30 in half a year. Neither was she an adventurer.</p>
+<p>Selys had learned to use a sword and bow at her aunt’s insistence, and she had completed her mandatory training course and earned her Level 1 [Soldier] class as all Liscor’s citizens were obligated to do. But she wasn’t about to join the army. She was a [Receptionist], Level 18, thanks. Higher than average, but she hadn’t leveled in…Ancestors, was it eight months, now? She just worked with no expectation of anything, really. She was a normal person.</p>
+<p>Or she had been, right up until her uncle had come to Liscor. Right up until she’d met a girl named Erin Solstice. Selys closed her eyes. Now she was running about and the Adventurer’s Guild was suddenly flooded with people.</p>
+<p>All this new responsibility was bothering her, too. Her Grandmother was giving her a lot of work. She wasn’t letting Selys give any orders for now, but…she was old. Selys knew her bones hurt in the morning. She wasn’t young. If what was happening was what Selys thought was happening…</p>
+<p>She was just a normal Drake. Why did she have to do more than she already did? Selys’ life used to be simple. Work, get off work, go to parties, flirt, have fun. That was all she wanted out of life. When monsters attacked, Selys did her part and hoped that the City Watch or adventurers could handle things.</p>
+<p>She wasn’t special. She had a special, unique friend. But her? All her life Selys had known only one claim to fame. A secret she was proud of. She had an uncle who was a hero. A living legend who sometimes visited her and told her stories and gave her money for treats.</p>
+<p>And now he was dead. Selys looked at the Gnoll in front of her.</p>
+<p>“What do you want?”</p>
+<p>&nbsp;</p>
+<p>&#8212;-</p>
+<p>&nbsp;</p>
+<p>Work passed by slowly. As Selys noted the position of the sun she grew more and more impatient. By the time she’d signed out of work and had met her grandmother by the door she was trembling slightly.</p>
+<p>“Steady.”</p>
+<p>Tekshia’s voice was soft as she led Selys through the rainy streets. Both Drakes kept their cloaks over their heads and they headed towards the city council’s administrative building. Watch Captain Zevara was waiting there to meet them, with a small escort of [Guardsmen]. Selys looked for a…a coffin or shroud and saw nothing.</p>
+<p>“It’s already inside. I haven’t touched the bindings. I…will have to be present, but I’ve insisted that no one else be in the room.”</p>
+<p>“Thank you, Watch Captain.”</p>
+<p>Tekshia Shivertail kept her back straight as she walked into the building. Selys followed her, conscious of the [Guardsmen]’s eyes on her. They had to know what they’d carried. There was an eerie silence to the building. It was never that busy—Liscor ran itself a lot of the time. And it was in the conference room, on the meeting table that they saw—</p>
+<p>Selys gasped when she saw the casket. It was black wood, not furnished with any decorations. But the wood was expensive and it seemed to take up the room. Zevara cleared her throat several times as the Drakes stood around the room in silence. A [Guardsman] closed the door behind them.</p>
+<p>“This is—I believe it came from Magnolia Reinhart. She was the one who sent the coach.”</p>
+<p>“Kind of her.”</p>
+<p>Tekshia’s voice was without emotion. She hesitated as her claws touched the lid.</p>
+<p>“Did that woman say anything about what…the condition of my nephew’s body is in?”</p>
+<p>“She warned us not to touch it. Apparently there were complications with retrieving the corpse. And…no, nothing more. But he died in battle. Miss Shivertail—Miss Selys, that is. Are you sure you want to see this?”</p>
+<p>Selys had had that same question. She hesitated, then nodded.</p>
+<p>“I want to see. I have to see.”</p>
+<p>“Very well, then. I’ll open the casket.”</p>
+<p>“I’ll take this end.”</p>
+<p>Zevara and Tekshia reached for the lid. Selys couldn’t breathe. She saw a flash of light as the two women lifted the lid—the preservation runes to keep the body from decomposing. She heard a sound as Tekshia lifted her end of the lid and an oath from Zevara.</p>
+<p>Then silence. Selys stared into the casket. She was too far back. She saw a leg. A leg she recognized. Then a flash of—gold? Trembling, she stepped closer. Her breath, her heart, everything—stopped.</p>
+<p>“Uncle.”</p>
+<p>Zel Shivertail lay in the casket, his arms folded, his face staring up towards the sky. What remained of it. Half of his head was gone. His body was—damaged. There was no describing it. His arms and legs looked torn, and his scales had changed color from their regular greenish hue. As if they had been bruised or he had suffered some kind of internal damage before dying.</p>
+<p>His body was ravaged. And yet from his neck down to his waist, there was only a single, unbroken piece of armor. A chest plate. It glowed in the dark room, shining gold and red with magic. It was beautiful. But Selys only had eyes for her uncle.</p>
+<p>“What happened?”</p>
+<p>Selys had seen the dead. She had seen injures. She had never seen so many wounds on a single body. Zel Shivertail looked like he had been burned, cut, battered, and attacked from every angle. But it was his head that Selys couldn’t stop staring at. That had been the blow that ended his life. How had it happened? <em>Who</em> had—</p>
+<p>Selys didn’t realize she was standing at the casket’s edge until she was there. She knelt over Zel’s body, too afraid to touch him. His face. His <em>head!</em> What had happened?</p>
+<p>Tekshia’s face was pale. The old Drake stared down at her nephew and her voice shook, the first time Selys could remember ever hearing such a thing.</p>
+<p>“A Goblin Lord did this? Goblins?”</p>
+<p>“Ancestors.”</p>
+<p>Zevara was just staring. Tekshia’s claws clenched. She stared at Zel’s closed eyes. He almost looked like he was smiling. It was just half a smile. Regret? Relief? Selys couldn’t tell. Her heart <em>hurt.</em></p>
+<p>Drakes were talking. She heard two female voices a she stared at her uncle. If she ignored the missing part of his head, he almost looked—</p>
+<p>“Watch Captain, I want every Walled City to form a strike force. I don’t care what the Humans do. Drakes must answer this ourselves.”</p>
+<p>“Guildmistress Tekshia, I’m sure they’ll listen, but that <em>armor—</em>”</p>
+<p>“The armor?”</p>
+<p>Selys blinked and looked away from Zel. For the second time she looked at the armor and finally took it in. Her eyes widened. Tekshia frowned at the metal.</p>
+<p>“Zel never had an artifact so powerful. And this is no common breastplate. What in the name of Izril is—”</p>
+<p>She breathed in sharply and backed up. Zevara and Selys looked at her. Tekshia’s voice was a whisper.</p>
+<p>“That scheming Human woman had it. This is it! The <em>Heartflame Breastplate!</em>”</p>
+<p>Both Drakes gaped at her. Zevara stared at the fiery metal, her eyes round.</p>
+<p>“That can’t be! It was lost centuries ago! You’re telling me the Reinharts had it? And she gave it to General Shivertail? Why didn’t she take it back?”</p>
+<p>“I don’t know. But it must be. Look at the metal. It’s unscratched! She gave this relic to him. And still—”</p>
+<p>Tekshia’s voice broke.</p>
+<p>“She left it with him. Why? To honor him?”</p>
+<p>“To apologize, maybe.”</p>
+<p>Selys’ voice was soft. Both Drake women looked at her. Zevara shook her head, her wonder broken by the reality of the moment.</p>
+<p>“If she did—I’m sorry Miss Shivertails, but this has to be reported. An artifact like this—it was General Shivertail’s, but I don’t know what will happen to it after his death.”</p>
+<p>“Nothing simpler. It will go to his heirs. His home city, perhaps. Or maybe he left it to a Walled City? Another [General]?”</p>
+<p>Tekshia’s voice turned bitter. She flicked her claws at the armor, staring again at Zel’s face.</p>
+<p>“It doesn’t matter. It is a pretty gesture. That’s all, Watch Captain.”</p>
+<p>They stood in silence again. Selys didn’t know how long. She just stared at Zel’s body. Part of her wished she could imagine him getting up. But she couldn’t. He was dead. And the reality of that was smell and sight and…what was she supposed to do?</p>
+<p>Zevara was the first to speak.</p>
+<p>“I’ll have someone remove the—the armor before the funeral.”</p>
+<p>She sounded guilty, as if ashamed to say it. Selys and Tekshia nodded absently. Taking armor and the possessions of the dead was standard practice. Few people were buried with their artifacts, and those that were, tended to construct entire dungeons to protect their treasures. Grave robbers would loot any corpse for the smallest of treasures and this armor would see every graveyard in Liscor dug up within the week. Selys knew that, but she hated imagining someone touching Zel’s body.</p>
+<p>“I…suppose we should attend the next matter. We’ve taken a while as it is. Guildmistress Tekshia, Miss Selys. With your permission I’d like to activate the scrying orb and…let General Shivertail’s family observe.”</p>
+<p>“What? Oh.”</p>
+<p>Selys started, remembering what Tekshia had said. Her grandmother nodded.</p>
+<p>“We might as well. Activate your orb, Watch Captain. And may the Ancestors give them the decency to speak well of Zel.”</p>
+<p>That was a curious thing to say. Zevara paused before she lifted the palm-sized scrying orb. Selys didn’t see what she did or said—she was too busy staring. Again. It felt wrong to look at her uncle. She wanted to cover the casket, as if he was naked. She shouldn’t have looked at him. She shouldn’t have been here.</p>
+<p>“—Watch Captain. Tekshia. And is that your daughter?”</p>
+<p>“My granddaughter.”</p>
+<p>A voice made Selys look up. She stared into the scrying orb. An older Drake, perhaps ten years younger than Tekshia, was standing at the head of a crowd of Drakes, all with green or some variation of green scales. The most distant coloration Selys saw was a pale yellow and a light blue.</p>
+<p>The Shivertail family. They stood awkwardly, not one cohesive whole. But Selys recognized some of them anyways. If not by name, by the way they stood. Some were dressed richly, others in common clothes. One wore armor, another looked like he was a [Soldier] off-duty. They stared into the scrying orb, crammed too tightly together owing to the constraints of the artifact Zevara held.</p>
+<p>“Ah yes. Your granddaughter. I forgot she was living with you.”</p>
+<p>The old male Drake nodded at Tekshia. She nodded back without any real love in her eyes. A Drake woman, younger than the male speaker, raised her voice impatiently.</p>
+<p>“We didn’t come to exchange pleasantries. We came here to read my brother’s will.”</p>
+<p>“And see his body.”</p>
+<p>The old Drake looked at her with a scathing glance. She returned it. They were both dressed finely. Was the female Drake Uncle Zel’s sister? Then who was the…?</p>
+<p>Zevara cleared her throat uncomfortably.</p>
+<p>“The casket has been opened and we have identified General Shivertail. I should warn you, though, Mister Shivertail. Your son’s body is—”</p>
+<p>“Show me.”</p>
+<p>The word was a command. Zevara hesitated, and then slowly walked over to the open casket. She tilted the orb and Selys heard a gasp of shock from the assembled Drakes. One stumbled back, laughing nervously. Selys heard a scream and saw two Drake children staring at the body, pale-faced. The girl hid behind her mother. The other Drakes closed their eyes, or turned away.</p>
+<p>But Zel’s father, if that was who he was, made no such reaction.</p>
+<p>“Ah.”</p>
+<p>The oldest Drake stared at his son for a second. The sound he made was a bit surprised, but nothing more. Selys waited, but the Drake just looked lost as he gazed into the casket. He looked around blankly at the other distraught Drakes and a flame seemed to ignite in him.</p>
+<p>“<em>Stand up.</em> Don’t turn away!”</p>
+<p>The other Drakes obeyed him, straightening, forcing their heads back to grimace at the sight in the coffin. Some of them had never seen a dead body, Selys realized. It was something she had seen, however rarely, but these Drakes lived in a place where that was an alien concept.</p>
+<p>Until now. Zel’s father stared into the casket while the rest of his family fidgeted or looked away. Only the military Drakes could watch. Selys saw tears in the eyes of the one wearing armor. She envied him. All of hers had gone far away.</p>
+<p>“That’s enough. Close the casket, Watch Captain. I’ve seen—my son is dead.”</p>
+<p>The elder Shivertail’s voice rasped hoarsely. Zevara nodded to Tekshia and put the scrying orb down for a moment. The lid closed. Selys stared at the black wood, remembering what was inside.</p>
+<p>“What was he wearing?”</p>
+<p>That came from Zel’s sister. She fanned at her lips with a handkerchief, looking pale. Watch Captain Zevara hesitated.</p>
+<p>“That was the armor General Shivertail was wearing when he fell, Miss Shivertail. It was a gift to him by Magnolia Reinhart, I believe.”</p>
+<p>“A powerful artifact?”</p>
+<p>“Yes, ma’am. Guildmistress Tekshia believes it may be…the Heartflame Breastplate.”</p>
+<p>Selys heard a <em>gasp.</em> She saw several Drakes lean forwards and one stared at the casket.</p>
+<p>“Can you remove the lid so we can take another look?”</p>
+<p>“You greedy hoarder!”</p>
+<p>Another Drake exclaimed in disgust. Zel’s sister fanned her face.</p>
+<p>“Why didn’t Magnolia Reinhart take the artifact back?”</p>
+<p>“I believe she meant it as a sign of goodwill. It was the possession of the Drakes’.”</p>
+<p>“And it was lost to war. We forfeited the claim to it as per the rules surrounding artifacts. If my brother died with it on, does that mean it was his?”</p>
+<p>Zevara exchanged a look with Tekshia.</p>
+<p>“Perhaps, Miss Shivertail. But we really can’t decide—”</p>
+<p>“That’s a matter for the will.”</p>
+<p>Zel’s father cut in harshly, looking at his daughter. Was she his daughter? There was no lost love in the glance she shot back at him.</p>
+<p>“Ah, yes, the will. That is the reason why we’ve all gathered here. Well, let’s open it. We have a [Mage] and my brother’s last written will.”</p>
+<p>She gestured to one side and Selys saw a Drake in [Mage]’s robes come forwards. He looked nervous to be at the center of attention.</p>
+<p>“My lord Shivertail, my ladies Shivertail…Watch Captain. May I take it that you are the—the witness for the reading of General Shivertail’s last will as to the distribution of his possessions and wealth?”</p>
+<p>“I am.”</p>
+<p>Zevara nodded, looking pale but standing straight. The [Mage] nodded. He pulled out a sealed bit of paper and showed everyone the magical wax seal on the top.</p>
+<p>“This will has not been opened or tampered with in any way. A Wistram [Mage] has certified this fact, as have I. With all members of his immediate family present, I will read the will’s contents.”</p>
+<p>“He didn’t leave anything to anyone else?”</p>
+<p>Selys blurted the words out. Everyone stared at her. The Drake [Mage] shook his head.</p>
+<p>“No others were listed in General Shivertail’s will.”</p>
+<p>“To whom else would he have given his possessions?”</p>
+<p>Zel’s father stared hard at Selys. She opened her mouth to reply. His friends? Then her throat closed. Her uncle had never mentioned his friends. He was a [General]. He had allies. But he was <em>always</em> busy. After a moment the elder Shivertail looked away from Selys.</p>
+<p>“Continue. Please.”</p>
+<p>“Very well, I will read the will from start to finish. This was personally dictated by Zel Shivertail…eight years ago, I believe. A long time, but the will is still quite valid. Ah, please save your questions until after I’ve completed the reading. Everything I read is certifiable by truth stone. And I shall begin.”</p>
+<p>The Drake cleared his throat a few times and read in a slightly trembling voice. Selys wondered if he was afraid of getting something wrong, or just conscious of whose will he was reading. His voice was a drone though, monotonous despite the moment.</p>
+<p>“‘I, Zel Shivertail, do record this will freely of my own will and choice, that my last wishes be recorded and executed to the best of the ability of those individuals who should take possession of my remains…’”</p>
+<p>The [Mage] ran through a lengthy and complicated opening to the will, specifying Zel Shivertail’s assets be used to pay for any debts he might have incurred, and that his property be distributed to the best of his ability. Selys had heard the same clauses a thousand times in other Drake wills. Of all the laws in Drake society, wills were treated as the most ironclad. When a Drake gave away their possessions, few laws in any city could challenge that right.</p>
+<p>At last, the [Mage] came to the first real line of Zel’s will. He read it slowly as all the Drakes listened closly.</p>
+<p>“‘To my family who have gathered here, I know not how I passed away or how I died. I trust I have died in service to Drakes, and wish for only the protection of my people in the times to come. I—’”</p>
+<p>The [Mage] choked on his words and Selys saw his eyes glistening. A few of the Drakes behind him looked moved—some did not. That was worst of all, seeing the impatience on some faces, the <em>greed</em>.</p>
+<p>How dare they? Selys felt a bit of anger, the first real emotion in her chest since seeing her uncle’s death. Slowly, the [Mage] collected himself and went on.</p>
+<p>“‘I have but one request that I hope you will honor. Bury me with my—’”</p>
+<p>He paused. This time some of the Drakes made audible sounds of impatience.</p>
+<p>“What?”</p>
+<p>“I’m sorry. The will states: ‘I hope you will honor…bury me with my…’”</p>
+<p>Now all the Drakes were staring at him. The [Mage] read and reread the line in silence and his face went pale. He looked around. Zel’s father stared at him.</p>
+<p>“Read it.”</p>
+<p>Slowly, the Drake read the rest of the message. There was a perfect moment of shock after he’d finished. Selys’ heart skipped a beat. But that was nothing to the uproar on the other end of the scrying orb.</p>
+<p>“He said <em>what?</em>”</p>
+<p>“Does he mean—”</p>
+<p>“That can’t be right! That has to be a mistake! He doesn’t—”</p>
+<p>“Unacceptable.”</p>
+<p>Zel’s father stared hard at the [Mage], who was shaking. He snatched the will and read it himself, then looked away.</p>
+<p>“That is what the will says. It is a request, not a condition. It doesn’t have to be fulfilled.”</p>
+<p>The [Mage] hurried to assure everyone. Selys stared at him. He had to know. Or to guess by everyone’s reactions what Zel’s final request meant. The rest of the Shivertails were outraged.</p>
+<p>“Well, it may be a request, but it’s in poor taste to add to his will!”</p>
+<p>“It’s his <em>will</em>, aunt! Where else should he put it?”</p>
+<p>“We can’t honor it. There is no way. The scandal it would cause.”</p>
+<p>“You’d think he wouldn’t cause trouble in his death. But no!”</p>
+<p>“Be quiet!”</p>
+<p>“Why should I? When we have a, a <em>turnscale</em>—”</p>
+<p>“Silence!”</p>
+<p>Selys saw the elder Drake whirl, heard a dull <em>thump</em>, and saw another young Drake stagger. The older Drake was furious. He raised his hand and the young male Drake retreated.</p>
+<p>“Speak such slander at my son’s funeral—over his body again and I will cut you down. Any of you!”</p>
+<p>He whirled, his angry eyes looking through the scrying orb at Tekshia, Zevara, and Selys. Zel’s father looked around, and his voice was iron.</p>
+<p>“This will is <em>sealed.</em> No one is to breathe a word of it, understand me? My son’s possessions will be divided up according to his wishes—this line was never written.”</p>
+<p>No one said a word. Zel’s father stared at the blank casket.</p>
+<p>“We will remember him as what he was. A hero. Nothing less.”</p>
+<p>There wasn’t anything Selys could say. Zel’s line burned in her mind. So. Tekshia had told her the truth. She didn’t know what to think. After a while, the [Mage] went on.</p>
+<p>“‘To my father, I leave what lands I have been granted, as well as a portion of my estates.’”</p>
+<p>There was a mutter from Zel’s sister. The other Drakes seemed to sigh. Selys relaxed slightly. The will was taking place. No doubt these rich Drakes wanted to see what they’d get. Zel had already made them rich, but who would get the rest? He was a [General] and one of the wealthiest Drakes in all of Izril. This is what most had come here for, hoping for a small bit of his legacy.</p>
+<p>“‘The division of my monetary wealth held in the respective cities I have placed my earnings with is to be as follows. To my father, I give…’”</p>
+<p>It was a lot of money. Zel didn’t name numbers, except in the case of a few Drakes whom he gave a certain amount of gold to, or an artifact, but the sums involved made Selys’ head spin. One Drake alone—and this wasn’t even the father or immediate family—would walk away with at least six hundred gold pieces. And from the disappointed look on his face, he’d been hoping for <em>more.</em></p>
+<p>Tekshia wasn’t named in Zel’s will as the [Mage] divided his money up, and his lands. Nor was Selys. They were distant relatives and it would have been strange indeed for Zel to leave them more than a few tokens. Selys didn’t want anything. But as she looked at the smiling sister—or as Zel had named her, sister-in-law, she felt strongly that no one should have anything else either. If Zel could see this, what would he say?</p>
+<p>Would he care? Or just be disappointed? Selys shifted from foot to foot, her tail curling around her leg with her desire to <em>leave</em> until the [Mage] reached the last few lines of the will. It was a simple statement from Zel.</p>
+<p>“‘To my Aunt Tekshia, I give her the spears in my armory along with any of my monetary investments, holdings, or other wealth placed in Liscor.’”</p>
+<p>“Not much, I fear. We’ll send the spears to you, if you wish.”</p>
+<p>Zel’s sister-in-law looked triumphantly at Tekshia. The old Drake just stared back, looking fed-up. The [Mage] coughed and went on.</p>
+<p>“‘Any other properties not accounted for in my will shall be turned over to my father or my sister-in-law or nearest relative in order of relation. However, I give whatever personal effects were on my corpse to my niece, Selys Shivertail, in hopes she will one day become an adventurer—’”</p>
+<p>Selys heard a <em>gasp</em>. She stared, uncomprehending, as the [Mage] paused. Every eye turned to her.</p>
+<p>“‘—or to use as she desires. If said artifacts are lost due to war or the circumstances of my death, I give Selys a blade of her choosing from my personal armory and a sum of coins to equal—’”</p>
+<p>“Ancestors.”</p>
+<p>Someone breathed the word, interrupting the [Mage] again. Selys just felt blank. An adventurer? He’d actually remembered her. She looked at the casket, and then heard a shriek.</p>
+<p>“He did <em>what?</em> That can’t be!”</p>
+<p>Selys stared at the sister-in-law. She was pointing at Selys, her eyes bulging and rolling in her head. Why?</p>
+<p>“Selys.”</p>
+<p>Tekshia, Zevara, everyone was staring at her. Selys didn’t understand. Her mind felt too slow, as if she were underwater. She looked at Watch Captain Zevara.</p>
+<p>“What? What’s so important?”</p>
+<p>The Watch Captain stared at her. Slowly, Zevara raised a hand and ruffled the dark purple spines at the back of her neck. Her pale blue scales seemed almost ghostly as she looked at Selys. She spoke, her lips pale, her voice shaking.</p>
+<p>“Miss Selys. If General Shivertail left you the possessions on his body…that means <em>you</em> are the inheritor of the Heartflame Breastplate and any other artifacts he owned.”</p>
+<p>Selys heard the words. She didn’t understand them. She looked at the casket as the Drakes in the scrying orb shouted. She remembered the burning armor. She remembered her uncle’s smiling face. She knew it was important, but she was just empty. She looked around.</p>
+<p>“Me?”</p>
+<p>&nbsp;</p>
+<hr />
+<p><a href="https://wanderinginn.com/2018/08/28/5-15/">Previous Chapter</a><a href="https://wanderinginn.com/2018/09/01/5-17-s"> <span style="float:right;">Next Chapter</span></a></p>
+			</div><!-- .entry-content -->
+
+	<footer class="entry-meta">
+		This entry was posted in <a href="https://wanderinginn.com/tag/writing/" rel="category tag">Writing</a> and tagged <a href="https://wanderinginn.com/tag/fantasy/" rel="tag">fantasy</a>, <a href="https://wanderinginn.com/tag/inn/" rel="tag">inn</a>, <a href="https://wanderinginn.com/tag/web-novel/" rel="tag">web novel</a>, <a href="https://wanderinginn.com/tag/web-serial/" rel="tag">web serial</a>, <a href="https://wanderinginn.com/tag/writing/" rel="tag">Writing</a> by <a href="https://wanderinginn.com/author/pirateaba/">pirateaba</a>. Bookmark the <a href="https://wanderinginn.com/2018/09/01/5-16-s/" title="Permalink to 5.16 S" rel="bookmark">permalink</a>.
+		
+			</footer><!-- .entry-meta -->
+</article><!-- #post-4781 -->
+
+						<div id="comments">
+	
+	
+			<h2 id="comments-title">
+			26 thoughts on &ldquo;<span>5.16 S</span>&rdquo;		</h2>
+
+		
+		<ol class="commentlist">
+					<li class="comment byuser comment-author-pirateaba bypostauthor even thread-even depth-1 highlander-comment" id="li-comment-43408">
+		<article id="comment-43408" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/2f8ac70cd17f11c419846c441769523b?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn"><a href='http://pirateaba.wordpress.com' rel='external nofollow ugc' class='url'>pirateaba</a></span> on <a href="https://wanderinginn.com/2018/09/01/5-16-s/#comment-43408"><time datetime="2018-09-01T12:13:13+00:00">September 1, 2018 at 12:13 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Whew! A double chapter thanks to the monthly side story and today&#8217;s chapter! This is part one of two. Hope you enjoy it! It&#8217;s time for a Selys arc and an interlude from the main story. But this is an important story! Let me know if you&#8217;re interested and see you next chapter as soon as you finish that!</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/09/01/5-16-s/?replytocom=43408#respond' data-commentid="43408" data-postid="4781" data-belowelement="comment-43408" data-respondelement="respond" data-replyto="Reply to pirateaba" aria-label='Reply to pirateaba'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment odd alt depth-2 highlander-comment" id="li-comment-44384">
+		<article id="comment-44384" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/51fe6184f0f5c5eb59d3ab8c87e3f171?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">5thearth</span> on <a href="https://wanderinginn.com/2018/09/01/5-16-s/#comment-44384"><time datetime="2018-09-04T19:21:31+00:00">September 4, 2018 at 7:21 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Looking forward to the Selys arc. I&#8217;m always ambivalent when shifting arcs because I&#8217;m invested in the current characters, but I also always want to catch up on what everyone else is doing. There needs to be a word for that feeling of &#8220;but wait, what about&#8230; Oh cool, I missed them!&#8221;</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/09/01/5-16-s/?replytocom=44384#respond' data-commentid="44384" data-postid="4781" data-belowelement="comment-44384" data-respondelement="respond" data-replyto="Reply to 5thearth" aria-label='Reply to 5thearth'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-pirateaba bypostauthor even thread-odd thread-alt depth-1 highlander-comment" id="li-comment-43409">
+		<article id="comment-43409" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/2f8ac70cd17f11c419846c441769523b?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn"><a href='http://pirateaba.wordpress.com' rel='external nofollow ugc' class='url'>pirateaba</a></span> on <a href="https://wanderinginn.com/2018/09/01/5-16-s/#comment-43409"><time datetime="2018-09-01T12:13:41+00:00">September 1, 2018 at 12:13 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Leave a typo for wills and legacies. And&#8230;caskets.</p>
+<p>(Typo will writers: ACarpDM, MrWiggles, AVR)</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/09/01/5-16-s/?replytocom=43409#respond' data-commentid="43409" data-postid="4781" data-belowelement="comment-43409" data-respondelement="respond" data-replyto="Reply to pirateaba" aria-label='Reply to pirateaba'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment odd alt depth-2 highlander-comment" id="li-comment-43647">
+		<article id="comment-43647" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/f29029a889db484b7663ffb06c72848d?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">ACarpDM</span> on <a href="https://wanderinginn.com/2018/09/01/5-16-s/#comment-43647"><time datetime="2018-09-01T14:21:40+00:00">September 1, 2018 at 2:21 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>;_; rip Zel</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/09/01/5-16-s/?replytocom=43647#respond' data-commentid="43647" data-postid="4781" data-belowelement="comment-43647" data-respondelement="respond" data-replyto="Reply to ACarpDM" aria-label='Reply to ACarpDM'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-ramnevet even depth-2 highlander-comment" id="li-comment-44013">
+		<article id="comment-44013" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/18a024a5f612eb1d155e830d204a962a?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">Ram Nevet</span> on <a href="https://wanderinginn.com/2018/09/01/5-16-s/#comment-44013"><time datetime="2018-09-03T13:46:25+00:00">September 3, 2018 at 1:46 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>After the skinner fight selys tells erin that she gained 4 levels in warrior, but if she had level 1 soldier from basic training wouldn&#8217;t she gain levels in soldier rather then warrior?</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/09/01/5-16-s/?replytocom=44013#respond' data-commentid="44013" data-postid="4781" data-belowelement="comment-44013" data-respondelement="respond" data-replyto="Reply to Ram Nevet" aria-label='Reply to Ram Nevet'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment odd alt depth-2 highlander-comment" id="li-comment-44253">
+		<article id="comment-44253" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/1e677dc8fe1c3aef4ef0d0127bdf7888?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">oliverwashere</span> on <a href="https://wanderinginn.com/2018/09/01/5-16-s/#comment-44253"><time datetime="2018-09-04T14:17:30+00:00">September 4, 2018 at 2:17 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>She heard two female voices a she stared at her uncle.<br />
+voices as she</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/09/01/5-16-s/?replytocom=44253#respond' data-commentid="44253" data-postid="4781" data-belowelement="comment-44253" data-respondelement="respond" data-replyto="Reply to oliverwashere" aria-label='Reply to oliverwashere'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment even depth-2 highlander-comment" id="li-comment-44369">
+		<article id="comment-44369" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/49412fac2686de94f0569afe04eeb38f?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">SloppyDogg</span> on <a href="https://wanderinginn.com/2018/09/01/5-16-s/#comment-44369"><time datetime="2018-09-04T16:15:38+00:00">September 4, 2018 at 4:15 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Selys felt a bit of anger, the first real emotion in her chest since seeing her uncle’s death. </p>
+<p>She did not witness the battle, so this doesn&#8217;t make much sense.  Not sure what you were going for, but I would suggest one of the following:</p>
+<p>&#8230;seeing her uncle in death.<br />
+&#8230;seeing her uncle&#8217;s [body/remains/corpse].<br />
+&#8230;hearing of her uncle&#8217;s death.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/09/01/5-16-s/?replytocom=44369#respond' data-commentid="44369" data-postid="4781" data-belowelement="comment-44369" data-respondelement="respond" data-replyto="Reply to SloppyDogg" aria-label='Reply to SloppyDogg'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-internetstraggler odd alt depth-2 highlander-comment" id="li-comment-44460">
+		<article id="comment-44460" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/bc2cfb7612d9c5b8bafd318d4124d321?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn"><a href='http://internetstraggler.wordpress.com' rel='external nofollow ugc' class='url'>internetstraggler</a></span> on <a href="https://wanderinginn.com/2018/09/01/5-16-s/#comment-44460"><time datetime="2018-09-06T00:34:42+00:00">September 6, 2018 at 12:34 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>“Your favorite one? What about all the {others} ones you have?”<br />
+{others} -&gt; {other}</p>
+<p>&#8220;He replied {casually as} he could.&#8221;<br />
+{casually as} -&gt; {as casually as}?</p>
+<p>{Selys’,} tail twitched as she smiled at her uncle.<br />
+Stray comma.</p>
+<p>&#8220;Maybe in two {more  years} he could talk to her about—&#8221;<br />
+&#8220;There was a painfully kind look in her grandmother’s {eyes.  She} got up slowly, her bones creaking, and walked towards the window.&#8221;<br />
+Extra space(s).</p>
+<p>&#8220;Let’s agree that the artifacts are the {Goblin’s}.&#8221;<br />
+Not necessarily a typo as he could have been referring to one specific Goblin. If he was referring to them as a group then {Goblin’s} -&gt; {Goblins’}</p>
+<p>&#8220;Selys paused as Tekshia lowered the spear that had been poised to {throw} at her granddaughter’s chest.<br />
+{throw} -&gt; {be thrown} or {fly} or something similar, since the spear doesn&#8217;t throw itself.</p>
+<p>&#8220;Instead of physical confrontation, Selys {resulted} to words.&#8221;<br />
+{resulted} -&gt; {resorted}</p>
+<p>&#8220;She heard two female voices {a} she stared at her uncle.&#8221;<br />
+{a} -&gt; {as}</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/09/01/5-16-s/?replytocom=44460#respond' data-commentid="44460" data-postid="4781" data-belowelement="comment-44460" data-respondelement="respond" data-replyto="Reply to internetstraggler" aria-label='Reply to internetstraggler'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-tyriantybalt even depth-2 highlander-comment" id="li-comment-55189">
+		<article id="comment-55189" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/779cfd99efd44d7e087f9e00e0ba7aad?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn"><a href='http://tyriantybalt.wordpress.com' rel='external nofollow ugc' class='url'>tyriantybalt</a></span> on <a href="https://wanderinginn.com/2018/09/01/5-16-s/#comment-55189"><time datetime="2019-02-20T19:19:23+00:00">February 20, 2019 at 7:19 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>&#8212;&#8212;&#8212;<br />
+He read it slowly as all the Drakes listened *closly.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/09/01/5-16-s/?replytocom=55189#respond' data-commentid="55189" data-postid="4781" data-belowelement="comment-55189" data-respondelement="respond" data-replyto="Reply to tyriantybalt" aria-label='Reply to tyriantybalt'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment byuser comment-author-jennygfarmer odd alt depth-3 highlander-comment" id="li-comment-90386">
+		<article id="comment-90386" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/ae108cc414fc83fe8ee561b2a2f176b5?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn"><a href='http://gravatar.com/jennygfarmer' rel='external nofollow ugc' class='url'>Jenny Farmer</a></span> on <a href="https://wanderinginn.com/2018/09/01/5-16-s/#comment-90386"><time datetime="2020-09-17T20:28:38+00:00">September 17, 2020 at 8:28 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Right!?? Even though I am years behind everyone else&#8230;!</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/09/01/5-16-s/?replytocom=90386#respond' data-commentid="90386" data-postid="4781" data-belowelement="comment-90386" data-respondelement="respond" data-replyto="Reply to Jenny Farmer" aria-label='Reply to Jenny Farmer'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		<li class="comment even depth-2 highlander-comment" id="li-comment-107800">
+		<article id="comment-107800" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/59c565b9837b0d95b7f987ad6e95fec4?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">infiniplex</span> on <a href="https://wanderinginn.com/2018/09/01/5-16-s/#comment-107800"><time datetime="2021-07-02T20:54:36+00:00">July 2, 2021 at 8:54 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>&#8221; But as she looked at the smiling sister—or as Zel had named her, sister-in-law, she felt strongly that no one should have anything else either.&#8221;</p>
+<p>1.  The dash is unmatched.  I think the other one should be after &#8220;sister-in-law&#8221;.</p>
+<p>2.  I am not sure which &#8220;she&#8221; feels strongly.  Probably Selys, but it could also be the sister-in-law.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/09/01/5-16-s/?replytocom=107800#respond' data-commentid="107800" data-postid="4781" data-belowelement="comment-107800" data-respondelement="respond" data-replyto="Reply to infiniplex" aria-label='Reply to infiniplex'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-even depth-1 highlander-comment" id="li-comment-43586">
+		<article id="comment-43586" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/10ac3128b6e260803bfe66c968118cd1?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Blooper</span> on <a href="https://wanderinginn.com/2018/09/01/5-16-s/#comment-43586"><time datetime="2018-09-01T13:58:22+00:00">September 1, 2018 at 1:58 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Bury me with WHAT? WHY DO YOU DO THIS TO US!</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/09/01/5-16-s/?replytocom=43586#respond' data-commentid="43586" data-postid="4781" data-belowelement="comment-43586" data-respondelement="respond" data-replyto="Reply to Blooper" aria-label='Reply to Blooper'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment even depth-2 highlander-comment" id="li-comment-43625">
+		<article id="comment-43625" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/50c95df912bb992c7d0e6daa76aff147?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">Danzel</span> on <a href="https://wanderinginn.com/2018/09/01/5-16-s/#comment-43625"><time datetime="2018-09-01T14:06:35+00:00">September 1, 2018 at 2:06 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>That is easy to answer. He wants to be buried with the soldiers he was commanding when he died. As they were humans, his family does not want to honor his will.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/09/01/5-16-s/?replytocom=43625#respond' data-commentid="43625" data-postid="4781" data-belowelement="comment-43625" data-respondelement="respond" data-replyto="Reply to Danzel" aria-label='Reply to Danzel'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment odd alt depth-3 highlander-comment" id="li-comment-43835">
+		<article id="comment-43835" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/6a7b38b6f47dcf22b0597084900a977b?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">BroadAxe</span> on <a href="https://wanderinginn.com/2018/09/01/5-16-s/#comment-43835"><time datetime="2018-09-01T18:02:24+00:00">September 1, 2018 at 6:02 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>I&#8217;m pretty sure he wants to be buried with his male lover, that, I believe is what is referred to in the start of the story, and also what they meant be &#8220;turnscale&#8221; as well as what sells grandmother had said.</p>
+<p>If I were to guess, this person is probably that guy who had quite level in &#8220;spear of the drakes&#8221; or whatever, he talks very fondly of him :3 just guessing though :)</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/09/01/5-16-s/?replytocom=43835#respond' data-commentid="43835" data-postid="4781" data-belowelement="comment-43835" data-respondelement="respond" data-replyto="Reply to BroadAxe" aria-label='Reply to BroadAxe'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment byuser comment-author-1024dp even depth-4 highlander-comment" id="li-comment-44005">
+		<article id="comment-44005" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/cb474ea3c637db7230457c2b941c8fc2?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn"><a href='http://thoughtsideaswords.wordpress.com' rel='external nofollow ugc' class='url'>1024dp</a></span> on <a href="https://wanderinginn.com/2018/09/01/5-16-s/#comment-44005"><time datetime="2018-09-03T04:37:21+00:00">September 3, 2018 at 4:37 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Zel being gay is my second guess. My first is Zel being straight but with a human girlfriend.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/09/01/5-16-s/?replytocom=44005#respond' data-commentid="44005" data-postid="4781" data-belowelement="comment-44005" data-respondelement="respond" data-replyto="Reply to 1024dp" aria-label='Reply to 1024dp'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		<li class="comment odd alt depth-3 highlander-comment" id="li-comment-43973">
+		<article id="comment-43973" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/e1542536fc268221f0e49efc03325a70?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">Ross</span> on <a href="https://wanderinginn.com/2018/09/01/5-16-s/#comment-43973"><time datetime="2018-09-02T01:26:06+00:00">September 2, 2018 at 1:26 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>I think he asked to be buried with his lover, General Sserys. It would fit with Zel never having children and with Selys thinking that her grandmother was right about Zel.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/09/01/5-16-s/?replytocom=43973#respond' data-commentid="43973" data-postid="4781" data-belowelement="comment-43973" data-respondelement="respond" data-replyto="Reply to Ross" aria-label='Reply to Ross'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment even depth-3 highlander-comment" id="li-comment-43979">
+		<article id="comment-43979" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/75125380e7023f54987a8d36c614ea14?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">Drunken Dwarf</span> on <a href="https://wanderinginn.com/2018/09/01/5-16-s/#comment-43979"><time datetime="2018-09-02T04:24:37+00:00">September 2, 2018 at 4:24 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Have to agree with the others, I think Zel Shivertail was in love with General Sserys and wanted to be buried with him. This can be seen in chapter 4.49, where his dying quotes sound like he had a crush on him.</p>
+<p>&#8220;My mentor, my friend, wings of my heart, did I do a good job? Defending our people? It was so very difficult without you. Will I see you, I wonder? Will you say I did a good job or a bad one when we meet?&#8221;</p>
+<p>There was nothing about them actually being together though, even in Sserys&#8217;s final diary entry, so it might have been only Zel who swung that way.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/09/01/5-16-s/?replytocom=43979#respond' data-commentid="43979" data-postid="4781" data-belowelement="comment-43979" data-respondelement="respond" data-replyto="Reply to Drunken Dwarf" aria-label='Reply to Drunken Dwarf'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-43638">
+		<article id="comment-43638" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/df0de84da2c8665c006fdb767a01a943?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">COR</span> on <a href="https://wanderinginn.com/2018/09/01/5-16-s/#comment-43638"><time datetime="2018-09-01T14:16:09+00:00">September 1, 2018 at 2:16 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>bury with my what, bury with my what???!!</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/09/01/5-16-s/?replytocom=43638#respond' data-commentid="43638" data-postid="4781" data-belowelement="comment-43638" data-respondelement="respond" data-replyto="Reply to COR" aria-label='Reply to COR'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="li-comment-43983">
+		<article id="comment-43983" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/524e81479919091d9043296c4a34e638?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Yenin</span> on <a href="https://wanderinginn.com/2018/09/01/5-16-s/#comment-43983"><time datetime="2018-09-02T07:40:45+00:00">September 2, 2018 at 7:40 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>There is an inconsistency in Selys&#8217; sword and bow background.</p>
+<p>Here: Selys had learned to use a sword and bow at her aunt’s insistence, and she had completed her mandatory training course and earned her Level 1 [Soldier] class</p>
+<p>In 1.44:  Selys had never used a sword. Swords were for warriors, and she was just a receptionist. She had a few archery skills from a few levels as a [Hunter], but she had never touched a sword except to sell it or appraise it.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/09/01/5-16-s/?replytocom=43983#respond' data-commentid="43983" data-postid="4781" data-belowelement="comment-43983" data-respondelement="respond" data-replyto="Reply to Yenin" aria-label='Reply to Yenin'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment byuser comment-author-ramnevet odd alt depth-2 highlander-comment" id="li-comment-44012">
+		<article id="comment-44012" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/18a024a5f612eb1d155e830d204a962a?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">Ram Nevet</span> on <a href="https://wanderinginn.com/2018/09/01/5-16-s/#comment-44012"><time datetime="2018-09-03T13:37:22+00:00">September 3, 2018 at 1:37 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>to add to this inconsistency, she did gain some classes post skinner, she gained 4 [warrior] levels, as her at the time first fighting class, wouldn&#8217;t she have leveled soldier if she had soldier class?</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/09/01/5-16-s/?replytocom=44012#respond' data-commentid="44012" data-postid="4781" data-belowelement="comment-44012" data-respondelement="respond" data-replyto="Reply to Ram Nevet" aria-label='Reply to Ram Nevet'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		<li class="comment even thread-odd thread-alt depth-1 highlander-comment" id="li-comment-43990">
+		<article id="comment-43990" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/7b778651ead7a974036a5142e7093f77?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Dudddddeee</span> on <a href="https://wanderinginn.com/2018/09/01/5-16-s/#comment-43990"><time datetime="2018-09-02T13:06:59+00:00">September 2, 2018 at 1:06 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>‘I hope you will honor…bury me with my loved ones, in Liscor&#8217;</p>
+<p>Turnscale = how drakes say &#8220;turncloak&#8221; apparently. Calling him a traitor to his family, basically, because he&#8217;s asking to be buried next to people who aren&#8217;t a part of the &#8216;main family&#8217;</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/09/01/5-16-s/?replytocom=43990#respond' data-commentid="43990" data-postid="4781" data-belowelement="comment-43990" data-respondelement="respond" data-replyto="Reply to Dudddddeee" aria-label='Reply to Dudddddeee'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-euodiachloris odd alt thread-even depth-1 highlander-comment" id="li-comment-44510">
+		<article id="comment-44510" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/d1b85f0e3558b890559682f91dc13615?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn"><a href='http://euodiachloris.wordpress.com' rel='external nofollow ugc' class='url'>Euodiachloris</a></span> on <a href="https://wanderinginn.com/2018/09/01/5-16-s/#comment-44510"><time datetime="2018-09-07T14:06:43+00:00">September 7, 2018 at 2:06 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Well, Zel certainly knew how to put the cat among the pigeons&#8230; XD</p>
+<p>Admit it, Selys&#8230; your inner 12-year old still thinks he&#8217;s the coolest uncle ever.  And, in time, your 30-year old self may thank him and love him more for how he pulled various family members&#8217; tails when they most deserved it.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/09/01/5-16-s/?replytocom=44510#respond' data-commentid="44510" data-postid="4781" data-belowelement="comment-44510" data-respondelement="respond" data-replyto="Reply to Euodiachloris" aria-label='Reply to Euodiachloris'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment even thread-odd thread-alt depth-1 highlander-comment" id="li-comment-45951">
+		<article id="comment-45951" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/42a70ed969b87caddfbafa0873e4f780?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Ostracus</span> on <a href="https://wanderinginn.com/2018/09/01/5-16-s/#comment-45951"><time datetime="2018-09-16T20:52:15+00:00">September 16, 2018 at 8:52 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>&#8220;Zel’s father stared hard at the [Mage], who was shaking. He snatched the will and read it himself, then looked away.&#8221;</p>
+<p>Those amazing orbs. You can even reach through them.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/09/01/5-16-s/?replytocom=45951#respond' data-commentid="45951" data-postid="4781" data-belowelement="comment-45951" data-respondelement="respond" data-replyto="Reply to Ostracus" aria-label='Reply to Ostracus'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment odd alt depth-2 highlander-comment" id="li-comment-47721">
+		<article id="comment-47721" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/594c387422678fa931369565eb768584?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">NamelessOne</span> on <a href="https://wanderinginn.com/2018/09/01/5-16-s/#comment-47721"><time datetime="2018-10-23T09:00:15+00:00">October 23, 2018 at 9:00 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>The mage was in the room with him reading the will&#8230;</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/09/01/5-16-s/?replytocom=47721#respond' data-commentid="47721" data-postid="4781" data-belowelement="comment-47721" data-respondelement="respond" data-replyto="Reply to NamelessOne" aria-label='Reply to NamelessOne'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-dustyrosechild even thread-even depth-1 highlander-comment" id="li-comment-63714">
+		<article id="comment-63714" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/29267bb314365485d9aa1a2dd7be5fce?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn"><a href='http://theseandthosebydustyrose.wordpress.com' rel='external nofollow ugc' class='url'>Dusty Rose</a></span> on <a href="https://wanderinginn.com/2018/09/01/5-16-s/#comment-63714"><time datetime="2019-08-05T17:27:12+00:00">August 5, 2019 at 5:27 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Man. Most of Zel&#8217;s family is absolutely despicable. I&#8217;m glad Selys got something really good, even if she&#8217;s grieving too much to appreciate it right now. I think she&#8217;ll be grateful in time, even if Zel couldn&#8217;t have known he was gifting this to her, but I bet he would do it anyway if he&#8217;d known. Especially given the reactions of the rest of his family. I think Tekeshia and Selys and MAYBE Zel&#8217;s father were the only ones really grieving to any extent.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/09/01/5-16-s/?replytocom=63714#respond' data-commentid="63714" data-postid="4781" data-belowelement="comment-63714" data-respondelement="respond" data-replyto="Reply to Dusty Rose" aria-label='Reply to Dusty Rose'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-radiandrew odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-90949">
+		<article id="comment-90949" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/6f3d88e7df28a0dfbb4ad975e13240fe?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn"><a href='http://wanderingincircles.wordpress.com' rel='external nofollow ugc' class='url'>radiandrew</a></span> on <a href="https://wanderinginn.com/2018/09/01/5-16-s/#comment-90949"><time datetime="2020-10-01T20:11:41+00:00">October 1, 2020 at 8:11 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Am I misremembering, or did the breastplate suffer some damage during the battle between Zel and Az&#8217;kerash&#8217;s minions? If so, that would be a tiny inconsistency, since in this chapter it seems to be intact.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/09/01/5-16-s/?replytocom=90949#respond' data-commentid="90949" data-postid="4781" data-belowelement="comment-90949" data-respondelement="respond" data-replyto="Reply to radiandrew" aria-label='Reply to radiandrew'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		</ol>
+
+		
+		
+	
+		<div id="respond" class="comment-respond">
+		<h3 id="reply-title" class="comment-reply-title">Leave a Reply <small><a rel="nofollow" id="cancel-comment-reply-link" href="/2018/09/01/5-16-s/#respond" style="display:none;">Cancel reply</a></small></h3><form action="https://wanderinginn.com/wp-comments-post.php" method="post" id="commentform" class="comment-form"><input type="hidden" id="highlander_comment_nonce" name="highlander_comment_nonce" value="bd33e1bdd8" /><input type="hidden" name="_wp_http_referer" value="/2018/09/01/5-16-s/" />
+<input type="hidden" name="hc_post_as" id="hc_post_as" value="guest" />
+
+<div class="comment-form-field comment-textarea">
+	<label for="comment">Enter your comment here...</label>
+	<div id="comment-form-comment"><textarea id="comment" name="comment" title="Enter your comment here..."></textarea></div>
+</div>
+
+<div id="comment-form-identity">
+	<div id="comment-form-nascar">
+		<p>Fill in your details below or click an icon to log in:</p>
+		<ul>
+			<li class="selected" style="display:none;">
+				<a href="#comment-form-guest" id="postas-guest" class="nascar-signin-link"
+				 title="Login via Guest" 				>
+									</a>
+			</li>
+			<li>
+				<a href="#comment-form-load-service:WordPress.com" id="postas-wordpress" class="nascar-signin-link"
+				 title="Login via WordPress.com" 				>
+					<svg xmlns="http://www.w3.org/2000/svg" role="presentation" viewBox="0 0 24 24" ><rect x="0" fill="none" width="24" height="24"/><g><path fill="#FFF" d="M12.158 12.786l-2.698 7.84c.806.236 1.657.365 2.54.365 1.047 0 2.05-.18 2.986-.51-.024-.037-.046-.078-.065-.123l-2.762-7.57zM3.008 12c0 3.56 2.07 6.634 5.068 8.092L3.788 8.342c-.5 1.117-.78 2.354-.78 3.658zm15.06-.454c0-1.112-.398-1.88-.74-2.48-.456-.74-.883-1.368-.883-2.11 0-.825.627-1.595 1.51-1.595.04 0 .078.006.116.008-1.598-1.464-3.73-2.36-6.07-2.36-3.14 0-5.904 1.613-7.512 4.053.21.008.41.012.58.012.94 0 2.395-.114 2.395-.114.484-.028.54.684.057.74 0 0-.487.058-1.03.086l3.275 9.74 1.968-5.902-1.4-3.838c-.485-.028-.944-.085-.944-.085-.486-.03-.43-.77.056-.742 0 0 1.484.114 2.368.114.94 0 2.397-.114 2.397-.114.486-.028.543.684.058.74 0 0-.488.058-1.03.086l3.25 9.665.897-2.997c.456-1.17.684-2.137.684-2.907zm1.82-3.86c.04.286.06.593.06.924 0 .912-.17 1.938-.683 3.22l-2.746 7.94c2.672-1.558 4.47-4.454 4.47-7.77 0-1.564-.4-3.033-1.1-4.314zM12 22C6.486 22 2 17.514 2 12S6.486 2 12 2s10 4.486 10 10-4.486 10-10 10z"/></g></svg>				</a>
+			</li>
+			<li>
+				<a href="#comment-form-load-service:Twitter" id="postas-twitter" class="nascar-signin-link"
+				 title="Login via Twitter" 				>
+					<svg xmlns="http://www.w3.org/2000/svg" role="presentation" viewBox="0 0 24 24" ><rect x="0" fill="none" width="24" height="24"/><g><path fill="#FFF" d="M22.23 5.924c-.736.326-1.527.547-2.357.646.847-.508 1.498-1.312 1.804-2.27-.793.47-1.67.812-2.606.996C18.325 4.498 17.258 4 16.078 4c-2.266 0-4.103 1.837-4.103 4.103 0 .322.036.635.106.935-3.41-.17-6.433-1.804-8.457-4.287-.353.607-.556 1.312-.556 2.064 0 1.424.724 2.68 1.825 3.415-.673-.022-1.305-.207-1.86-.514v.052c0 1.988 1.415 3.647 3.293 4.023-.344.095-.707.145-1.08.145-.265 0-.522-.026-.773-.074.522 1.63 2.038 2.817 3.833 2.85-1.404 1.1-3.174 1.757-5.096 1.757-.332 0-.66-.02-.98-.057 1.816 1.164 3.973 1.843 6.29 1.843 7.547 0 11.675-6.252 11.675-11.675 0-.178-.004-.355-.012-.53.802-.578 1.497-1.3 2.047-2.124z"/></g></svg>				</a>
+			</li>
+			<li>
+				<a href="#comment-form-load-service:Facebook" id="postas-facebook" class="nascar-signin-link"
+				 title="Login via Facebook" 				>
+					<svg xmlns="http://www.w3.org/2000/svg" role="presentation" viewBox="0 0 24 24" ><rect x="0" fill="none" width="24" height="24"/><g><path fill="#FFF" d="M20.007 3H3.993C3.445 3 3 3.445 3 3.993v16.013c0 .55.445.994.993.994h8.62v-6.97H10.27V11.31h2.346V9.31c0-2.325 1.42-3.59 3.494-3.59.993 0 1.847.073 2.096.106v2.43h-1.438c-1.128 0-1.346.537-1.346 1.324v1.734h2.69l-.35 2.717h-2.34V21h4.587c.548 0 .993-.445.993-.993V3.993c0-.548-.445-.993-.993-.993z"/></g></svg>				</a>
+			</li>
+		</ul>
+	</div>
+
+	<div id="comment-form-guest" class="comment-form-service selected">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+<a href="https://gravatar.com/site/signup/" target="_blank">				<img src="https://1.gravatar.com/avatar/ad516503a11cd5ca435acc9bb6523536?s=25&amp;d=identicon&amp;forcedefault=y&amp;r=PG" alt="Gravatar" width="25" class="no-grav" />
+</a>			</div>
+
+				<div class="comment-form-fields">
+				<div class="comment-form-field comment-form-email">
+					<label for="email">Email <span class="required">(required)</span> <span class="nopublish">(Address never made public)</span></label>
+					<div class="comment-form-input"><input id="email" name="email" type="email" value="" /></div>
+				</div>
+				<div class="comment-form-field comment-form-author">
+					<label for="author">Name <span class="required">(required)</span></label>
+					<div class="comment-form-input"><input id="author" name="author" type="text" value="" /></div>
+				</div>
+				<div class="comment-form-field comment-form-url">
+					<label for="url">Website</label>
+					<div class="comment-form-input"><input id="url" name="url" type="url" value="" /></div>
+				</div>
+			</div>
+			
+		</div>
+	</div>
+
+	<div id="comment-form-wordpress" class="comment-form-service">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+				<img src="https://1.gravatar.com/avatar/ad516503a11cd5ca435acc9bb6523536?s=25&amp;d=identicon&amp;forcedefault=y&amp;r=PG" alt="WordPress.com Logo" width="25" class="no-grav" />
+			</div>
+
+				<div class="comment-form-fields">
+				<input type="hidden" name="wp_avatar" id="wordpress-avatar" class="comment-meta-wordpress" value="" />
+				<input type="hidden" name="wp_user_id" id="wordpress-user_id" class="comment-meta-wordpress" value="" />
+				<input type="hidden" name="wp_access_token" id="wordpress-access_token" class="comment-meta-wordpress" value="" />
+						<p class="comment-form-posting-as pa-wordpress">
+			<strong></strong>
+			You are commenting using your WordPress.com account.			<span class="comment-form-log-out">
+				(&nbsp;<a href="javascript:HighlanderComments.doExternalLogout( 'wordpress' );">Log&nbsp;Out</a>&nbsp;/&nbsp;
+				<a href="#" onclick="javascript:HighlanderComments.switchAccount();return false;">Change</a>&nbsp;)
+			</span>
+			<span class="pa-icon"><svg xmlns="http://www.w3.org/2000/svg" role="presentation" viewBox="0 0 24 24" ><rect x="0" fill="none" width="24" height="24"/><g><path fill="#FFF" d="M12.158 12.786l-2.698 7.84c.806.236 1.657.365 2.54.365 1.047 0 2.05-.18 2.986-.51-.024-.037-.046-.078-.065-.123l-2.762-7.57zM3.008 12c0 3.56 2.07 6.634 5.068 8.092L3.788 8.342c-.5 1.117-.78 2.354-.78 3.658zm15.06-.454c0-1.112-.398-1.88-.74-2.48-.456-.74-.883-1.368-.883-2.11 0-.825.627-1.595 1.51-1.595.04 0 .078.006.116.008-1.598-1.464-3.73-2.36-6.07-2.36-3.14 0-5.904 1.613-7.512 4.053.21.008.41.012.58.012.94 0 2.395-.114 2.395-.114.484-.028.54.684.057.74 0 0-.487.058-1.03.086l3.275 9.74 1.968-5.902-1.4-3.838c-.485-.028-.944-.085-.944-.085-.486-.03-.43-.77.056-.742 0 0 1.484.114 2.368.114.94 0 2.397-.114 2.397-.114.486-.028.543.684.058.74 0 0-.488.058-1.03.086l3.25 9.665.897-2.997c.456-1.17.684-2.137.684-2.907zm1.82-3.86c.04.286.06.593.06.924 0 .912-.17 1.938-.683 3.22l-2.746 7.94c2.672-1.558 4.47-4.454 4.47-7.77 0-1.564-.4-3.033-1.1-4.314zM12 22C6.486 22 2 17.514 2 12S6.486 2 12 2s10 4.486 10 10-4.486 10-10 10z"/></g></svg></span>
+		</p>
+					</div>
+	
+		</div>
+	</div>
+
+	<div id="comment-form-twitter" class="comment-form-service">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+				<img src="https://1.gravatar.com/avatar/ad516503a11cd5ca435acc9bb6523536?s=25&amp;d=identicon&amp;forcedefault=y&amp;r=PG" alt="Twitter picture" width="25" class="no-grav" />
+			</div>
+
+				<div class="comment-form-fields">
+				<input type="hidden" name="twitter_avatar" id="twitter-avatar" class="comment-meta-twitter" value="" />
+				<input type="hidden" name="twitter_user_id" id="twitter-user_id" class="comment-meta-twitter" value="" />
+				<input type="hidden" name="twitter_access_token" id="twitter-access_token" class="comment-meta-twitter" value="" />
+						<p class="comment-form-posting-as pa-twitter">
+			<strong></strong>
+			You are commenting using your Twitter account.			<span class="comment-form-log-out">
+				(&nbsp;<a href="javascript:HighlanderComments.doExternalLogout( 'twitter' );">Log&nbsp;Out</a>&nbsp;/&nbsp;
+				<a href="#" onclick="javascript:HighlanderComments.switchAccount();return false;">Change</a>&nbsp;)
+			</span>
+			<span class="pa-icon"><svg xmlns="http://www.w3.org/2000/svg" role="presentation" viewBox="0 0 24 24" ><rect x="0" fill="none" width="24" height="24"/><g><path fill="#FFF" d="M22.23 5.924c-.736.326-1.527.547-2.357.646.847-.508 1.498-1.312 1.804-2.27-.793.47-1.67.812-2.606.996C18.325 4.498 17.258 4 16.078 4c-2.266 0-4.103 1.837-4.103 4.103 0 .322.036.635.106.935-3.41-.17-6.433-1.804-8.457-4.287-.353.607-.556 1.312-.556 2.064 0 1.424.724 2.68 1.825 3.415-.673-.022-1.305-.207-1.86-.514v.052c0 1.988 1.415 3.647 3.293 4.023-.344.095-.707.145-1.08.145-.265 0-.522-.026-.773-.074.522 1.63 2.038 2.817 3.833 2.85-1.404 1.1-3.174 1.757-5.096 1.757-.332 0-.66-.02-.98-.057 1.816 1.164 3.973 1.843 6.29 1.843 7.547 0 11.675-6.252 11.675-11.675 0-.178-.004-.355-.012-.53.802-.578 1.497-1.3 2.047-2.124z"/></g></svg></span>
+		</p>
+					</div>
+	
+		</div>
+	</div>
+
+	<div id="comment-form-facebook" class="comment-form-service">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+				<img src="" alt="Facebook photo" width="25" class="no-grav" />
+			</div>
+
+				<div class="comment-form-fields">
+				<input type="hidden" name="fb_avatar" id="facebook-avatar" class="comment-meta-facebook" value="" />
+				<input type="hidden" name="fb_user_id" id="facebook-user_id" class="comment-meta-facebook" value="" />
+				<input type="hidden" name="fb_access_token" id="facebook-access_token" class="comment-meta-facebook" value="" />
+						<p class="comment-form-posting-as pa-facebook">
+			<strong></strong>
+			You are commenting using your Facebook account.			<span class="comment-form-log-out">
+				(&nbsp;<a href="javascript:HighlanderComments.doExternalLogout( 'facebook' );">Log&nbsp;Out</a>&nbsp;/&nbsp;
+				<a href="#" onclick="javascript:HighlanderComments.switchAccount();return false;">Change</a>&nbsp;)
+			</span>
+			<span class="pa-icon"><svg xmlns="http://www.w3.org/2000/svg" role="presentation" viewBox="0 0 24 24" ><rect x="0" fill="none" width="24" height="24"/><g><path fill="#FFF" d="M20.007 3H3.993C3.445 3 3 3.445 3 3.993v16.013c0 .55.445.994.993.994h8.62v-6.97H10.27V11.31h2.346V9.31c0-2.325 1.42-3.59 3.494-3.59.993 0 1.847.073 2.096.106v2.43h-1.438c-1.128 0-1.346.537-1.346 1.324v1.734h2.69l-.35 2.717h-2.34V21h4.587c.548 0 .993-.445.993-.993V3.993c0-.548-.445-.993-.993-.993z"/></g></svg></span>
+		</p>
+					</div>
+	
+		</div>
+	</div>
+
+
+	<div id="comment-form-load-service" class="comment-form-service">
+		<div class="comment-form-posting-as-cancel"><a href="javascript:HighlanderComments.cancelExternalWindow();">Cancel</a></div>
+		<p>Connecting to %s</p>
+	</div>
+
+</div>
+
+<script type="text/javascript">
+var highlander_expando_javascript = function () {
+
+	function hide( sel ) {
+		var el = document.querySelector( sel );
+		if ( el ) {
+			el.style.setProperty( 'display', 'none' );
+		}
+	}
+
+	function show( sel ) {
+		var el = document.querySelector( sel );
+		if ( el ) {
+			el.style.removeProperty( 'display' );
+		}
+	}
+
+	var input = document.createElement( 'input' );
+	var comment = document.querySelector( '#comment' );
+
+	if ( input && comment && 'placeholder' in input ) {
+		var label = document.querySelector( '.comment-textarea label' );
+		if ( label ) {
+			var text = label.textContent;
+			label.parentNode.removeChild( label );
+			comment.setAttribute( 'placeholder', text );
+		}
+	}
+
+	// Expando Mode: start small, then auto-resize on first click + text length
+	hide( '#comment-form-identity' );
+	hide( '#comment-form-subscribe' );
+	hide( '#commentform .form-submit' );
+
+	if ( comment ) {
+		comment.style.height = '10px';
+
+		var handler = function () {
+			comment.style.height = HighlanderComments.initialHeight + 'px';
+			show( '#comment-form-identity' );
+			show( '#comment-form-subscribe' );
+			show( '#commentform .form-submit' );
+			HighlanderComments.resizeCallback();
+
+			comment.removeEventListener( 'focus', handler );
+		};
+
+		comment.addEventListener( 'focus', handler );
+	}
+}
+
+if ( document.readyState !== 'loading' ) {
+	highlander_expando_javascript();
+} else {
+	document.addEventListener( 'DOMContentLoaded', highlander_expando_javascript );
+}
+
+</script>
+
+<div id="comment-form-subscribe">
+	<p class="comment-subscription-form"><input type="checkbox" name="subscribe" id="subscribe" value="subscribe" style="width: auto;"/> <label class="subscribe-label" id="subscribe-label" for="subscribe" style="display: inline;">Notify me of new comments via email.</label></p><p class="post-subscription-form"><input type="checkbox" name="subscribe_blog" id="subscribe_blog" value="subscribe" style="width: auto;"/> <label class="subscribe-label" id="subscribe-blog-label" for="subscribe_blog"  style="display: inline;">Notify me of new posts via email.</label></p></div>
+
+
+
+
+<p class="form-submit"><input name="submit" type="submit" id="comment-submit" class="submit button" value="Post Comment" /> <input type='hidden' name='comment_post_ID' value='4781' id='comment_post_ID' />
+<input type='hidden' name='comment_parent' id='comment_parent' value='0' />
+</p><p style="display: none;"><input type="hidden" id="akismet_comment_nonce" name="akismet_comment_nonce" value="d40e83b1ed" /></p>
+<input type="hidden" name="genseq" value="1664900004" />
+<p style="display: none !important;"><label>&#916;<textarea name="ak_hp_textarea" cols="45" rows="8" maxlength="100"></textarea></label><input type="hidden" id="ak_js_1" name="ak_js" value="39"/><script>document.getElementById( "ak_js_1" ).setAttribute( "value", ( new Date() ).getTime() );</script></p></form>	</div><!-- #respond -->
+	<div style="clear: both"></div>
+</div><!-- #comments -->
+
+				
+			</div><!-- #content -->
+		</div><!-- #primary -->
+
+
+	</div><!-- #main -->
+
+	<footer id="colophon">
+
+			
+
+			<div id="site-generator">
+				 								<a href="https://wordpress.com/?ref=footer_blog" rel="nofollow">Blog at WordPress.com.</a>
+			</div>
+	</footer><!-- #colophon -->
+</div><!-- #page -->
+
+<!--  -->
+<script type="text/javascript">
+	window._tkq = window._tkq || [];
+	if ( Math.random() < 0.01 ) {
+		window._tkq.push( [
+			'recordEvent',
+			'wpcom_wordads_noad',
+			{"theme":"pub\/twentyeleven","blog_id":113840984,"post_id":4781,"reason_noadverts_plugin":1,"reason_upgrade":1,"reason_blog_null":1,"reason_post_null":1}
+		] );
+	}
+</script><script src='//0.gravatar.com/js/gprofiles.js?ver=202240z' id='grofiles-cards-js'></script>
+<script id='wpgroho-js-extra'>
+var WPGroHo = {"my_hash":""};
+</script>
+<script crossorigin='anonymous' type='text/javascript' src='https://s1.wp.com/wp-content/mu-plugins/gravatar-hovercards/wpgroho.js?m=1610363240h'></script>
+
+	<script>
+		// Initialize and attach hovercards to all gravatars
+		( function() {
+			function init() {
+				if ( typeof Gravatar === 'undefined' ) {
+					return;
+				}
+
+				if ( typeof Gravatar.init !== 'function' ) {
+					return;
+				}
+
+				Gravatar.profile_cb = function ( hash, id ) {
+					WPGroHo.syncProfileData( hash, id );
+				};
+
+				Gravatar.my_hash = WPGroHo.my_hash;
+				Gravatar.init( 'body', '#wp-admin-bar-my-account' );
+			}
+
+			if ( document.readyState !== 'loading' ) {
+				init();
+			} else {
+				document.addEventListener( 'DOMContentLoaded', init );
+			}
+		} )();
+	</script>
+
+		<div style="display:none">
+	<div class="grofile-hash-map-2f8ac70cd17f11c419846c441769523b">
+	</div>
+	<div class="grofile-hash-map-51fe6184f0f5c5eb59d3ab8c87e3f171">
+	</div>
+	<div class="grofile-hash-map-f29029a889db484b7663ffb06c72848d">
+	</div>
+	<div class="grofile-hash-map-18a024a5f612eb1d155e830d204a962a">
+	</div>
+	<div class="grofile-hash-map-1e677dc8fe1c3aef4ef0d0127bdf7888">
+	</div>
+	<div class="grofile-hash-map-49412fac2686de94f0569afe04eeb38f">
+	</div>
+	<div class="grofile-hash-map-bc2cfb7612d9c5b8bafd318d4124d321">
+	</div>
+	<div class="grofile-hash-map-779cfd99efd44d7e087f9e00e0ba7aad">
+	</div>
+	<div class="grofile-hash-map-ae108cc414fc83fe8ee561b2a2f176b5">
+	</div>
+	<div class="grofile-hash-map-59c565b9837b0d95b7f987ad6e95fec4">
+	</div>
+	<div class="grofile-hash-map-10ac3128b6e260803bfe66c968118cd1">
+	</div>
+	<div class="grofile-hash-map-50c95df912bb992c7d0e6daa76aff147">
+	</div>
+	<div class="grofile-hash-map-6a7b38b6f47dcf22b0597084900a977b">
+	</div>
+	<div class="grofile-hash-map-cb474ea3c637db7230457c2b941c8fc2">
+	</div>
+	<div class="grofile-hash-map-e1542536fc268221f0e49efc03325a70">
+	</div>
+	<div class="grofile-hash-map-75125380e7023f54987a8d36c614ea14">
+	</div>
+	<div class="grofile-hash-map-df0de84da2c8665c006fdb767a01a943">
+	</div>
+	<div class="grofile-hash-map-524e81479919091d9043296c4a34e638">
+	</div>
+	<div class="grofile-hash-map-7b778651ead7a974036a5142e7093f77">
+	</div>
+	<div class="grofile-hash-map-d1b85f0e3558b890559682f91dc13615">
+	</div>
+	<div class="grofile-hash-map-42a70ed969b87caddfbafa0873e4f780">
+	</div>
+	<div class="grofile-hash-map-594c387422678fa931369565eb768584">
+	</div>
+	<div class="grofile-hash-map-29267bb314365485d9aa1a2dd7be5fce">
+	</div>
+	<div class="grofile-hash-map-6f3d88e7df28a0dfbb4ad975e13240fe">
+	</div>
+	</div>
+<script id='highlander-comments-js-extra'>
+var HighlanderComments = {"loggingInText":"Logging In\u2026","submittingText":"Posting Comment\u2026","postCommentText":"Post Comment","connectingToText":"Connecting to %s","commentingAsText":"%1$s: You are commenting using your %2$s account.","logoutText":"Log Out","loginText":"Log In","connectURL":"https:\/\/wanderinginn.wordpress.com\/public.api\/connect\/?action=request&domain=wanderinginn.com","logoutURL":"https:\/\/wanderinginn.wordpress.com\/wp-login.php?action=logout&_wpnonce=027032d4fa","homeURL":"https:\/\/wanderinginn.com\/","postID":"4781","gravDefault":"identicon","enterACommentError":"Please enter a comment","enterEmailError":"Please enter your email address here","invalidEmailError":"Invalid email address","enterAuthorError":"Please enter your name here","gravatarFromEmail":"This picture will show whenever you leave a comment. Click to customize it.","logInToExternalAccount":"Log in to use details from one of these accounts.","change":"Change","changeAccount":"Change Account","comment_registration":"","userIsLoggedIn":"","isJetpack":"","text_direction":"ltr"};
+</script>
+<script crossorigin='anonymous' type='text/javascript' src='https://s0.wp.com/_static/??/wp-content/js/textarea-autosize.min.js,/wp-content/mu-plugins/highlander-comments/script.js?m=1663141412j'></script>
+	<div id="actionbar" style="display: none;"
+			class="actnbr-pub-twentyeleven actnbr-has-follow">
+		<ul>
+								<li class="actnbr-btn actnbr-hidden">
+								<a class="actnbr-action actnbr-actn-follow " href="">
+			<svg class="gridicon gridicons-reader-follow" height="24" width="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g><path d="M23 16v2h-3v3h-2v-3h-3v-2h3v-3h2v3h3zM20 2v9h-4v3h-3v4H4c-1.1 0-2-.9-2-2V2h18zM8 13v-1H4v1h4zm3-3H4v1h7v-1zm0-2H4v1h7V8zm7-4H4v2h14V4z"/></g></svg><span>Follow</span>
+		</a>
+		<a class="actnbr-action actnbr-actn-following  no-display" href="">
+			<svg class="gridicon gridicons-reader-following" height="24" width="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g><path d="M23 13.482L15.508 21 12 17.4l1.412-1.388 2.106 2.188 6.094-6.094L23 13.482zm-7.455 1.862L20 10.89V2H2v14c0 1.1.9 2 2 2h4.538l4.913-4.832 2.095 2.176zM8 13H4v-1h4v1zm3-2H4v-1h7v1zm0-2H4V8h7v1zm7-3H4V4h14v2z"/></g></svg><span>Following</span>
+		</a>
+							<div class="actnbr-popover tip tip-top-left actnbr-notice" id="follow-bubble">
+							<div class="tip-arrow"></div>
+							<div class="tip-inner actnbr-follow-bubble">
+															<ul>
+											<li class="actnbr-sitename">
+			<a href="https://wanderinginn.com">
+				<img alt='' src='https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=50' class='avatar avatar-50' height='50' width='50' />				The Wandering Inn			</a>
+		</li>
+										<form method="post" action="https://subscribe.wordpress.com" accept-charset="utf-8" style="display: none;">
+																						<div class="actnbr-follow-count">Join 2,697 other followers</div>
+																					<div>
+										<input type="email" name="email" placeholder="Enter your email address" class="actnbr-email-field" aria-label="Enter your email address" />
+										</div>
+										<input type="hidden" name="action" value="subscribe" />
+										<input type="hidden" name="blog_id" value="113840984" />
+										<input type="hidden" name="source" value="https://wanderinginn.com/2018/09/01/5-16-s/" />
+										<input type="hidden" name="sub-type" value="actionbar-follow" />
+										<input type="hidden" id="_wpnonce" name="_wpnonce" value="9bb017f338" />										<div class="actnbr-button-wrap">
+											<button type="submit" value="Sign me up">
+												Sign me up											</button>
+										</div>
+									</form>
+									<li class="actnbr-login-nudge">
+										<div>
+											Already have a WordPress.com account? <a href="https://wordpress.com/log-in?redirect_to=https%3A%2F%2Fr-login.wordpress.com%2Fremote-login.php%3Faction%3Dlink%26back%3Dhttps%253A%252F%252Fwanderinginn.com%252F2018%252F09%252F01%252F5-16-s%252F">Log in now.</a>										</div>
+									</li>
+								</ul>
+															</div>
+						</div>
+					</li>
+							<li class="actnbr-ellipsis actnbr-hidden">
+				<svg class="gridicon gridicons-ellipsis" height="24" width="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g><path d="M7 12c0 1.104-.896 2-2 2s-2-.896-2-2 .896-2 2-2 2 .896 2 2zm12-2c-1.104 0-2 .896-2 2s.896 2 2 2 2-.896 2-2-.896-2-2-2zm-7 0c-1.104 0-2 .896-2 2s.896 2 2 2 2-.896 2-2-.896-2-2-2z"/></g></svg>				<div class="actnbr-popover tip tip-top-left actnbr-more">
+					<div class="tip-arrow"></div>
+					<div class="tip-inner">
+						<ul>
+									<li class="actnbr-sitename">
+			<a href="https://wanderinginn.com">
+				<img alt='' src='https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=50' class='avatar avatar-50' height='50' width='50' />				The Wandering Inn			</a>
+		</li>
+								<li class="actnbr-folded-customize">
+								<a href="https://wanderinginn.wordpress.com/wp-admin/customize.php?url=https%3A%2F%2Fwanderinginn.wordpress.com%2F2018%2F09%2F01%2F5-16-s%2F">
+									<svg class="gridicon gridicons-customize" height="20" width="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g><path d="M2 6c0-1.505.78-3.08 2-4 0 .845.69 2 2 2 1.657 0 3 1.343 3 3 0 .386-.08.752-.212 1.09.74.594 1.476 1.19 2.19 1.81L8.9 11.98c-.62-.716-1.214-1.454-1.807-2.192C6.753 9.92 6.387 10 6 10c-2.21 0-4-1.79-4-4zm12.152 6.848l1.34-1.34c.607.304 1.283.492 2.008.492 2.485 0 4.5-2.015 4.5-4.5 0-.725-.188-1.4-.493-2.007L18 9l-2-2 3.507-3.507C18.9 3.188 18.225 3 17.5 3 15.015 3 13 5.015 13 7.5c0 .725.188 1.4.493 2.007L3 20l2 2 6.848-6.848c1.885 1.928 3.874 3.753 5.977 5.45l1.425 1.148 1.5-1.5-1.15-1.425c-1.695-2.103-3.52-4.092-5.448-5.977z"/></g></svg>									<span>Customize</span>
+								</a>
+							</li>
+																<li class="actnbr-folded-follow">
+												<a class="actnbr-action actnbr-actn-follow " href="">
+			<svg class="gridicon gridicons-reader-follow" height="24" width="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g><path d="M23 16v2h-3v3h-2v-3h-3v-2h3v-3h2v3h3zM20 2v9h-4v3h-3v4H4c-1.1 0-2-.9-2-2V2h18zM8 13v-1H4v1h4zm3-3H4v1h7v-1zm0-2H4v1h7V8zm7-4H4v2h14V4z"/></g></svg><span>Follow</span>
+		</a>
+		<a class="actnbr-action actnbr-actn-following  no-display" href="">
+			<svg class="gridicon gridicons-reader-following" height="24" width="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g><path d="M23 13.482L15.508 21 12 17.4l1.412-1.388 2.106 2.188 6.094-6.094L23 13.482zm-7.455 1.862L20 10.89V2H2v14c0 1.1.9 2 2 2h4.538l4.913-4.832 2.095 2.176zM8 13H4v-1h4v1zm3-2H4v-1h7v1zm0-2H4V8h7v1zm7-3H4V4h14v2z"/></g></svg><span>Following</span>
+		</a>
+										</li>
+																	<li class="actnbr-signup"><a href="https://wordpress.com/start/">Sign up</a></li>
+									<li class="actnbr-login"><a href="https://wordpress.com/log-in?redirect_to=https%3A%2F%2Fr-login.wordpress.com%2Fremote-login.php%3Faction%3Dlink%26back%3Dhttps%253A%252F%252Fwanderinginn.com%252F2018%252F09%252F01%252F5-16-s%252F">Log in</a></li>
+																	<li class="actnbr-shortlink"><a href="https://wp.me/p7HFeU-1f7">Copy shortlink</a></li>
+																	<li class="flb-report"><a href="http://en.wordpress.com/abuse/">Report this content</a></li>
+																	<li class="actnbr-reader">
+										<a href="https://wordpress.com/read/blogs/113840984/posts/4781">
+											View post in Reader										</a>
+									</li>
+																	<li class="actnbr-subs">
+										<a href="https://subscribe.wordpress.com/">Manage subscriptions</a>
+									</li>
+																		<li class="actnbr-fold"><a href="">Collapse this bar</a></li>
+															</ul>
+					</div>
+				</div>
+			</li>
+		</ul>
+	</div>
+	
+<script>
+window.addEventListener( "load", function( event ) {
+	var link = document.createElement( "link" );
+	link.href = "https://s0.wp.com/wp-content/mu-plugins/actionbar/actionbar.css?v=20210915";
+	link.type = "text/css";
+	link.rel = "stylesheet";
+	document.head.appendChild( link );
+
+	var script = document.createElement( "script" );
+	script.src = "https://s0.wp.com/wp-content/mu-plugins/actionbar/actionbar.js?v=20220329";
+	script.defer = true;
+	document.body.appendChild( script );
+} );
+</script>
+
+	<script crossorigin='anonymous' type='text/javascript' src='https://s2.wp.com/_static/??-eJx9jd0OwiAMRl9I6AxmixfGRzEMqoFRRij48/ZWk3npXfOdc1J4FOXW3DA3iAwe78FheerIOxAUskvdI3+YW4lEUxVLemkKeZO2nroqqd9CZrBeuJptBbLcsMqlWrVu4X/REpiwKaMHuMjn33CtX9lLe6bTfhwPZpqOg4lvZ0RE/g=='></script>
+<script type="text/javascript">
+// <![CDATA[
+(function() {
+try{
+  if ( window.external &&'msIsSiteMode' in window.external) {
+    if (window.external.msIsSiteMode()) {
+      var jl = document.createElement('script');
+      jl.type='text/javascript';
+      jl.async=true;
+      jl.src='/wp-content/plugins/ie-sitemode/custom-jumplist.php';
+      var s = document.getElementsByTagName('script')[0];
+      s.parentNode.insertBefore(jl, s);
+    }
+  }
+}catch(e){}
+})();
+// ]]>
+</script><script src="//stats.wp.com/w.js?63" defer></script> <script type="text/javascript">
+_tkq = window._tkq || [];
+_stq = window._stq || [];
+_tkq.push(['storeContext', {'blog_id':'113840984','blog_tz':'0','user_lang':'en','blog_lang':'en','user_id':'0'}]);
+_stq.push(['view', {'blog':'113840984','v':'wpcom','tz':'0','user_id':'0','post':'4781','subd':'wanderinginn'}]);
+_stq.push(['extra', {'crypt':'UE40eW5QN0p8M2Y/RE1mNzc2NTVTamdsd0xoLz9RQkM2K298TXY9bERQMXc2MjhEaVZfb2wwakRoSj0mUkp1THptM1NdbkV1WjZIcU9mVWQmPUIvMlN6Jk8wW3NYVEJ3dWZOWExuWD9VNTEucGVTRmZwYTB2ZD82MHd0Y1Y0RlltYWdKeC9TU05lUzUxV1pzZWh8UlVlalotK3A/NWVna2ZGUkZsXU5HJVUudk8vQWtbZDh1JWVnME4yJXhaPTFbWWNWUUg3d0t6SnFUbDd3a0dbVll2b1FyZXNsWHhIUVVMdVUsQlZ8LDFjMl1xP1Zhd2NTYXlIYzZ5LS96S241ck1LPW01NUQzS05jLEhuOXl8cT1jTC95Qm5VWWNUOGhrd0Qsa2ddb3hERFdneE9LLTA1QzNBZ2tKSzN5RzhmYWE='}]);
+_stq.push([ 'clickTrackerInit', '113840984', '4781' ]);
+	</script>
+<noscript><img src="https://pixel.wp.com/b.gif?v=noscript" style="height:1px;width:1px;overflow:hidden;position:absolute;bottom:1px;" alt="" /></noscript>
+<script>
+if ( 'object' === typeof wpcom_mobile_user_agent_info ) {
+
+	wpcom_mobile_user_agent_info.init();
+	var mobileStatsQueryString = "";
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedPlatformName )
+		mobileStatsQueryString += "&x_" + 'mobile_platforms' + '=' + wpcom_mobile_user_agent_info.matchedPlatformName;
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedUserAgentName )
+		mobileStatsQueryString += "&x_" + 'mobile_devices' + '=' + wpcom_mobile_user_agent_info.matchedUserAgentName;
+	
+	if( wpcom_mobile_user_agent_info.isIPad() )
+		mobileStatsQueryString += "&x_" + 'ipad_views' + '=' + 'views';
+
+	if( "" != mobileStatsQueryString ) {
+		new Image().src = document.location.protocol + '//pixel.wp.com/g.gif?v=wpcom-no-pv' + mobileStatsQueryString + '&baba=' + Math.random();
+	}
+	
+}
+</script>
+</body>
+</html>

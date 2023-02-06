@@ -1,0 +1,1523 @@
+<!DOCTYPE html>
+<!--[if IE 6]>
+<html id="ie6" lang="en">
+<![endif]-->
+<!--[if IE 7]>
+<html id="ie7" lang="en">
+<![endif]-->
+<!--[if IE 8]>
+<html id="ie8" lang="en">
+<![endif]-->
+<!--[if !(IE 6) & !(IE 7) & !(IE 8)]><!-->
+<html lang="en">
+<!--<![endif]-->
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width" />
+<title>
+The Depthless Doctor | The Wandering Inn	</title>
+<link rel="profile" href="https://gmpg.org/xfn/11" />
+<link rel="stylesheet" type="text/css" media="all" href="https://s2.wp.com/wp-content/themes/pub/twentyeleven/style.css?ver=20190507" />
+<link rel="pingback" href="https://wanderinginn.com/xmlrpc.php">
+<!--[if lt IE 9]>
+<script src="https://s2.wp.com/wp-content/themes/pub/twentyeleven/js/html5.js?ver=3.7.0" type="text/javascript"></script>
+<![endif]-->
+<meta name='robots' content='max-image-preview:large' />
+
+<!-- Async WordPress.com Remote Login -->
+<script id="wpcom_remote_login_js">
+var wpcom_remote_login_extra_auth = '';
+function wpcom_remote_login_remove_dom_node_id( element_id ) {
+	var dom_node = document.getElementById( element_id );
+	if ( dom_node ) { dom_node.parentNode.removeChild( dom_node ); }
+}
+function wpcom_remote_login_remove_dom_node_classes( class_name ) {
+	var dom_nodes = document.querySelectorAll( '.' + class_name );
+	for ( var i = 0; i < dom_nodes.length; i++ ) {
+		dom_nodes[ i ].parentNode.removeChild( dom_nodes[ i ] );
+	}
+}
+function wpcom_remote_login_final_cleanup() {
+	wpcom_remote_login_remove_dom_node_classes( "wpcom_remote_login_msg" );
+	wpcom_remote_login_remove_dom_node_id( "wpcom_remote_login_key" );
+	wpcom_remote_login_remove_dom_node_id( "wpcom_remote_login_validate" );
+	wpcom_remote_login_remove_dom_node_id( "wpcom_remote_login_js" );
+	wpcom_remote_login_remove_dom_node_id( "wpcom_request_access_iframe" );
+	wpcom_remote_login_remove_dom_node_id( "wpcom_request_access_styles" );
+}
+
+// Watch for messages back from the remote login
+window.addEventListener( "message", function( e ) {
+	if ( e.origin === "https://r-login.wordpress.com" ) {
+		var data = {};
+		try {
+			data = JSON.parse( e.data );
+		} catch( e ) {
+			wpcom_remote_login_final_cleanup();
+			return;
+		}
+
+		if ( data.msg === 'LOGIN' ) {
+			// Clean up the login check iframe
+			wpcom_remote_login_remove_dom_node_id( "wpcom_remote_login_key" );
+
+			var id_regex = new RegExp( /^[0-9]+$/ );
+			var token_regex = new RegExp( /^.*|.*|.*$/ );
+			if (
+				token_regex.test( data.token )
+				&& id_regex.test( data.wpcomid )
+			) {
+				// We have everything we need to ask for a login
+				var script = document.createElement( "script" );
+				script.setAttribute( "id", "wpcom_remote_login_validate" );
+				script.src = '/remote-login.php?wpcom_remote_login=validate'
+					+ '&wpcomid=' + data.wpcomid
+					+ '&token=' + encodeURIComponent( data.token )
+					+ '&host=' + window.location.protocol
+					+ '//' + window.location.hostname
+					+ '&postid=4547'
+					+ '&is_singular=1';
+				document.body.appendChild( script );
+			}
+
+			return;
+		}
+
+		// Safari ITP, not logged in, so redirect
+		if ( data.msg === 'LOGIN-REDIRECT' ) {
+			window.location = 'https://wordpress.com/log-in?redirect_to=' + window.location.href;
+			return;
+		}
+
+		// Safari ITP, storage access failed, remove the request
+		if ( data.msg === 'LOGIN-REMOVE' ) {
+			var css_zap = 'html { -webkit-transition: margin-top 1s; transition: margin-top 1s; } /* 9001 */ html { margin-top: 0 !important; } * html body { margin-top: 0 !important; } @media screen and ( max-width: 782px ) { html { margin-top: 0 !important; } * html body { margin-top: 0 !important; } }';
+			var style_zap = document.createElement( 'style' );
+			style_zap.type = 'text/css';
+			style_zap.appendChild( document.createTextNode( css_zap ) );
+			document.body.appendChild( style_zap );
+
+			var e = document.getElementById( 'wpcom_request_access_iframe' );
+			e.parentNode.removeChild( e );
+
+			document.cookie = 'wordpress_com_login_access=denied; path=/; max-age=31536000';
+
+			return;
+		}
+
+		// Safari ITP
+		if ( data.msg === 'REQUEST_ACCESS' ) {
+			console.log( 'request access: safari' );
+
+			// Check ITP iframe enable/disable knob
+			if ( wpcom_remote_login_extra_auth !== 'safari_itp_iframe' ) {
+				return;
+			}
+
+			// If we are in a "private window" there is no ITP.
+			var private_window = false;
+			try {
+				var opendb = window.openDatabase( null, null, null, null );
+			} catch( e ) {
+				private_window = true;
+			}
+
+			if ( private_window ) {
+				console.log( 'private window' );
+				return;
+			}
+
+			var iframe = document.createElement( 'iframe' );
+			iframe.id = 'wpcom_request_access_iframe';
+			iframe.setAttribute( 'scrolling', 'no' );
+			iframe.setAttribute( 'sandbox', 'allow-storage-access-by-user-activation allow-scripts allow-same-origin allow-top-navigation-by-user-activation' );
+			iframe.src = 'https://r-login.wordpress.com/remote-login.php?wpcom_remote_login=request_access&origin=' + encodeURIComponent( data.origin ) + '&wpcomid=' + encodeURIComponent( data.wpcomid );
+
+			var css = 'html { -webkit-transition: margin-top 1s; transition: margin-top 1s; } /* 9001 */ html { margin-top: 46px !important; } * html body { margin-top: 46px !important; } @media screen and ( max-width: 660px ) { html { margin-top: 71px !important; } * html body { margin-top: 71px !important; } #wpcom_request_access_iframe { display: block; height: 71px !important; } } #wpcom_request_access_iframe { border: 0px; height: 46px; position: fixed; top: 0; left: 0; width: 100%; min-width: 100%; z-index: 99999; background: #23282d; } ';
+
+			var style = document.createElement( 'style' );
+			style.type = 'text/css';
+			style.id = 'wpcom_request_access_styles';
+			style.appendChild( document.createTextNode( css ) );
+			document.body.appendChild( style );
+
+			document.body.appendChild( iframe );
+		}
+
+		if ( data.msg === 'DONE' ) {
+			wpcom_remote_login_final_cleanup();
+		}
+	}
+}, false );
+
+// Inject the remote login iframe after the page has had a chance to load
+// more critical resources
+window.addEventListener( "DOMContentLoaded", function( e ) {
+	var iframe = document.createElement( "iframe" );
+	iframe.style.display = "none";
+	iframe.setAttribute( "scrolling", "no" );
+	iframe.setAttribute( "id", "wpcom_remote_login_key" );
+	iframe.src = "https://r-login.wordpress.com/remote-login.php"
+		+ "?wpcom_remote_login=key"
+		+ "&origin=aHR0cHM6Ly93YW5kZXJpbmdpbm4uY29t"
+		+ "&wpcomid=113840984"
+		+ "&time=1664899989";
+	document.body.appendChild( iframe );
+}, false );
+</script>
+<link rel='dns-prefetch' href='//s1.wp.com' />
+<link rel='dns-prefetch' href='//wanderinginn.wordpress.com' />
+<link rel='dns-prefetch' href='//s0.wp.com' />
+<link rel='dns-prefetch' href='//s2.wp.com' />
+<link href='https://fonts.gstatic.com' crossorigin rel='preconnect' />
+<link rel="alternate" type="application/rss+xml" title="The Wandering Inn &raquo; Feed" href="https://wanderinginn.com/feed/" />
+<link rel="alternate" type="application/rss+xml" title="The Wandering Inn &raquo; Comments Feed" href="https://wanderinginn.com/comments/feed/" />
+<link rel="alternate" type="application/rss+xml" title="The Wandering Inn &raquo; The Depthless Doctor Comments Feed" href="https://wanderinginn.com/2018/07/09/the-depthless-doctor/feed/" />
+	<script type="text/javascript">
+		/* <![CDATA[ */
+		function addLoadEvent(func) {
+			var oldonload = window.onload;
+			if (typeof window.onload != 'function') {
+				window.onload = func;
+			} else {
+				window.onload = function () {
+					oldonload();
+					func();
+				}
+			}
+		}
+		/* ]]> */
+	</script>
+	<script type="text/javascript">
+window._wpemojiSettings = {"baseUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/72x72\/","ext":".png","svgUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/svg\/","svgExt":".svg","source":{"concatemoji":"https:\/\/s0.wp.com\/wp-includes\/js\/wp-emoji-release.min.js?m=1652185836h&ver=6.0.2"}};
+/*! This file is auto-generated */
+!function(e,a,t){var n,r,o,i=a.createElement("canvas"),p=i.getContext&&i.getContext("2d");function s(e,t){var a=String.fromCharCode,e=(p.clearRect(0,0,i.width,i.height),p.fillText(a.apply(this,e),0,0),i.toDataURL());return p.clearRect(0,0,i.width,i.height),p.fillText(a.apply(this,t),0,0),e===i.toDataURL()}function c(e){var t=a.createElement("script");t.src=e,t.defer=t.type="text/javascript",a.getElementsByTagName("head")[0].appendChild(t)}for(o=Array("flag","emoji"),t.supports={everything:!0,everythingExceptFlag:!0},r=0;r<o.length;r++)t.supports[o[r]]=function(e){if(!p||!p.fillText)return!1;switch(p.textBaseline="top",p.font="600 32px Arial",e){case"flag":return s([127987,65039,8205,9895,65039],[127987,65039,8203,9895,65039])?!1:!s([55356,56826,55356,56819],[55356,56826,8203,55356,56819])&&!s([55356,57332,56128,56423,56128,56418,56128,56421,56128,56430,56128,56423,56128,56447],[55356,57332,8203,56128,56423,8203,56128,56418,8203,56128,56421,8203,56128,56430,8203,56128,56423,8203,56128,56447]);case"emoji":return!s([129777,127995,8205,129778,127999],[129777,127995,8203,129778,127999])}return!1}(o[r]),t.supports.everything=t.supports.everything&&t.supports[o[r]],"flag"!==o[r]&&(t.supports.everythingExceptFlag=t.supports.everythingExceptFlag&&t.supports[o[r]]);t.supports.everythingExceptFlag=t.supports.everythingExceptFlag&&!t.supports.flag,t.DOMReady=!1,t.readyCallback=function(){t.DOMReady=!0},t.supports.everything||(n=function(){t.readyCallback()},a.addEventListener?(a.addEventListener("DOMContentLoaded",n,!1),e.addEventListener("load",n,!1)):(e.attachEvent("onload",n),a.attachEvent("onreadystatechange",function(){"complete"===a.readyState&&t.readyCallback()})),(e=t.source||{}).concatemoji?c(e.concatemoji):e.wpemoji&&e.twemoji&&(c(e.twemoji),c(e.wpemoji)))}(window,document,window._wpemojiSettings);
+</script>
+<style type="text/css">
+img.wp-smiley,
+img.emoji {
+	display: inline !important;
+	border: none !important;
+	box-shadow: none !important;
+	height: 1em !important;
+	width: 1em !important;
+	margin: 0 0.07em !important;
+	vertical-align: -0.1em !important;
+	background: none !important;
+	padding: 0 !important;
+}
+</style>
+	<link crossorigin='anonymous' rel='stylesheet' id='all-css-0-1' href='https://s0.wp.com/_static/??-eJylkd1OAyEQhV9IdlyzaeOF8Vn4meBUYAkzWHl7Z5s0Vk2riTeEw8l35gBwrMavRbAI1NQjFYbYVTpsUZ2G8DYv08N0D65TCuDS6l9NItdsG8AyEk6e+Q7+FyQvmD+DqPjUAzIcGDIGspjU1uRLUZMd2EzCaP2YMpXfcfUu9RfoevlTUw1DqXarbMfaxcRG4c/3/xbRrFCJfAXP3ZwTtnfT81ztz/I3sCOFiKI4n/dG8P02UnWMca42ZDa6ZurZnL6FN+45P8273bLsH5d5f/gAOyLUIw==?cssminify=yes' type='text/css' media='all' />
+<style id='wp-block-library-inline-css'>
+.has-text-align-justify {
+	text-align:justify;
+}
+.wp-block-cover__image-background.has-parallax {
+	background-size: cover;
+}
+</style>
+<style id='global-styles-inline-css'>
+body{--wp--preset--color--black: #000;--wp--preset--color--cyan-bluish-gray: #abb8c3;--wp--preset--color--white: #fff;--wp--preset--color--pale-pink: #f78da7;--wp--preset--color--vivid-red: #cf2e2e;--wp--preset--color--luminous-vivid-orange: #ff6900;--wp--preset--color--luminous-vivid-amber: #fcb900;--wp--preset--color--light-green-cyan: #7bdcb5;--wp--preset--color--vivid-green-cyan: #00d084;--wp--preset--color--pale-cyan-blue: #8ed1fc;--wp--preset--color--vivid-cyan-blue: #0693e3;--wp--preset--color--vivid-purple: #9b51e0;--wp--preset--color--blue: #1982d1;--wp--preset--color--dark-gray: #373737;--wp--preset--color--medium-gray: #666;--wp--preset--color--light-gray: #e2e2e2;--wp--preset--gradient--vivid-cyan-blue-to-vivid-purple: linear-gradient(135deg,rgba(6,147,227,1) 0%,rgb(155,81,224) 100%);--wp--preset--gradient--light-green-cyan-to-vivid-green-cyan: linear-gradient(135deg,rgb(122,220,180) 0%,rgb(0,208,130) 100%);--wp--preset--gradient--luminous-vivid-amber-to-luminous-vivid-orange: linear-gradient(135deg,rgba(252,185,0,1) 0%,rgba(255,105,0,1) 100%);--wp--preset--gradient--luminous-vivid-orange-to-vivid-red: linear-gradient(135deg,rgba(255,105,0,1) 0%,rgb(207,46,46) 100%);--wp--preset--gradient--very-light-gray-to-cyan-bluish-gray: linear-gradient(135deg,rgb(238,238,238) 0%,rgb(169,184,195) 100%);--wp--preset--gradient--cool-to-warm-spectrum: linear-gradient(135deg,rgb(74,234,220) 0%,rgb(151,120,209) 20%,rgb(207,42,186) 40%,rgb(238,44,130) 60%,rgb(251,105,98) 80%,rgb(254,248,76) 100%);--wp--preset--gradient--blush-light-purple: linear-gradient(135deg,rgb(255,206,236) 0%,rgb(152,150,240) 100%);--wp--preset--gradient--blush-bordeaux: linear-gradient(135deg,rgb(254,205,165) 0%,rgb(254,45,45) 50%,rgb(107,0,62) 100%);--wp--preset--gradient--luminous-dusk: linear-gradient(135deg,rgb(255,203,112) 0%,rgb(199,81,192) 50%,rgb(65,88,208) 100%);--wp--preset--gradient--pale-ocean: linear-gradient(135deg,rgb(255,245,203) 0%,rgb(182,227,212) 50%,rgb(51,167,181) 100%);--wp--preset--gradient--electric-grass: linear-gradient(135deg,rgb(202,248,128) 0%,rgb(113,206,126) 100%);--wp--preset--gradient--midnight: linear-gradient(135deg,rgb(2,3,129) 0%,rgb(40,116,252) 100%);--wp--preset--duotone--dark-grayscale: url('#wp-duotone-dark-grayscale');--wp--preset--duotone--grayscale: url('#wp-duotone-grayscale');--wp--preset--duotone--purple-yellow: url('#wp-duotone-purple-yellow');--wp--preset--duotone--blue-red: url('#wp-duotone-blue-red');--wp--preset--duotone--midnight: url('#wp-duotone-midnight');--wp--preset--duotone--magenta-yellow: url('#wp-duotone-magenta-yellow');--wp--preset--duotone--purple-green: url('#wp-duotone-purple-green');--wp--preset--duotone--blue-orange: url('#wp-duotone-blue-orange');--wp--preset--font-size--small: 13px;--wp--preset--font-size--medium: 20px;--wp--preset--font-size--large: 36px;--wp--preset--font-size--x-large: 42px;--wp--preset--spacing--20: 0.44rem;--wp--preset--spacing--30: 0.67rem;--wp--preset--spacing--40: 1rem;--wp--preset--spacing--50: 1.5rem;--wp--preset--spacing--60: 2.25rem;--wp--preset--spacing--70: 3.38rem;--wp--preset--spacing--80: 5.06rem;}:where(.is-layout-flex){gap: 0.5em;}body .is-layout-flow > .alignleft{float: left;}body .is-layout-flow > .alignright{float: right;}body .is-layout-flow > .aligncenter{margin-left: auto !important;margin-right: auto !important;}body .is-layout-constrained > .alignleft{float: left;}body .is-layout-constrained > .alignright{float: right;}body .is-layout-constrained > .aligncenter{margin-left: auto !important;margin-right: auto !important;}body .is-layout-constrained > :where(:not(.alignleft):not(.alignright):not(.alignfull)){max-width: var(--wp--style--global--content-size);margin-left: auto !important;margin-right: auto !important;}body .is-layout-constrained > .alignwide{max-width: var(--wp--style--global--wide-size);}body .is-layout-flex{display: flex;}body .is-layout-flex{flex-wrap: wrap;align-items: center;}body .is-layout-flex > *{margin: 0;}:where(.wp-block-columns.is-layout-flex){gap: 2em;}.has-black-color{color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-color{color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-color{color: var(--wp--preset--color--white) !important;}.has-pale-pink-color{color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-color{color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-color{color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-color{color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-color{color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-color{color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-color{color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-color{color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-color{color: var(--wp--preset--color--vivid-purple) !important;}.has-black-background-color{background-color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-background-color{background-color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-background-color{background-color: var(--wp--preset--color--white) !important;}.has-pale-pink-background-color{background-color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-background-color{background-color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-background-color{background-color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-background-color{background-color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-background-color{background-color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-background-color{background-color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-background-color{background-color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-background-color{background-color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-background-color{background-color: var(--wp--preset--color--vivid-purple) !important;}.has-black-border-color{border-color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-border-color{border-color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-border-color{border-color: var(--wp--preset--color--white) !important;}.has-pale-pink-border-color{border-color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-border-color{border-color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-border-color{border-color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-border-color{border-color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-border-color{border-color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-border-color{border-color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-border-color{border-color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-border-color{border-color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-border-color{border-color: var(--wp--preset--color--vivid-purple) !important;}.has-vivid-cyan-blue-to-vivid-purple-gradient-background{background: var(--wp--preset--gradient--vivid-cyan-blue-to-vivid-purple) !important;}.has-light-green-cyan-to-vivid-green-cyan-gradient-background{background: var(--wp--preset--gradient--light-green-cyan-to-vivid-green-cyan) !important;}.has-luminous-vivid-amber-to-luminous-vivid-orange-gradient-background{background: var(--wp--preset--gradient--luminous-vivid-amber-to-luminous-vivid-orange) !important;}.has-luminous-vivid-orange-to-vivid-red-gradient-background{background: var(--wp--preset--gradient--luminous-vivid-orange-to-vivid-red) !important;}.has-very-light-gray-to-cyan-bluish-gray-gradient-background{background: var(--wp--preset--gradient--very-light-gray-to-cyan-bluish-gray) !important;}.has-cool-to-warm-spectrum-gradient-background{background: var(--wp--preset--gradient--cool-to-warm-spectrum) !important;}.has-blush-light-purple-gradient-background{background: var(--wp--preset--gradient--blush-light-purple) !important;}.has-blush-bordeaux-gradient-background{background: var(--wp--preset--gradient--blush-bordeaux) !important;}.has-luminous-dusk-gradient-background{background: var(--wp--preset--gradient--luminous-dusk) !important;}.has-pale-ocean-gradient-background{background: var(--wp--preset--gradient--pale-ocean) !important;}.has-electric-grass-gradient-background{background: var(--wp--preset--gradient--electric-grass) !important;}.has-midnight-gradient-background{background: var(--wp--preset--gradient--midnight) !important;}.has-small-font-size{font-size: var(--wp--preset--font-size--small) !important;}.has-medium-font-size{font-size: var(--wp--preset--font-size--medium) !important;}.has-large-font-size{font-size: var(--wp--preset--font-size--large) !important;}.has-x-large-font-size{font-size: var(--wp--preset--font-size--x-large) !important;}
+:where(.wp-block-columns.is-layout-flex){gap: 2em;}
+.wp-block-pullquote{font-size: 1.5em;line-height: 1.6;}
+.wp-block-navigation a:where(:not(.wp-element-button)){color: inherit;}
+</style>
+<link crossorigin='anonymous' rel='stylesheet' id='all-css-2-1' href='https://s1.wp.com/_static/??-eJyNj8EOwjAMQ3+IEjYBggPiW7YSSlnaVE26an9PuYGQ0G625SfZUJOxHBWjgj4woEAqI2htwYKEM0YYie0kWyuygRV10YXQ1GQ5rGYsE2eB25CnHyYUk6g4HwUcsmljBvUcv4y50+DzPzRju+GadNBaH/YNXcOlO/b9aX/edYfnC0ReZ8I=?cssminify=yes' type='text/css' media='all' />
+<style id='jetpack-global-styles-frontend-style-inline-css'>
+:root { --font-headings: unset; --font-base: unset; --font-headings-default: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif; --font-base-default: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif;}
+</style>
+<link crossorigin='anonymous' rel='stylesheet' id='all-css-4-1' href='https://s0.wp.com/wp-content/themes/h4/global.css?m=1420737423h&cssminify=yes' type='text/css' media='all' />
+<script id='wpcom-actionbar-placeholder-js-extra'>
+var actionbardata = {"siteID":"113840984","siteURL":"https:\/\/wanderinginn.com","xhrURL":"https:\/\/wanderinginn.com\/wp-admin\/admin-ajax.php","nonce":"1ba14e6909","isLoggedIn":"","statusMessage":"","subsEmailDefault":"instantly","proxyScriptUrl":"https:\/\/s0.wp.com\/wp-content\/js\/wpcom-proxy-request.js?ver=20211021","shortlink":"https:\/\/wp.me\/p7HFeU-1bl","i18n":{"followedText":"New posts from this site will now appear in your <a href=\"https:\/\/wordpress.com\/read\">Reader<\/a>","foldBar":"Collapse this bar","unfoldBar":"Expand this bar"}};
+</script>
+<script crossorigin='anonymous' type='text/javascript' src='https://s1.wp.com/_static/??/wp-content/js/mobile-useragent-info.js,/wp-content/js/rlt-proxy.js?m=1637704497j'></script>
+<script type='text/javascript'>
+	window.addEventListener( 'DOMContentLoaded', function() {
+		rltInitialize( {"token":null,"iframeOrigins":["https:\/\/widgets.wp.com"]} );
+	} );
+</script>
+<link crossorigin='anonymous' rel='stylesheet' id='all-css-0-2' href='https://s0.wp.com/wp-content/mu-plugins/highlander-comments/style.css?m=1663315160h&cssminify=yes' type='text/css' media='all' />
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="https://wanderinginn.wordpress.com/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="https://s1.wp.com/wp-includes/wlwmanifest.xml" /> 
+<meta name="generator" content="WordPress.com" />
+<link rel="canonical" href="https://wanderinginn.com/2018/07/09/the-depthless-doctor/" />
+<link rel='shortlink' href='https://wp.me/p7HFeU-1bl' />
+<link rel="alternate" type="application/json+oembed" href="https://public-api.wordpress.com/oembed/?format=json&amp;url=https%3A%2F%2Fwanderinginn.com%2F2018%2F07%2F09%2Fthe-depthless-doctor%2F&amp;for=wpcom-auto-discovery" /><link rel="alternate" type="application/xml+oembed" href="https://public-api.wordpress.com/oembed/?format=xml&amp;url=https%3A%2F%2Fwanderinginn.com%2F2018%2F07%2F09%2Fthe-depthless-doctor%2F&amp;for=wpcom-auto-discovery" />
+<!-- Jetpack Open Graph Tags -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="The Depthless Doctor" />
+<meta property="og:url" content="https://wanderinginn.com/2018/07/09/the-depthless-doctor/" />
+<meta property="og:description" content="Author&#8217;s Note: I wrote this chapter as a non-canonical side story for my grandfather. He is a fan of the story, and while I don&#8217;t ever intend to write in real people as characters, or w…" />
+<meta property="article:published_time" content="2018-07-09T02:56:01+00:00" />
+<meta property="article:modified_time" content="2018-10-19T05:37:40+00:00" />
+<meta property="og:site_name" content="The Wandering Inn" />
+<meta property="og:image" content="https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=200" />
+<meta property="og:image:width" content="200" />
+<meta property="og:image:height" content="200" />
+<meta property="og:image:alt" content="" />
+<meta property="og:locale" content="en_US" />
+<meta property="article:publisher" content="https://www.facebook.com/WordPresscom" />
+<meta name="twitter:text:title" content="The Depthless Doctor" />
+<meta name="twitter:image" content="https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=240" />
+<meta name="twitter:card" content="summary" />
+
+<!-- End Jetpack Open Graph Tags -->
+<link rel="search" type="application/opensearchdescription+xml" href="https://wanderinginn.com/osd.xml" title="The Wandering Inn" />
+<link rel="search" type="application/opensearchdescription+xml" href="https://s1.wp.com/opensearch.xml" title="WordPress.com" />
+	<style>
+		/* Link color */
+		a,
+		#site-title a:focus,
+		#site-title a:hover,
+		#site-title a:active,
+		.entry-title a:hover,
+		.entry-title a:focus,
+		.entry-title a:active,
+		.widget_twentyeleven_ephemera .comments-link a:hover,
+		section.recent-posts .other-recent-posts a[rel="bookmark"]:hover,
+		section.recent-posts .other-recent-posts .comments-link a:hover,
+		.format-image footer.entry-meta a:hover,
+		#site-generator a:hover {
+			color: #1583af;
+		}
+		section.recent-posts .other-recent-posts .comments-link a:hover {
+			border-color: #1583af;
+		}
+		article.feature-image.small .entry-summary p a:hover,
+		.entry-header .comments-link a:hover,
+		.entry-header .comments-link a:focus,
+		.entry-header .comments-link a:active,
+		.feature-slider a.active {
+			background-color: #1583af;
+		}
+	</style>
+	<meta name="application-name" content="The Wandering Inn" /><meta name="msapplication-window" content="width=device-width;height=device-height" /><meta name="msapplication-tooltip" content="A tale of a girl, an inn, and a world full of levels." /><meta name="msapplication-task" content="name=Subscribe;action-uri=https://wanderinginn.com/feed/;icon-uri=https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=16" /><meta name="msapplication-task" content="name=Sign up for a free blog;action-uri=http://wordpress.com/signup/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Support;action-uri=http://support.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Forums;action-uri=http://forums.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="description" content="Author&#039;s Note: I wrote this chapter as a non-canonical side story for my grandfather. He is a fan of the story, and while I don&#039;t ever intend to write in real people as characters, or write fan-characters into the series, this was a birthday present. Bear in mind this is a story written for fun,&hellip;" />
+<link rel="icon" href="https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=32" sizes="32x32" />
+<link rel="icon" href="https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=192" sizes="192x192" />
+<link rel="apple-touch-icon" href="https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=180" />
+<meta name="msapplication-TileImage" content="https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=270" />
+		<link rel="stylesheet" id="custom-css-css" type="text/css" href="https://s0.wp.com/?custom-css=1&#038;csblog=7HFeU&#038;cscache=6&#038;csrev=3" />
+		<!-- Your Google Analytics Plugin is missing the tracking ID -->
+</head>
+
+<body class="post-template-default single single-post postid-4547 single-format-standard wp-embed-responsive customizer-styles-applied single-author singular two-column right-sidebar highlander-enabled highlander-dark">
+<div class="skip-link"><a class="assistive-text" href="#content">Skip to primary content</a></div><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-dark-grayscale"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0 0.49803921568627" /><feFuncG type="table" tableValues="0 0.49803921568627" /><feFuncB type="table" tableValues="0 0.49803921568627" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-grayscale"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0 1" /><feFuncG type="table" tableValues="0 1" /><feFuncB type="table" tableValues="0 1" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-purple-yellow"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0.54901960784314 0.98823529411765" /><feFuncG type="table" tableValues="0 1" /><feFuncB type="table" tableValues="0.71764705882353 0.25490196078431" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-blue-red"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0 1" /><feFuncG type="table" tableValues="0 0.27843137254902" /><feFuncB type="table" tableValues="0.5921568627451 0.27843137254902" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-midnight"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0 0" /><feFuncG type="table" tableValues="0 0.64705882352941" /><feFuncB type="table" tableValues="0 1" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-magenta-yellow"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0.78039215686275 1" /><feFuncG type="table" tableValues="0 0.94901960784314" /><feFuncB type="table" tableValues="0.35294117647059 0.47058823529412" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-purple-green"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0.65098039215686 0.40392156862745" /><feFuncG type="table" tableValues="0 1" /><feFuncB type="table" tableValues="0.44705882352941 0.4" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-blue-orange"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0.098039215686275 1" /><feFuncG type="table" tableValues="0 0.66274509803922" /><feFuncB type="table" tableValues="0.84705882352941 0.41960784313725" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><div id="page" class="hfeed">
+	<header id="branding">
+			<hgroup>
+				<h1 id="site-title"><span><a href="https://wanderinginn.com/" rel="home">The Wandering Inn</a></span></h1>
+				<h2 id="site-description">A tale of a girl, an inn, and a world full of levels.</h2>
+			</hgroup>
+
+						<a href="https://wanderinginn.com/">
+									<img src="https://wanderinginn.files.wordpress.com/2022/07/cropped-220725_merch_banner_launch-1.png" width="1000" height="296" alt="The Wandering Inn" />
+								</a>
+			
+									<form method="get" id="searchform" action="https://wanderinginn.com/">
+		<label for="s" class="assistive-text">Search</label>
+		<input type="text" class="field" name="s" id="s" placeholder="Search" />
+		<input type="submit" class="submit" name="submit" id="searchsubmit" value="Search" />
+	</form>
+			
+			<nav id="access">
+				<h3 class="assistive-text">Main menu</h3>
+				<div class="menu-menu-1-container"><ul id="menu-menu-1" class="menu"><li id="menu-item-1422" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-home menu-item-1422"><a href="https://wanderinginn.com/">Overview</a></li>
+<li id="menu-item-1912" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1912"><a href="https://wanderinginn.com/table-of-contents/">Table of Contents</a></li>
+<li id="menu-item-1998" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-1998"><a href="https://www.patreon.com/user?u=4240617">Patreon</a></li>
+<li id="menu-item-10438" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-10438"><a href="https://wanderinginn.com/social/">Social</a>
+<ul class="sub-menu">
+	<li id="menu-item-4811" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-4811"><a href="https://discord.gg/abwsa3y">Discord</a></li>
+	<li id="menu-item-4810" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-4810"><a href="https://www.reddit.com/r/WanderingInn/">Reddit</a></li>
+	<li id="menu-item-8944" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-8944"><a href="https://twitter.com/WanderingInn">Twitter</a></li>
+	<li id="menu-item-10440" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-10440"><a href="https://www.facebook.com/thewanderinginn/">Facebook</a></li>
+</ul>
+</li>
+<li id="menu-item-10446" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-10446"><a href="https://wanderinginn.com/publishing-3/">Publishing</a>
+<ul class="sub-menu">
+	<li id="menu-item-10448" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-10448"><a href="https://www.amazon.com/kindle-dbs/entity/author/B07XCYVYMW">E-books</a></li>
+	<li id="menu-item-10447" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-10447"><a href="https://www.audible.com/author/pirate-aba/B07XCYVYMW">Audiobooks</a></li>
+	<li id="menu-item-8761" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-8761"><a href="https://www.cloudscapecomics.com/last-tide/">The Last Tide (Comicbook)</a></li>
+</ul>
+</li>
+<li id="menu-item-1424" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1424"><a href="https://wanderinginn.com/guestbook/">Guestbook</a></li>
+<li id="menu-item-2935" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-2935"><a href="https://wanderinginn.com/fanworks/">Fanworks</a>
+<ul class="sub-menu">
+	<li id="menu-item-8557" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-8557"><a href="https://wanderinginn.com/fanworks-permissions/">Fanworks Permissions</a></li>
+</ul>
+</li>
+<li id="menu-item-1426" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1426"><a href="https://wanderinginn.com/reader-reviews/">Reader Reviews</a></li>
+<li id="menu-item-5002" class="menu-item menu-item-type-post_type menu-item-object-post menu-item-has-children menu-item-5002"><a href="https://wanderinginn.com/2018/10/19/glossary/">Glossary</a>
+<ul class="sub-menu">
+	<li id="menu-item-7035" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-7035"><a href="https://wanderinginn.com/fanworks/#B">Maps</a></li>
+</ul>
+</li>
+<li id="menu-item-5684" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-5684"><a href="https://wanderinginn.com/writing-faqs/">Writing FAQs</a></li>
+<li id="menu-item-11759" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-11759"><a href="https://aubergevagabonde.wordpress.com/">L&#8217;Auberge Vagabonde</a></li>
+<li id="menu-item-11765" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-11765"><a href="https://wanderinginn.com/contacts/">Contacts</a></li>
+<li id="menu-item-12493" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-12493"><a href="https://www.store.wanderinginn.com/">Merch Store</a></li>
+<li id="menu-item-12667" class="menu-item menu-item-type-post_type menu-item-object-post menu-item-12667"><a href="https://wanderinginn.com/2022/09/28/interlude-the-great-race/">Interlude – The Great Race</a></li>
+</ul></div>			</nav><!-- #access -->
+	</header><!-- #branding -->
+
+
+	<div id="main">
+
+		<div id="primary">
+			<div id="content" role="main">
+
+				
+					<nav id="nav-single">
+						<h3 class="assistive-text">Post navigation</h3>
+						<span class="nav-previous"><a href="https://wanderinginn.com/2018/07/07/4-49/" rel="prev"><span class="meta-nav">&larr;</span> Previous</a></span>
+						<span class="nav-next"><a href="https://wanderinginn.com/2018/07/10/5-00/" rel="next">Next <span class="meta-nav">&rarr;</span></a></span>
+					</nav><!-- #nav-single -->
+
+					
+<article id="post-4547" class="post-4547 post type-post status-publish format-standard hentry category-writing tag-fantasy tag-inn tag-web-novel tag-web-serial tag-writing">
+	<header class="entry-header">
+		<h1 class="entry-title">The Depthless Doctor</h1>
+
+				<div class="entry-meta">
+						<span class="sep">Posted on </span><a href="https://wanderinginn.com/2018/07/09/the-depthless-doctor/" title="2:56 am" rel="bookmark"><time class="entry-date" datetime="2018-07-09T02:56:01+00:00">July 9, 2018</time></a><span class="by-author"> <span class="sep"> by </span> <span class="author vcard"><a class="url fn n" href="https://wanderinginn.com/author/pirateaba/" title="View all posts by pirateaba" rel="author">pirateaba</a></span></span>		</div><!-- .entry-meta -->
+			</header><!-- .entry-header -->
+
+	<div class="entry-content">
+		<p><strong>Author&#8217;s Note: I wrote this chapter as a non-canonical side story for my grandfather. He is a fan of the story, and while I don&#8217;t ever intend to write in real people as characters, or write fan-characters into the series, this was a birthday present. </strong></p>
+<p><strong>Bear in mind this is a story written for fun, a myth if you will. The main character will never appear in the story, but legends about him might be mentioned. However, the other details about the story, the lore of the world is true. </strong></p>
+<p><strong>Our hero, the mysterious Captain Ad, is not my grandfather. But there is a bit of him in Captain Ad. Truth and myth are intertwined with each other, and perhaps only the [Bards] can tell where fact ends and legends begin. Hope you like the story!<br />
+</strong></p>
+<p>&nbsp;</p>
+<p>On land, it is often said that each continent has a claim to the title of the greatest. Citizens of all five continents argue over such things as if it matters. For instance, in Izril, the Drakes will proudly boast of their Walled Cities, pointing to these relics of an era when Dragons flew through the skies as a marker of greatness. The Humans on Izril speak more quietly of a land won by steel and magic, a place where they bow to no [King] or monarch—a place to be free.</p>
+<p>Of course, were you to go north to Terandria you would hear much the opposite. The people of the myriad kingdoms on that continent think of their enduring generations of rulers as a treasure, and point to their ancient castles and ruins as a symbol of their status. Too, Terandria is the only home to Dwarves, those master-craftsmen of metal and stone. A place where legends remain. Surely that alone speaks to Terandria’s greatness?</p>
+<p>Perhaps though, that is not the measure by which a land can be judged. The enduring folk of Chandrar must survive arid lands and the might of the largest desert in the world bar none—yet that hardiness leads Chandrarians to declare themselves the true survivors in a soft world. They scoff at the soft lives led by those in Terandria and Izril, and are in turn sneered at by the people of Baleros. For what is a harsh land to that of one where war is both a way of life and economy?</p>
+<p>And Rhir…the less said about the struggle of those desperate people, the better. But woe to any who might suggest Rhir somehow falls behind the other four continents. The citizens of Rhir claim with some accuracy to be the most courageous, most resilient and stubbornly hopeful of all five continents.</p>
+<p>And so the debate continues. From every land, every species will shout their greatness. Much to the amusement of those who have no home on land of course. Greatest continent? It is a laughable joke to compare such tiny specks of earth to the infinite depths of the sea. There is but one land under the waters of the world, and it is more terrible and more awe-inspiring than anything above it.</p>
+<p>The sea. The only land where cities have yet to be built in great number. A vast abyss from which monsters emerge that Gold-rank adventurers and Named Adventurers can only dream of in nightmares. This place is the home to the Drowned People, the damned souls who have given their bodies to fuse with other creatures and breathe water as freely as air. Drowned People, the rumored Merfolk, [Pirates] and [Sailors] who merely float on the surface of the ocean, all call the sea home.</p>
+<p>But they would never claim to rule it. No. Go down far enough and the sea will engulf you. The abyssal depths stretch deeper than any mountain, so deep that there are places magic itself begins to fail. The deep ocean is a place where an Archmage would find her magic lacking, where the greatest of [Warriors] would find his strength worthless. It is so dark down there, and one can sail for days, weeks, months, without seeing anything in the darkness.</p>
+<p>But it is not always quiet. There are songs in the darkness, if one but has the courage to listen.</p>
+<p>Most do not. To listen to the siren call of the blackness is to invite madness or worse—sanity. So the crew of the Kraken’s Horn made it a policy to cover their ears as they worked. This crew of Drowned Men and Women had sailed for many years in such places and knew what measures must be kept.</p>
+<p>Maintain the bubble. Deafen the ears. Shine no lights above decks. Speak no word of ill against another crew. Such were the litanies of the crew. Each rule was sacred, inviolate.</p>
+<p>Maintain the bubble. That was first and foremost. While each of the Drowned Men and Women—former Humans fused with the aspects of crabs, fish, or other sea creatures—could breathe underwater, the crushing pressures they sailed at would smash their bodies into pulp, as well as their ship, in seconds. Were it not for the magical wards that formed a protective sphere around the ship, the Kraken’s Horn would be gone in a moment.</p>
+<p>So each sailor checked the runes on the ship and watched the mana stones to make sure the enchantment was not failing. That was their first rule. The second was for safety and sanity. Listen not to the whispers and songs of the ocean. Many a crew had vanished or slaughtered each other when the ocean had talked to them in the depths of their paranoia and fear.</p>
+<p>As for the prohibition against lights—more safety. Light attracted attention, and attention underwater was the last thing any sailor wanted. Horrible things craved the light and sought it out.</p>
+<p>As for the last rule, it was just common sense. A crew was a crew, and while a crew could brawl and fight over the smallest of issues, the instant it began turning on itself it was finished. It might seem incredible to the land folk that a crew could go for months without quarrel, but that was the law of the sea and the sailors of the Kraken’s Horn usually obeyed this last law without fail.</p>
+<p>But today, the arguments between the [Captain] and [First Mate] of the ship came perilously close to breaking that rule. The two sometimes [Sailors] and sometimes [Pirates] strode along the broad deck of the ship, talking in hushed voices.</p>
+<p>For them, that was shouting. It was an unspoken corollary to the rule of no light—keep your voice down. Noise travelled far in the waters, after all. But some things had to be said above decks, rather than down in the hold where they might be heard.</p>
+<p>“—Ridiculous! I won’t hear of it.”</p>
+<p>“She’ll die if we don’t go up, Captain. Or the babe will.”</p>
+<p>“We’re tens of thousands of leagues from any port, and that’s without the risk of surfacing so quickly. And for what? A squalling babe? I won’t have it! We’d starve ourselves for your mission of mercy, Rendala. No more arguments!”</p>
+<p>The [Captain] was a big, swarthy Drowned Man, as befit a man of his rank. He had once been a huge Human with a beard like a fireball—now his left arm and part of his chest were translucent and elastic. He had merged with a Blackwater Jellyfish, and his body was part monster.</p>
+<p>Some might have seen the [Captain]’s tendril-like arms as a weakness, but the poison contained in the [Captain]’s body made up for any defects in appearance. He could paralyze a whale with a touch and his body could heal from wounds that would cripple normal flesh. Now he was staring with no little ire at his [First Mate].</p>
+<p>She had been a Gnoll. Only, like all Drowned People, she had merged with a monster. In her case it had been a swordfish and she had lost her arm but gained an unparalleled cutting weapon on her right side instead. It was a tradeoff many would consider not worth the cost, but such was the nature of Drowned People. They did not choose their destiny. The ocean claimed them.</p>
+<p>Rendala didn’t speak like most Gnolls did, with ‘yes’ and ‘no’ endings to her sentences. She had left her tribe as a child and like all of the crew of the ship, she spoke like a sailor.</p>
+<p>“Captain, she’s fit to bursting. And the babe’s difficult—you know it’s already half fish! She needs a [Healer] or she’s like to bleed to death in the hold. And what would we do then? Jettison her body? That’s no way to do a sea burial and the blood would have predators in the water in minutes.”</p>
+<p>“So we do what? Try and surface? Even if we survived moving up that fast there’s little to no chance we’d find a [Healer] out on the open ocean.”</p>
+<p>“It’s standard for all ships to have a medical officer. And we wouldn’t be in this place if we had a [Doctor] on board, Tugrim!”</p>
+<p>“Bah. Old Sawlegs never did more than hand out healing potions. We have enough on board—why not use them?”</p>
+<p>Captain Tugrim had sailed his vessel for over a decade and served with Rendala as his First Mate for over half that time. Still, he couldn’t ever recall her giving him a look with as much scorn as she did now.</p>
+<p>“Childbirth ain’t that easy, Captain. There’s ways to lose a babe or the mother that no healing potion’ll fix. Or if it does fix the problem—it’ll fix it wrong, as if the child weren’t ever there. There’s a reason why [Midwives]’re employed when we have magic and potions about.”</p>
+<p>The Drowned Captain growled under his breath as he stalked the deck. His footsteps echoed eerily in the silence of the ocean depths around him. He kept his voice to a low hiss as he replied.</p>
+<p>“This is all that damned idiot’s fault! Who goes to sea when they’re pregnant?”</p>
+<p>His words wavered treacherously close to violating the law of the sea. But Rendala kept her mouth shut. She understood Tugrin’s feelings, she really did.</p>
+<p>“I’m not saying it’s right! But you’ve a duty to your crew now.”</p>
+<p>“Aye, but it’s the crew I’m thinking of. The crew or the crew, Rendala. What’s worth more, a life we might not save or an empty hold?”</p>
+<p>The Drowned Gnoll fell silent. Tugrim was right. Their ship, the Kraken’s Horn, wasn’t an easy vessel to keep repaired and afloat underwater or above it. The mana stones they used to power the ship’s bubble cost hundreds of gold coins and the crew needed pay. Added to that, there were the costs for oil, food, the supplies of healing potions and other enchanted items…</p>
+<p>To pay the costs, the crew were [Pirates] of opportunity, [Scavengers] and [Treasure Seekers] whenever they passed by a sunken wreck, and occasionally honest [Sailors] carrying cargo as well. Right now they were on a trawl for sunken wrecks on their way to a Drake port city on the south-eastern coast of Izril. Surfacing would mean going back the way they’d come, costing them precious days in time and resources.</p>
+<p>“I can’t believe it’s come to this. We should have turned back the instant we found out.”</p>
+<p>Rendala shook her head. Her fur became scales halfway down the side of her neck on the left side. She gestured with her sword-hand.</p>
+<p>“It was too late by then. She’d pretended for too long. Sea’s salt, how could we not see it? The vomiting in secret, the eating—”</p>
+<p>“I thought she was just getting fat. The depths does that to the best of [Sailors].”</p>
+<p>“Well, there’s little more it can do at the moment. Right now it’s us. Up or onwards, Captain?”</p>
+<p>Rendala looked at Tugrim, waiting. The [Captain] paced along his decks, navigating in the near-pitch black darkness more by memory than sight. He walked heavily towards the bow of the ship, back along the main deck, and then spun and went towards the bow again. When he walked back, shoulders heavy, Rendala knew what his answer would be.</p>
+<p>“We surface, First Mate. And may the seas have mercy on us if a larger fish senses us. We’re too far from a safe zone, but we must ride the Rower’s Currents if we’ve any chance of getting her to safety in time.”</p>
+<p>“Aye, Captain. I’ll give the orders.”</p>
+<p>The Gnoll woman saluted in relief. It would cause trouble along the ship and no doubt a few unkind words spoken in the privacy of the crew’s heads, but she would gladly take that squall than face a death of both a mother and child on board without anything being done. Besides…the thought of what the blood of childbirth might attract in these depths made Rendala shudder.</p>
+<p>She and Tugrim were about to head below decks when they sensed a change in the sea around them. The waters were so black this deep that only the faint light from the runes on the ship itself provided any sort of illumination. So finely trained were the eyes of the two Drowned Sailors that they could see in this blackness. And now the blackness was growing brighter.</p>
+<p>“Captain—”</p>
+<p>“I see it. Quick, towards the wheel.”</p>
+<p>Tugrim and Rendala crept towards the stern of the ship. Neither Drowned Sailor reached for a weapon—their weapons were their bodies. Rendala’s sword-hand cut the air in small circles as she crouched low, keeping an eye out for something—anything—in the blackness.</p>
+<p>What could it be? Angler Ghouls? Phantomlight Sharks? A light-based leviathan? All she knew was that if trouble came calling, they had to be close to the wheel.</p>
+<p>There was a [Sailor] at the wheel. There always was—it was known as the Ghostwatcher’s Time. The ship needed no real direction most of the time—the [Sailor] on duty simply had to watch out for oncoming obstacles. But the mind would play tricks, so you’d see phantoms coming up on you in the distance. The trick was separating the illusions from a real threat approaching in the murk.</p>
+<p>“Sailor. What do you see?”</p>
+<p>Tugrim approached the half-squid Drowned Man at the wheel. The man turned, his beard a mass of wriggling tendrils and replied, eyes wide.</p>
+<p>“Nothing, Captain! Just a light. Growing brighter?”</p>
+<p>“Headed this way? Avoid it!”</p>
+<p>“I have! Twice I’ve turned and twice it follows.”</p>
+<p>“Then we’re hunted. Rendala, prepare to shout the alarm.”</p>
+<p>Tugrim seized the wheel and turned the ship. Not away—there was little use running from something locked onto them. They had to see the threat before they judged whether it was worth the noise of fighting—or fleeing. Rendala nodded as she prepared to yell. A loud voice would wake the entire ship in this silence.</p>
+<p>“It’s getting brighter!”</p>
+<p>Now the glow was an almighty shine. Rendala had to squint to see, but she could tell the light was coming from something ahead of her. Not too big…which was a relief if it was a monster. But what was that light?</p>
+<p>“Ahoy! What have we here?”</p>
+<p>There was an exclamation, a sharp intake of breath as Tugrim saw something in the depths that Rendala could not. He spun the wheel and she heard a splash as something breached the bubble of the ship.</p>
+<p>“Hold! Who are you? Answer or we attack!”</p>
+<p>Tugrim roared into the silence as he faced the source of the light. Rendala raised her sword-arm, staring into the blinding glare. And then—suddenly—the light winked out. In the darkness the spots in the Gnoll’s vision took a few moments to clear. Then she saw him.</p>
+<p>Standing at the edge of the bubble surrounding the Kraken’s Horn was a man. He was standing on top of a metal…tube. It was some kind of vehicle—a metal contraption of steel that had opened to let him climb out. The vehicle was beyond strange, but it was the man who drew Rendala’s gaze.</p>
+<p>He was dressed in some kind of uniform, a pristine white cloth. He had a white cap with some kind of gold insignia on the front—hardly a proper [Captain]’s hat like the swaggering broad-cut monster of a hat like Tugrim wore. And yet, he was clearly part of some army, albeit one neither Tugrim nor Rendala had were familiar with. Two black epaulets with gold tassels sat on his shoulders along with four black stripes. He stood erect, his back straight as a rod, and his eyes—ah, his eyes.</p>
+<p>They were the eyes of the deep itself. Piercing, unwavering—they bore a hole into the three stunned [Sailors] as the Human man descended off his strange vehicle onto the deck of the ship. The maniac glare the man gave Rendala and Tugrim was at odds with his calm voice</p>
+<p>“Hello.”</p>
+<p>They stared. The man with the steely eyes waited for a response. When none was forthcoming he spoke again.</p>
+<p>“My name is Captain Ad. This is my submarine.”</p>
+<p>He gestured towards the metal vehicle he’d emerged from. Rendala stared at it.</p>
+<p>The black metal contraption was as foreign to First Mate Rendala as any eldritch horror she’d seen dragging itself across the sea bed. It defied her understanding of how a ship should be. And yet, the long, oblong shape, the way it sat in the water rather than swam—it had its own symmetry, its own grace.</p>
+<p>And clearly, it could move about the depths without an enchantment of its own. That alone gave her pause, and clearly made Tugrim think twice about a rash move. She could see her Captain shifting and knew he was ready to lash out with his poisoned hand should this strange ‘Captain Ad’ prove dangerous.</p>
+<p>“The Peace of the Drowned upon you. I am [Captain] Tugrim of the Kraken’s Horn. What business have you in these waters? No—what foolishness led you to shine a light this far down?”</p>
+<p>The question seemed to puzzle the other Captain. Ad stared around, his burning gaze making the other Drowned Sailor flinch.</p>
+<p>“It was dark. Darkness needs a light. Or how else would I navigate?”</p>
+<p>“You’d sooner end up in the belly of a monster like that!”</p>
+<p>The lack of common sense clearly shook Tugrim. He gestured to the submarine, his eyes on Captain Ad’s face. He didn’t dare meet the Human man’s eyes—the piercing stare was too much even for Tugrim’s seasoned years.</p>
+<p>“Either you’ve a deathwish or your strange ship can destroy titans, stranger. Which is it? And why did you seek me out?”</p>
+<p>“I had a feeling I was needed.”</p>
+<p>Once again, Captain Ad gave an incomprehensible reply. Tugrim exchanged glances with his First Mate—it was Rendala who responded.</p>
+<p>“What do you mean, a feeling? What is it you do?”</p>
+<p>Rather than answer, Captain Ad’s gaze once again swept the ship. He spoke in a distant voice.</p>
+<p>“Is there, by any chance, a pregnant woman on board your ship? I have a Skill that senses them.”</p>
+<p>Rendala’s eyes widened. Tugrim swore a sailor’s oath.</p>
+<p>“Storm waters take me! How did you—”</p>
+<p>“I’m an [Obstetrician].”</p>
+<p>Captain Ad replied coolly. Tugrim paused.</p>
+<p>“A what now?”</p>
+<p>“An obstetrician. I deliver babies. If you have a pregnant woman on board, I can help her give birth.”</p>
+<p>“Truly?”</p>
+<p>Rendala’s skepticism was warring with a sudden hope. Tugrim took a step back, his eyes narrowed.</p>
+<p>“Now hold on. How can we be so sure we can trust—”</p>
+<p>Captain Ad turned his paralyzing stare on Tugrim and the [Captain]’s words died in his mouth. Slowly, Ad reached into a pocket. Rendala tensed, but the man just took out a strange, long, cylindrical object out and put it into his mouth. She stared.</p>
+<p>It was a pretzel. Ad mistook her look and pulled out another.</p>
+<p>“Want one?”</p>
+<p>“No. No, I—”</p>
+<p>“Take me to the patient. Time is running out.”</p>
+<p>Rendala hesitated and Tugrim gave her a look. But they had no choice. She beckoned, and Ad strode after the Drowned Sailors, still chewing on the pretzel.</p>
+<p>“I have toffee if anyone wants it.”</p>
+<p>&nbsp;</p>
+<p>&#8212;-</p>
+<p>&nbsp;</p>
+<p>Below decks, the crew of Kraken’s Horn were in a small panic. They were clustered outside one of the cabins where the pregnant female [Sailor] had been housed. Until this moment only ghastly groaning noises had echoed from that place and it had been avoided by all but Rendala and the [Cook] who brought the poor woman food. Now Rendala, Tugrim, and the rest of the crew peeked around the doorframe as Captain Ad tended to his patient.</p>
+<p>“You’re sure you know what you’re doing?”</p>
+<p>Tugrim glared at Captain Ad, breathing heavily. He was protective of his crew, but pale-faced, ill-at-ease in this situation that called for neither steady hands nor a heart of steel. Well, actually, it called for both things, but Tugrim would have happily fought a Kraken naked in a lifeboat than be called on to assist a birth.</p>
+<p>Captain Ad nodded. He’d eaten his pretzel and now donned a pair of white rubbery gloves.</p>
+<p>“I told you, I’m a medical officer. And this is my patient. Let’s see how she’s doing. Miss, breathe slowly for me. In, out, in, out…”</p>
+<p>It had to be his soothing voice that calmed the pregnant [Sailor]; it definitely wasn’t the piercing glare he trained on her. And yet, despite the sudden appearance of this intense, strange man, Rendala saw the young pregnant woman calm down a bit, and after a cursory inspection Captain Ad straightened and nodded.</p>
+<p>“She’s due any minute now.”</p>
+<p>Nothing could have thrown the crew of the ship into a worst panic. Nothing, except hearing the pregnant [Sailor] cry out and realizing the pregnancy had shifted from being imminent to in progress. Screaming occurred, and only some of it came from the mother-to-be.</p>
+<p>And yet, there was an icy void of calm amidst the chaos. Captain Ad calmly delivered the baby with the help of the ship’s crew, ordering Drowned Men and Women to bring hot water, tools from his submarine, scissors of all things—</p>
+<p>Rendala watched with a mixture of horror and awe as the baby was born. Tugrim fainted as the head poked out. But in short order it was done, and Captain Ad held up the squalling infant and regarded it.</p>
+<p>“It’s a…hmm. It’s a…well, it’s got scales. And tentacles. And a beak.”</p>
+<p>“Is he—is the curse—”</p>
+<p>The weak mother struggled up. She was afraid. All Drowned People were, to give birth. The ocean’s taint on their bodies could pass on to their children in odd ways. But when she saw her son she cried out and took him from Captain Ad with trembling hands.</p>
+<p>“He’s beautiful.”</p>
+<p>“That he is. We can’t thank you enough, sir. What can we—”</p>
+<p>Rendala was about to ask how they could repay their mysterious savior when she heard a shout from above. Her blood ran cold.</p>
+<p>“Leviathan to port! All hands! Leviathan!”</p>
+<p>A monster of the depths had found them. The jubilation below decks ended in a moment. The Drowned Child wailed as the [Sailors] scrambled above decks. What they saw terrified Rendala to her core.</p>
+<p>A fish thrice the size of her ship was circling them, its wide, gaping mouth showing rows of teeth as it eyed their vessel through a set of multi-colored eyes along its length. It looked like a salmon if you mutated it, gave it wings like razors, three more eyes on each side, a serpentine tail, teeth—actually it looked nothing like a salmon at all.</p>
+<p>It looked like death, though. The sea monster had noticed the Kraken’s Horn, that, or it had heard the noise or seen the light in the waters that Captain Ad’s arrival had prompted. Either way, it was here and there was only death now.</p>
+<p>Captain Ad had strode onto the decks after Rendala. He was the first to break the horrified silence. He calmly put the pretzel in his mouth, staring up at the giant fish monster as it opened its jaws wide, wide, trying to engulf both ships.</p>
+<p>“Well, darn. That’s big.”</p>
+<p>The moment was broken. The [Sailors] scrambled across the decks, shouting, firing the magical cannons towards the fish. Rendala scrambled across the deck, towards the steering wheel. The First Mate screamed at Captain Ad as she furiously turned the wheel of her ship.</p>
+<p>“Run! We’ll all be eaten by that damned thing if we hang about!”</p>
+<p>There was a gas petal by the steering wheel that allowed the ship to rise and sink as need be—she was pressing with all her might to get it to rise as the sea monster swam closer, maw closing in on her ship.</p>
+<p>She had to get her ship away, even if it meant abandoning Captain Ad’s ship to the depths. But the man was already swinging himself into the hatch of his vehicle. He gave her a reproachful look as he paused with the hatch’s lid in one hand.</p>
+<p>“There’s a time and place for foul language, Miss. And that’s never. I have a plan.”</p>
+<p>She stared at him. Captain Ad was turning his submarine. She could hear his voice, echoing out of the sub as he turned it to face the giant fish.</p>
+<p>“Now look here, you. I’d reconsider anything you were planning to do. Turn around, swim away, and we’ll all go home happy. Understand?”</p>
+<p>The gigantic fish stared at Captain Ad. Perhaps it was his devilish stare, which pierced the fish through the layers of his submarine, or maybe it was his calm, implacable voice, but the monstrous fish hesitated for just a moment.</p>
+<p>“Give up?”</p>
+<p>The fish hesitated for just one moment and Renalda held her breath, incredulous. Then it made up its mind and swam forwards, not towards the Kraken’s Horn, but towards Captain Ad’s sub. She heard the man’s voice speaking faintly in surprise.</p>
+<p>“Oh my.”</p>
+<p>The gigantic sea monster’s jaws closed around the submarine. Rendala, pushing her ship upwards as Captain Tugrim marshalled his crew for a desperate defense, saw the ship disappearing into the fish’s mouth. And then there was a flash, an underwater explosion, a wave of heat—</p>
+<p>&nbsp;</p>
+<p>&#8212;-</p>
+<p>&nbsp;</p>
+<p>It was a strange farewell the crew gave to Captain Ad on the surface of the ocean. Strange, awkward, and made all the more surreal by the giant floating fish’s corpse drifting just off the bow of their ship.</p>
+<p>“You killed it. Just like that.”</p>
+<p>Tugrim was staring at the fish, large enough to feed a city for weeks. It had been blown apart from the inside. Captain Ad hadn’t wanted it, so it was the property of the Kraken’s Horn. Rendala had no idea how they’d transport it—the sharks were already beginning to circle and nibble at the corpse.</p>
+<p>“I’m not a [Hunter]. I’m a man of peace. With a submarine.”</p>
+<p>Captain Ad answered calmly, sucking on a piece of toffee he’d produced from somewhere. He hadn’t wanted any part of the feast—although the teeth alone were probably worth a fortune in ivory. He had accepted a small payment for delivering the baby, nothing else.</p>
+<p>“How’d you do it? Where did you learn all those Skills? Are you some kind of high-level [Captain]?”</p>
+<p>The man shrugged in response to Rendala’s questions.</p>
+<p>“I am a [Captain] as well as a [Doctor]. But high-level? I like to think it’s just skill.”</p>
+<p>“Skill?”</p>
+<p>Captain Ad nodded.</p>
+<p>“Underwater naval combat…dodging fish, delivering babies…it’s all like tennis. I play it all the time. Underwater tennis, aerial tennis…I’m a [Tennis Player]. I’d like to think I’m good at the game.”</p>
+<p>The [Sailors] of Kraken’s Horn stared at him. Captain Ad chewed thoughtfully at the lump of toffee.</p>
+<p>“Or ping pong.”</p>
+<p>He nodded, and then, with a casual turn of the shoulder, walked over to his sub. He opened the hatch and began to descend.</p>
+<p>“It was a pleasure meeting you all. If you should ever have a medical problem, I’ll be sure to drop by.”</p>
+<p>He saluted, and then was gone. The submarine sank out of sight. Rendala and the crew of the Kraken’s Horn stared at the spot where a few bubbles rose upwards for several minutes. Then Rendala turned to stare at Tugrim.</p>
+<p>“Who was that?”</p>
+<p>Legends. Each continent has them. They have heroes, Named Adventurers, famous [Generals] and so on. But what people forget is that the sea has its own myths as well. How could it not? But you seldom see those legends in person. You only hear of them, perhaps on the lips of a sailor who knew a man (or woman!) who knew someone else who’d seen the legend in person. And one of those legends that was told by the now-rich crew of the Kraken’s Tooth was the tale of the mysterious man with the piercing gaze, the fearless Captain Ad.</p>
+<p>They say he sails to this very day, the man with the piercing glare, cutting through the depths of the ocean with his metal submarine. Occasionally chewing on a pretzel or toffee. More than one baby owes him their life, or so it’s said.</p>
+<p>But who would speak such stories? Who would carry his tales above? Not sailors. Some stories, the real stories are too good to jabber on about like some land-locked fool. Some stories are true.</p>
+<p>Or close enough.</p>
+<p>&nbsp;</p>
+<hr />
+<p><a href="https://wanderinginn.com/2018/07/07/4-49/">Previous Chapter</a> <span style="float:right;"><a href="https://wanderinginn.com/2018/10/19/glossary">Next Chapter</a></span></p>
+			</div><!-- .entry-content -->
+
+	<footer class="entry-meta">
+		This entry was posted in <a href="https://wanderinginn.com/tag/writing/" rel="category tag">Writing</a> and tagged <a href="https://wanderinginn.com/tag/fantasy/" rel="tag">fantasy</a>, <a href="https://wanderinginn.com/tag/inn/" rel="tag">inn</a>, <a href="https://wanderinginn.com/tag/web-novel/" rel="tag">web novel</a>, <a href="https://wanderinginn.com/tag/web-serial/" rel="tag">web serial</a>, <a href="https://wanderinginn.com/tag/writing/" rel="tag">Writing</a> by <a href="https://wanderinginn.com/author/pirateaba/">pirateaba</a>. Bookmark the <a href="https://wanderinginn.com/2018/07/09/the-depthless-doctor/" title="Permalink to The Depthless Doctor" rel="bookmark">permalink</a>.
+		
+			</footer><!-- .entry-meta -->
+</article><!-- #post-4547 -->
+
+						<div id="comments">
+	
+	
+			<h2 id="comments-title">
+			24 thoughts on &ldquo;<span>The Depthless Doctor</span>&rdquo;		</h2>
+
+		
+		<ol class="commentlist">
+					<li class="comment byuser comment-author-pirateaba bypostauthor even thread-even depth-1 highlander-comment" id="li-comment-30257">
+		<article id="comment-30257" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/2f8ac70cd17f11c419846c441769523b?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn"><a href='http://pirateaba.wordpress.com' rel='external nofollow ugc' class='url'>pirateaba</a></span> on <a href="https://wanderinginn.com/2018/07/09/the-depthless-doctor/#comment-30257"><time datetime="2018-07-09T02:56:56+00:00">July 9, 2018 at 2:56 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Leave a typo for the legend of Captain Ad!</p>
+<p>(The legend of typo finders: COR, Pisces, Carsten)</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/07/09/the-depthless-doctor/?replytocom=30257#respond' data-commentid="30257" data-postid="4547" data-belowelement="comment-30257" data-respondelement="respond" data-replyto="Reply to pirateaba" aria-label='Reply to pirateaba'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment odd alt depth-2 highlander-comment" id="li-comment-31030">
+		<article id="comment-31030" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/bd6797acc3f221574951febfea8a6320?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">Winthrow</span> on <a href="https://wanderinginn.com/2018/07/09/the-depthless-doctor/#comment-31030"><time datetime="2018-07-10T18:04:16+00:00">July 10, 2018 at 6:04 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>”Nothing could have thrown the crew of the ship into a worst panik.”</p>
+<p>Should probably be ”worse”.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/07/09/the-depthless-doctor/?replytocom=31030#respond' data-commentid="31030" data-postid="4547" data-belowelement="comment-31030" data-respondelement="respond" data-replyto="Reply to Winthrow" aria-label='Reply to Winthrow'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment even depth-3 highlander-comment" id="li-comment-31203">
+		<article id="comment-31203" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/e971601a5ecd4e343ff9d6cc6112dd8c?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">Brian</span> on <a href="https://wanderinginn.com/2018/07/09/the-depthless-doctor/#comment-31203"><time datetime="2018-07-11T15:53:01+00:00">July 11, 2018 at 3:53 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Also, &#8216;panic&#8217;.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/07/09/the-depthless-doctor/?replytocom=31203#respond' data-commentid="31203" data-postid="4547" data-belowelement="comment-31203" data-respondelement="respond" data-replyto="Reply to Brian" aria-label='Reply to Brian'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment odd alt depth-3 highlander-comment" id="li-comment-31204">
+		<article id="comment-31204" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/b947fca0c15f5b900b3ee3213a5dc2f4?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">Miles</span> on <a href="https://wanderinginn.com/2018/07/09/the-depthless-doctor/#comment-31204"><time datetime="2018-07-11T17:22:00+00:00">July 11, 2018 at 5:22 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Also panic</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/07/09/the-depthless-doctor/?replytocom=31204#respond' data-commentid="31204" data-postid="4547" data-belowelement="comment-31204" data-respondelement="respond" data-replyto="Reply to Miles" aria-label='Reply to Miles'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment even depth-3 highlander-comment" id="li-comment-31231">
+		<article id="comment-31231" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/bd6797acc3f221574951febfea8a6320?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">Winthrow</span> on <a href="https://wanderinginn.com/2018/07/09/the-depthless-doctor/#comment-31231"><time datetime="2018-07-13T10:56:23+00:00">July 13, 2018 at 10:56 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Actually &#8220;panic&#8221; was written correctly in the story. It was me that made a mistake in my aspiration to become a legendary typo finder.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/07/09/the-depthless-doctor/?replytocom=31231#respond' data-commentid="31231" data-postid="4547" data-belowelement="comment-31231" data-respondelement="respond" data-replyto="Reply to Winthrow" aria-label='Reply to Winthrow'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		<li class="comment odd alt depth-2 highlander-comment" id="li-comment-31085">
+		<article id="comment-31085" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/1e677dc8fe1c3aef4ef0d0127bdf7888?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">oliverwashere</span> on <a href="https://wanderinginn.com/2018/07/09/the-depthless-doctor/#comment-31085"><time datetime="2018-07-10T18:48:56+00:00">July 10, 2018 at 6:48 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>a gas petal<br />
+-&gt;a gas pedal</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/07/09/the-depthless-doctor/?replytocom=31085#respond' data-commentid="31085" data-postid="4547" data-belowelement="comment-31085" data-respondelement="respond" data-replyto="Reply to oliverwashere" aria-label='Reply to oliverwashere'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment even depth-2 highlander-comment" id="li-comment-31228">
+		<article id="comment-31228" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/80e5f057cb559066247d7308c6c4f978?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">Kunama</span> on <a href="https://wanderinginn.com/2018/07/09/the-depthless-doctor/#comment-31228"><time datetime="2018-07-13T02:47:58+00:00">July 13, 2018 at 2:47 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>&#8220;and realizing the pregnancy had shifted from being imminent to in progress&#8221;</p>
+<p>pregnancy -&gt; birth</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/07/09/the-depthless-doctor/?replytocom=31228#respond' data-commentid="31228" data-postid="4547" data-belowelement="comment-31228" data-respondelement="respond" data-replyto="Reply to Kunama" aria-label='Reply to Kunama'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment odd alt depth-2 highlander-comment" id="li-comment-31238">
+		<article id="comment-31238" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/6fc40c9299a4968df18a9fe64a8808a6?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">Ocean23</span> on <a href="https://wanderinginn.com/2018/07/09/the-depthless-doctor/#comment-31238"><time datetime="2018-07-13T21:41:29+00:00">July 13, 2018 at 9:41 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>&#8230;She understood {Tugrin}’s feelings, she really did&#8230;.</p>
+<p>Tugrin should be Tugrim, with an M instead of an N.</p>
+<p>&#8230;She understood {Tugrim}’s feelings, she really did&#8230;.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/07/09/the-depthless-doctor/?replytocom=31238#respond' data-commentid="31238" data-postid="4547" data-belowelement="comment-31238" data-respondelement="respond" data-replyto="Reply to Ocean23" aria-label='Reply to Ocean23'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-internetstraggler even depth-2 highlander-comment" id="li-comment-41061">
+		<article id="comment-41061" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/bc2cfb7612d9c5b8bafd318d4124d321?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn"><a href='http://internetstraggler.wordpress.com' rel='external nofollow ugc' class='url'>internetstraggler</a></span> on <a href="https://wanderinginn.com/2018/07/09/the-depthless-doctor/#comment-41061"><time datetime="2018-08-17T00:35:54+00:00">August 17, 2018 at 12:35 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>&#8220;The depths {does} that to the best of [Sailors].&#8221;<br />
+{does} -&gt; {do}</p>
+<p>&#8220;And yet, he was clearly part of some army, albeit one neither Tugrim nor Rendala {had} were familiar with.<br />
+Stray word.</p>
+<p>&#8220;The maniac glare the man gave Rendala and Tugrim was at odds with his calm voice&#8221;<br />
+Missing punctuation.</p>
+<p>&#8220;Nothing could have thrown the crew of the ship into a {worst} panic.&#8221;<br />
+{worst} -&gt; {worse}</p>
+<p>&#8220;There was a gas petal by the steering wheel that allowed the ship to rise and sink as need be—&#8221;<br />
+{petal} is the things flowers have, -&gt; {pedal} is the thing you step on in a vehicle.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/07/09/the-depthless-doctor/?replytocom=41061#respond' data-commentid="41061" data-postid="4547" data-belowelement="comment-41061" data-respondelement="respond" data-replyto="Reply to internetstraggler" aria-label='Reply to internetstraggler'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-tyriantybalt odd alt depth-2 highlander-comment" id="li-comment-55172">
+		<article id="comment-55172" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/779cfd99efd44d7e087f9e00e0ba7aad?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn"><a href='http://tyriantybalt.wordpress.com' rel='external nofollow ugc' class='url'>tyriantybalt</a></span> on <a href="https://wanderinginn.com/2018/07/09/the-depthless-doctor/#comment-55172"><time datetime="2019-02-20T17:51:29+00:00">February 20, 2019 at 5:51 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>&#8212;&#8212;&#8212;<br />
+She understood *Tugrin&#8217;s feelings, she really did.<br />
+&#8212;&#8212;&#8212;<br />
+The fish hesitated for just one moment and *Renalda held her breath, incredulous.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/07/09/the-depthless-doctor/?replytocom=55172#respond' data-commentid="55172" data-postid="4547" data-belowelement="comment-55172" data-respondelement="respond" data-replyto="Reply to tyriantybalt" aria-label='Reply to tyriantybalt'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment even depth-2 highlander-comment" id="li-comment-73688">
+		<article id="comment-73688" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/4bddb269eae768ab16867cdad6b2df2c?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">Bunnie</span> on <a href="https://wanderinginn.com/2018/07/09/the-depthless-doctor/#comment-73688"><time datetime="2019-12-20T01:07:20+00:00">December 20, 2019 at 1:07 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>A petal for moving gases should probably be a pedal?</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/07/09/the-depthless-doctor/?replytocom=73688#respond' data-commentid="73688" data-postid="4547" data-belowelement="comment-73688" data-respondelement="respond" data-replyto="Reply to Bunnie" aria-label='Reply to Bunnie'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment odd alt depth-2 highlander-comment" id="li-comment-91341">
+		<article id="comment-91341" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/407072dd7b21ec96e9470f45bbe7f09c?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">Lynn</span> on <a href="https://wanderinginn.com/2018/07/09/the-depthless-doctor/#comment-91341"><time datetime="2020-10-10T16:19:15+00:00">October 10, 2020 at 4:19 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>&#8220;And one of those legends that was told by the now-rich crew of the Kraken’s Tooth was the tale of the mysterious man with the piercing gaze, the fearless Captain Ad.&#8221;</p>
+<p>Ship was called Kraken&#8217;s Horn, not Kraken&#8217;s Tooth.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/07/09/the-depthless-doctor/?replytocom=91341#respond' data-commentid="91341" data-postid="4547" data-belowelement="comment-91341" data-respondelement="respond" data-replyto="Reply to Lynn" aria-label='Reply to Lynn'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment even depth-2 highlander-comment" id="li-comment-100153">
+		<article id="comment-100153" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/7518967ee8678af7dab962d12ccf3fee?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">Lilith</span> on <a href="https://wanderinginn.com/2018/07/09/the-depthless-doctor/#comment-100153"><time datetime="2021-02-14T20:18:42+00:00">February 14, 2021 at 8:18 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>First I really need to praise you Pirate Aba you can make even a non-cannon short story like this so worth while reading. I loved the story. Despite how short it was I found my self very intrigued by it. It got me pondering again about how many people before Erin and Ryoka have found themselves like Captain Ad in this world. Also it got me wondering if time perhaps moves slower in this world than it does on earth? Since Captain Ad seemed fairly modern and only young people where transported from earth as far as we know, at least. Very intresting. I&#8217;ll be sure to keep reading to find out more. Thanks Pirate Aba keep up the great work.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/07/09/the-depthless-doctor/?replytocom=100153#respond' data-commentid="100153" data-postid="4547" data-belowelement="comment-100153" data-respondelement="respond" data-replyto="Reply to Lilith" aria-label='Reply to Lilith'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-30458">
+		<article id="comment-30458" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/dd2f570c8b890d9ad0cdb11d38b8cc05?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn"><a href='https://www.facebook.com/app_scoped_user_id/10207522305247860/' rel='external nofollow ugc' class='url'>Eng Wei Leong</a></span> on <a href="https://wanderinginn.com/2018/07/09/the-depthless-doctor/#comment-30458"><time datetime="2018-07-09T06:27:45+00:00">July 9, 2018 at 6:27 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Submarine wow. Hopefully Magnolia don&#8217;t get her hands on it, thats a huge technological improvement</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/07/09/the-depthless-doctor/?replytocom=30458#respond' data-commentid="30458" data-postid="4547" data-belowelement="comment-30458" data-respondelement="respond" data-replyto="Reply to Eng Wei Leong" aria-label='Reply to Eng Wei Leong'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="li-comment-30469">
+		<article id="comment-30469" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/23e93d6717e64004cdbd23d2efd40b05?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">pato</span> on <a href="https://wanderinginn.com/2018/07/09/the-depthless-doctor/#comment-30469"><time datetime="2018-07-09T13:55:49+00:00">July 9, 2018 at 1:55 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>What a guy. Does everyone get rich when capable Earthlings help them out? Magnolia is already rich, so I guess she drew the short straw&#8230;</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/07/09/the-depthless-doctor/?replytocom=30469#respond' data-commentid="30469" data-postid="4547" data-belowelement="comment-30469" data-respondelement="respond" data-replyto="Reply to pato" aria-label='Reply to pato'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment odd alt depth-2 highlander-comment" id="li-comment-30470">
+		<article id="comment-30470" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/23e93d6717e64004cdbd23d2efd40b05?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">pato</span> on <a href="https://wanderinginn.com/2018/07/09/the-depthless-doctor/#comment-30470"><time datetime="2018-07-09T13:56:34+00:00">July 9, 2018 at 1:56 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Maybe the annoying children will become Named adventurers in record time.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/07/09/the-depthless-doctor/?replytocom=30470#respond' data-commentid="30470" data-postid="4547" data-belowelement="comment-30470" data-respondelement="respond" data-replyto="Reply to pato" aria-label='Reply to pato'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		<li class="comment even thread-odd thread-alt depth-1 highlander-comment" id="li-comment-30475">
+		<article id="comment-30475" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/4746091f5792d7dd0dc0bd7c29eda577?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn"><a href='http://twitch.tv/shellshockpt' rel='external nofollow ugc' class='url'>Shellshockpt</a></span> on <a href="https://wanderinginn.com/2018/07/09/the-depthless-doctor/#comment-30475"><time datetime="2018-07-09T18:18:40+00:00">July 9, 2018 at 6:18 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>First its the Krakens Horn, then in the last paragraph its the Krakens Tooth</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/07/09/the-depthless-doctor/?replytocom=30475#respond' data-commentid="30475" data-postid="4547" data-belowelement="comment-30475" data-respondelement="respond" data-replyto="Reply to Shellshockpt" aria-label='Reply to Shellshockpt'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-onedollargum odd alt thread-even depth-1 highlander-comment" id="li-comment-31004">
+		<article id="comment-31004" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/92f194e2ab8c200afa86415f78e92e8b?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn"><a href='http://offhandblues.wordpress.com' rel='external nofollow ugc' class='url'>onedollargum</a></span> on <a href="https://wanderinginn.com/2018/07/09/the-depthless-doctor/#comment-31004"><time datetime="2018-07-10T13:27:02+00:00">July 10, 2018 at 1:27 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Ha! What a joyful little tale!  I&#8217;d be open to more quirky [Legends] such as this one. =)</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/07/09/the-depthless-doctor/?replytocom=31004#respond' data-commentid="31004" data-postid="4547" data-belowelement="comment-31004" data-respondelement="respond" data-replyto="Reply to onedollargum" aria-label='Reply to onedollargum'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment even thread-odd thread-alt depth-1 highlander-comment" id="li-comment-31160">
+		<article id="comment-31160" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/6157cf9d7e8c68f1f7785f6e3e176a32?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Sparsebeard</span> on <a href="https://wanderinginn.com/2018/07/09/the-depthless-doctor/#comment-31160"><time datetime="2018-07-10T20:12:30+00:00">July 10, 2018 at 8:12 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>I do wonder if this is some evidence of some earthlings travelling to this world in the past (chess being supposedly recovered also points in that direction). </p>
+<p>We do know from an early interlude that time passes faster in innworld, with about one month equating many months in our world (x4 or more time dillatation).</p>
+<p>So perhaps somebody from the 40&#8217;s got teleported with a submarine a few hundred years in the past of innworld.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/07/09/the-depthless-doctor/?replytocom=31160#respond' data-commentid="31160" data-postid="4547" data-belowelement="comment-31160" data-respondelement="respond" data-replyto="Reply to Sparsebeard" aria-label='Reply to Sparsebeard'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment odd alt depth-2 highlander-comment" id="li-comment-31205">
+		<article id="comment-31205" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/b947fca0c15f5b900b3ee3213a5dc2f4?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">Miles</span> on <a href="https://wanderinginn.com/2018/07/09/the-depthless-doctor/#comment-31205"><time datetime="2018-07-11T17:24:06+00:00">July 11, 2018 at 5:24 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Do we actually know this? As far as I can tell we only have one data point. (as one must necessarily be the reference)</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/07/09/the-depthless-doctor/?replytocom=31205#respond' data-commentid="31205" data-postid="4547" data-belowelement="comment-31205" data-respondelement="respond" data-replyto="Reply to Miles" aria-label='Reply to Miles'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-dickinsd68 even thread-even depth-1 highlander-comment" id="li-comment-31177">
+		<article id="comment-31177" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/6a2ca2aca3a9df1587ad7e8956f69899?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn"><a href='http://dickinsd68.wordpress.com' rel='external nofollow ugc' class='url'>dickinsd68</a></span> on <a href="https://wanderinginn.com/2018/07/09/the-depthless-doctor/#comment-31177"><time datetime="2018-07-10T21:56:47+00:00">July 10, 2018 at 9:56 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>You are superb.   Thanks for the story.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/07/09/the-depthless-doctor/?replytocom=31177#respond' data-commentid="31177" data-postid="4547" data-belowelement="comment-31177" data-respondelement="respond" data-replyto="Reply to dickinsd68" aria-label='Reply to dickinsd68'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-31211">
+		<article id="comment-31211" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/a51f26a3c7e8ef3a0eec2c6107d35d16?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">The_Outrider</span> on <a href="https://wanderinginn.com/2018/07/09/the-depthless-doctor/#comment-31211"><time datetime="2018-07-12T03:38:22+00:00">July 12, 2018 at 3:38 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Good stuff, I expect he was pleased with his 🎁. !</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/07/09/the-depthless-doctor/?replytocom=31211#respond' data-commentid="31211" data-postid="4547" data-belowelement="comment-31211" data-respondelement="respond" data-replyto="Reply to The_Outrider" aria-label='Reply to The_Outrider'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="li-comment-31224">
+		<article id="comment-31224" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/b80179ecd94ed3f2167f0e87d8e13209?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Vfenner</span> on <a href="https://wanderinginn.com/2018/07/09/the-depthless-doctor/#comment-31224"><time datetime="2018-07-12T19:47:39+00:00">July 12, 2018 at 7:47 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>so.. is his skill called AdSense? :3</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/07/09/the-depthless-doctor/?replytocom=31224#respond' data-commentid="31224" data-postid="4547" data-belowelement="comment-31224" data-respondelement="respond" data-replyto="Reply to Vfenner" aria-label='Reply to Vfenner'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-sondrex76 odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-97618">
+		<article id="comment-97618" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/79943c778dd3b90a20846d0b336c5b80?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">sondrex76</span> on <a href="https://wanderinginn.com/2018/07/09/the-depthless-doctor/#comment-97618"><time datetime="2020-12-27T20:46:38+00:00">December 27, 2020 at 8:46 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>&#8220;n naked in a lifeboat than be called &#8221; could be &#8220;n naked in a lifeboat rather than be called &#8221; and &#8220;into a worst panic. N&#8221; could be &#8220;into a worse panic. N&#8221;.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/07/09/the-depthless-doctor/?replytocom=97618#respond' data-commentid="97618" data-postid="4547" data-belowelement="comment-97618" data-respondelement="respond" data-replyto="Reply to sondrex76" aria-label='Reply to sondrex76'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		</ol>
+
+		
+		
+	
+		<div id="respond" class="comment-respond">
+		<h3 id="reply-title" class="comment-reply-title">Leave a Reply <small><a rel="nofollow" id="cancel-comment-reply-link" href="/2018/07/09/the-depthless-doctor/#respond" style="display:none;">Cancel reply</a></small></h3><form action="https://wanderinginn.com/wp-comments-post.php" method="post" id="commentform" class="comment-form"><input type="hidden" id="highlander_comment_nonce" name="highlander_comment_nonce" value="bd33e1bdd8" /><input type="hidden" name="_wp_http_referer" value="/2018/07/09/the-depthless-doctor/" />
+<input type="hidden" name="hc_post_as" id="hc_post_as" value="guest" />
+
+<div class="comment-form-field comment-textarea">
+	<label for="comment">Enter your comment here...</label>
+	<div id="comment-form-comment"><textarea id="comment" name="comment" title="Enter your comment here..."></textarea></div>
+</div>
+
+<div id="comment-form-identity">
+	<div id="comment-form-nascar">
+		<p>Fill in your details below or click an icon to log in:</p>
+		<ul>
+			<li class="selected" style="display:none;">
+				<a href="#comment-form-guest" id="postas-guest" class="nascar-signin-link"
+				 title="Login via Guest" 				>
+									</a>
+			</li>
+			<li>
+				<a href="#comment-form-load-service:WordPress.com" id="postas-wordpress" class="nascar-signin-link"
+				 title="Login via WordPress.com" 				>
+					<svg xmlns="http://www.w3.org/2000/svg" role="presentation" viewBox="0 0 24 24" ><rect x="0" fill="none" width="24" height="24"/><g><path fill="#FFF" d="M12.158 12.786l-2.698 7.84c.806.236 1.657.365 2.54.365 1.047 0 2.05-.18 2.986-.51-.024-.037-.046-.078-.065-.123l-2.762-7.57zM3.008 12c0 3.56 2.07 6.634 5.068 8.092L3.788 8.342c-.5 1.117-.78 2.354-.78 3.658zm15.06-.454c0-1.112-.398-1.88-.74-2.48-.456-.74-.883-1.368-.883-2.11 0-.825.627-1.595 1.51-1.595.04 0 .078.006.116.008-1.598-1.464-3.73-2.36-6.07-2.36-3.14 0-5.904 1.613-7.512 4.053.21.008.41.012.58.012.94 0 2.395-.114 2.395-.114.484-.028.54.684.057.74 0 0-.487.058-1.03.086l3.275 9.74 1.968-5.902-1.4-3.838c-.485-.028-.944-.085-.944-.085-.486-.03-.43-.77.056-.742 0 0 1.484.114 2.368.114.94 0 2.397-.114 2.397-.114.486-.028.543.684.058.74 0 0-.488.058-1.03.086l3.25 9.665.897-2.997c.456-1.17.684-2.137.684-2.907zm1.82-3.86c.04.286.06.593.06.924 0 .912-.17 1.938-.683 3.22l-2.746 7.94c2.672-1.558 4.47-4.454 4.47-7.77 0-1.564-.4-3.033-1.1-4.314zM12 22C6.486 22 2 17.514 2 12S6.486 2 12 2s10 4.486 10 10-4.486 10-10 10z"/></g></svg>				</a>
+			</li>
+			<li>
+				<a href="#comment-form-load-service:Twitter" id="postas-twitter" class="nascar-signin-link"
+				 title="Login via Twitter" 				>
+					<svg xmlns="http://www.w3.org/2000/svg" role="presentation" viewBox="0 0 24 24" ><rect x="0" fill="none" width="24" height="24"/><g><path fill="#FFF" d="M22.23 5.924c-.736.326-1.527.547-2.357.646.847-.508 1.498-1.312 1.804-2.27-.793.47-1.67.812-2.606.996C18.325 4.498 17.258 4 16.078 4c-2.266 0-4.103 1.837-4.103 4.103 0 .322.036.635.106.935-3.41-.17-6.433-1.804-8.457-4.287-.353.607-.556 1.312-.556 2.064 0 1.424.724 2.68 1.825 3.415-.673-.022-1.305-.207-1.86-.514v.052c0 1.988 1.415 3.647 3.293 4.023-.344.095-.707.145-1.08.145-.265 0-.522-.026-.773-.074.522 1.63 2.038 2.817 3.833 2.85-1.404 1.1-3.174 1.757-5.096 1.757-.332 0-.66-.02-.98-.057 1.816 1.164 3.973 1.843 6.29 1.843 7.547 0 11.675-6.252 11.675-11.675 0-.178-.004-.355-.012-.53.802-.578 1.497-1.3 2.047-2.124z"/></g></svg>				</a>
+			</li>
+			<li>
+				<a href="#comment-form-load-service:Facebook" id="postas-facebook" class="nascar-signin-link"
+				 title="Login via Facebook" 				>
+					<svg xmlns="http://www.w3.org/2000/svg" role="presentation" viewBox="0 0 24 24" ><rect x="0" fill="none" width="24" height="24"/><g><path fill="#FFF" d="M20.007 3H3.993C3.445 3 3 3.445 3 3.993v16.013c0 .55.445.994.993.994h8.62v-6.97H10.27V11.31h2.346V9.31c0-2.325 1.42-3.59 3.494-3.59.993 0 1.847.073 2.096.106v2.43h-1.438c-1.128 0-1.346.537-1.346 1.324v1.734h2.69l-.35 2.717h-2.34V21h4.587c.548 0 .993-.445.993-.993V3.993c0-.548-.445-.993-.993-.993z"/></g></svg>				</a>
+			</li>
+		</ul>
+	</div>
+
+	<div id="comment-form-guest" class="comment-form-service selected">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+<a href="https://gravatar.com/site/signup/" target="_blank">				<img src="https://1.gravatar.com/avatar/ad516503a11cd5ca435acc9bb6523536?s=25&amp;d=identicon&amp;forcedefault=y&amp;r=PG" alt="Gravatar" width="25" class="no-grav" />
+</a>			</div>
+
+				<div class="comment-form-fields">
+				<div class="comment-form-field comment-form-email">
+					<label for="email">Email <span class="required">(required)</span> <span class="nopublish">(Address never made public)</span></label>
+					<div class="comment-form-input"><input id="email" name="email" type="email" value="" /></div>
+				</div>
+				<div class="comment-form-field comment-form-author">
+					<label for="author">Name <span class="required">(required)</span></label>
+					<div class="comment-form-input"><input id="author" name="author" type="text" value="" /></div>
+				</div>
+				<div class="comment-form-field comment-form-url">
+					<label for="url">Website</label>
+					<div class="comment-form-input"><input id="url" name="url" type="url" value="" /></div>
+				</div>
+			</div>
+			
+		</div>
+	</div>
+
+	<div id="comment-form-wordpress" class="comment-form-service">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+				<img src="https://1.gravatar.com/avatar/ad516503a11cd5ca435acc9bb6523536?s=25&amp;d=identicon&amp;forcedefault=y&amp;r=PG" alt="WordPress.com Logo" width="25" class="no-grav" />
+			</div>
+
+				<div class="comment-form-fields">
+				<input type="hidden" name="wp_avatar" id="wordpress-avatar" class="comment-meta-wordpress" value="" />
+				<input type="hidden" name="wp_user_id" id="wordpress-user_id" class="comment-meta-wordpress" value="" />
+				<input type="hidden" name="wp_access_token" id="wordpress-access_token" class="comment-meta-wordpress" value="" />
+						<p class="comment-form-posting-as pa-wordpress">
+			<strong></strong>
+			You are commenting using your WordPress.com account.			<span class="comment-form-log-out">
+				(&nbsp;<a href="javascript:HighlanderComments.doExternalLogout( 'wordpress' );">Log&nbsp;Out</a>&nbsp;/&nbsp;
+				<a href="#" onclick="javascript:HighlanderComments.switchAccount();return false;">Change</a>&nbsp;)
+			</span>
+			<span class="pa-icon"><svg xmlns="http://www.w3.org/2000/svg" role="presentation" viewBox="0 0 24 24" ><rect x="0" fill="none" width="24" height="24"/><g><path fill="#FFF" d="M12.158 12.786l-2.698 7.84c.806.236 1.657.365 2.54.365 1.047 0 2.05-.18 2.986-.51-.024-.037-.046-.078-.065-.123l-2.762-7.57zM3.008 12c0 3.56 2.07 6.634 5.068 8.092L3.788 8.342c-.5 1.117-.78 2.354-.78 3.658zm15.06-.454c0-1.112-.398-1.88-.74-2.48-.456-.74-.883-1.368-.883-2.11 0-.825.627-1.595 1.51-1.595.04 0 .078.006.116.008-1.598-1.464-3.73-2.36-6.07-2.36-3.14 0-5.904 1.613-7.512 4.053.21.008.41.012.58.012.94 0 2.395-.114 2.395-.114.484-.028.54.684.057.74 0 0-.487.058-1.03.086l3.275 9.74 1.968-5.902-1.4-3.838c-.485-.028-.944-.085-.944-.085-.486-.03-.43-.77.056-.742 0 0 1.484.114 2.368.114.94 0 2.397-.114 2.397-.114.486-.028.543.684.058.74 0 0-.488.058-1.03.086l3.25 9.665.897-2.997c.456-1.17.684-2.137.684-2.907zm1.82-3.86c.04.286.06.593.06.924 0 .912-.17 1.938-.683 3.22l-2.746 7.94c2.672-1.558 4.47-4.454 4.47-7.77 0-1.564-.4-3.033-1.1-4.314zM12 22C6.486 22 2 17.514 2 12S6.486 2 12 2s10 4.486 10 10-4.486 10-10 10z"/></g></svg></span>
+		</p>
+					</div>
+	
+		</div>
+	</div>
+
+	<div id="comment-form-twitter" class="comment-form-service">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+				<img src="https://1.gravatar.com/avatar/ad516503a11cd5ca435acc9bb6523536?s=25&amp;d=identicon&amp;forcedefault=y&amp;r=PG" alt="Twitter picture" width="25" class="no-grav" />
+			</div>
+
+				<div class="comment-form-fields">
+				<input type="hidden" name="twitter_avatar" id="twitter-avatar" class="comment-meta-twitter" value="" />
+				<input type="hidden" name="twitter_user_id" id="twitter-user_id" class="comment-meta-twitter" value="" />
+				<input type="hidden" name="twitter_access_token" id="twitter-access_token" class="comment-meta-twitter" value="" />
+						<p class="comment-form-posting-as pa-twitter">
+			<strong></strong>
+			You are commenting using your Twitter account.			<span class="comment-form-log-out">
+				(&nbsp;<a href="javascript:HighlanderComments.doExternalLogout( 'twitter' );">Log&nbsp;Out</a>&nbsp;/&nbsp;
+				<a href="#" onclick="javascript:HighlanderComments.switchAccount();return false;">Change</a>&nbsp;)
+			</span>
+			<span class="pa-icon"><svg xmlns="http://www.w3.org/2000/svg" role="presentation" viewBox="0 0 24 24" ><rect x="0" fill="none" width="24" height="24"/><g><path fill="#FFF" d="M22.23 5.924c-.736.326-1.527.547-2.357.646.847-.508 1.498-1.312 1.804-2.27-.793.47-1.67.812-2.606.996C18.325 4.498 17.258 4 16.078 4c-2.266 0-4.103 1.837-4.103 4.103 0 .322.036.635.106.935-3.41-.17-6.433-1.804-8.457-4.287-.353.607-.556 1.312-.556 2.064 0 1.424.724 2.68 1.825 3.415-.673-.022-1.305-.207-1.86-.514v.052c0 1.988 1.415 3.647 3.293 4.023-.344.095-.707.145-1.08.145-.265 0-.522-.026-.773-.074.522 1.63 2.038 2.817 3.833 2.85-1.404 1.1-3.174 1.757-5.096 1.757-.332 0-.66-.02-.98-.057 1.816 1.164 3.973 1.843 6.29 1.843 7.547 0 11.675-6.252 11.675-11.675 0-.178-.004-.355-.012-.53.802-.578 1.497-1.3 2.047-2.124z"/></g></svg></span>
+		</p>
+					</div>
+	
+		</div>
+	</div>
+
+	<div id="comment-form-facebook" class="comment-form-service">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+				<img src="" alt="Facebook photo" width="25" class="no-grav" />
+			</div>
+
+				<div class="comment-form-fields">
+				<input type="hidden" name="fb_avatar" id="facebook-avatar" class="comment-meta-facebook" value="" />
+				<input type="hidden" name="fb_user_id" id="facebook-user_id" class="comment-meta-facebook" value="" />
+				<input type="hidden" name="fb_access_token" id="facebook-access_token" class="comment-meta-facebook" value="" />
+						<p class="comment-form-posting-as pa-facebook">
+			<strong></strong>
+			You are commenting using your Facebook account.			<span class="comment-form-log-out">
+				(&nbsp;<a href="javascript:HighlanderComments.doExternalLogout( 'facebook' );">Log&nbsp;Out</a>&nbsp;/&nbsp;
+				<a href="#" onclick="javascript:HighlanderComments.switchAccount();return false;">Change</a>&nbsp;)
+			</span>
+			<span class="pa-icon"><svg xmlns="http://www.w3.org/2000/svg" role="presentation" viewBox="0 0 24 24" ><rect x="0" fill="none" width="24" height="24"/><g><path fill="#FFF" d="M20.007 3H3.993C3.445 3 3 3.445 3 3.993v16.013c0 .55.445.994.993.994h8.62v-6.97H10.27V11.31h2.346V9.31c0-2.325 1.42-3.59 3.494-3.59.993 0 1.847.073 2.096.106v2.43h-1.438c-1.128 0-1.346.537-1.346 1.324v1.734h2.69l-.35 2.717h-2.34V21h4.587c.548 0 .993-.445.993-.993V3.993c0-.548-.445-.993-.993-.993z"/></g></svg></span>
+		</p>
+					</div>
+	
+		</div>
+	</div>
+
+
+	<div id="comment-form-load-service" class="comment-form-service">
+		<div class="comment-form-posting-as-cancel"><a href="javascript:HighlanderComments.cancelExternalWindow();">Cancel</a></div>
+		<p>Connecting to %s</p>
+	</div>
+
+</div>
+
+<script type="text/javascript">
+var highlander_expando_javascript = function () {
+
+	function hide( sel ) {
+		var el = document.querySelector( sel );
+		if ( el ) {
+			el.style.setProperty( 'display', 'none' );
+		}
+	}
+
+	function show( sel ) {
+		var el = document.querySelector( sel );
+		if ( el ) {
+			el.style.removeProperty( 'display' );
+		}
+	}
+
+	var input = document.createElement( 'input' );
+	var comment = document.querySelector( '#comment' );
+
+	if ( input && comment && 'placeholder' in input ) {
+		var label = document.querySelector( '.comment-textarea label' );
+		if ( label ) {
+			var text = label.textContent;
+			label.parentNode.removeChild( label );
+			comment.setAttribute( 'placeholder', text );
+		}
+	}
+
+	// Expando Mode: start small, then auto-resize on first click + text length
+	hide( '#comment-form-identity' );
+	hide( '#comment-form-subscribe' );
+	hide( '#commentform .form-submit' );
+
+	if ( comment ) {
+		comment.style.height = '10px';
+
+		var handler = function () {
+			comment.style.height = HighlanderComments.initialHeight + 'px';
+			show( '#comment-form-identity' );
+			show( '#comment-form-subscribe' );
+			show( '#commentform .form-submit' );
+			HighlanderComments.resizeCallback();
+
+			comment.removeEventListener( 'focus', handler );
+		};
+
+		comment.addEventListener( 'focus', handler );
+	}
+}
+
+if ( document.readyState !== 'loading' ) {
+	highlander_expando_javascript();
+} else {
+	document.addEventListener( 'DOMContentLoaded', highlander_expando_javascript );
+}
+
+</script>
+
+<div id="comment-form-subscribe">
+	<p class="comment-subscription-form"><input type="checkbox" name="subscribe" id="subscribe" value="subscribe" style="width: auto;"/> <label class="subscribe-label" id="subscribe-label" for="subscribe" style="display: inline;">Notify me of new comments via email.</label></p><p class="post-subscription-form"><input type="checkbox" name="subscribe_blog" id="subscribe_blog" value="subscribe" style="width: auto;"/> <label class="subscribe-label" id="subscribe-blog-label" for="subscribe_blog"  style="display: inline;">Notify me of new posts via email.</label></p></div>
+
+
+
+
+<p class="form-submit"><input name="submit" type="submit" id="comment-submit" class="submit button" value="Post Comment" /> <input type='hidden' name='comment_post_ID' value='4547' id='comment_post_ID' />
+<input type='hidden' name='comment_parent' id='comment_parent' value='0' />
+</p><p style="display: none;"><input type="hidden" id="akismet_comment_nonce" name="akismet_comment_nonce" value="dc4bc116a9" /></p>
+<input type="hidden" name="genseq" value="1664899989" />
+<p style="display: none !important;"><label>&#916;<textarea name="ak_hp_textarea" cols="45" rows="8" maxlength="100"></textarea></label><input type="hidden" id="ak_js_1" name="ak_js" value="221"/><script>document.getElementById( "ak_js_1" ).setAttribute( "value", ( new Date() ).getTime() );</script></p></form>	</div><!-- #respond -->
+	<div style="clear: both"></div>
+</div><!-- #comments -->
+
+				
+			</div><!-- #content -->
+		</div><!-- #primary -->
+
+
+	</div><!-- #main -->
+
+	<footer id="colophon">
+
+			
+
+			<div id="site-generator">
+				 								<a href="https://wordpress.com/?ref=footer_blog" rel="nofollow">Blog at WordPress.com.</a>
+			</div>
+	</footer><!-- #colophon -->
+</div><!-- #page -->
+
+<!--  -->
+<script type="text/javascript">
+	window._tkq = window._tkq || [];
+	if ( Math.random() < 0.01 ) {
+		window._tkq.push( [
+			'recordEvent',
+			'wpcom_wordads_noad',
+			{"theme":"pub\/twentyeleven","blog_id":113840984,"post_id":4547,"reason_noadverts_plugin":1,"reason_upgrade":1,"reason_blog_null":1,"reason_post_safe":1}
+		] );
+	}
+</script><script src='//0.gravatar.com/js/gprofiles.js?ver=202240z' id='grofiles-cards-js'></script>
+<script id='wpgroho-js-extra'>
+var WPGroHo = {"my_hash":""};
+</script>
+<script crossorigin='anonymous' type='text/javascript' src='https://s1.wp.com/wp-content/mu-plugins/gravatar-hovercards/wpgroho.js?m=1610363240h'></script>
+
+	<script>
+		// Initialize and attach hovercards to all gravatars
+		( function() {
+			function init() {
+				if ( typeof Gravatar === 'undefined' ) {
+					return;
+				}
+
+				if ( typeof Gravatar.init !== 'function' ) {
+					return;
+				}
+
+				Gravatar.profile_cb = function ( hash, id ) {
+					WPGroHo.syncProfileData( hash, id );
+				};
+
+				Gravatar.my_hash = WPGroHo.my_hash;
+				Gravatar.init( 'body', '#wp-admin-bar-my-account' );
+			}
+
+			if ( document.readyState !== 'loading' ) {
+				init();
+			} else {
+				document.addEventListener( 'DOMContentLoaded', init );
+			}
+		} )();
+	</script>
+
+		<div style="display:none">
+	<div class="grofile-hash-map-2f8ac70cd17f11c419846c441769523b">
+	</div>
+	<div class="grofile-hash-map-bd6797acc3f221574951febfea8a6320">
+	</div>
+	<div class="grofile-hash-map-e971601a5ecd4e343ff9d6cc6112dd8c">
+	</div>
+	<div class="grofile-hash-map-b947fca0c15f5b900b3ee3213a5dc2f4">
+	</div>
+	<div class="grofile-hash-map-1e677dc8fe1c3aef4ef0d0127bdf7888">
+	</div>
+	<div class="grofile-hash-map-80e5f057cb559066247d7308c6c4f978">
+	</div>
+	<div class="grofile-hash-map-6fc40c9299a4968df18a9fe64a8808a6">
+	</div>
+	<div class="grofile-hash-map-bc2cfb7612d9c5b8bafd318d4124d321">
+	</div>
+	<div class="grofile-hash-map-779cfd99efd44d7e087f9e00e0ba7aad">
+	</div>
+	<div class="grofile-hash-map-4bddb269eae768ab16867cdad6b2df2c">
+	</div>
+	<div class="grofile-hash-map-407072dd7b21ec96e9470f45bbe7f09c">
+	</div>
+	<div class="grofile-hash-map-7518967ee8678af7dab962d12ccf3fee">
+	</div>
+	<div class="grofile-hash-map-dd2f570c8b890d9ad0cdb11d38b8cc05">
+	</div>
+	<div class="grofile-hash-map-23e93d6717e64004cdbd23d2efd40b05">
+	</div>
+	<div class="grofile-hash-map-4746091f5792d7dd0dc0bd7c29eda577">
+	</div>
+	<div class="grofile-hash-map-92f194e2ab8c200afa86415f78e92e8b">
+	</div>
+	<div class="grofile-hash-map-6157cf9d7e8c68f1f7785f6e3e176a32">
+	</div>
+	<div class="grofile-hash-map-6a2ca2aca3a9df1587ad7e8956f69899">
+	</div>
+	<div class="grofile-hash-map-a51f26a3c7e8ef3a0eec2c6107d35d16">
+	</div>
+	<div class="grofile-hash-map-b80179ecd94ed3f2167f0e87d8e13209">
+	</div>
+	<div class="grofile-hash-map-79943c778dd3b90a20846d0b336c5b80">
+	</div>
+	</div>
+<script id='highlander-comments-js-extra'>
+var HighlanderComments = {"loggingInText":"Logging In\u2026","submittingText":"Posting Comment\u2026","postCommentText":"Post Comment","connectingToText":"Connecting to %s","commentingAsText":"%1$s: You are commenting using your %2$s account.","logoutText":"Log Out","loginText":"Log In","connectURL":"https:\/\/wanderinginn.wordpress.com\/public.api\/connect\/?action=request&domain=wanderinginn.com","logoutURL":"https:\/\/wanderinginn.wordpress.com\/wp-login.php?action=logout&_wpnonce=027032d4fa","homeURL":"https:\/\/wanderinginn.com\/","postID":"4547","gravDefault":"identicon","enterACommentError":"Please enter a comment","enterEmailError":"Please enter your email address here","invalidEmailError":"Invalid email address","enterAuthorError":"Please enter your name here","gravatarFromEmail":"This picture will show whenever you leave a comment. Click to customize it.","logInToExternalAccount":"Log in to use details from one of these accounts.","change":"Change","changeAccount":"Change Account","comment_registration":"","userIsLoggedIn":"","isJetpack":"","text_direction":"ltr"};
+</script>
+<script crossorigin='anonymous' type='text/javascript' src='https://s0.wp.com/_static/??/wp-content/js/textarea-autosize.min.js,/wp-content/mu-plugins/highlander-comments/script.js?m=1663141412j'></script>
+	<div id="actionbar" style="display: none;"
+			class="actnbr-pub-twentyeleven actnbr-has-follow">
+		<ul>
+								<li class="actnbr-btn actnbr-hidden">
+								<a class="actnbr-action actnbr-actn-follow " href="">
+			<svg class="gridicon gridicons-reader-follow" height="24" width="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g><path d="M23 16v2h-3v3h-2v-3h-3v-2h3v-3h2v3h3zM20 2v9h-4v3h-3v4H4c-1.1 0-2-.9-2-2V2h18zM8 13v-1H4v1h4zm3-3H4v1h7v-1zm0-2H4v1h7V8zm7-4H4v2h14V4z"/></g></svg><span>Follow</span>
+		</a>
+		<a class="actnbr-action actnbr-actn-following  no-display" href="">
+			<svg class="gridicon gridicons-reader-following" height="24" width="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g><path d="M23 13.482L15.508 21 12 17.4l1.412-1.388 2.106 2.188 6.094-6.094L23 13.482zm-7.455 1.862L20 10.89V2H2v14c0 1.1.9 2 2 2h4.538l4.913-4.832 2.095 2.176zM8 13H4v-1h4v1zm3-2H4v-1h7v1zm0-2H4V8h7v1zm7-3H4V4h14v2z"/></g></svg><span>Following</span>
+		</a>
+							<div class="actnbr-popover tip tip-top-left actnbr-notice" id="follow-bubble">
+							<div class="tip-arrow"></div>
+							<div class="tip-inner actnbr-follow-bubble">
+															<ul>
+											<li class="actnbr-sitename">
+			<a href="https://wanderinginn.com">
+				<img alt='' src='https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=50' class='avatar avatar-50' height='50' width='50' />				The Wandering Inn			</a>
+		</li>
+										<form method="post" action="https://subscribe.wordpress.com" accept-charset="utf-8" style="display: none;">
+																						<div class="actnbr-follow-count">Join 2,697 other followers</div>
+																					<div>
+										<input type="email" name="email" placeholder="Enter your email address" class="actnbr-email-field" aria-label="Enter your email address" />
+										</div>
+										<input type="hidden" name="action" value="subscribe" />
+										<input type="hidden" name="blog_id" value="113840984" />
+										<input type="hidden" name="source" value="https://wanderinginn.com/2018/07/09/the-depthless-doctor/" />
+										<input type="hidden" name="sub-type" value="actionbar-follow" />
+										<input type="hidden" id="_wpnonce" name="_wpnonce" value="9bb017f338" />										<div class="actnbr-button-wrap">
+											<button type="submit" value="Sign me up">
+												Sign me up											</button>
+										</div>
+									</form>
+									<li class="actnbr-login-nudge">
+										<div>
+											Already have a WordPress.com account? <a href="https://wordpress.com/log-in?redirect_to=https%3A%2F%2Fr-login.wordpress.com%2Fremote-login.php%3Faction%3Dlink%26back%3Dhttps%253A%252F%252Fwanderinginn.com%252F2018%252F07%252F09%252Fthe-depthless-doctor%252F">Log in now.</a>										</div>
+									</li>
+								</ul>
+															</div>
+						</div>
+					</li>
+							<li class="actnbr-ellipsis actnbr-hidden">
+				<svg class="gridicon gridicons-ellipsis" height="24" width="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g><path d="M7 12c0 1.104-.896 2-2 2s-2-.896-2-2 .896-2 2-2 2 .896 2 2zm12-2c-1.104 0-2 .896-2 2s.896 2 2 2 2-.896 2-2-.896-2-2-2zm-7 0c-1.104 0-2 .896-2 2s.896 2 2 2 2-.896 2-2-.896-2-2-2z"/></g></svg>				<div class="actnbr-popover tip tip-top-left actnbr-more">
+					<div class="tip-arrow"></div>
+					<div class="tip-inner">
+						<ul>
+									<li class="actnbr-sitename">
+			<a href="https://wanderinginn.com">
+				<img alt='' src='https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=50' class='avatar avatar-50' height='50' width='50' />				The Wandering Inn			</a>
+		</li>
+								<li class="actnbr-folded-customize">
+								<a href="https://wanderinginn.wordpress.com/wp-admin/customize.php?url=https%3A%2F%2Fwanderinginn.wordpress.com%2F2018%2F07%2F09%2Fthe-depthless-doctor%2F">
+									<svg class="gridicon gridicons-customize" height="20" width="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g><path d="M2 6c0-1.505.78-3.08 2-4 0 .845.69 2 2 2 1.657 0 3 1.343 3 3 0 .386-.08.752-.212 1.09.74.594 1.476 1.19 2.19 1.81L8.9 11.98c-.62-.716-1.214-1.454-1.807-2.192C6.753 9.92 6.387 10 6 10c-2.21 0-4-1.79-4-4zm12.152 6.848l1.34-1.34c.607.304 1.283.492 2.008.492 2.485 0 4.5-2.015 4.5-4.5 0-.725-.188-1.4-.493-2.007L18 9l-2-2 3.507-3.507C18.9 3.188 18.225 3 17.5 3 15.015 3 13 5.015 13 7.5c0 .725.188 1.4.493 2.007L3 20l2 2 6.848-6.848c1.885 1.928 3.874 3.753 5.977 5.45l1.425 1.148 1.5-1.5-1.15-1.425c-1.695-2.103-3.52-4.092-5.448-5.977z"/></g></svg>									<span>Customize</span>
+								</a>
+							</li>
+																<li class="actnbr-folded-follow">
+												<a class="actnbr-action actnbr-actn-follow " href="">
+			<svg class="gridicon gridicons-reader-follow" height="24" width="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g><path d="M23 16v2h-3v3h-2v-3h-3v-2h3v-3h2v3h3zM20 2v9h-4v3h-3v4H4c-1.1 0-2-.9-2-2V2h18zM8 13v-1H4v1h4zm3-3H4v1h7v-1zm0-2H4v1h7V8zm7-4H4v2h14V4z"/></g></svg><span>Follow</span>
+		</a>
+		<a class="actnbr-action actnbr-actn-following  no-display" href="">
+			<svg class="gridicon gridicons-reader-following" height="24" width="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g><path d="M23 13.482L15.508 21 12 17.4l1.412-1.388 2.106 2.188 6.094-6.094L23 13.482zm-7.455 1.862L20 10.89V2H2v14c0 1.1.9 2 2 2h4.538l4.913-4.832 2.095 2.176zM8 13H4v-1h4v1zm3-2H4v-1h7v1zm0-2H4V8h7v1zm7-3H4V4h14v2z"/></g></svg><span>Following</span>
+		</a>
+										</li>
+																	<li class="actnbr-signup"><a href="https://wordpress.com/start/">Sign up</a></li>
+									<li class="actnbr-login"><a href="https://wordpress.com/log-in?redirect_to=https%3A%2F%2Fr-login.wordpress.com%2Fremote-login.php%3Faction%3Dlink%26back%3Dhttps%253A%252F%252Fwanderinginn.com%252F2018%252F07%252F09%252Fthe-depthless-doctor%252F">Log in</a></li>
+																	<li class="actnbr-shortlink"><a href="https://wp.me/p7HFeU-1bl">Copy shortlink</a></li>
+																	<li class="flb-report"><a href="http://en.wordpress.com/abuse/">Report this content</a></li>
+																	<li class="actnbr-reader">
+										<a href="https://wordpress.com/read/blogs/113840984/posts/4547">
+											View post in Reader										</a>
+									</li>
+																	<li class="actnbr-subs">
+										<a href="https://subscribe.wordpress.com/">Manage subscriptions</a>
+									</li>
+																		<li class="actnbr-fold"><a href="">Collapse this bar</a></li>
+															</ul>
+					</div>
+				</div>
+			</li>
+		</ul>
+	</div>
+	
+<script>
+window.addEventListener( "load", function( event ) {
+	var link = document.createElement( "link" );
+	link.href = "https://s0.wp.com/wp-content/mu-plugins/actionbar/actionbar.css?v=20210915";
+	link.type = "text/css";
+	link.rel = "stylesheet";
+	document.head.appendChild( link );
+
+	var script = document.createElement( "script" );
+	script.src = "https://s0.wp.com/wp-content/mu-plugins/actionbar/actionbar.js?v=20220329";
+	script.defer = true;
+	document.body.appendChild( script );
+} );
+</script>
+
+	<script crossorigin='anonymous' type='text/javascript' src='https://s2.wp.com/_static/??-eJx9jd0OwiAMRl9I6AxmixfGRzEMqoFRRij48/ZWk3npXfOdc1J4FOXW3DA3iAwe78FheerIOxAUskvdI3+YW4lEUxVLemkKeZO2nroqqd9CZrBeuJptBbLcsMqlWrVu4X/REpiwKaMHuMjn33CtX9lLe6bTfhwPZpqOg4lvZ0RE/g=='></script>
+<script type="text/javascript">
+// <![CDATA[
+(function() {
+try{
+  if ( window.external &&'msIsSiteMode' in window.external) {
+    if (window.external.msIsSiteMode()) {
+      var jl = document.createElement('script');
+      jl.type='text/javascript';
+      jl.async=true;
+      jl.src='/wp-content/plugins/ie-sitemode/custom-jumplist.php';
+      var s = document.getElementsByTagName('script')[0];
+      s.parentNode.insertBefore(jl, s);
+    }
+  }
+}catch(e){}
+})();
+// ]]>
+</script><script src="//stats.wp.com/w.js?63" defer></script> <script type="text/javascript">
+_tkq = window._tkq || [];
+_stq = window._stq || [];
+_tkq.push(['storeContext', {'blog_id':'113840984','blog_tz':'0','user_lang':'en','blog_lang':'en','user_id':'0'}]);
+_stq.push(['view', {'blog':'113840984','v':'wpcom','tz':'0','user_id':'0','post':'4547','subd':'wanderinginn'}]);
+_stq.push(['extra', {'crypt':'UE40eW5QN0p8M2Y/RE1mNzc2NTVTamdsd0xoLz9RQkM2K298TXY9bERQMXc2MjhEaVZfb2wwakRoSj0mUkp1THptM1NdbkV1WjZIcU9mVWQmPUIvMlN6Jk8wW3NYVEJ3dWZOWExuWD9VNTEucGVTRmZwYTB2ZD82MHd0Y1Y0RlltYWdKeC9TU05lUzUxV1pzZWh8UlVlalotK3A/NWVna2ZGUkZsXUZycEhNN0s/SzFBTyYyLDl1Y1JGYVtGNmlmdFc5NEZwc0RaVmYwRm5MLlg/SkV2NWJHLndEU2RpR2x0LSZLUXNMUEpDQ2lYdzdna3wtJX5xTHJQZl1ROSZLQ0hYd1pLQm80NHdTUWZsTmpyNktScXprNUg9fkkxOHVqTTVWX0JfVWt4S0t5WHRxdWJxdjFBZXNFUXVyJjgxVw=='}]);
+_stq.push([ 'clickTrackerInit', '113840984', '4547' ]);
+	</script>
+<noscript><img src="https://pixel.wp.com/b.gif?v=noscript" style="height:1px;width:1px;overflow:hidden;position:absolute;bottom:1px;" alt="" /></noscript>
+<script>
+if ( 'object' === typeof wpcom_mobile_user_agent_info ) {
+
+	wpcom_mobile_user_agent_info.init();
+	var mobileStatsQueryString = "";
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedPlatformName )
+		mobileStatsQueryString += "&x_" + 'mobile_platforms' + '=' + wpcom_mobile_user_agent_info.matchedPlatformName;
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedUserAgentName )
+		mobileStatsQueryString += "&x_" + 'mobile_devices' + '=' + wpcom_mobile_user_agent_info.matchedUserAgentName;
+	
+	if( wpcom_mobile_user_agent_info.isIPad() )
+		mobileStatsQueryString += "&x_" + 'ipad_views' + '=' + 'views';
+
+	if( "" != mobileStatsQueryString ) {
+		new Image().src = document.location.protocol + '//pixel.wp.com/g.gif?v=wpcom-no-pv' + mobileStatsQueryString + '&baba=' + Math.random();
+	}
+	
+}
+</script>
+</body>
+</html>

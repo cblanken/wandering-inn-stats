@@ -1,0 +1,1919 @@
+<!DOCTYPE html>
+<!--[if IE 6]>
+<html id="ie6" lang="en">
+<![endif]-->
+<!--[if IE 7]>
+<html id="ie7" lang="en">
+<![endif]-->
+<!--[if IE 8]>
+<html id="ie8" lang="en">
+<![endif]-->
+<!--[if !(IE 6) & !(IE 7) & !(IE 8)]><!-->
+<html lang="en">
+<!--<![endif]-->
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width" />
+<title>
+4.09 | The Wandering Inn	</title>
+<link rel="profile" href="https://gmpg.org/xfn/11" />
+<link rel="stylesheet" type="text/css" media="all" href="https://s2.wp.com/wp-content/themes/pub/twentyeleven/style.css?ver=20190507" />
+<link rel="pingback" href="https://wanderinginn.com/xmlrpc.php">
+<!--[if lt IE 9]>
+<script src="https://s2.wp.com/wp-content/themes/pub/twentyeleven/js/html5.js?ver=3.7.0" type="text/javascript"></script>
+<![endif]-->
+<meta name='robots' content='max-image-preview:large' />
+
+<!-- Async WordPress.com Remote Login -->
+<script id="wpcom_remote_login_js">
+var wpcom_remote_login_extra_auth = '';
+function wpcom_remote_login_remove_dom_node_id( element_id ) {
+	var dom_node = document.getElementById( element_id );
+	if ( dom_node ) { dom_node.parentNode.removeChild( dom_node ); }
+}
+function wpcom_remote_login_remove_dom_node_classes( class_name ) {
+	var dom_nodes = document.querySelectorAll( '.' + class_name );
+	for ( var i = 0; i < dom_nodes.length; i++ ) {
+		dom_nodes[ i ].parentNode.removeChild( dom_nodes[ i ] );
+	}
+}
+function wpcom_remote_login_final_cleanup() {
+	wpcom_remote_login_remove_dom_node_classes( "wpcom_remote_login_msg" );
+	wpcom_remote_login_remove_dom_node_id( "wpcom_remote_login_key" );
+	wpcom_remote_login_remove_dom_node_id( "wpcom_remote_login_validate" );
+	wpcom_remote_login_remove_dom_node_id( "wpcom_remote_login_js" );
+	wpcom_remote_login_remove_dom_node_id( "wpcom_request_access_iframe" );
+	wpcom_remote_login_remove_dom_node_id( "wpcom_request_access_styles" );
+}
+
+// Watch for messages back from the remote login
+window.addEventListener( "message", function( e ) {
+	if ( e.origin === "https://r-login.wordpress.com" ) {
+		var data = {};
+		try {
+			data = JSON.parse( e.data );
+		} catch( e ) {
+			wpcom_remote_login_final_cleanup();
+			return;
+		}
+
+		if ( data.msg === 'LOGIN' ) {
+			// Clean up the login check iframe
+			wpcom_remote_login_remove_dom_node_id( "wpcom_remote_login_key" );
+
+			var id_regex = new RegExp( /^[0-9]+$/ );
+			var token_regex = new RegExp( /^.*|.*|.*$/ );
+			if (
+				token_regex.test( data.token )
+				&& id_regex.test( data.wpcomid )
+			) {
+				// We have everything we need to ask for a login
+				var script = document.createElement( "script" );
+				script.setAttribute( "id", "wpcom_remote_login_validate" );
+				script.src = '/remote-login.php?wpcom_remote_login=validate'
+					+ '&wpcomid=' + data.wpcomid
+					+ '&token=' + encodeURIComponent( data.token )
+					+ '&host=' + window.location.protocol
+					+ '//' + window.location.hostname
+					+ '&postid=3940'
+					+ '&is_singular=1';
+				document.body.appendChild( script );
+			}
+
+			return;
+		}
+
+		// Safari ITP, not logged in, so redirect
+		if ( data.msg === 'LOGIN-REDIRECT' ) {
+			window.location = 'https://wordpress.com/log-in?redirect_to=' + window.location.href;
+			return;
+		}
+
+		// Safari ITP, storage access failed, remove the request
+		if ( data.msg === 'LOGIN-REMOVE' ) {
+			var css_zap = 'html { -webkit-transition: margin-top 1s; transition: margin-top 1s; } /* 9001 */ html { margin-top: 0 !important; } * html body { margin-top: 0 !important; } @media screen and ( max-width: 782px ) { html { margin-top: 0 !important; } * html body { margin-top: 0 !important; } }';
+			var style_zap = document.createElement( 'style' );
+			style_zap.type = 'text/css';
+			style_zap.appendChild( document.createTextNode( css_zap ) );
+			document.body.appendChild( style_zap );
+
+			var e = document.getElementById( 'wpcom_request_access_iframe' );
+			e.parentNode.removeChild( e );
+
+			document.cookie = 'wordpress_com_login_access=denied; path=/; max-age=31536000';
+
+			return;
+		}
+
+		// Safari ITP
+		if ( data.msg === 'REQUEST_ACCESS' ) {
+			console.log( 'request access: safari' );
+
+			// Check ITP iframe enable/disable knob
+			if ( wpcom_remote_login_extra_auth !== 'safari_itp_iframe' ) {
+				return;
+			}
+
+			// If we are in a "private window" there is no ITP.
+			var private_window = false;
+			try {
+				var opendb = window.openDatabase( null, null, null, null );
+			} catch( e ) {
+				private_window = true;
+			}
+
+			if ( private_window ) {
+				console.log( 'private window' );
+				return;
+			}
+
+			var iframe = document.createElement( 'iframe' );
+			iframe.id = 'wpcom_request_access_iframe';
+			iframe.setAttribute( 'scrolling', 'no' );
+			iframe.setAttribute( 'sandbox', 'allow-storage-access-by-user-activation allow-scripts allow-same-origin allow-top-navigation-by-user-activation' );
+			iframe.src = 'https://r-login.wordpress.com/remote-login.php?wpcom_remote_login=request_access&origin=' + encodeURIComponent( data.origin ) + '&wpcomid=' + encodeURIComponent( data.wpcomid );
+
+			var css = 'html { -webkit-transition: margin-top 1s; transition: margin-top 1s; } /* 9001 */ html { margin-top: 46px !important; } * html body { margin-top: 46px !important; } @media screen and ( max-width: 660px ) { html { margin-top: 71px !important; } * html body { margin-top: 71px !important; } #wpcom_request_access_iframe { display: block; height: 71px !important; } } #wpcom_request_access_iframe { border: 0px; height: 46px; position: fixed; top: 0; left: 0; width: 100%; min-width: 100%; z-index: 99999; background: #23282d; } ';
+
+			var style = document.createElement( 'style' );
+			style.type = 'text/css';
+			style.id = 'wpcom_request_access_styles';
+			style.appendChild( document.createTextNode( css ) );
+			document.body.appendChild( style );
+
+			document.body.appendChild( iframe );
+		}
+
+		if ( data.msg === 'DONE' ) {
+			wpcom_remote_login_final_cleanup();
+		}
+	}
+}, false );
+
+// Inject the remote login iframe after the page has had a chance to load
+// more critical resources
+window.addEventListener( "DOMContentLoaded", function( e ) {
+	var iframe = document.createElement( "iframe" );
+	iframe.style.display = "none";
+	iframe.setAttribute( "scrolling", "no" );
+	iframe.setAttribute( "id", "wpcom_remote_login_key" );
+	iframe.src = "https://r-login.wordpress.com/remote-login.php"
+		+ "?wpcom_remote_login=key"
+		+ "&origin=aHR0cHM6Ly93YW5kZXJpbmdpbm4uY29t"
+		+ "&wpcomid=113840984"
+		+ "&time=1664899950";
+	document.body.appendChild( iframe );
+}, false );
+</script>
+<link rel='dns-prefetch' href='//s1.wp.com' />
+<link rel='dns-prefetch' href='//wanderinginn.wordpress.com' />
+<link rel='dns-prefetch' href='//s0.wp.com' />
+<link rel='dns-prefetch' href='//s2.wp.com' />
+<link href='https://fonts.gstatic.com' crossorigin rel='preconnect' />
+<link rel="alternate" type="application/rss+xml" title="The Wandering Inn &raquo; Feed" href="https://wanderinginn.com/feed/" />
+<link rel="alternate" type="application/rss+xml" title="The Wandering Inn &raquo; Comments Feed" href="https://wanderinginn.com/comments/feed/" />
+<link rel="alternate" type="application/rss+xml" title="The Wandering Inn &raquo; 4.09 Comments Feed" href="https://wanderinginn.com/2018/02/03/4-09/feed/" />
+	<script type="text/javascript">
+		/* <![CDATA[ */
+		function addLoadEvent(func) {
+			var oldonload = window.onload;
+			if (typeof window.onload != 'function') {
+				window.onload = func;
+			} else {
+				window.onload = function () {
+					oldonload();
+					func();
+				}
+			}
+		}
+		/* ]]> */
+	</script>
+	<script type="text/javascript">
+window._wpemojiSettings = {"baseUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/72x72\/","ext":".png","svgUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/svg\/","svgExt":".svg","source":{"concatemoji":"https:\/\/s0.wp.com\/wp-includes\/js\/wp-emoji-release.min.js?m=1652185836h&ver=6.0.2"}};
+/*! This file is auto-generated */
+!function(e,a,t){var n,r,o,i=a.createElement("canvas"),p=i.getContext&&i.getContext("2d");function s(e,t){var a=String.fromCharCode,e=(p.clearRect(0,0,i.width,i.height),p.fillText(a.apply(this,e),0,0),i.toDataURL());return p.clearRect(0,0,i.width,i.height),p.fillText(a.apply(this,t),0,0),e===i.toDataURL()}function c(e){var t=a.createElement("script");t.src=e,t.defer=t.type="text/javascript",a.getElementsByTagName("head")[0].appendChild(t)}for(o=Array("flag","emoji"),t.supports={everything:!0,everythingExceptFlag:!0},r=0;r<o.length;r++)t.supports[o[r]]=function(e){if(!p||!p.fillText)return!1;switch(p.textBaseline="top",p.font="600 32px Arial",e){case"flag":return s([127987,65039,8205,9895,65039],[127987,65039,8203,9895,65039])?!1:!s([55356,56826,55356,56819],[55356,56826,8203,55356,56819])&&!s([55356,57332,56128,56423,56128,56418,56128,56421,56128,56430,56128,56423,56128,56447],[55356,57332,8203,56128,56423,8203,56128,56418,8203,56128,56421,8203,56128,56430,8203,56128,56423,8203,56128,56447]);case"emoji":return!s([129777,127995,8205,129778,127999],[129777,127995,8203,129778,127999])}return!1}(o[r]),t.supports.everything=t.supports.everything&&t.supports[o[r]],"flag"!==o[r]&&(t.supports.everythingExceptFlag=t.supports.everythingExceptFlag&&t.supports[o[r]]);t.supports.everythingExceptFlag=t.supports.everythingExceptFlag&&!t.supports.flag,t.DOMReady=!1,t.readyCallback=function(){t.DOMReady=!0},t.supports.everything||(n=function(){t.readyCallback()},a.addEventListener?(a.addEventListener("DOMContentLoaded",n,!1),e.addEventListener("load",n,!1)):(e.attachEvent("onload",n),a.attachEvent("onreadystatechange",function(){"complete"===a.readyState&&t.readyCallback()})),(e=t.source||{}).concatemoji?c(e.concatemoji):e.wpemoji&&e.twemoji&&(c(e.twemoji),c(e.wpemoji)))}(window,document,window._wpemojiSettings);
+</script>
+<style type="text/css">
+img.wp-smiley,
+img.emoji {
+	display: inline !important;
+	border: none !important;
+	box-shadow: none !important;
+	height: 1em !important;
+	width: 1em !important;
+	margin: 0 0.07em !important;
+	vertical-align: -0.1em !important;
+	background: none !important;
+	padding: 0 !important;
+}
+</style>
+	<link crossorigin='anonymous' rel='stylesheet' id='all-css-0-1' href='https://s0.wp.com/_static/??-eJylkd1OAyEQhV9IdlyzaeOF8Vn4meBUYAkzWHl7Z5s0Vk2riTeEw8l35gBwrMavRbAI1NQjFYbYVTpsUZ2G8DYv08N0D65TCuDS6l9NItdsG8AyEk6e+Q7+FyQvmD+DqPjUAzIcGDIGspjU1uRLUZMd2EzCaP2YMpXfcfUu9RfoevlTUw1DqXarbMfaxcRG4c/3/xbRrFCJfAXP3ZwTtnfT81ztz/I3sCOFiKI4n/dG8P02UnWMca42ZDa6ZurZnL6FN+45P8273bLsH5d5f/gAOyLUIw==?cssminify=yes' type='text/css' media='all' />
+<style id='wp-block-library-inline-css'>
+.has-text-align-justify {
+	text-align:justify;
+}
+.wp-block-cover__image-background.has-parallax {
+	background-size: cover;
+}
+</style>
+<style id='global-styles-inline-css'>
+body{--wp--preset--color--black: #000;--wp--preset--color--cyan-bluish-gray: #abb8c3;--wp--preset--color--white: #fff;--wp--preset--color--pale-pink: #f78da7;--wp--preset--color--vivid-red: #cf2e2e;--wp--preset--color--luminous-vivid-orange: #ff6900;--wp--preset--color--luminous-vivid-amber: #fcb900;--wp--preset--color--light-green-cyan: #7bdcb5;--wp--preset--color--vivid-green-cyan: #00d084;--wp--preset--color--pale-cyan-blue: #8ed1fc;--wp--preset--color--vivid-cyan-blue: #0693e3;--wp--preset--color--vivid-purple: #9b51e0;--wp--preset--color--blue: #1982d1;--wp--preset--color--dark-gray: #373737;--wp--preset--color--medium-gray: #666;--wp--preset--color--light-gray: #e2e2e2;--wp--preset--gradient--vivid-cyan-blue-to-vivid-purple: linear-gradient(135deg,rgba(6,147,227,1) 0%,rgb(155,81,224) 100%);--wp--preset--gradient--light-green-cyan-to-vivid-green-cyan: linear-gradient(135deg,rgb(122,220,180) 0%,rgb(0,208,130) 100%);--wp--preset--gradient--luminous-vivid-amber-to-luminous-vivid-orange: linear-gradient(135deg,rgba(252,185,0,1) 0%,rgba(255,105,0,1) 100%);--wp--preset--gradient--luminous-vivid-orange-to-vivid-red: linear-gradient(135deg,rgba(255,105,0,1) 0%,rgb(207,46,46) 100%);--wp--preset--gradient--very-light-gray-to-cyan-bluish-gray: linear-gradient(135deg,rgb(238,238,238) 0%,rgb(169,184,195) 100%);--wp--preset--gradient--cool-to-warm-spectrum: linear-gradient(135deg,rgb(74,234,220) 0%,rgb(151,120,209) 20%,rgb(207,42,186) 40%,rgb(238,44,130) 60%,rgb(251,105,98) 80%,rgb(254,248,76) 100%);--wp--preset--gradient--blush-light-purple: linear-gradient(135deg,rgb(255,206,236) 0%,rgb(152,150,240) 100%);--wp--preset--gradient--blush-bordeaux: linear-gradient(135deg,rgb(254,205,165) 0%,rgb(254,45,45) 50%,rgb(107,0,62) 100%);--wp--preset--gradient--luminous-dusk: linear-gradient(135deg,rgb(255,203,112) 0%,rgb(199,81,192) 50%,rgb(65,88,208) 100%);--wp--preset--gradient--pale-ocean: linear-gradient(135deg,rgb(255,245,203) 0%,rgb(182,227,212) 50%,rgb(51,167,181) 100%);--wp--preset--gradient--electric-grass: linear-gradient(135deg,rgb(202,248,128) 0%,rgb(113,206,126) 100%);--wp--preset--gradient--midnight: linear-gradient(135deg,rgb(2,3,129) 0%,rgb(40,116,252) 100%);--wp--preset--duotone--dark-grayscale: url('#wp-duotone-dark-grayscale');--wp--preset--duotone--grayscale: url('#wp-duotone-grayscale');--wp--preset--duotone--purple-yellow: url('#wp-duotone-purple-yellow');--wp--preset--duotone--blue-red: url('#wp-duotone-blue-red');--wp--preset--duotone--midnight: url('#wp-duotone-midnight');--wp--preset--duotone--magenta-yellow: url('#wp-duotone-magenta-yellow');--wp--preset--duotone--purple-green: url('#wp-duotone-purple-green');--wp--preset--duotone--blue-orange: url('#wp-duotone-blue-orange');--wp--preset--font-size--small: 13px;--wp--preset--font-size--medium: 20px;--wp--preset--font-size--large: 36px;--wp--preset--font-size--x-large: 42px;--wp--preset--spacing--20: 0.44rem;--wp--preset--spacing--30: 0.67rem;--wp--preset--spacing--40: 1rem;--wp--preset--spacing--50: 1.5rem;--wp--preset--spacing--60: 2.25rem;--wp--preset--spacing--70: 3.38rem;--wp--preset--spacing--80: 5.06rem;}:where(.is-layout-flex){gap: 0.5em;}body .is-layout-flow > .alignleft{float: left;}body .is-layout-flow > .alignright{float: right;}body .is-layout-flow > .aligncenter{margin-left: auto !important;margin-right: auto !important;}body .is-layout-constrained > .alignleft{float: left;}body .is-layout-constrained > .alignright{float: right;}body .is-layout-constrained > .aligncenter{margin-left: auto !important;margin-right: auto !important;}body .is-layout-constrained > :where(:not(.alignleft):not(.alignright):not(.alignfull)){max-width: var(--wp--style--global--content-size);margin-left: auto !important;margin-right: auto !important;}body .is-layout-constrained > .alignwide{max-width: var(--wp--style--global--wide-size);}body .is-layout-flex{display: flex;}body .is-layout-flex{flex-wrap: wrap;align-items: center;}body .is-layout-flex > *{margin: 0;}:where(.wp-block-columns.is-layout-flex){gap: 2em;}.has-black-color{color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-color{color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-color{color: var(--wp--preset--color--white) !important;}.has-pale-pink-color{color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-color{color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-color{color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-color{color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-color{color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-color{color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-color{color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-color{color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-color{color: var(--wp--preset--color--vivid-purple) !important;}.has-black-background-color{background-color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-background-color{background-color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-background-color{background-color: var(--wp--preset--color--white) !important;}.has-pale-pink-background-color{background-color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-background-color{background-color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-background-color{background-color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-background-color{background-color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-background-color{background-color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-background-color{background-color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-background-color{background-color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-background-color{background-color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-background-color{background-color: var(--wp--preset--color--vivid-purple) !important;}.has-black-border-color{border-color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-border-color{border-color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-border-color{border-color: var(--wp--preset--color--white) !important;}.has-pale-pink-border-color{border-color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-border-color{border-color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-border-color{border-color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-border-color{border-color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-border-color{border-color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-border-color{border-color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-border-color{border-color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-border-color{border-color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-border-color{border-color: var(--wp--preset--color--vivid-purple) !important;}.has-vivid-cyan-blue-to-vivid-purple-gradient-background{background: var(--wp--preset--gradient--vivid-cyan-blue-to-vivid-purple) !important;}.has-light-green-cyan-to-vivid-green-cyan-gradient-background{background: var(--wp--preset--gradient--light-green-cyan-to-vivid-green-cyan) !important;}.has-luminous-vivid-amber-to-luminous-vivid-orange-gradient-background{background: var(--wp--preset--gradient--luminous-vivid-amber-to-luminous-vivid-orange) !important;}.has-luminous-vivid-orange-to-vivid-red-gradient-background{background: var(--wp--preset--gradient--luminous-vivid-orange-to-vivid-red) !important;}.has-very-light-gray-to-cyan-bluish-gray-gradient-background{background: var(--wp--preset--gradient--very-light-gray-to-cyan-bluish-gray) !important;}.has-cool-to-warm-spectrum-gradient-background{background: var(--wp--preset--gradient--cool-to-warm-spectrum) !important;}.has-blush-light-purple-gradient-background{background: var(--wp--preset--gradient--blush-light-purple) !important;}.has-blush-bordeaux-gradient-background{background: var(--wp--preset--gradient--blush-bordeaux) !important;}.has-luminous-dusk-gradient-background{background: var(--wp--preset--gradient--luminous-dusk) !important;}.has-pale-ocean-gradient-background{background: var(--wp--preset--gradient--pale-ocean) !important;}.has-electric-grass-gradient-background{background: var(--wp--preset--gradient--electric-grass) !important;}.has-midnight-gradient-background{background: var(--wp--preset--gradient--midnight) !important;}.has-small-font-size{font-size: var(--wp--preset--font-size--small) !important;}.has-medium-font-size{font-size: var(--wp--preset--font-size--medium) !important;}.has-large-font-size{font-size: var(--wp--preset--font-size--large) !important;}.has-x-large-font-size{font-size: var(--wp--preset--font-size--x-large) !important;}
+:where(.wp-block-columns.is-layout-flex){gap: 2em;}
+.wp-block-pullquote{font-size: 1.5em;line-height: 1.6;}
+.wp-block-navigation a:where(:not(.wp-element-button)){color: inherit;}
+</style>
+<link crossorigin='anonymous' rel='stylesheet' id='all-css-2-1' href='https://s1.wp.com/_static/??-eJyNj8EOwjAMQ3+IEjYBggPiW7YSSlnaVE26an9PuYGQ0G625SfZUJOxHBWjgj4woEAqI2htwYKEM0YYie0kWyuygRV10YXQ1GQ5rGYsE2eB25CnHyYUk6g4HwUcsmljBvUcv4y50+DzPzRju+GadNBaH/YNXcOlO/b9aX/edYfnC0ReZ8I=?cssminify=yes' type='text/css' media='all' />
+<style id='jetpack-global-styles-frontend-style-inline-css'>
+:root { --font-headings: unset; --font-base: unset; --font-headings-default: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif; --font-base-default: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif;}
+</style>
+<link crossorigin='anonymous' rel='stylesheet' id='all-css-4-1' href='https://s0.wp.com/wp-content/themes/h4/global.css?m=1420737423h&cssminify=yes' type='text/css' media='all' />
+<script id='wpcom-actionbar-placeholder-js-extra'>
+var actionbardata = {"siteID":"113840984","siteURL":"https:\/\/wanderinginn.com","xhrURL":"https:\/\/wanderinginn.com\/wp-admin\/admin-ajax.php","nonce":"1ba14e6909","isLoggedIn":"","statusMessage":"","subsEmailDefault":"instantly","proxyScriptUrl":"https:\/\/s0.wp.com\/wp-content\/js\/wpcom-proxy-request.js?ver=20211021","shortlink":"https:\/\/wp.me\/p7HFeU-11y","i18n":{"followedText":"New posts from this site will now appear in your <a href=\"https:\/\/wordpress.com\/read\">Reader<\/a>","foldBar":"Collapse this bar","unfoldBar":"Expand this bar"}};
+</script>
+<script crossorigin='anonymous' type='text/javascript' src='https://s1.wp.com/_static/??/wp-content/js/mobile-useragent-info.js,/wp-content/js/rlt-proxy.js?m=1637704497j'></script>
+<script type='text/javascript'>
+	window.addEventListener( 'DOMContentLoaded', function() {
+		rltInitialize( {"token":null,"iframeOrigins":["https:\/\/widgets.wp.com"]} );
+	} );
+</script>
+<link crossorigin='anonymous' rel='stylesheet' id='all-css-0-2' href='https://s0.wp.com/wp-content/mu-plugins/highlander-comments/style.css?m=1663315160h&cssminify=yes' type='text/css' media='all' />
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="https://wanderinginn.wordpress.com/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="https://s1.wp.com/wp-includes/wlwmanifest.xml" /> 
+<meta name="generator" content="WordPress.com" />
+<link rel="canonical" href="https://wanderinginn.com/2018/02/03/4-09/" />
+<link rel='shortlink' href='https://wp.me/p7HFeU-11y' />
+<link rel="alternate" type="application/json+oembed" href="https://public-api.wordpress.com/oembed/?format=json&amp;url=https%3A%2F%2Fwanderinginn.com%2F2018%2F02%2F03%2F4-09%2F&amp;for=wpcom-auto-discovery" /><link rel="alternate" type="application/xml+oembed" href="https://public-api.wordpress.com/oembed/?format=xml&amp;url=https%3A%2F%2Fwanderinginn.com%2F2018%2F02%2F03%2F4-09%2F&amp;for=wpcom-auto-discovery" />
+<!-- Jetpack Open Graph Tags -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="4.09" />
+<meta property="og:url" content="https://wanderinginn.com/2018/02/03/4-09/" />
+<meta property="og:description" content="Zel Shivertail sat in the Tailless Thief, the most famous and well-reputed inn in Liscor and felt out of place. Partly because he really didn’t care for the inn, and partly because of the stares. I…" />
+<meta property="article:published_time" content="2018-02-03T07:22:32+00:00" />
+<meta property="article:modified_time" content="2019-02-01T02:51:30+00:00" />
+<meta property="og:site_name" content="The Wandering Inn" />
+<meta property="og:image" content="https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=200" />
+<meta property="og:image:width" content="200" />
+<meta property="og:image:height" content="200" />
+<meta property="og:image:alt" content="" />
+<meta property="og:locale" content="en_US" />
+<meta property="article:publisher" content="https://www.facebook.com/WordPresscom" />
+<meta name="twitter:text:title" content="4.09" />
+<meta name="twitter:image" content="https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=240" />
+<meta name="twitter:card" content="summary" />
+
+<!-- End Jetpack Open Graph Tags -->
+<link rel="search" type="application/opensearchdescription+xml" href="https://wanderinginn.com/osd.xml" title="The Wandering Inn" />
+<link rel="search" type="application/opensearchdescription+xml" href="https://s1.wp.com/opensearch.xml" title="WordPress.com" />
+	<style>
+		/* Link color */
+		a,
+		#site-title a:focus,
+		#site-title a:hover,
+		#site-title a:active,
+		.entry-title a:hover,
+		.entry-title a:focus,
+		.entry-title a:active,
+		.widget_twentyeleven_ephemera .comments-link a:hover,
+		section.recent-posts .other-recent-posts a[rel="bookmark"]:hover,
+		section.recent-posts .other-recent-posts .comments-link a:hover,
+		.format-image footer.entry-meta a:hover,
+		#site-generator a:hover {
+			color: #1583af;
+		}
+		section.recent-posts .other-recent-posts .comments-link a:hover {
+			border-color: #1583af;
+		}
+		article.feature-image.small .entry-summary p a:hover,
+		.entry-header .comments-link a:hover,
+		.entry-header .comments-link a:focus,
+		.entry-header .comments-link a:active,
+		.feature-slider a.active {
+			background-color: #1583af;
+		}
+	</style>
+	<meta name="application-name" content="The Wandering Inn" /><meta name="msapplication-window" content="width=device-width;height=device-height" /><meta name="msapplication-tooltip" content="A tale of a girl, an inn, and a world full of levels." /><meta name="msapplication-task" content="name=Subscribe;action-uri=https://wanderinginn.com/feed/;icon-uri=https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=16" /><meta name="msapplication-task" content="name=Sign up for a free blog;action-uri=http://wordpress.com/signup/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Support;action-uri=http://support.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Forums;action-uri=http://forums.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="description" content="Zel Shivertail sat in the Tailless Thief, the most famous and well-reputed inn in Liscor and felt out of place. Partly because he really didn’t care for the inn, and partly because of the stares. Inns were a subjective experience no matter where you went, Zel found. They were ostensibly just places to eat and&hellip;" />
+<link rel="icon" href="https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=32" sizes="32x32" />
+<link rel="icon" href="https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=192" sizes="192x192" />
+<link rel="apple-touch-icon" href="https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=180" />
+<meta name="msapplication-TileImage" content="https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=270" />
+		<link rel="stylesheet" id="custom-css-css" type="text/css" href="https://s0.wp.com/?custom-css=1&#038;csblog=7HFeU&#038;cscache=6&#038;csrev=3" />
+		<!-- Your Google Analytics Plugin is missing the tracking ID -->
+</head>
+
+<body class="post-template-default single single-post postid-3940 single-format-standard wp-embed-responsive customizer-styles-applied single-author singular two-column right-sidebar highlander-enabled highlander-dark">
+<div class="skip-link"><a class="assistive-text" href="#content">Skip to primary content</a></div><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-dark-grayscale"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0 0.49803921568627" /><feFuncG type="table" tableValues="0 0.49803921568627" /><feFuncB type="table" tableValues="0 0.49803921568627" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-grayscale"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0 1" /><feFuncG type="table" tableValues="0 1" /><feFuncB type="table" tableValues="0 1" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-purple-yellow"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0.54901960784314 0.98823529411765" /><feFuncG type="table" tableValues="0 1" /><feFuncB type="table" tableValues="0.71764705882353 0.25490196078431" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-blue-red"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0 1" /><feFuncG type="table" tableValues="0 0.27843137254902" /><feFuncB type="table" tableValues="0.5921568627451 0.27843137254902" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-midnight"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0 0" /><feFuncG type="table" tableValues="0 0.64705882352941" /><feFuncB type="table" tableValues="0 1" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-magenta-yellow"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0.78039215686275 1" /><feFuncG type="table" tableValues="0 0.94901960784314" /><feFuncB type="table" tableValues="0.35294117647059 0.47058823529412" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-purple-green"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0.65098039215686 0.40392156862745" /><feFuncG type="table" tableValues="0 1" /><feFuncB type="table" tableValues="0.44705882352941 0.4" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-blue-orange"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0.098039215686275 1" /><feFuncG type="table" tableValues="0 0.66274509803922" /><feFuncB type="table" tableValues="0.84705882352941 0.41960784313725" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><div id="page" class="hfeed">
+	<header id="branding">
+			<hgroup>
+				<h1 id="site-title"><span><a href="https://wanderinginn.com/" rel="home">The Wandering Inn</a></span></h1>
+				<h2 id="site-description">A tale of a girl, an inn, and a world full of levels.</h2>
+			</hgroup>
+
+						<a href="https://wanderinginn.com/">
+									<img src="https://wanderinginn.files.wordpress.com/2022/07/cropped-220725_merch_banner_launch-1.png" width="1000" height="296" alt="The Wandering Inn" />
+								</a>
+			
+									<form method="get" id="searchform" action="https://wanderinginn.com/">
+		<label for="s" class="assistive-text">Search</label>
+		<input type="text" class="field" name="s" id="s" placeholder="Search" />
+		<input type="submit" class="submit" name="submit" id="searchsubmit" value="Search" />
+	</form>
+			
+			<nav id="access">
+				<h3 class="assistive-text">Main menu</h3>
+				<div class="menu-menu-1-container"><ul id="menu-menu-1" class="menu"><li id="menu-item-1422" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-home menu-item-1422"><a href="https://wanderinginn.com/">Overview</a></li>
+<li id="menu-item-1912" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1912"><a href="https://wanderinginn.com/table-of-contents/">Table of Contents</a></li>
+<li id="menu-item-1998" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-1998"><a href="https://www.patreon.com/user?u=4240617">Patreon</a></li>
+<li id="menu-item-10438" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-10438"><a href="https://wanderinginn.com/social/">Social</a>
+<ul class="sub-menu">
+	<li id="menu-item-4811" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-4811"><a href="https://discord.gg/abwsa3y">Discord</a></li>
+	<li id="menu-item-4810" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-4810"><a href="https://www.reddit.com/r/WanderingInn/">Reddit</a></li>
+	<li id="menu-item-8944" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-8944"><a href="https://twitter.com/WanderingInn">Twitter</a></li>
+	<li id="menu-item-10440" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-10440"><a href="https://www.facebook.com/thewanderinginn/">Facebook</a></li>
+</ul>
+</li>
+<li id="menu-item-10446" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-10446"><a href="https://wanderinginn.com/publishing-3/">Publishing</a>
+<ul class="sub-menu">
+	<li id="menu-item-10448" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-10448"><a href="https://www.amazon.com/kindle-dbs/entity/author/B07XCYVYMW">E-books</a></li>
+	<li id="menu-item-10447" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-10447"><a href="https://www.audible.com/author/pirate-aba/B07XCYVYMW">Audiobooks</a></li>
+	<li id="menu-item-8761" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-8761"><a href="https://www.cloudscapecomics.com/last-tide/">The Last Tide (Comicbook)</a></li>
+</ul>
+</li>
+<li id="menu-item-1424" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1424"><a href="https://wanderinginn.com/guestbook/">Guestbook</a></li>
+<li id="menu-item-2935" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-2935"><a href="https://wanderinginn.com/fanworks/">Fanworks</a>
+<ul class="sub-menu">
+	<li id="menu-item-8557" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-8557"><a href="https://wanderinginn.com/fanworks-permissions/">Fanworks Permissions</a></li>
+</ul>
+</li>
+<li id="menu-item-1426" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1426"><a href="https://wanderinginn.com/reader-reviews/">Reader Reviews</a></li>
+<li id="menu-item-5002" class="menu-item menu-item-type-post_type menu-item-object-post menu-item-has-children menu-item-5002"><a href="https://wanderinginn.com/2018/10/19/glossary/">Glossary</a>
+<ul class="sub-menu">
+	<li id="menu-item-7035" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-7035"><a href="https://wanderinginn.com/fanworks/#B">Maps</a></li>
+</ul>
+</li>
+<li id="menu-item-5684" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-5684"><a href="https://wanderinginn.com/writing-faqs/">Writing FAQs</a></li>
+<li id="menu-item-11759" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-11759"><a href="https://aubergevagabonde.wordpress.com/">L&#8217;Auberge Vagabonde</a></li>
+<li id="menu-item-11765" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-11765"><a href="https://wanderinginn.com/contacts/">Contacts</a></li>
+<li id="menu-item-12493" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-12493"><a href="https://www.store.wanderinginn.com/">Merch Store</a></li>
+<li id="menu-item-12667" class="menu-item menu-item-type-post_type menu-item-object-post menu-item-12667"><a href="https://wanderinginn.com/2022/09/28/interlude-the-great-race/">Interlude – The Great Race</a></li>
+</ul></div>			</nav><!-- #access -->
+	</header><!-- #branding -->
+
+
+	<div id="main">
+
+		<div id="primary">
+			<div id="content" role="main">
+
+				
+					<nav id="nav-single">
+						<h3 class="assistive-text">Post navigation</h3>
+						<span class="nav-previous"><a href="https://wanderinginn.com/2018/02/01/4-08-t/" rel="prev"><span class="meta-nav">&larr;</span> Previous</a></span>
+						<span class="nav-next"><a href="https://wanderinginn.com/2018/02/06/4-10/" rel="next">Next <span class="meta-nav">&rarr;</span></a></span>
+					</nav><!-- #nav-single -->
+
+					
+<article id="post-3940" class="post-3940 post type-post status-publish format-standard hentry category-writing tag-fantasy tag-inn tag-web-novel tag-web-serial tag-writing">
+	<header class="entry-header">
+		<h1 class="entry-title">4.09</h1>
+
+				<div class="entry-meta">
+						<span class="sep">Posted on </span><a href="https://wanderinginn.com/2018/02/03/4-09/" title="7:22 am" rel="bookmark"><time class="entry-date" datetime="2018-02-03T07:22:32+00:00">February 3, 2018</time></a><span class="by-author"> <span class="sep"> by </span> <span class="author vcard"><a class="url fn n" href="https://wanderinginn.com/author/pirateaba/" title="View all posts by pirateaba" rel="author">pirateaba</a></span></span>		</div><!-- .entry-meta -->
+			</header><!-- .entry-header -->
+
+	<div class="entry-content">
+		<p>Zel Shivertail sat in the Tailless Thief, the most famous and well-reputed inn in Liscor and felt out of place. Partly because he really didn’t care for the inn, and partly because of the stares.</p>
+<p>Inns were a subjective experience no matter where you went, Zel found. They were ostensibly just places to eat and sleep, but any real inn managed by a proper [Innkeeper] quickly developed…personality. It grew a community of clientele, and generally reflected the owner’s attitudes.</p>
+<p>One way in which that was apparent here was in the clientele of the Tailless Thief. They were all Drakes. There was not a single Gnoll or Human to be seen, much less the rarer species that lived on Izril. No matter where Zel looked, he only saw scales.</p>
+<p>That wasn’t a bad thing in general, but it was in a city where the population wasn’t solely Drake. And it wasn’t as if non-Drakes were barred from entering either. It was simply that they weren’t <em>welcome</em>. And people felt that and stayed away.</p>
+<p>Zel could have used a non-Drake crowd about now. He moodily sipped at his mug, filled with the spicy Fireshot drink. Non-Drakes were pleasant to be around because most didn’t know who he was. They didn’t <em>stare.</em> But what Drake child hadn’t heard of Zel Shivertail, the Tidebreaker, hero of both Antinium Wars? And in Liscor of course, Zel’s name was spoken just as often. This was where General Sserys had come from, and Drakes did not forget their heroes.</p>
+<p>The [General]’s hand tightened around his mug. Yes, this had been Sserys’ home. Now Antinium lived here, among the citizens. What would Sserys have thought of <em>that?</em> Zel wondered. At the very least, he thought Sserys would have hated the attention as much as Zel did. The [General] usually tried to keep a low profile when he visited other cities for this very reason.</p>
+<p>Not that the person sitting across from them was helping Zel remain inconspicuous. Wall Lord Ilvriss, one of the sworn protectors of the famed Walled Cities—in his case the city of Salazsar—sat expansively in his chair, sipping from some elegant drink or other and delicately spearing morsels from his plate with the long-handled fork the Drake aristocracy loved to use.</p>
+<p>“And you’re sure the Human said Ryoka Griffin, Shivertail?”</p>
+<p>“Positive.”</p>
+<p>Zel stared in dismay at the delicate, glistening fried eel on his plate. He pushed it away and sighed. Where did you <em>get</em> eels in the winter? But of course the [Innkeeper] would have the finest food for the Wall Lord and a Drake [General]. It had probably been run here overnight by Courier.</p>
+<p>“Interesting.”</p>
+<p>Ilvriss nibbled at his fork, carefully consuming a morsel of meat—seasoned Corusdeer, the local specialty—simmered in a ragù for added flavor. Zel knew this because the innkeeper had told him what he was eating in detail. And at length.</p>
+<p>Ilvriss finished his bite and patted at his mouth with a napkin. He frowned, thinking.</p>
+<p>“I have instructed my contacts to inform me the instant this Ryoka Griffin is spotted. If she does return to the city, I will know of it within minutes. But I am not content to wait. I would go north to seek her out if it were not for the situation with the Antinium, but I cannot find any information about this blasted Human. She is not a Courier—or if she is, no one has compiled any records of her and they are meticulously updated. And no one I have spoken to has heard of her!”</p>
+<p>Zel grunted. He took another swig of his drink and glared at Ilvriss.</p>
+<p>“That’s because you only asked <em>Drakes,</em> you idiot. If you want to find a Human, you talk to Humans.”</p>
+<p>Ilvriss flicked out his tongue in displeasure.</p>
+<p>“Humans lie.”</p>
+<p>“And you think Drakes don’t?”</p>
+<p>“I have more faith in my own kind than I do in others, Shivertail.”</p>
+<p>“You’re a fool, then. We didn’t lose half of the continent to Humans a few thousand years ago because we get along <em>well</em>.”</p>
+<p>Ilvriss’ tail <em>twitched, </em>but he didn’t reply to that. Instead, he flicked his fork at a map that lay on the table between the two.</p>
+<p>“From what I have heard, the Goblin Lord has been spotted around the Blood Fields. He is retreating from the two suppression armies sent after him. They have advanced with nothing but victories over the disorganized Goblins.”</p>
+<p>“Is that good news?”</p>
+<p>Zel stared at the map. One of the few reasons why he travelled with Ilvriss was the Wall Lord’s access to a network of informants Zel couldn’t be bothered to maintain. Ilvriss raised one nonexistent eyebrow.</p>
+<p>“You really think this Goblin Lord is a threat? There are <em>two</em> armies heading towards him, Shivertail. Each one led by a [General], each one nearly ten thousand strong.”</p>
+<p>“And that’s supposed to reassure me? This Goblin Lord…is a Goblin <em>Lord</em>, Ilvriss. He beat back the army you and I were leading together with ease. Now, I might have had a lot less than ten thousand soldiers at that point, but that’s still two [Generals] by my count—and a lot higher level than the ones heading towards him now.”</p>
+<p>Ilvriss shrugged, his tail flicking dismissal.</p>
+<p>“Your army was exhausted from battling mine, Shivertail. It was smaller, and I might add, less well-equipped.”</p>
+<p>“So you keep saying. But I think it’s dangerous. If those idiots ruling from their safe cities listened to me, we’d be sending a force twice that large, and I’d be leading it.”</p>
+<p>The Wall Lord sat up a bit, nettled by Zel’s tone.</p>
+<p>“You place too much faith in a Goblin’s ability to fight, Shivertail! The real threat on this continent are not Goblins. They’re a nuisance. The Antinium and those blasted Humans are our enemies.”</p>
+<p>“And each other.”</p>
+<p>Zel glared at Ilvriss. He could see a [Barmaid] with a refill out of the corner of his eye. She was afraid to get close, and for good reason. Both Ilvriss and Zel were using intimidation Skills unconsciously, and their argument was emptying the inn around them.</p>
+<p>“Goblins are as dangerous, Ilvriss. Or have you forgotten the second Antinium War already? We were having a great time trying to kill each other. Us, the Antinium, the Humans—and the damn Necromancer—when the Goblin King appeared and started kicking everyone’s collective tail.”</p>
+<p>“We killed him.”</p>
+<p>“Only by uniting! If there hadn’t been so many armies fighting him at the same time—Ancestors, Ilvriss, don’t you realize what a threat a single Goblin Lord could be? They’re the equivalents of high-level [Generals] and a King…”</p>
+<p>Ilvriss shifted. He looked uncomfortable, perhaps because he realized he was wrong.</p>
+<p>“No matter the danger, a Goblin King is a single threat. Once he is slain, the threat dissolves.”</p>
+<p>“It’s not that easy. We got lucky last time.”</p>
+<p>Zel was blunt. His tail was wrapped around his chair leg, squeezing tightly in vexation. He jabbed a claw at Ilvriss.</p>
+<p>“Go read some history, Wall Lord. Read about what happened when the Goblin King before the last one appeared on Terandria. He brought down <em>eight</em> kingdoms and ended at least two bloodlines that stretched back thousands of years!”</p>
+<p>Ilvriss was silent. He stabbed at his plate and bit into another piece of meat.</p>
+<p>“We shall see what occurs. This Goblin Lord is still the lesser threat. I want to know what the Antinium are doing here, and why the Slayer and the Small Queen are meeting.”</p>
+<p>“You and me both.”</p>
+<p>Zel clenched his fist. Ilvriss nodded.</p>
+<p>“Focus your attention on <em>that</em>, Shivertail.”</p>
+<p>“I’d have an easier time if you’d at least visit the inn I keep telling you about.”</p>
+<p>“Bah. A Human inn. I’d rather bathe in filth. I can’t imagine why you stay there. I keep telling you, I will <em>pay</em> for you to stay here, where you can at least reside in relative comfort.”</p>
+<p>Ilvriss’ tail curled up in disgust. Zel shook his head as the innkeeper, Peslas, hurried forwards with a refill for him.</p>
+<p>“I actually prefer it over there, to be honest.”</p>
+<p>Peslas, and Ilvriss both gaped at him. Zel eyed the eel and wished he’d insisted they eat at The Wandering Inn for lunch. The Drake [Innkeeper] looked as if he were about to faint. Ilvriss looked outraged.</p>
+<p>“You cannot be serious. You’d prefer Human cuisine over this? This is the finest Drake cooking outside of a Walled City, Shivertail!”</p>
+<p>“I like pancakes.”</p>
+<p>Zel also liked the little Gnoll furball who would beg for scraps and sit on his lap like Selys used to. But he didn’t say that out loud. Ilvriss stared at him, and then turned towards Peslas.</p>
+<p>“[Innkeeper]. Bring me your finest cut of Corusdeer steak, seasoned, cooked medium-raw. And a plate of Ssarish for appetizers.”</p>
+<p>Peslas bobbed and hurried into the kitchen, shouting for his [Cook]. Ilvriss pointed his fork at Zel like a sword.</p>
+<p>“You have lost your mind, Shivertail. I’ll at least get you to acknowledge proper Drake cooking.”</p>
+<p>Zel raised his claw.</p>
+<p>“That’s not necessary. I’m not hungry for this, really—”</p>
+<p>“<em>I </em>insist.”</p>
+<p>Zel groaned internally as Ilvriss clapped his hands and a [Barmaid] hurried over with another glass for him. Why did he travel with Ilvriss again? He put his head in his hands and wished he were somewhere else.</p>
+<p>And a few miles away, running through the snow, Ryoka Griffin finally spotted her destination.</p>
+<p>&nbsp;</p>
+<p>&#8212;-</p>
+<p>&nbsp;</p>
+<p>“There it is. See it, Ivolethe?”</p>
+<p>The young woman running through the snow exclaimed as she crested a hill and spotted the inn in the distance. She was tired, footsore, and foot <em>cramped</em>, since she was wearing boots. She would have preferred to run barefoot, but the snow was far too deep and cold for that. She was very cold, tired, and she’d had to sleep outside last night.</p>
+<p>But she was close. Oh, so close. Ryoka Griffin grinned as she spotted The Wandering Inn in the distance. She was nearly back.</p>
+<p>Something swooped down and alighted on her shoulder. Ivolethe glanced towards the inn in the distance and nodded.</p>
+<p>&nbsp;</p>
+<p><span style="color:#8ae8ff;">“I see it. And I have seen it for the last five hours as I flew. What is so special about <em>you</em>, seeing it?”</span></p>
+<p>&nbsp;</p>
+<p>“Oh shut up. We’re almost there.”</p>
+<p>Ryoka swatted at Ivolethe and caught only air. The Frost Faerie back flipped off of Ryoka’s shoulder. She flew slowly by Ryoka’s head, talking with the girl as Ryoka ran on.</p>
+<p>&nbsp;</p>
+<p><span style="color:#8ae8ff;">“We could have been to the city far faster had the clumsy driver not run over the brigands. ‘Twas entertaining, but costly, was it not?”</span></p>
+<p>&nbsp;</p>
+<p>“You’re telling me. But Reynold says Magnolia has orders to turn every [Bandit] he spots into road kill. Jeez, she doesn’t play softball, huh?”</p>
+<p>&nbsp;</p>
+<p><span style="color:#8ae8ff;">“She does not play games of throwing at all, unless they are edged things.”</span></p>
+<p>&nbsp;</p>
+<p>Ivolethe agreed absently. She looked up and flew high, chasing after something. After a few minutes she returned, a bird’s feather, freshly plucked, in her hands. Ryoka glanced at her.</p>
+<p>“I’m going to have a lot to do when I get there, Ivolethe.”</p>
+<p>&nbsp;</p>
+<p><span style="color:#8ae8ff;">“So ye have said. I shall entertain myself.”</span></p>
+<p>&nbsp;</p>
+<p>The Frost Faerie shrugged. Ryoka stared at her.</p>
+<p>“So you’re going to be okay by yourself? And you’re <em>not</em> going to harass Ceria or make trouble for Erin? You’re going to be cool?”</p>
+<p>&nbsp;</p>
+<p><span style="color:#8ae8ff;">“I am <em>always </em>cool. I am cooler than ye shall ever be.”</span></p>
+<p>&nbsp;</p>
+<p>Ryoka stared at Ivolethe and nearly face planted as her foot slipped going down a hill. The faerie laughed at her and sighed when Ryoka glared.</p>
+<p>&nbsp;</p>
+<p><span style="color:#8ae8ff;">“I <em>promise</em> not to bother the wh—your friends. But you must make good on your promise too!”</span></p>
+<p>&nbsp;</p>
+<p>“I’ll leave you with a stack of gold coins so Erin feeds you until you turn into a balloon.”</p>
+<p>It was a good thing faeries were so easy to bribe. Ryoka smiled to herself as she ran on, the faerie chattering about what she’d have Erin make her to eat. She was nearly back. It had been long—so very long! It felt like forever since she’d been at Erin’s inn. The last time she’d seen Erin, the girl had been in Celum. But now Ryoka was coming back. And she could tell Erin everything that had happened. She could—</p>
+<p>Could…</p>
+<p>What would she say to Erin? Ryoka frowned. She’d tell her everything, of course. But how would Erin react to the news about Magnolia, the [Assassins], the discovery that there was someone else from their world nearby. Laken the [Emperor], and BlackMage in Wistram! How would she react if Ryoka told her about that night with the three strangers at the campfire?</p>
+<p>How much did Ryoka really know Erin, anyways? She knew a bit about Erin’s past, she’d done a lot with Erin of course—she’d gone to find her when Erin had disappeared, and they’d had some laughs together. But now, coming back, Ryoka was suddenly struck by a bit of uncertainty. Because she felt like a stranger again. She knew Erin.</p>
+<p>But she didn’t feel like she <em>knew</em> Erin. Not after all the crazy things that had happened recently.</p>
+<p>Ryoka felt a bit of fear worm its way into her stomach as she reached the foot of the hill that led to the Wandering Inn. It was silly. She’d run away from horrible nightmares in the darkness, things Ivolethe refused to talk about. She’d braved a blizzard, survived an [Assassin] attack, and talked down a hostile half-Troll girl who could have squished her with one hand. So why was she afraid of meeting an old friend?</p>
+<p>Maybe it was because Ryoka didn’t really know how to meet old friends. That word was a foreign concept to her.  What should she do? Should she—</p>
+<p>Caught up in her thoughts, Ryoka didn’t hear the crunching in the snow until a blur appeared on her left. She turned, alarmed, and saw something coming at her from the direction of Liscor. Some strange blur that was kicking up snow. It was too low to the ground to be visible as it raced through the deep snow at Ryoka. She backed up. And then it leapt <em>at her.</em></p>
+<p>“Holy—!”</p>
+<p>A patch of the snow seemed to launch itself <em>off</em> of the ground and smashed into Ryoka’s midriff. The girl shouted as the impact knocked her down the side of the hill, tumbling, rolling, struggling with the creature—person—child—</p>
+<p>“<em>Mrsha?</em>”</p>
+<p>The Gnoll licked at her face, slapping Ryoka lightly with her paws as the cub tried to climb all over Ryoka. Ryoka laughed and yelped at once, trying to grab Mrsha. But the Gnoll was a blur. She grabbed at Ryoka, hugging her tightly, making small sounds that weren’t words.</p>
+<p>“Mrsha! Relax! I’m glad to see you. It’s okay. I’m here. I’m glad to see you too!”</p>
+<p>Ryoka finally found a bit of fur and grabbed it. Mrsha latched onto Ryoka, hugging the girl so tightly her paws dug into Ryoka’s skin through her coat. Ryoka hugged her back, whispering to the trembling Gnoll child.</p>
+<p>“I’m sorry. I was gone for a long time. But I’m back, see? I’m back.”</p>
+<p>She didn’t try to prise Mrsha away, and the Gnoll wouldn’t have let go for anything. Ryoka sat up awkwardly in the snow. Only then did she realize she had company.</p>
+<p>Four tall Gnolls stood watching her and Mrsha in the snow. They might have been male, or female. It was hard to tell. But they were tall, adult, and watching her. Ryoka’s stomach lurched a tiny bit.</p>
+<p>“Uh, hi.”</p>
+<p>Thought and fear raced ahead of everything else. Why were they here? Were they worried she was trying to attack Mrsha? Or was it because Mrsha had white fur? Were they after Mrsha? Where was Erin? But then one of the Gnolls spoke and put Ryoka’s fears to rest.</p>
+<p>“The Mrsha child smelled you and ran to find you. We came to ensure she was not in danger.”</p>
+<p>“Oh. She came from the city? Wait, what was she doing there?”</p>
+<p>One of the Gnolls, the tallest, nodded. He had red-brown fur and had a sheathed axe at one hip.</p>
+<p>“She was with Krshia for lessons when she scented you. She knew you were coming long before we smelled you.”</p>
+<p>“Oh. I get it.”</p>
+<p>Mrsha had a stronger nose than any Gnoll adult due to her youth. Ryoka felt Mrsha shift her grip as she clung to the young woman. She was licking Ryoka and nuzzling her head against her. It was intimate, but Ryoka felt awkward in the presence of the other Gnolls.</p>
+<p>“Well…she found me. Do you all need anything?”</p>
+<p>The Gnolls stared at her. They had a strange intensity about them. The lead Gnoll pointed at Ryoka, eyes searching her face.</p>
+<p>“You have returned with what honored Krshia needs, yes?”</p>
+<p>Ryoka stared up at the reddish-brown Gnoll as Mrsha tried to coat her face with saliva. What they—oh! The book! It had been so long since she’d made that promise that Ryoka had nearly forgotten. But she’d carried it with her in the bag of holding all this time. She nodded.</p>
+<p>“I—yes. I’ve got it with me. I can give it to her—”</p>
+<p>“Good.”</p>
+<p>So saying, the Gnoll reached down and grabbed Ryoka’s legs. She froze.</p>
+<p>“What are—”</p>
+<p>Another one seized Ryoka from behind. She yelped and began to twist, but it was hard to with Mrsha clinging to her.</p>
+<p>“Wait, what are you—”</p>
+<p>The Gnoll lifted her <em>up</em> into the air as if Ryoka were a feather. She yelped and twisted, but suddenly found herself gripped from below. One Gnoll had her legs and buttocks, another her back. They began running with her over her head, helpless, as Mrsha hopped up and down on Ryoka’s stomach, making noises of excitement.</p>
+<p>“Hold on! Hold <em>on—</em>put me down! I have to—I’ll give it to Krshia in a bit, okay? Put me down—Mrsha! Stop moving!”</p>
+<p>The Gnolls didn’t listen. They had a tremendously strong grip and try as she might, Ryoka was in no position to get free. They began to run with her held above them like a log. Ryoka yelped, but suddenly she was moving <em>fast</em> down the hill, straight towards Liscor!</p>
+<p>“Put me down! Put me <em>down!</em>”</p>
+<p>No one listened. Ryoka hollered, but Mrsha was delightedly climbing on Ryoka’s front, and the girl had to grab her to make sure she didn’t fall off. Liscor came into sight, and then Ryoka was headed straight for the gates.</p>
+<p>The [Guardsmen] on duty stared at Ryoka as she passed by, born aloft by the small crowd of Gnolls. She shouted at them to help, but they were too busy laughing to do anything.</p>
+<p>&nbsp;</p>
+<p>&#8212;-</p>
+<p>&nbsp;</p>
+<p>Zel Shivertail stared at the proffered plate of Ssarish. It was a traditional Drake dish; sliced meat, very thinly cut and served raw or cooked depending on the area. It wasn’t a bad food and Zel enjoyed it at times. He knew the Gnolls did something similar, although in their case they chopped their meat incredibly finely and mixed it with a light mustard sauce.</p>
+<p>This dish of Ssarish was lightly sprinkled with olive oil, garnished with a bit of white, crumbly cheese, and delicately brushed with a mixture of lemon, salt, pepper, and some spicy greens Zel didn’t recognize. It wasn’t that it had been made poorly either. In fact, the problem was that it had been <em>overdone.</em> Zel would have liked a plainer Ssarish, if he was even hungry for the stuff.</p>
+<p>Which he wasn’t.</p>
+<p>“I’m not hungry, Ilvriss.”</p>
+<p>“Have some of the steak, then. This is Drake cooking—and I will have you enjoy it!”</p>
+<p>“Drakes don’t have a monopoly on <em>steaks</em>, Ilvriss.”</p>
+<p>“We invented them.”</p>
+<p>“We invented a way to <em>chop meat.</em>”</p>
+<p>“You are neglecting to include the art of seasoning food. This is properly spicy, nuanced flavor—”</p>
+<p>“Just because some of our kind can breathe fire, it doesn’t mean I want to do it myself!”</p>
+<p>Zel snarled at Ilvriss. The Lord of the Wall glared at him across the table as the innkeeper, Peslas, hovered in the wings, ready to dash into the kitchen and bring more food out for Zel to try. The [General] sat at the table, arms crossed, tail lashing the floorboards.</p>
+<p>“I told you, I’m sure the cooking is fine. But I don’t want any right now.”</p>
+<p>“I <em>insist</em> you try a cut of the steak.”</p>
+<p>Ilvriss sliced into the rich meat, still steaming with heat. Zel sighed, but the Drake lord’s sense of pride meant he had to try some. Or run. Zel weighed the odds of Ilvriss chasing him down and reluctantly picked up a fork. He speared a juicy chunk of the steak and chewed it down. Peslas, Ilvriss, and a number of Drake patrons in the inn waited with bated breath.</p>
+<p>“It’s good.”</p>
+<p>Zel had to admit, the hot spices and rich meat was a good mouthful. Peslas exhaled loudly and Ilvriss treated himself to a smug smile. Zel raised one claw.</p>
+<p>“But. I’ve had better lunches. And I could be eating one right now if you’d let me go.”</p>
+<p>“Nonsense!”</p>
+<p>A fist pounded the table as Ilvriss raised his voice in outrage. He speared a piece of the steak and waved it at Zel.</p>
+<p>“This is prime dining here. You will have your lunch with me—”</p>
+<p>“I don’t want steak, Ilvriss. It’s not as if this is the greatest steak in the world and I’m not a fan of your company.”</p>
+<p>“This is the finest dish you could order in Liscor—”</p>
+<p>“<em>In</em> it. But the inn I go to is a bit out of the city’s limits. And I bet the innkeeper there could make me a steak as good as this one.”</p>
+<p>Ilvriss furiously chewed the steak, as if mastication could prove Zel wrong. He gulped it down and pointed at it triumphantly.</p>
+<p>“Aha! There you are wrong. I can detect the quality of the dish, and this is excellent fare for one of the lesser cities on the continent. The owner of this inn, Peslas here, is to be commended for it.”</p>
+<p>He nodded graciously at Peslas, who beamed and bowed his head towards Ilvriss. The Wall Lord pointed at the dish as he addressed Zel as if speaking to an infant.</p>
+<p>“This was made by a cook with <em>[Advanced Cooking]</em>! No Human [Innkeeper] could—”</p>
+<p>“She’s got [Advanced Cooking] too, Ilvriss. And her food is new. She makes this thing called a ‘pizza’, which is quite—”</p>
+<p>“I will not hear of it! Peslas! Another dish! Bring me—yes, bring me some sautéed shrimp! The same dish you served me last night! As you will see Shivertail, no <em>Human</em> innkeeper could provide you with quality seafood in the winter.”</p>
+<p>“I don’t want seafood! I want to go!”</p>
+<p>Zel stood up. Ilvriss tried to hold him down, but Zel was quite a bit larger than the Wall Lord. Still, Ilvriss was tenacious. The two Drakes were struggling at their table when they heard the shouting.</p>
+<p>“—<em>down now!</em> I am not happy! I’ll walk—hell, I’ll <em>run!</em> Just stop carrying me like this! Do you hear me? Stop grabbing—Mrsha! Don’t jump on my stomach! Hey! <em>Hey!</em>”</p>
+<p>Both Drakes turned. Someone was shouting quite loudly. Ilvriss scowled.</p>
+<p>“Humans! They’re noisy even when they aren’t in the room!”</p>
+<p>He let go of Zel and strode to the open entrance of the inn, probably to yell at whomever was making the noise. Zel went too, intending to make his own break for it when he saw the Gnolls.</p>
+<p>There was a crowd of them, running through the street. But that wasn’t what made both Drake’s jaws drop. It was the young Human woman they were carrying over their heads. She was struggling, yelling, as the Gnolls held her over their head and ran with her. Everyone in the street was watching, some laughing, others pointing or scratching their heads in confusion. But that wasn’t what made Zel’s blood run cold. It was recognition. He knew that Human. He knew her name.</p>
+<p>Ryoka Griffin.</p>
+<p>She was being carried by a group of Gnolls as they ran down the street. Zel stared. He saw someone else perched on Ryoka’s stomach, happily staring around as if this were an exciting new experience.</p>
+<p>“Is that—Mrsha?”</p>
+<p>He turned to Ilvriss. The Drake’s scales had gone pale. He had recognized Ryoka too. And the Lord of the Wall’s reaction was immediate. His hand went to his sword, and he unsheathed the shining blade. Zel took a step back.</p>
+<p>“Ilvriss. Hold on—”</p>
+<p>Ilvriss’ normal look of bored contempt had vanished. He stared after the group of Gnolls as they rounded a corner. Then he turned and shouted at the room full of Drakes. At his adjutants, the group he’d brought with him.</p>
+<p>“After that Human!”</p>
+<p>The Wall Lord charged out of the room. Zel cursed as a number of Drakes who’d been silently waiting against the walls charged after their lord. He ran after Ilvriss, shouting for the Wall Lord to stop.</p>
+<p>A few minutes after they’d gone, Peslas hurried out of the kitchen with a plate of sautéed shrimp. It was good stuff, but as even Ilvriss would have conceded, the [Chef] had let the shrimp go just a tad bit undercooked.</p>
+<p>&nbsp;</p>
+<p>&#8212;-</p>
+<p>&nbsp;</p>
+<p>Krshia was waiting in her apartment when Ryoka was shepherded into the room. A crowd of Gnolls came after her, spreading out around the apartment which grew significantly more occupied. Some stared or sniffed and wrinkled their noses at the smell of rot in the air—but it was better than it had been. Brunkr stared at Ryoka as he kept a bandage slathered with honey over his arm. He glanced at Mrsha, but the Gnoll was too busy sitting on Ryoka’s shoulders and nuzzling her head to pay attention to anything else.</p>
+<p>Ryoka halted as she saw Krshia look up. The [Shopkeeper] looked like Ryoka had last seen her, if a bit more tired. She smiled when she saw Ryoka, though. With expectation—and fear.</p>
+<p>“Ryoka Griffin. You have returned, yes? At last. And you have brought what was promised, I hope?”</p>
+<p>She stared into Ryoka’s eyes. The young woman nodded slowly. She was aware of the Gnolls in the room who weren’t Krshia or Brunkr, and how they stared at her. Her, and Krshia.</p>
+<p>Ryoka’s mind flashed back to the past, to what she’d learned before she’d left Liscor, weeks ago. It was Krshia’s clan who lived in Liscor. They had come to earn money, to prove something. And to gain something valuable to offer to the tribes when they met.</p>
+<p>They had stockpiled spellbooks, tens of thousands of gold coins’ worth. And it had all been lost when Lyonette used a powerful artifact to destroy Krshia’s shop by accident. Ryoka had promised to give them something of equal value in return for Lyonette’s life.</p>
+<p>And Krshia was afraid she hadn’t got it. Or she hadn’t got something her people would consider good enough.</p>
+<p>“You have it with you now?”</p>
+<p>Krshia was watching Ryoka very carefully. The girl nodded. She reached for her side, for the small bag of holding she kept tied securely there.</p>
+<p>“I went to a…friend. A powerful [Mage], rather. I convinced them to give me something, a spellbook that would make up for what you lost.”</p>
+<p>Behind his aunt, Brunkr stirred.</p>
+<p>“<em>One</em> spellbook?”</p>
+<p>Around the room the Gnolls muttered. Their voices were too quiet for Ryoka to hear, but Mrsha’s ears perked up and Krshia shook her head.</p>
+<p>“One may do. If it is the right one.”</p>
+<p>She sounded like she was trying to convince the others. Ryoka nodded, trying to appear confident.</p>
+<p>“This isn’t just <em>any </em>spellbook. Look.”</p>
+<p>She put the bag of holding on the table in front of Krshia, and then bent to reach into it with both hands. She had to use both hands, not because the spellbook was heavy, but because it was too <em>big.</em></p>
+<p>Enchanted to be as light as a feather. Big as…big as Mrsha. The Gnolls <em>gasped</em> as one as Ryoka lifted the spellbook Teriarch had given her out of her bag of holding. Krshia’s eyes widened into round circles. Ryoka grinned like a madwoman.</p>
+<p>It had been too long. But now here it was. Some days she’d almost forgotten about it, but now Ryoka remembered vividly. A spellbook. Not just any spellbook, but one given to her by Teriarch.</p>
+<p>Taken from a Dragon’s hoard. A book of teaching from another age, filled with magical knowledge.</p>
+<p>A gift from a Dragon.</p>
+<p>“By the tribes. What is <em>this?</em>”</p>
+<p>Krshia bent over the huge spellbook as the other Gnolls gasped and crowded around the table. Ryoka opened her mouth to reply and got a paw in her face as Mrsha climbed over her head to see. She gently took Mrsha off her head and cradled the Gnoll in her arms. Ryoka thought of how to explain and said one word.</p>
+<p>“Worth.”</p>
+<p>All the Gnolls looked at Ryoka sharply. She smiled.</p>
+<p>“This will settle the debt.”</p>
+<p>“Alone? It is a magnificent work, but by itself…”</p>
+<p>Krshia hesitantly placed her hands on the tome, opening it, staring at the gilded letters—and illustrations!—in the book. The Gnolls around her were murmuring quietly, perhaps debating that very thing. But Ryoka shook her head.</p>
+<p>“This is equivalent, Krshia Silverfang. Equivalent to fifty or a hundred lost spellbooks. For you see, this<em> isn’t</em> a spellbook.”</p>
+<p>“It isn’t?”</p>
+<p>Krshia looked up sharply. Ryoka smiled. She stood taller and pointed down to the tome, speaking with a voice that carried around the rooms. You had to sell what you had, even if it was worth more than diamonds.</p>
+<p>“I didn’t bring you a simple spellbook with a handful of spells! No, this is a proper <em>instructional tome</em>, something that actually explains how spells <em>work.</em> You’d be lucky to find this in <em>Wistram, </em>let alone a normal [Mage]’s library! It’s a first-edition tome of Rihal, and it contains every spell they knew from Tier 1 to…I think Tier 4. It might be <em>the</em> most valuable thing you will ever see in your life.”</p>
+<p>Every Gnollish eye stared at Ryoka. There was a pregnant pause, and then the room exploded into excited babble. Gnolls crowded around the book, fighting to see, but afraid to touch. They sniffed at it like Mrsha. But Krshia only had eyes for Ryoka, as did some of the older Gnolls. One spoke to her.</p>
+<p>“If what you say is true…”</p>
+<p>“It is. Every word. I swear it.”</p>
+<p>Ryoka met his eye—or her eye—squarely. She knew some Gnolls like Krshia could detect a lie. The Gnoll hesitated.</p>
+<p>“You would be willing to swear upon a truth spell?”</p>
+<p>“Any time.”</p>
+<p>The Gnoll blinked. She looked back at the tome, and her ears shook.</p>
+<p>“Incredible. It is a dream. And it is <em>true.</em>”</p>
+<p>Krshia spoke sharply.</p>
+<p>“The knowledge of this will not leave this room, no? No one will speak of it! And it will be guarded, yes, guarded this time by [Warriors].”</p>
+<p>All the Gnolls looked at her. Some bowed their heads, others nodded. Ryoka sensed it. Whatever power struggle Krshia had been fighting through, it was over in a flash. This was worth, pure and simple. More worth than the Gnolls of Liscor had possessed before, and they all knew it.</p>
+<p>Krshia turned to Ryoka. There was jubilation in her eyes, but also wariness.</p>
+<p>“This is a gift worthy of a [King], Ryoka Griffin. We owe you a debt for it. But you say it came to you from another? Do we owe a greater debt that must one day be paid?”</p>
+<p>Ryoka hesitated. Here it was. The Gnolls were watching her again. So she thought back to her conversation and decided on the truth. You couldn’t lie so easily in this world. But half-truths were easy.</p>
+<p>“It is a debt, but the one who is owed will never call on it. You owe a debt of gratitude to an incredibly powerful magic user, the equivalent of an [Archmage]. His name is…uh…well, it’s Teriarch.”</p>
+<p>She hoped using his name wouldn’t be a problem. But no one knew it, right? And if it was spread, well…Teriarch was vain. She heard other Gnolls murmuring the name.</p>
+<p>“I convinced him to be a patron of your tribe. And I gave him something of equal value to the book.”</p>
+<p>“You gave him something? How?”</p>
+<p>“I cannot say. But it was worth it to him. It was a fair trade, I swear it.”</p>
+<p>The young woman met Krshia’s eyes, praying Krshia did not ask more. Because Ryoka couldn’t explain iPhones and Teriarch’s magic and the simple generosity of a Dragon in front of the others. The Gnoll stared for a while at Ryoka and nodded.</p>
+<p>“Then I will believe you. But this gift…it is too much.”</p>
+<p>What now? Ryoka almost groaned to hear it, but the other Gnolls were nodding. Krshia looked at Ryoka as she ran a paw over the tome regretfully.</p>
+<p>“It is too much for a gift, even one to repay a debt. You must ask something of us in return, or it will not be fair. And this debt is too great for us to carry now.”</p>
+<p>She wanted Ryoka to ask, but she didn’t have anything to pay with. Ryoka’s mind raced. She stared at Krshia, imaginging all kinds of things, good and evil and petty and grand to ask of her. But then she thought of who she’d come to Liscor to meet. She looked at Mrsha, and realized some questions were trick questions, even if the only person doing the tricking was yourself.</p>
+<p>She smiled at Krshia. The Gnoll watched her warily. Ryoka took a breath and spoke her price.</p>
+<p>“Friendship, Krshia Silverfang. That is what I desire.”</p>
+<p>The Gnoll blinked at her. All the Gnolls did. Ryoka turned to them, looking them in the eye. She finished last on Mrsha, who was touching the tome excitedly as Brunkr tried to push her paw away.</p>
+<p>“This is a gift of friends, and the cost is paid in intangible things. I offer it in the name of friendship, with you and your tribe, if you will accept it.”</p>
+<p>Krshia stared at her. Ryoka thought she saw the Gnoll smile slightly, and then she took Ryoka’s hand. She squeezed it tightly, and then let go.</p>
+<p>“So it is said! We are friends, Ryoka Griffin. And we will remember this gift for as long as our tribe endures. No—Gnolls will remember this. I promise you. Your name and that of Teriarch will be spoken as long as we endure. We do not forget.”</p>
+<p>Ryoka felt a chill as Krshia said that. It was more than an honor. It was terrifying, what the Gnoll said. But it was also heartfelt, and it made Ryoka feel as though she had touched immortality. To never be forgotten.</p>
+<p>And then it was business again. Krshia bent over the tome, and beckoned Ryoka over. The other Gnolls respectfully gave her room. One of them lifted Mrsha off the table, and Krshia was bombarding Ryoka with questions about the book.</p>
+<p>“You say it teaches, yes? So that a novice may learn? I have never heard of such a thing, but perhaps it is a lost way of making such books.  Where and when was this nation—Rihal? It must be important, but I have never heard of it. You said the book comes from here, yes?”</p>
+<p>Ryoka scratched her head. The conversation with Teriarch was an age ago. Had he ever…? No.</p>
+<p>“I have no idea, but I’ll swear the book is genuinely from that place.”</p>
+<p>Krshia nodded. She paused on a page and traced the writing.</p>
+<p>“Ah. See. On this side, there is magical writing. On this—not. It is a written language.”</p>
+<p>Surprised, Ryoka bent over the book.</p>
+<p>“You can tell?”</p>
+<p>“Yes. One is rooted in magic and looks different from other angles. The other…no. It does not change. And it is not magical. It is something [Shopkeepers] learn, to tell the difference to identify fraud.”</p>
+<p>Fascinated, Ryoka stared at the writing. There was a tiny illustration, of some kind of flower blooming. Was this a spell to grow plants? She stared at the magical writing, but she was in too much of a hurry to start decoding it.</p>
+<p>“It must be. This is an instructional guide, so it might be describing the spell’s effects, or how to use it best.”</p>
+<p>“Worth.”</p>
+<p>Krshia echoed the word, and then growled softly.</p>
+<p>“But I cannot read it! And no one living knows the language, or so I am thinking. But a spell—yes, I need an artifact.”</p>
+<p>She turned and snapped.</p>
+<p>“A pair of lenses, enchanted with a translation spell. Someone find one and bring it to me!”</p>
+<p>At once several Gnolls rushed out the door. Ryoka glanced at Krshia.</p>
+<p>“Do you think it will work?”</p>
+<p>“The spell does not need meaning, only time. It…how do you say? It decodes the language. Identifies it over time to attain mastery. Now, Rihal. Perhaps there are books with the name—”</p>
+<p>Krshia was turning to some other Gnolls when Ryoka heard a brief howl from outside. It was short, upset, and cut off abruptly. Instantly, every Gnoll in the room, including Mrsha, went still. Someone ran back up the stair and thrust open the door.</p>
+<p>“Honored Krshia, there is trouble below!”</p>
+<p>One of the Gnolls who’d left spoke to Krshia as the Gnoll turned towards the door. Krshia glanced towards Ryoka, and the girl wondered if someone had followed her. Or the Gnolls?</p>
+<p>“What is it?”</p>
+<p>“There is a group of Drakes below. They are armed. And they want Ryoka Griffin.”</p>
+<p>Everyone stared at Ryoka. Krshia looked at the young woman.</p>
+<p>“Have you enemies among the Drakes, Ryoka?”</p>
+<p>“I don’t know! I don’t think so—I have a long list, but I’m fairly certain Drakes aren’t on there!”</p>
+<p>Ryoka went to a window, but Brunkr pulled her back. She blinked at him. He growled softly.</p>
+<p>“Be wary. They might shoot into the windows and Aunt has neither glass nor spelled wards.”</p>
+<p>Ryoka nodded and backed away. Krshia looked around. The Gnolls in the room were tense, and Mrsha was staring around wide-eyed.</p>
+<p>“They would not be openly bearing arms if they were a threat. This must be handled without bloodshed. We go out together. Ryoka in the middle. Move.”</p>
+<p>The group exited the room, Gnolls streaming out, to the audible dismay of the Drakes below. Then Ryoka came out, Krshia and Brunkr at her side. The wounded Gnoll had taken off his bandage of honey and was holding a sword in his good hand.</p>
+<p>Ryoka stopped when she saw the group of fourteen or so Drakes. They were all armed, all dressed in fancy clothing—hardly as if they were ready for a fight. She didn’t recognize any of them, but they looked well-armed. Then her eyes fell on the two standing at the front of the group. One was large, a bear of a Drake as big as Relc. He was arguing with another Drake who was shorter, slimmer, and dressed in regalia fit for a [King]. He turned to Ryoka and his eyes fixed on her.</p>
+<p>“<em>You.</em>”</p>
+<p>The face didn’t give anything away. But the instant he spoke, Ryoka’s mind went back in time. She remembered the tone, and now the haughty posture. She remembered a battlefield, a tent—her stomach lurched as she recognized Ilvriss now.</p>
+<p>“Uh oh.”</p>
+<p>Ilvriss strode towards her as the Gnolls formed a wall in the way. Zel Shivertail walked next to him. But Ryoka’s eyes were on Ilvriss. She knew why he was here. Because she remembered.</p>
+<p><em>She remembered how his lieutenant had died.</em></p>
+<p>&nbsp;</p>
+<p>&#8212;-</p>
+<p>&nbsp;</p>
+<p><em>Memory.</em></p>
+<p>The undead are approaching, terrible giants clawing out of the ground. A monster—some kind of armored Gnoll in front, a massive battleaxe in one hand. A creature of rot walks beside him. She called herself  Bea.</p>
+<p>They are coming. My eyes want to bleed at the sight of them. They are horrors far more terrible than a zombie or lesser undead. The servants of Az’kerash approach.</p>
+<p>But she does not run. The Drake commander holds her ground, and the elite warriors who have come with her ready themselves. They’ll die here. I know it. She knows it too.</p>
+<p><em>I look to Periss.</em></p>
+<p><em>“You’ll die. Run.”</em></p>
+<p><em>She looks at me, just once, and shakes her head.</em></p>
+<p>“Drakes do not run. Go!”</p>
+<p><em>My feet take me away as the soldiers charge. Sixteen against a horde. Kerash raises his battleaxe with one hand and Bea spreads her arms wide. I turn and pump my legs, running past zombies and horrors that reach for me.</em></p>
+<p><em>The screaming begins in only seconds. I hear the sounds of death, of flesh being torn and bones breaking. But I hear the living shouting in defiance as they charge the dead, fighting to the last. But falling.</em></p>
+<p><em>One by one.</em></p>
+<p>&nbsp;</p>
+<p>&#8212;-</p>
+<p>&nbsp;</p>
+<p>Ryoka felt her knees go weak. The smell, the feeling of terror and panic, all of it struck her at once. One second she was there, the next she was in the past. She stared at Ilvriss as he advanced, bare sword in hand. He barely seemed to notice the Gnolls, although the other Drakes with him were eying the Gnolls nervously. Ilvriss stopped a few feet away from the group surrounding Ryoka. He stared coldly at the Gnolls.</p>
+<p>“Move aside, civilians.”</p>
+<p>No one budged. A mocking voice came from the group of Gnolls.</p>
+<p>“We are simply standing here, Drake. Is that a crime?”</p>
+<p>Ilvriss gritted his teeth as he stared at Ryoka. Her mind was racing. Run? No. It was safer here. What did he want to do with her? What could she say?</p>
+<p>“I wish to speak with that Human. Move.”</p>
+<p>“On whose authority? You could be anyone. Fancy clothes do not make rank among Gnolls, although they do among Drakes, yes?”</p>
+<p>There was laughter among the Gnolls. The laughter died in an instant when he turned his head to look at them. Ryoka felt a sudden surge of fear. For a second Ilvriss was taller, and his eyes burned—she had to fight off whatever Skill he’d used. By her side, Mrsha was whimpering.</p>
+<p>Ilvriss’ voice was cold as he spoke. It rang out across the street.</p>
+<p>“I am Wall Lord Ilvriss, and I will speak to that Human on a matter of war. If you will not move, I will consider you all my enemies.”</p>
+<p>There was a visible <em>shift</em> in the ranks of Gnolls when they heard his title. But Krshia spoke up, sounding unafraid.</p>
+<p>“Wall Lord or not, she is a free visitor to Liscor. It would not be good for Drakes to detain an innocent person against their will, no?”</p>
+<p>The Drake stared at her. Krshia grinned. Only the people close to her could see how her paws were shaking a bit by her side.</p>
+<p>“We are citizens of Liscor. If you would harm us, you would make an enemy of the city, yes? And Ryoka is my friend.”</p>
+<p>“<em>I do not have time for games.</em>”</p>
+<p>Ilvriss shifted. He might have been raising his sword, or turning to order his people, Ryoka didn’t know. She took a step forwards and raised her voice.</p>
+<p>“Wall Lord Ilvriss. I’m right here. If you’ve got something to ask me, why not do it now?”</p>
+<p>He looked at her. It was just one look, but Ryoka felt it shoot right through her like an arrow. There was fury and other emotions in the Drake’s gaze. She felt pinned. Ilvriss stared at her and opened his mouth.</p>
+<p>“I have only one thing to ask you, Human. What happened to Periss? What happened to my lieutenant? How did she die?”</p>
+<p>The street went still. Everyone was staring at Ryoka, even the Gnolls, even Mrsha. Ryoka felt her mouth dry up. A thousand answers floated through her mind, but only one found her tongue.</p>
+<p>“I can’t tell you.”</p>
+<p>Ilvriss blinked. He stared at her, filled with fury.</p>
+<p>“<em>What?</em>”</p>
+<p>Ryoka’s mouth was on autopilot. She recited automatically from the Runner’s handbook, remembering a passage she’d read long ago when she’d first started running.</p>
+<p>“Runner’s confidentiality. I cannot reveal who I deliver to, or what was delivered to any other party without permission from my client.”</p>
+<p>She waited for the Wall Lord’s response as her mind scrambled to keep up with what she’d said. Ryoka saw Ilvriss eyes flash, and he made a garbled, <em>hissing</em> sound of incoherent rage. He seemed to be unable to process her response on a physical level.</p>
+<p>“You dare—a technicality! Answer me! <em>How did she die! </em>Tell me or I will—”</p>
+<p>He tried to stride forwards but the Drake standing next to him, Zel, grabbed him. The Gnolls backed up as the two Drakes struggled and swore and the other Drakes rushed forwards. Ryoka’s mind was whirling. Her thought process went something like this:</p>
+<p><em>If I tell him, he dies. If I tell him, I’ll die. If Az’kerash finds out—could he? What could he do to me from here?</em></p>
+<p><em>I can’t risk it. Not until I think about consequence. But that’s the last thing Ilvriss wants to hear. So how do I get out—</em></p>
+<p>Relief came when she heard shouting. Actually, crippling fear came first, but it was relief when she saw Watch Captain Zevara striding forwards with a group of [Guardsmen]. She put herself between Ilvriss and the group of Gnolls, although she didn’t look happy to do it.</p>
+<p>“Wall Lord Ilvriss, please withdraw! You cannot bear arms in the city or threaten civilians!”</p>
+<p>“Move aside, Watch Captain!”</p>
+<p>Ilvriss threw off Zel’s hands and snarled at Zevara. She hadn’t drawn her sword, and she backed up a step as Ilvriss advanced on her. He pointed at Ryoka.</p>
+<p>“That Human is hiding information! Information about my lieutenant and my soldiers and how they died! I will have it from her!”</p>
+<p>Zevara turned and looked at Ryoka. The Human girl was sure the Watch Captain had no idea who she was, but Zevara turned to Ilvriss and put a hand on her sword.</p>
+<p>“Whatever the issue, I cannot let you abduct a Human by force. Not in the city. The laws are clear—there would be an incident with the Human cities if we were found—”</p>
+<p>“I do not <em>care.</em>”</p>
+<p>Ilvriss raised his sword and the [Guardsmen] drew their weapons. Zevara braced herself and opened her mouth <em>wide</em> for some reason. Ilvriss snarled as he looked at Ryoka and she braced. Then everyone heard a shout.</p>
+<p>“<em>Pan attack!</em>”</p>
+<p>Ilvriss’ head turned. Ryoka’s head turned. She saw a black blurring object, flying towards the Wall Lord’s head. Ilvriss twisted. His hand shot out and he grabbed the spinning object before it could strike him.</p>
+<p>It was a frying pan. In the silence, everyone stared at it. A black, cast-iron frying pan. Ilvriss stared at the frying pan in his hand, a confused look on his face.</p>
+<p>“What the—”</p>
+<p>The second frying pan clocked him on the head. Ilvriss staggered but didn’t go down. He turned, snarling, and then saw the adventurers.</p>
+<p>They assembled in the street, some holding weapons, others just standing there for visual effect. Three groups of adventurers, although Ryoka couldn’t know that. She only recognized Halrac, Ceria, Pisces, Ksmvr and Yvlon. The rest of the adventurers were a mystery to her. But once she saw who was leading them, it all made sense.</p>
+<p>Three teams of adventurers stood behind a girl who held a third frying pan in her hand. Griffin Hunt, the Halfseekers, and the Horns of Hammerad. The Drakes might not have recognized any of the groups on sight, but they could identify seasoned warriors at a glance.</p>
+<p>“Someone call for trouble?”</p>
+<p>Jelaqua Ivirith grinned as she held her two-handed flail. Revi grimaced as she stood yawning next to Typhenous.</p>
+<p>“We’re not bodyguards! Why are we here?”</p>
+<p>Typhenous chuckled as he posed with the staff in his hand.</p>
+<p>“We weren’t doing anything, and this is entertaining, isn’t it Revi?”</p>
+<p>Ryoka didn’t hear Ilvriss cursing, or Zevara shouting for the adventurers to back off. She walked out of the group of Gnolls as hands seized the Wall Lord before he could leap at her. She looked at the young woman who was walking towards her, a huge grin on her face.</p>
+<p>They met in the center of the street. Ryoka saw the young woman’s smile, and heard her voice.</p>
+<p>“Hi Ryoka. What’s up?”</p>
+<p>A thousand things to say. A thousand ways to reply. Ryoka cleared her throat awkwardly. She tried to smile, and found it was actually very easy. She looked into Erin Solstice’s eyes and weakly returned the girl’s grin.</p>
+<p>“Hi Erin. I’m back.”</p>
+<p>&nbsp;</p>
+<hr />
+<p><a href="https://wanderinginn.wordpress.com/2018/02/01/4-08-t/">Previous Chapter</a> <span style="float:right;"><a href="https://wanderinginn.wordpress.com/2018/02/06/4-10">Next Chapter</a></span></p>
+			</div><!-- .entry-content -->
+
+	<footer class="entry-meta">
+		This entry was posted in <a href="https://wanderinginn.com/tag/writing/" rel="category tag">Writing</a> and tagged <a href="https://wanderinginn.com/tag/fantasy/" rel="tag">fantasy</a>, <a href="https://wanderinginn.com/tag/inn/" rel="tag">inn</a>, <a href="https://wanderinginn.com/tag/web-novel/" rel="tag">web novel</a>, <a href="https://wanderinginn.com/tag/web-serial/" rel="tag">web serial</a>, <a href="https://wanderinginn.com/tag/writing/" rel="tag">Writing</a> by <a href="https://wanderinginn.com/author/pirateaba/">pirateaba</a>. Bookmark the <a href="https://wanderinginn.com/2018/02/03/4-09/" title="Permalink to 4.09" rel="bookmark">permalink</a>.
+		
+			</footer><!-- .entry-meta -->
+</article><!-- #post-3940 -->
+
+						<div id="comments">
+	
+	
+			<h2 id="comments-title">
+			33 thoughts on &ldquo;<span>4.09</span>&rdquo;		</h2>
+
+		
+		<ol class="commentlist">
+					<li class="comment byuser comment-author-pirateaba bypostauthor even thread-even depth-1 highlander-comment" id="li-comment-10224">
+		<article id="comment-10224" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/2f8ac70cd17f11c419846c441769523b?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn"><a href='http://pirateaba.wordpress.com' rel='external nofollow ugc' class='url'>pirateaba</a></span> on <a href="https://wanderinginn.com/2018/02/03/4-09/#comment-10224"><time datetime="2018-02-03T07:26:34+00:00">February 3, 2018 at 7:26 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>And here it is! 8,000 words! I know I shouldn&#8217;t celebrate for writing less, but this is the first short chapter I&#8217;ve written in a long time, and&#8230;it&#8217;s not that short!</p>
+<p>I advertise on Patreon that I write 8,000 word chapters on average. But it feels short to me when I do it. I&#8217;ll say that I&#8217;m going to write more next chapter, but I did it shorter today for a few reasons.</p>
+<p>First, just to prove I could write a short, concise chapter that flowed, at least, in my mind. Second, because this WAS the best place to stop it. I could have padded with additional details or used another scene to add more, but I think this chapter has it, and by it, I mean something.</p>
+<p>And lastly, I made this chapter short because my hand started to hurt while typing. I&#8217;m not going to push it, and I think I need a shorter chapter after that mid-week 14,000 word Toren chapter. Actually, if the average the two out, you still get 11,000 words chapters between the two, so I&#8217;m still ahead! Ha!</p>
+<p>There will be more plot, faster plot, and tons of interactions next time. But the book is only the start. Ryoka&#8217;s return means a lot for a lot of people, and we&#8217;ll just see if that&#8217;s a good thing or a bad thing in the long run. Hope you liked this chapter! I&#8217;m looking at the Patreon poll and bracing myself, because I think it&#8217;s going to be a Geneva chapter this month&#8230;</p>
+<p>It&#8217;s gonna get interesting. Thanks for reading!</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/02/03/4-09/?replytocom=10224#respond' data-commentid="10224" data-postid="3940" data-belowelement="comment-10224" data-respondelement="respond" data-replyto="Reply to pirateaba" aria-label='Reply to pirateaba'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment odd alt depth-2 highlander-comment" id="li-comment-10254">
+		<article id="comment-10254" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/a51f26a3c7e8ef3a0eec2c6107d35d16?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn"><a href='http://deleted' rel='external nofollow ugc' class='url'>The Outrider</a></span> on <a href="https://wanderinginn.com/2018/02/03/4-09/#comment-10254"><time datetime="2018-02-03T18:31:50+00:00">February 3, 2018 at 6:31 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Just saying that the length seemed just right to me:  The last one didnt seem long and this one did not feel short.  I expect this one was much harder to write, thank you for it.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/02/03/4-09/?replytocom=10254#respond' data-commentid="10254" data-postid="3940" data-belowelement="comment-10254" data-respondelement="respond" data-replyto="Reply to The Outrider" aria-label='Reply to The Outrider'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment even depth-2 highlander-comment" id="li-comment-10325">
+		<article id="comment-10325" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/6fc40c9299a4968df18a9fe64a8808a6?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">Ocean23</span> on <a href="https://wanderinginn.com/2018/02/03/4-09/#comment-10325"><time datetime="2018-02-06T12:38:40+00:00">February 6, 2018 at 12:38 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>I&#8217;m with &#8220;The Outridert&#8221; the length was just right and it did not feel short at all!</p>
+<p>As for your hand, be careful not to push yourself to far, and if you think you need a break take it!</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/02/03/4-09/?replytocom=10325#respond' data-commentid="10325" data-postid="3940" data-belowelement="comment-10325" data-respondelement="respond" data-replyto="Reply to Ocean23" aria-label='Reply to Ocean23'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment odd alt depth-2 highlander-comment" id="li-comment-32413">
+		<article id="comment-32413" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/2c190cf50f7babe4b4951cb1e1ba25bb?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">name</span> on <a href="https://wanderinginn.com/2018/02/03/4-09/#comment-32413"><time datetime="2018-07-21T15:54:34+00:00">July 21, 2018 at 3:54 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>I just started reading volume 4 and this is the best chapter so far. Perhaps one of the top chapters overall. Great job :)</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/02/03/4-09/?replytocom=32413#respond' data-commentid="32413" data-postid="3940" data-belowelement="comment-32413" data-respondelement="respond" data-replyto="Reply to name" aria-label='Reply to name'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment even depth-2 highlander-comment" id="li-comment-112468">
+		<article id="comment-112468" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/da23cb2d0aed91f0c8f401491ea85166?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">Dominic</span> on <a href="https://wanderinginn.com/2018/02/03/4-09/#comment-112468"><time datetime="2021-09-04T22:57:31+00:00">September 4, 2021 at 10:57 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>A very fine short 8000 word chapter. Thank you.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/02/03/4-09/?replytocom=112468#respond' data-commentid="112468" data-postid="3940" data-belowelement="comment-112468" data-respondelement="respond" data-replyto="Reply to Dominic" aria-label='Reply to Dominic'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-pirateaba bypostauthor odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-10225">
+		<article id="comment-10225" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/2f8ac70cd17f11c419846c441769523b?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn"><a href='http://pirateaba.wordpress.com' rel='external nofollow ugc' class='url'>pirateaba</a></span> on <a href="https://wanderinginn.com/2018/02/03/4-09/#comment-10225"><time datetime="2018-02-03T07:27:18+00:00">February 3, 2018 at 7:27 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Leave a typo, but make it a short typo! Or a long one if I made a lot of typos&#8230;and if I did&#8230;sorry&#8230;</p>
+<p>(Sorrowful readers: MrWiggles, coyotte508, Carsten, iumeblog, Avocadolph, i, juppie, tyriantybalt, ricoanthony16, Cypher)</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/02/03/4-09/?replytocom=10225#respond' data-commentid="10225" data-postid="3940" data-belowelement="comment-10225" data-respondelement="respond" data-replyto="Reply to pirateaba" aria-label='Reply to pirateaba'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment byuser comment-author-pirateaba bypostauthor even depth-2 highlander-comment" id="li-comment-10304">
+		<article id="comment-10304" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/2f8ac70cd17f11c419846c441769523b?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn"><a href='http://pirateaba.wordpress.com' rel='external nofollow ugc' class='url'>pirateaba</a></span> on <a href="https://wanderinginn.com/2018/02/03/4-09/#comment-10304"><time datetime="2018-02-06T06:51:44+00:00">February 6, 2018 at 6:51 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Clocked is the word I was using. I think it&#8217;s the right word.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/02/03/4-09/?replytocom=10304#respond' data-commentid="10304" data-postid="3940" data-belowelement="comment-10304" data-respondelement="respond" data-replyto="Reply to pirateaba" aria-label='Reply to pirateaba'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment odd alt depth-3 highlander-comment" id="li-comment-10313">
+		<article id="comment-10313" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/1e891b0131f700e7fdc1ea15fe7501e2?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">Taurus</span> on <a href="https://wanderinginn.com/2018/02/03/4-09/#comment-10313"><time datetime="2018-02-06T09:19:00+00:00">February 6, 2018 at 9:19 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Clock<br />
+3.<br />
+British informal<br />
+hit (someone), especially on the head.<br />
+&#8220;someone clocked him for no good reason&#8221;</p>
+<p>both could be used, but I like Clocked better :)</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/02/03/4-09/?replytocom=10313#respond' data-commentid="10313" data-postid="3940" data-belowelement="comment-10313" data-respondelement="respond" data-replyto="Reply to Taurus" aria-label='Reply to Taurus'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment even depth-4 highlander-comment" id="li-comment-49856">
+		<article id="comment-49856" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/dc1208326cfe447b2dd8e968d2b9bbde?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">Grainne</span> on <a href="https://wanderinginn.com/2018/02/03/4-09/#comment-49856"><time datetime="2018-11-26T13:48:48+00:00">November 26, 2018 at 1:48 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>‘Tis true. In the vernacular; If you’re not careful I’ll clock you one.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/02/03/4-09/?replytocom=49856#respond' data-commentid="49856" data-postid="3940" data-belowelement="comment-49856" data-respondelement="respond" data-replyto="Reply to Grainne" aria-label='Reply to Grainne'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		<li class="comment odd alt depth-2 highlander-comment" id="li-comment-10341">
+		<article id="comment-10341" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/4f2d085dd23d2a73cb69f085f3b3280d?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">Nemaine</span> on <a href="https://wanderinginn.com/2018/02/03/4-09/#comment-10341"><time datetime="2018-02-07T03:41:04+00:00">February 7, 2018 at 3:41 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>“I actually prefer it over there, to be honest.”</p>
+<p>I think you mean &#8220;I actually prefer it over here, to be honest.&#8221;</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/02/03/4-09/?replytocom=10341#respond' data-commentid="10341" data-postid="3940" data-belowelement="comment-10341" data-respondelement="respond" data-replyto="Reply to Nemaine" aria-label='Reply to Nemaine'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment even depth-3 highlander-comment" id="li-comment-10378">
+		<article id="comment-10378" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/0bd64e1a6895dec2936d355dfa7b533d?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">lightningowl15</span> on <a href="https://wanderinginn.com/2018/02/03/4-09/#comment-10378"><time datetime="2018-02-09T22:51:36+00:00">February 9, 2018 at 10:51 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Funnily enough both of these are fine as they are, I&#8217;m pretty sure. In the first one prise is another form of pry and in the second Zel is saying he prefers the Wandering Inn over the Tailless Thief.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/02/03/4-09/?replytocom=10378#respond' data-commentid="10378" data-postid="3940" data-belowelement="comment-10378" data-respondelement="respond" data-replyto="Reply to lightningowl15" aria-label='Reply to lightningowl15'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		<li class="comment odd alt depth-2 highlander-comment" id="li-comment-113656">
+		<article id="comment-113656" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/85704bc017935534fe2c56455a68a533?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">Duckin_ Awesome</span> on <a href="https://wanderinginn.com/2018/02/03/4-09/#comment-113656"><time datetime="2021-10-01T07:45:48+00:00">October 1, 2021 at 7:45 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>&#8220;They began running with her over her head, helpless, as Mrsha hopped up and down on Ryoka’s stomach, making noises of excitement.&#8221; </p>
+<p>I believe it should be, &#8221; running with her over their heads&#8221;</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/02/03/4-09/?replytocom=113656#respond' data-commentid="113656" data-postid="3940" data-belowelement="comment-113656" data-respondelement="respond" data-replyto="Reply to Duckin_ Awesome" aria-label='Reply to Duckin_ Awesome'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="li-comment-10230">
+		<article id="comment-10230" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/47d7775a4c1f38703dc1fef4db01a8cd?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Galenorla</span> on <a href="https://wanderinginn.com/2018/02/03/4-09/#comment-10230"><time datetime="2018-02-03T07:58:28+00:00">February 3, 2018 at 7:58 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Perfect chapter. Glad to see resolution for so many loose ends.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/02/03/4-09/?replytocom=10230#respond' data-commentid="10230" data-postid="3940" data-belowelement="comment-10230" data-respondelement="respond" data-replyto="Reply to Galenorla" aria-label='Reply to Galenorla'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-10233">
+		<article id="comment-10233" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/4980f46313d3f3bdf1c7b5d7060d1b10?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">DaffGrind</span> on <a href="https://wanderinginn.com/2018/02/03/4-09/#comment-10233"><time datetime="2018-02-03T08:26:58+00:00">February 3, 2018 at 8:26 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Oh my. I see this ship is making ready to sail. Squeeee.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/02/03/4-09/?replytocom=10233#respond' data-commentid="10233" data-postid="3940" data-belowelement="comment-10233" data-respondelement="respond" data-replyto="Reply to DaffGrind" aria-label='Reply to DaffGrind'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-mrnoppes even thread-even depth-1 highlander-comment" id="li-comment-10236">
+		<article id="comment-10236" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/3911f73977c5fc2a08a1096769cc8e41?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn"><a href='http://noppesblog.wordpress.com' rel='external nofollow ugc' class='url'>Noppes</a></span> on <a href="https://wanderinginn.com/2018/02/03/4-09/#comment-10236"><time datetime="2018-02-03T09:31:44+00:00">February 3, 2018 at 9:31 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Pan Attack!</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/02/03/4-09/?replytocom=10236#respond' data-commentid="10236" data-postid="3940" data-belowelement="comment-10236" data-respondelement="respond" data-replyto="Reply to Noppes" aria-label='Reply to Noppes'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-10243">
+		<article id="comment-10243" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/61eb9ef02cae132035a2ddde3785bb13?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Esb</span> on <a href="https://wanderinginn.com/2018/02/03/4-09/#comment-10243"><time datetime="2018-02-03T13:32:36+00:00">February 3, 2018 at 1:32 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Only Erin&#8230;<br />
+Another great chapter for the books. I like the longer chapters, but I can definitely see why it ended there.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/02/03/4-09/?replytocom=10243#respond' data-commentid="10243" data-postid="3940" data-belowelement="comment-10243" data-respondelement="respond" data-replyto="Reply to Esb" aria-label='Reply to Esb'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-1024dp even thread-even depth-1 highlander-comment" id="li-comment-10271">
+		<article id="comment-10271" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/cb474ea3c637db7230457c2b941c8fc2?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn"><a href='http://thoughtsideaswords.wordpress.com' rel='external nofollow ugc' class='url'>1024dp</a></span> on <a href="https://wanderinginn.com/2018/02/03/4-09/#comment-10271"><time datetime="2018-02-04T01:30:54+00:00">February 4, 2018 at 1:30 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>So how many times do you have to do a pan attack before it becomes the skill [Pan Attack]?</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/02/03/4-09/?replytocom=10271#respond' data-commentid="10271" data-postid="3940" data-belowelement="comment-10271" data-respondelement="respond" data-replyto="Reply to 1024dp" aria-label='Reply to 1024dp'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment odd alt depth-2 highlander-comment" id="li-comment-10315">
+		<article id="comment-10315" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/1e891b0131f700e7fdc1ea15fe7501e2?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">Taurus</span> on <a href="https://wanderinginn.com/2018/02/03/4-09/#comment-10315"><time datetime="2018-02-06T09:19:52+00:00">February 6, 2018 at 9:19 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>that means we could get a &#8220;Table Flip Attack&#8221; at some point too</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/02/03/4-09/?replytocom=10315#respond' data-commentid="10315" data-postid="3940" data-belowelement="comment-10315" data-respondelement="respond" data-replyto="Reply to Taurus" aria-label='Reply to Taurus'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		<li class="comment even thread-odd thread-alt depth-1 highlander-comment" id="li-comment-10278">
+		<article id="comment-10278" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/d8c91ec349dfda58898848451ad8dc8f?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Ward</span> on <a href="https://wanderinginn.com/2018/02/03/4-09/#comment-10278"><time datetime="2018-02-04T12:28:50+00:00">February 4, 2018 at 12:28 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p><span class="embed-youtube" style="text-align:center; display: block;"><iframe class="youtube-player" width="584" height="329" src="https://www.youtube.com/embed/miomuSGoPzI?version=3&#038;rel=1&#038;showsearch=0&#038;showinfo=1&#038;iv_load_policy=1&#038;fs=1&#038;hl=en&#038;autohide=2&#038;wmode=transparent" allowfullscreen="true" style="border:0;" sandbox="allow-scripts allow-same-origin allow-popups allow-presentation"></iframe></span></p>
+<p>Just replace chicken with pan</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/02/03/4-09/?replytocom=10278#respond' data-commentid="10278" data-postid="3940" data-belowelement="comment-10278" data-respondelement="respond" data-replyto="Reply to Ward" aria-label='Reply to Ward'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment odd alt thread-even depth-1 highlander-comment" id="li-comment-10288">
+		<article id="comment-10288" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/f17e70effc51965ea2bf3b731b415321?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Russell</span> on <a href="https://wanderinginn.com/2018/02/03/4-09/#comment-10288"><time datetime="2018-02-05T03:49:21+00:00">February 5, 2018 at 3:49 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>I realised an inconsistency, when the three strangers were with Ryoka, she said or thought that she couldn&#8217;t light a fire with magic.  But when she got the magic book from Teriarch, she learned to cast flame from the book under his guidance, right?  If I&#8217;m not mistaken she should at least be able to cast a simplified version of it.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/02/03/4-09/?replytocom=10288#respond' data-commentid="10288" data-postid="3940" data-belowelement="comment-10288" data-respondelement="respond" data-replyto="Reply to Russell" aria-label='Reply to Russell'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment even depth-2 highlander-comment" id="li-comment-10312">
+		<article id="comment-10312" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/b725a6125aed6ce3af6d39bcd13aa590?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">raimn</span> on <a href="https://wanderinginn.com/2018/02/03/4-09/#comment-10312"><time datetime="2018-02-06T09:11:07+00:00">February 6, 2018 at 9:11 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>How so without Mana (as in fuel for Magic/Spells).<br />
+Below the Quote from interlude-4. Should clear your missunderstanding.</p>
+<p>The word was a whisper in her dry throat. But—yes, that was right! Magic! Magic could save her. Ryoka raised her hands. She called out.<br />
+“[Light]. [Light]!”<br />
+Nothing happened. Ryoka stared at her hands. She couldn’t feel the magic in her, couldn’t reach into that wellspring inside her soul and draw it out. It was as if there was nothing there.<br />
+“There is no magic here. Only the fire.”<br />
+The voice that came from the thing that had been the young woman was rasping, dead.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/02/03/4-09/?replytocom=10312#respond' data-commentid="10312" data-postid="3940" data-belowelement="comment-10312" data-respondelement="respond" data-replyto="Reply to raimn" aria-label='Reply to raimn'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment odd alt depth-2 highlander-comment" id="li-comment-10326">
+		<article id="comment-10326" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/8936973dcca9618192237bf6b6087021?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">Akrasia</span> on <a href="https://wanderinginn.com/2018/02/03/4-09/#comment-10326"><time datetime="2018-02-06T13:16:07+00:00">February 6, 2018 at 1:16 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>She tried using magic but magic didn&#8217;t work. Hence, she couldn&#8217;t make a flame with *magic*</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/02/03/4-09/?replytocom=10326#respond' data-commentid="10326" data-postid="3940" data-belowelement="comment-10326" data-respondelement="respond" data-replyto="Reply to Akrasia" aria-label='Reply to Akrasia'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-franciscaluban even thread-odd thread-alt depth-1 highlander-comment" id="li-comment-10311">
+		<article id="comment-10311" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/e1b0460548d144b67ca445745f3215a7?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn"><a href='http://franciscaluban.wordpress.com' rel='external nofollow ugc' class='url'>Chaoz_Wolfy</a></span> on <a href="https://wanderinginn.com/2018/02/03/4-09/#comment-10311"><time datetime="2018-02-06T09:10:14+00:00">February 6, 2018 at 9:10 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>TOO SOON! I FINISHED IT TOO SOON! But yay! The spell book was FINALLY delivered!</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/02/03/4-09/?replytocom=10311#respond' data-commentid="10311" data-postid="3940" data-belowelement="comment-10311" data-respondelement="respond" data-replyto="Reply to Chaoz_Wolfy" aria-label='Reply to Chaoz_Wolfy'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment odd alt thread-even depth-1 highlander-comment" id="li-comment-10324">
+		<article id="comment-10324" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/a264156b3ff3bd6bed3124e23c7bb9fb?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">TistheMoment</span> on <a href="https://wanderinginn.com/2018/02/03/4-09/#comment-10324"><time datetime="2018-02-06T12:29:15+00:00">February 6, 2018 at 12:29 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Finally. I am so happy that we finally have Ryoka back and that this chapter was far better than I imagined. I kept wondering how Pirateaba was going to handle her arriving in Liscor This was never on my radar but it was perfect.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/02/03/4-09/?replytocom=10324#respond' data-commentid="10324" data-postid="3940" data-belowelement="comment-10324" data-respondelement="respond" data-replyto="Reply to TistheMoment" aria-label='Reply to TistheMoment'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-tormanen even thread-odd thread-alt depth-1 highlander-comment" id="li-comment-10329">
+		<article id="comment-10329" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/75ce43ba42ce17b2847b64c921537122?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn"><a href='http://ogshurkin.wordpress.com' rel='external nofollow ugc' class='url'>tormanen</a></span> on <a href="https://wanderinginn.com/2018/02/03/4-09/#comment-10329"><time datetime="2018-02-06T14:51:17+00:00">February 6, 2018 at 2:51 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>IDk why it is, but saying Erin&#8217;s full name right at the end just kinda made my day.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/02/03/4-09/?replytocom=10329#respond' data-commentid="10329" data-postid="3940" data-belowelement="comment-10329" data-respondelement="respond" data-replyto="Reply to tormanen" aria-label='Reply to tormanen'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-dickinsd68 odd alt thread-even depth-1 highlander-comment" id="li-comment-10340">
+		<article id="comment-10340" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/6a2ca2aca3a9df1587ad7e8956f69899?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn"><a href='http://dickinsd68.wordpress.com' rel='external nofollow ugc' class='url'>dickinsd68</a></span> on <a href="https://wanderinginn.com/2018/02/03/4-09/#comment-10340"><time datetime="2018-02-07T01:30:26+00:00">February 7, 2018 at 1:30 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>whew!  I burst out laughing at Pan Attack!  A very serious situation and a non sense thing like that.   Thanks for the story and the laugh.   You are amazing.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/02/03/4-09/?replytocom=10340#respond' data-commentid="10340" data-postid="3940" data-belowelement="comment-10340" data-respondelement="respond" data-replyto="Reply to dickinsd68" aria-label='Reply to dickinsd68'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment even thread-odd thread-alt depth-1 highlander-comment" id="li-comment-10342">
+		<article id="comment-10342" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/4f2d085dd23d2a73cb69f085f3b3280d?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Nemaine</span> on <a href="https://wanderinginn.com/2018/02/03/4-09/#comment-10342"><time datetime="2018-02-07T03:41:48+00:00">February 7, 2018 at 3:41 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>I just loved this chapter. Thank you.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/02/03/4-09/?replytocom=10342#respond' data-commentid="10342" data-postid="3940" data-belowelement="comment-10342" data-respondelement="respond" data-replyto="Reply to Nemaine" aria-label='Reply to Nemaine'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-ishner42 odd alt thread-even depth-1 highlander-comment" id="li-comment-10347">
+		<article id="comment-10347" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/81a1d43c5e5cfb92b8cbd8ed7bb2ce5a?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">ishner</span> on <a href="https://wanderinginn.com/2018/02/03/4-09/#comment-10347"><time datetime="2018-02-07T11:07:18+00:00">February 7, 2018 at 11:07 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>To bribe the fey with food&#8230;<br />
+I think ivolethe would appreciate this song:<br />
+<span class="embed-youtube" style="text-align:center; display: block;"><iframe class="youtube-player" width="584" height="329" src="https://www.youtube.com/embed/DodPzphdXZo?version=3&#038;rel=1&#038;showsearch=0&#038;showinfo=1&#038;iv_load_policy=1&#038;fs=1&#038;hl=en&#038;autohide=2&#038;wmode=transparent" allowfullscreen="true" style="border:0;" sandbox="allow-scripts allow-same-origin allow-popups allow-presentation"></iframe></span><br />
+Sadly Ryoka probably does not know it.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/02/03/4-09/?replytocom=10347#respond' data-commentid="10347" data-postid="3940" data-belowelement="comment-10347" data-respondelement="respond" data-replyto="Reply to ishner" aria-label='Reply to ishner'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment byuser comment-author-1024dp even depth-2 highlander-comment" id="li-comment-10367">
+		<article id="comment-10367" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/cb474ea3c637db7230457c2b941c8fc2?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn"><a href='http://thoughtsideaswords.wordpress.com' rel='external nofollow ugc' class='url'>1024dp</a></span> on <a href="https://wanderinginn.com/2018/02/03/4-09/#comment-10367"><time datetime="2018-02-08T09:54:39+00:00">February 8, 2018 at 9:54 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>I can see Ryoka getting into filk just to confuse people.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/02/03/4-09/?replytocom=10367#respond' data-commentid="10367" data-postid="3940" data-belowelement="comment-10367" data-respondelement="respond" data-replyto="Reply to 1024dp" aria-label='Reply to 1024dp'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-10537">
+		<article id="comment-10537" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/fec5d109c2354aa5ebd08bfee59e5279?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Dan</span> on <a href="https://wanderinginn.com/2018/02/03/4-09/#comment-10537"><time datetime="2018-02-17T03:03:49+00:00">February 17, 2018 at 3:03 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Just wonderful! I&#8217;m pretty sure Erin has the hidden skill [Comedic Timing] or something equivalent.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/02/03/4-09/?replytocom=10537#respond' data-commentid="10537" data-postid="3940" data-belowelement="comment-10537" data-respondelement="respond" data-replyto="Reply to Dan" aria-label='Reply to Dan'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="li-comment-12505">
+		<article id="comment-12505" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/2af709819f7b6ab3990db9687b99a810?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">SilyntBD</span> on <a href="https://wanderinginn.com/2018/02/03/4-09/#comment-12505"><time datetime="2018-04-12T12:58:15+00:00">April 12, 2018 at 12:58 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>If the instructional portion of the spell book is in an unreadable (without magic) foreign language, how was Ryoka learning from it in the last book?</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/02/03/4-09/?replytocom=12505#respond' data-commentid="12505" data-postid="3940" data-belowelement="comment-12505" data-respondelement="respond" data-replyto="Reply to SilyntBD" aria-label='Reply to SilyntBD'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment odd alt depth-2 highlander-comment" id="li-comment-80917">
+		<article id="comment-80917" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/22caec28175e0f7e001a4eacad0593e9?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">All</span> on <a href="https://wanderinginn.com/2018/02/03/4-09/#comment-80917"><time datetime="2020-04-18T14:47:26+00:00">April 18, 2020 at 2:47 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Using the illustrations. Apparently they are very good but left her studdying slowly and having to give up after a few pages.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/02/03/4-09/?replytocom=80917#respond' data-commentid="80917" data-postid="3940" data-belowelement="comment-80917" data-respondelement="respond" data-replyto="Reply to All" aria-label='Reply to All'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-tweid even thread-odd thread-alt depth-1 highlander-comment" id="li-comment-95903">
+		<article id="comment-95903" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/f5661be92dbaef34bc37b1923ce5aebe?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">tweid</span> on <a href="https://wanderinginn.com/2018/02/03/4-09/#comment-95903"><time datetime="2020-12-11T14:55:00+00:00">December 11, 2020 at 2:55 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>PAN ATTACK!</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2018/02/03/4-09/?replytocom=95903#respond' data-commentid="95903" data-postid="3940" data-belowelement="comment-95903" data-respondelement="respond" data-replyto="Reply to tweid" aria-label='Reply to tweid'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		</ol>
+
+		
+		
+	
+		<div id="respond" class="comment-respond">
+		<h3 id="reply-title" class="comment-reply-title">Leave a Reply <small><a rel="nofollow" id="cancel-comment-reply-link" href="/2018/02/03/4-09/#respond" style="display:none;">Cancel reply</a></small></h3><form action="https://wanderinginn.com/wp-comments-post.php" method="post" id="commentform" class="comment-form"><input type="hidden" id="highlander_comment_nonce" name="highlander_comment_nonce" value="bd33e1bdd8" /><input type="hidden" name="_wp_http_referer" value="/2018/02/03/4-09/" />
+<input type="hidden" name="hc_post_as" id="hc_post_as" value="guest" />
+
+<div class="comment-form-field comment-textarea">
+	<label for="comment">Enter your comment here...</label>
+	<div id="comment-form-comment"><textarea id="comment" name="comment" title="Enter your comment here..."></textarea></div>
+</div>
+
+<div id="comment-form-identity">
+	<div id="comment-form-nascar">
+		<p>Fill in your details below or click an icon to log in:</p>
+		<ul>
+			<li class="selected" style="display:none;">
+				<a href="#comment-form-guest" id="postas-guest" class="nascar-signin-link"
+				 title="Login via Guest" 				>
+									</a>
+			</li>
+			<li>
+				<a href="#comment-form-load-service:WordPress.com" id="postas-wordpress" class="nascar-signin-link"
+				 title="Login via WordPress.com" 				>
+					<svg xmlns="http://www.w3.org/2000/svg" role="presentation" viewBox="0 0 24 24" ><rect x="0" fill="none" width="24" height="24"/><g><path fill="#FFF" d="M12.158 12.786l-2.698 7.84c.806.236 1.657.365 2.54.365 1.047 0 2.05-.18 2.986-.51-.024-.037-.046-.078-.065-.123l-2.762-7.57zM3.008 12c0 3.56 2.07 6.634 5.068 8.092L3.788 8.342c-.5 1.117-.78 2.354-.78 3.658zm15.06-.454c0-1.112-.398-1.88-.74-2.48-.456-.74-.883-1.368-.883-2.11 0-.825.627-1.595 1.51-1.595.04 0 .078.006.116.008-1.598-1.464-3.73-2.36-6.07-2.36-3.14 0-5.904 1.613-7.512 4.053.21.008.41.012.58.012.94 0 2.395-.114 2.395-.114.484-.028.54.684.057.74 0 0-.487.058-1.03.086l3.275 9.74 1.968-5.902-1.4-3.838c-.485-.028-.944-.085-.944-.085-.486-.03-.43-.77.056-.742 0 0 1.484.114 2.368.114.94 0 2.397-.114 2.397-.114.486-.028.543.684.058.74 0 0-.488.058-1.03.086l3.25 9.665.897-2.997c.456-1.17.684-2.137.684-2.907zm1.82-3.86c.04.286.06.593.06.924 0 .912-.17 1.938-.683 3.22l-2.746 7.94c2.672-1.558 4.47-4.454 4.47-7.77 0-1.564-.4-3.033-1.1-4.314zM12 22C6.486 22 2 17.514 2 12S6.486 2 12 2s10 4.486 10 10-4.486 10-10 10z"/></g></svg>				</a>
+			</li>
+			<li>
+				<a href="#comment-form-load-service:Twitter" id="postas-twitter" class="nascar-signin-link"
+				 title="Login via Twitter" 				>
+					<svg xmlns="http://www.w3.org/2000/svg" role="presentation" viewBox="0 0 24 24" ><rect x="0" fill="none" width="24" height="24"/><g><path fill="#FFF" d="M22.23 5.924c-.736.326-1.527.547-2.357.646.847-.508 1.498-1.312 1.804-2.27-.793.47-1.67.812-2.606.996C18.325 4.498 17.258 4 16.078 4c-2.266 0-4.103 1.837-4.103 4.103 0 .322.036.635.106.935-3.41-.17-6.433-1.804-8.457-4.287-.353.607-.556 1.312-.556 2.064 0 1.424.724 2.68 1.825 3.415-.673-.022-1.305-.207-1.86-.514v.052c0 1.988 1.415 3.647 3.293 4.023-.344.095-.707.145-1.08.145-.265 0-.522-.026-.773-.074.522 1.63 2.038 2.817 3.833 2.85-1.404 1.1-3.174 1.757-5.096 1.757-.332 0-.66-.02-.98-.057 1.816 1.164 3.973 1.843 6.29 1.843 7.547 0 11.675-6.252 11.675-11.675 0-.178-.004-.355-.012-.53.802-.578 1.497-1.3 2.047-2.124z"/></g></svg>				</a>
+			</li>
+			<li>
+				<a href="#comment-form-load-service:Facebook" id="postas-facebook" class="nascar-signin-link"
+				 title="Login via Facebook" 				>
+					<svg xmlns="http://www.w3.org/2000/svg" role="presentation" viewBox="0 0 24 24" ><rect x="0" fill="none" width="24" height="24"/><g><path fill="#FFF" d="M20.007 3H3.993C3.445 3 3 3.445 3 3.993v16.013c0 .55.445.994.993.994h8.62v-6.97H10.27V11.31h2.346V9.31c0-2.325 1.42-3.59 3.494-3.59.993 0 1.847.073 2.096.106v2.43h-1.438c-1.128 0-1.346.537-1.346 1.324v1.734h2.69l-.35 2.717h-2.34V21h4.587c.548 0 .993-.445.993-.993V3.993c0-.548-.445-.993-.993-.993z"/></g></svg>				</a>
+			</li>
+		</ul>
+	</div>
+
+	<div id="comment-form-guest" class="comment-form-service selected">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+<a href="https://gravatar.com/site/signup/" target="_blank">				<img src="https://1.gravatar.com/avatar/ad516503a11cd5ca435acc9bb6523536?s=25&amp;d=identicon&amp;forcedefault=y&amp;r=PG" alt="Gravatar" width="25" class="no-grav" />
+</a>			</div>
+
+				<div class="comment-form-fields">
+				<div class="comment-form-field comment-form-email">
+					<label for="email">Email <span class="required">(required)</span> <span class="nopublish">(Address never made public)</span></label>
+					<div class="comment-form-input"><input id="email" name="email" type="email" value="" /></div>
+				</div>
+				<div class="comment-form-field comment-form-author">
+					<label for="author">Name <span class="required">(required)</span></label>
+					<div class="comment-form-input"><input id="author" name="author" type="text" value="" /></div>
+				</div>
+				<div class="comment-form-field comment-form-url">
+					<label for="url">Website</label>
+					<div class="comment-form-input"><input id="url" name="url" type="url" value="" /></div>
+				</div>
+			</div>
+			
+		</div>
+	</div>
+
+	<div id="comment-form-wordpress" class="comment-form-service">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+				<img src="https://1.gravatar.com/avatar/ad516503a11cd5ca435acc9bb6523536?s=25&amp;d=identicon&amp;forcedefault=y&amp;r=PG" alt="WordPress.com Logo" width="25" class="no-grav" />
+			</div>
+
+				<div class="comment-form-fields">
+				<input type="hidden" name="wp_avatar" id="wordpress-avatar" class="comment-meta-wordpress" value="" />
+				<input type="hidden" name="wp_user_id" id="wordpress-user_id" class="comment-meta-wordpress" value="" />
+				<input type="hidden" name="wp_access_token" id="wordpress-access_token" class="comment-meta-wordpress" value="" />
+						<p class="comment-form-posting-as pa-wordpress">
+			<strong></strong>
+			You are commenting using your WordPress.com account.			<span class="comment-form-log-out">
+				(&nbsp;<a href="javascript:HighlanderComments.doExternalLogout( 'wordpress' );">Log&nbsp;Out</a>&nbsp;/&nbsp;
+				<a href="#" onclick="javascript:HighlanderComments.switchAccount();return false;">Change</a>&nbsp;)
+			</span>
+			<span class="pa-icon"><svg xmlns="http://www.w3.org/2000/svg" role="presentation" viewBox="0 0 24 24" ><rect x="0" fill="none" width="24" height="24"/><g><path fill="#FFF" d="M12.158 12.786l-2.698 7.84c.806.236 1.657.365 2.54.365 1.047 0 2.05-.18 2.986-.51-.024-.037-.046-.078-.065-.123l-2.762-7.57zM3.008 12c0 3.56 2.07 6.634 5.068 8.092L3.788 8.342c-.5 1.117-.78 2.354-.78 3.658zm15.06-.454c0-1.112-.398-1.88-.74-2.48-.456-.74-.883-1.368-.883-2.11 0-.825.627-1.595 1.51-1.595.04 0 .078.006.116.008-1.598-1.464-3.73-2.36-6.07-2.36-3.14 0-5.904 1.613-7.512 4.053.21.008.41.012.58.012.94 0 2.395-.114 2.395-.114.484-.028.54.684.057.74 0 0-.487.058-1.03.086l3.275 9.74 1.968-5.902-1.4-3.838c-.485-.028-.944-.085-.944-.085-.486-.03-.43-.77.056-.742 0 0 1.484.114 2.368.114.94 0 2.397-.114 2.397-.114.486-.028.543.684.058.74 0 0-.488.058-1.03.086l3.25 9.665.897-2.997c.456-1.17.684-2.137.684-2.907zm1.82-3.86c.04.286.06.593.06.924 0 .912-.17 1.938-.683 3.22l-2.746 7.94c2.672-1.558 4.47-4.454 4.47-7.77 0-1.564-.4-3.033-1.1-4.314zM12 22C6.486 22 2 17.514 2 12S6.486 2 12 2s10 4.486 10 10-4.486 10-10 10z"/></g></svg></span>
+		</p>
+					</div>
+	
+		</div>
+	</div>
+
+	<div id="comment-form-twitter" class="comment-form-service">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+				<img src="https://1.gravatar.com/avatar/ad516503a11cd5ca435acc9bb6523536?s=25&amp;d=identicon&amp;forcedefault=y&amp;r=PG" alt="Twitter picture" width="25" class="no-grav" />
+			</div>
+
+				<div class="comment-form-fields">
+				<input type="hidden" name="twitter_avatar" id="twitter-avatar" class="comment-meta-twitter" value="" />
+				<input type="hidden" name="twitter_user_id" id="twitter-user_id" class="comment-meta-twitter" value="" />
+				<input type="hidden" name="twitter_access_token" id="twitter-access_token" class="comment-meta-twitter" value="" />
+						<p class="comment-form-posting-as pa-twitter">
+			<strong></strong>
+			You are commenting using your Twitter account.			<span class="comment-form-log-out">
+				(&nbsp;<a href="javascript:HighlanderComments.doExternalLogout( 'twitter' );">Log&nbsp;Out</a>&nbsp;/&nbsp;
+				<a href="#" onclick="javascript:HighlanderComments.switchAccount();return false;">Change</a>&nbsp;)
+			</span>
+			<span class="pa-icon"><svg xmlns="http://www.w3.org/2000/svg" role="presentation" viewBox="0 0 24 24" ><rect x="0" fill="none" width="24" height="24"/><g><path fill="#FFF" d="M22.23 5.924c-.736.326-1.527.547-2.357.646.847-.508 1.498-1.312 1.804-2.27-.793.47-1.67.812-2.606.996C18.325 4.498 17.258 4 16.078 4c-2.266 0-4.103 1.837-4.103 4.103 0 .322.036.635.106.935-3.41-.17-6.433-1.804-8.457-4.287-.353.607-.556 1.312-.556 2.064 0 1.424.724 2.68 1.825 3.415-.673-.022-1.305-.207-1.86-.514v.052c0 1.988 1.415 3.647 3.293 4.023-.344.095-.707.145-1.08.145-.265 0-.522-.026-.773-.074.522 1.63 2.038 2.817 3.833 2.85-1.404 1.1-3.174 1.757-5.096 1.757-.332 0-.66-.02-.98-.057 1.816 1.164 3.973 1.843 6.29 1.843 7.547 0 11.675-6.252 11.675-11.675 0-.178-.004-.355-.012-.53.802-.578 1.497-1.3 2.047-2.124z"/></g></svg></span>
+		</p>
+					</div>
+	
+		</div>
+	</div>
+
+	<div id="comment-form-facebook" class="comment-form-service">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+				<img src="" alt="Facebook photo" width="25" class="no-grav" />
+			</div>
+
+				<div class="comment-form-fields">
+				<input type="hidden" name="fb_avatar" id="facebook-avatar" class="comment-meta-facebook" value="" />
+				<input type="hidden" name="fb_user_id" id="facebook-user_id" class="comment-meta-facebook" value="" />
+				<input type="hidden" name="fb_access_token" id="facebook-access_token" class="comment-meta-facebook" value="" />
+						<p class="comment-form-posting-as pa-facebook">
+			<strong></strong>
+			You are commenting using your Facebook account.			<span class="comment-form-log-out">
+				(&nbsp;<a href="javascript:HighlanderComments.doExternalLogout( 'facebook' );">Log&nbsp;Out</a>&nbsp;/&nbsp;
+				<a href="#" onclick="javascript:HighlanderComments.switchAccount();return false;">Change</a>&nbsp;)
+			</span>
+			<span class="pa-icon"><svg xmlns="http://www.w3.org/2000/svg" role="presentation" viewBox="0 0 24 24" ><rect x="0" fill="none" width="24" height="24"/><g><path fill="#FFF" d="M20.007 3H3.993C3.445 3 3 3.445 3 3.993v16.013c0 .55.445.994.993.994h8.62v-6.97H10.27V11.31h2.346V9.31c0-2.325 1.42-3.59 3.494-3.59.993 0 1.847.073 2.096.106v2.43h-1.438c-1.128 0-1.346.537-1.346 1.324v1.734h2.69l-.35 2.717h-2.34V21h4.587c.548 0 .993-.445.993-.993V3.993c0-.548-.445-.993-.993-.993z"/></g></svg></span>
+		</p>
+					</div>
+	
+		</div>
+	</div>
+
+
+	<div id="comment-form-load-service" class="comment-form-service">
+		<div class="comment-form-posting-as-cancel"><a href="javascript:HighlanderComments.cancelExternalWindow();">Cancel</a></div>
+		<p>Connecting to %s</p>
+	</div>
+
+</div>
+
+<script type="text/javascript">
+var highlander_expando_javascript = function () {
+
+	function hide( sel ) {
+		var el = document.querySelector( sel );
+		if ( el ) {
+			el.style.setProperty( 'display', 'none' );
+		}
+	}
+
+	function show( sel ) {
+		var el = document.querySelector( sel );
+		if ( el ) {
+			el.style.removeProperty( 'display' );
+		}
+	}
+
+	var input = document.createElement( 'input' );
+	var comment = document.querySelector( '#comment' );
+
+	if ( input && comment && 'placeholder' in input ) {
+		var label = document.querySelector( '.comment-textarea label' );
+		if ( label ) {
+			var text = label.textContent;
+			label.parentNode.removeChild( label );
+			comment.setAttribute( 'placeholder', text );
+		}
+	}
+
+	// Expando Mode: start small, then auto-resize on first click + text length
+	hide( '#comment-form-identity' );
+	hide( '#comment-form-subscribe' );
+	hide( '#commentform .form-submit' );
+
+	if ( comment ) {
+		comment.style.height = '10px';
+
+		var handler = function () {
+			comment.style.height = HighlanderComments.initialHeight + 'px';
+			show( '#comment-form-identity' );
+			show( '#comment-form-subscribe' );
+			show( '#commentform .form-submit' );
+			HighlanderComments.resizeCallback();
+
+			comment.removeEventListener( 'focus', handler );
+		};
+
+		comment.addEventListener( 'focus', handler );
+	}
+}
+
+if ( document.readyState !== 'loading' ) {
+	highlander_expando_javascript();
+} else {
+	document.addEventListener( 'DOMContentLoaded', highlander_expando_javascript );
+}
+
+</script>
+
+<div id="comment-form-subscribe">
+	<p class="comment-subscription-form"><input type="checkbox" name="subscribe" id="subscribe" value="subscribe" style="width: auto;"/> <label class="subscribe-label" id="subscribe-label" for="subscribe" style="display: inline;">Notify me of new comments via email.</label></p><p class="post-subscription-form"><input type="checkbox" name="subscribe_blog" id="subscribe_blog" value="subscribe" style="width: auto;"/> <label class="subscribe-label" id="subscribe-blog-label" for="subscribe_blog"  style="display: inline;">Notify me of new posts via email.</label></p></div>
+
+
+
+
+<p class="form-submit"><input name="submit" type="submit" id="comment-submit" class="submit button" value="Post Comment" /> <input type='hidden' name='comment_post_ID' value='3940' id='comment_post_ID' />
+<input type='hidden' name='comment_parent' id='comment_parent' value='0' />
+</p><p style="display: none;"><input type="hidden" id="akismet_comment_nonce" name="akismet_comment_nonce" value="5c65b67f04" /></p>
+<input type="hidden" name="genseq" value="1664899950" />
+<p style="display: none !important;"><label>&#916;<textarea name="ak_hp_textarea" cols="45" rows="8" maxlength="100"></textarea></label><input type="hidden" id="ak_js_1" name="ak_js" value="6"/><script>document.getElementById( "ak_js_1" ).setAttribute( "value", ( new Date() ).getTime() );</script></p></form>	</div><!-- #respond -->
+	<div style="clear: both"></div>
+</div><!-- #comments -->
+
+				
+			</div><!-- #content -->
+		</div><!-- #primary -->
+
+
+	</div><!-- #main -->
+
+	<footer id="colophon">
+
+			
+
+			<div id="site-generator">
+				 								<a href="https://wordpress.com/?ref=footer_blog" rel="nofollow">Blog at WordPress.com.</a>
+			</div>
+	</footer><!-- #colophon -->
+</div><!-- #page -->
+
+<!--  -->
+<script type="text/javascript">
+	window._tkq = window._tkq || [];
+	if ( Math.random() < 0.01 ) {
+		window._tkq.push( [
+			'recordEvent',
+			'wpcom_wordads_noad',
+			{"theme":"pub\/twentyeleven","blog_id":113840984,"post_id":3940,"reason_noadverts_plugin":1,"reason_upgrade":1,"reason_blog_null":1,"reason_post_null":1}
+		] );
+	}
+</script><script src='//0.gravatar.com/js/gprofiles.js?ver=202240z' id='grofiles-cards-js'></script>
+<script id='wpgroho-js-extra'>
+var WPGroHo = {"my_hash":""};
+</script>
+<script crossorigin='anonymous' type='text/javascript' src='https://s1.wp.com/wp-content/mu-plugins/gravatar-hovercards/wpgroho.js?m=1610363240h'></script>
+
+	<script>
+		// Initialize and attach hovercards to all gravatars
+		( function() {
+			function init() {
+				if ( typeof Gravatar === 'undefined' ) {
+					return;
+				}
+
+				if ( typeof Gravatar.init !== 'function' ) {
+					return;
+				}
+
+				Gravatar.profile_cb = function ( hash, id ) {
+					WPGroHo.syncProfileData( hash, id );
+				};
+
+				Gravatar.my_hash = WPGroHo.my_hash;
+				Gravatar.init( 'body', '#wp-admin-bar-my-account' );
+			}
+
+			if ( document.readyState !== 'loading' ) {
+				init();
+			} else {
+				document.addEventListener( 'DOMContentLoaded', init );
+			}
+		} )();
+	</script>
+
+		<div style="display:none">
+	<div class="grofile-hash-map-2f8ac70cd17f11c419846c441769523b">
+	</div>
+	<div class="grofile-hash-map-a51f26a3c7e8ef3a0eec2c6107d35d16">
+	</div>
+	<div class="grofile-hash-map-6fc40c9299a4968df18a9fe64a8808a6">
+	</div>
+	<div class="grofile-hash-map-2c190cf50f7babe4b4951cb1e1ba25bb">
+	</div>
+	<div class="grofile-hash-map-da23cb2d0aed91f0c8f401491ea85166">
+	</div>
+	<div class="grofile-hash-map-1e891b0131f700e7fdc1ea15fe7501e2">
+	</div>
+	<div class="grofile-hash-map-dc1208326cfe447b2dd8e968d2b9bbde">
+	</div>
+	<div class="grofile-hash-map-4f2d085dd23d2a73cb69f085f3b3280d">
+	</div>
+	<div class="grofile-hash-map-0bd64e1a6895dec2936d355dfa7b533d">
+	</div>
+	<div class="grofile-hash-map-85704bc017935534fe2c56455a68a533">
+	</div>
+	<div class="grofile-hash-map-47d7775a4c1f38703dc1fef4db01a8cd">
+	</div>
+	<div class="grofile-hash-map-4980f46313d3f3bdf1c7b5d7060d1b10">
+	</div>
+	<div class="grofile-hash-map-3911f73977c5fc2a08a1096769cc8e41">
+	</div>
+	<div class="grofile-hash-map-61eb9ef02cae132035a2ddde3785bb13">
+	</div>
+	<div class="grofile-hash-map-cb474ea3c637db7230457c2b941c8fc2">
+	</div>
+	<div class="grofile-hash-map-d8c91ec349dfda58898848451ad8dc8f">
+	</div>
+	<div class="grofile-hash-map-f17e70effc51965ea2bf3b731b415321">
+	</div>
+	<div class="grofile-hash-map-b725a6125aed6ce3af6d39bcd13aa590">
+	</div>
+	<div class="grofile-hash-map-8936973dcca9618192237bf6b6087021">
+	</div>
+	<div class="grofile-hash-map-e1b0460548d144b67ca445745f3215a7">
+	</div>
+	<div class="grofile-hash-map-a264156b3ff3bd6bed3124e23c7bb9fb">
+	</div>
+	<div class="grofile-hash-map-75ce43ba42ce17b2847b64c921537122">
+	</div>
+	<div class="grofile-hash-map-6a2ca2aca3a9df1587ad7e8956f69899">
+	</div>
+	<div class="grofile-hash-map-81a1d43c5e5cfb92b8cbd8ed7bb2ce5a">
+	</div>
+	<div class="grofile-hash-map-fec5d109c2354aa5ebd08bfee59e5279">
+	</div>
+	<div class="grofile-hash-map-2af709819f7b6ab3990db9687b99a810">
+	</div>
+	<div class="grofile-hash-map-22caec28175e0f7e001a4eacad0593e9">
+	</div>
+	<div class="grofile-hash-map-f5661be92dbaef34bc37b1923ce5aebe">
+	</div>
+	</div>
+<script id='highlander-comments-js-extra'>
+var HighlanderComments = {"loggingInText":"Logging In\u2026","submittingText":"Posting Comment\u2026","postCommentText":"Post Comment","connectingToText":"Connecting to %s","commentingAsText":"%1$s: You are commenting using your %2$s account.","logoutText":"Log Out","loginText":"Log In","connectURL":"https:\/\/wanderinginn.wordpress.com\/public.api\/connect\/?action=request&domain=wanderinginn.com","logoutURL":"https:\/\/wanderinginn.wordpress.com\/wp-login.php?action=logout&_wpnonce=027032d4fa","homeURL":"https:\/\/wanderinginn.com\/","postID":"3940","gravDefault":"identicon","enterACommentError":"Please enter a comment","enterEmailError":"Please enter your email address here","invalidEmailError":"Invalid email address","enterAuthorError":"Please enter your name here","gravatarFromEmail":"This picture will show whenever you leave a comment. Click to customize it.","logInToExternalAccount":"Log in to use details from one of these accounts.","change":"Change","changeAccount":"Change Account","comment_registration":"","userIsLoggedIn":"","isJetpack":"","text_direction":"ltr"};
+</script>
+<script crossorigin='anonymous' type='text/javascript' src='https://s0.wp.com/_static/??/wp-content/js/textarea-autosize.min.js,/wp-content/mu-plugins/highlander-comments/script.js?m=1663141412j'></script>
+	<div id="actionbar" style="display: none;"
+			class="actnbr-pub-twentyeleven actnbr-has-follow">
+		<ul>
+								<li class="actnbr-btn actnbr-hidden">
+								<a class="actnbr-action actnbr-actn-follow " href="">
+			<svg class="gridicon gridicons-reader-follow" height="24" width="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g><path d="M23 16v2h-3v3h-2v-3h-3v-2h3v-3h2v3h3zM20 2v9h-4v3h-3v4H4c-1.1 0-2-.9-2-2V2h18zM8 13v-1H4v1h4zm3-3H4v1h7v-1zm0-2H4v1h7V8zm7-4H4v2h14V4z"/></g></svg><span>Follow</span>
+		</a>
+		<a class="actnbr-action actnbr-actn-following  no-display" href="">
+			<svg class="gridicon gridicons-reader-following" height="24" width="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g><path d="M23 13.482L15.508 21 12 17.4l1.412-1.388 2.106 2.188 6.094-6.094L23 13.482zm-7.455 1.862L20 10.89V2H2v14c0 1.1.9 2 2 2h4.538l4.913-4.832 2.095 2.176zM8 13H4v-1h4v1zm3-2H4v-1h7v1zm0-2H4V8h7v1zm7-3H4V4h14v2z"/></g></svg><span>Following</span>
+		</a>
+							<div class="actnbr-popover tip tip-top-left actnbr-notice" id="follow-bubble">
+							<div class="tip-arrow"></div>
+							<div class="tip-inner actnbr-follow-bubble">
+															<ul>
+											<li class="actnbr-sitename">
+			<a href="https://wanderinginn.com">
+				<img alt='' src='https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=50' class='avatar avatar-50' height='50' width='50' />				The Wandering Inn			</a>
+		</li>
+										<form method="post" action="https://subscribe.wordpress.com" accept-charset="utf-8" style="display: none;">
+																						<div class="actnbr-follow-count">Join 2,697 other followers</div>
+																					<div>
+										<input type="email" name="email" placeholder="Enter your email address" class="actnbr-email-field" aria-label="Enter your email address" />
+										</div>
+										<input type="hidden" name="action" value="subscribe" />
+										<input type="hidden" name="blog_id" value="113840984" />
+										<input type="hidden" name="source" value="https://wanderinginn.com/2018/02/03/4-09/" />
+										<input type="hidden" name="sub-type" value="actionbar-follow" />
+										<input type="hidden" id="_wpnonce" name="_wpnonce" value="9bb017f338" />										<div class="actnbr-button-wrap">
+											<button type="submit" value="Sign me up">
+												Sign me up											</button>
+										</div>
+									</form>
+									<li class="actnbr-login-nudge">
+										<div>
+											Already have a WordPress.com account? <a href="https://wordpress.com/log-in?redirect_to=https%3A%2F%2Fr-login.wordpress.com%2Fremote-login.php%3Faction%3Dlink%26back%3Dhttps%253A%252F%252Fwanderinginn.com%252F2018%252F02%252F03%252F4-09%252F">Log in now.</a>										</div>
+									</li>
+								</ul>
+															</div>
+						</div>
+					</li>
+							<li class="actnbr-ellipsis actnbr-hidden">
+				<svg class="gridicon gridicons-ellipsis" height="24" width="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g><path d="M7 12c0 1.104-.896 2-2 2s-2-.896-2-2 .896-2 2-2 2 .896 2 2zm12-2c-1.104 0-2 .896-2 2s.896 2 2 2 2-.896 2-2-.896-2-2-2zm-7 0c-1.104 0-2 .896-2 2s.896 2 2 2 2-.896 2-2-.896-2-2-2z"/></g></svg>				<div class="actnbr-popover tip tip-top-left actnbr-more">
+					<div class="tip-arrow"></div>
+					<div class="tip-inner">
+						<ul>
+									<li class="actnbr-sitename">
+			<a href="https://wanderinginn.com">
+				<img alt='' src='https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=50' class='avatar avatar-50' height='50' width='50' />				The Wandering Inn			</a>
+		</li>
+								<li class="actnbr-folded-customize">
+								<a href="https://wanderinginn.wordpress.com/wp-admin/customize.php?url=https%3A%2F%2Fwanderinginn.wordpress.com%2F2018%2F02%2F03%2F4-09%2F">
+									<svg class="gridicon gridicons-customize" height="20" width="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g><path d="M2 6c0-1.505.78-3.08 2-4 0 .845.69 2 2 2 1.657 0 3 1.343 3 3 0 .386-.08.752-.212 1.09.74.594 1.476 1.19 2.19 1.81L8.9 11.98c-.62-.716-1.214-1.454-1.807-2.192C6.753 9.92 6.387 10 6 10c-2.21 0-4-1.79-4-4zm12.152 6.848l1.34-1.34c.607.304 1.283.492 2.008.492 2.485 0 4.5-2.015 4.5-4.5 0-.725-.188-1.4-.493-2.007L18 9l-2-2 3.507-3.507C18.9 3.188 18.225 3 17.5 3 15.015 3 13 5.015 13 7.5c0 .725.188 1.4.493 2.007L3 20l2 2 6.848-6.848c1.885 1.928 3.874 3.753 5.977 5.45l1.425 1.148 1.5-1.5-1.15-1.425c-1.695-2.103-3.52-4.092-5.448-5.977z"/></g></svg>									<span>Customize</span>
+								</a>
+							</li>
+																<li class="actnbr-folded-follow">
+												<a class="actnbr-action actnbr-actn-follow " href="">
+			<svg class="gridicon gridicons-reader-follow" height="24" width="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g><path d="M23 16v2h-3v3h-2v-3h-3v-2h3v-3h2v3h3zM20 2v9h-4v3h-3v4H4c-1.1 0-2-.9-2-2V2h18zM8 13v-1H4v1h4zm3-3H4v1h7v-1zm0-2H4v1h7V8zm7-4H4v2h14V4z"/></g></svg><span>Follow</span>
+		</a>
+		<a class="actnbr-action actnbr-actn-following  no-display" href="">
+			<svg class="gridicon gridicons-reader-following" height="24" width="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g><path d="M23 13.482L15.508 21 12 17.4l1.412-1.388 2.106 2.188 6.094-6.094L23 13.482zm-7.455 1.862L20 10.89V2H2v14c0 1.1.9 2 2 2h4.538l4.913-4.832 2.095 2.176zM8 13H4v-1h4v1zm3-2H4v-1h7v1zm0-2H4V8h7v1zm7-3H4V4h14v2z"/></g></svg><span>Following</span>
+		</a>
+										</li>
+																	<li class="actnbr-signup"><a href="https://wordpress.com/start/">Sign up</a></li>
+									<li class="actnbr-login"><a href="https://wordpress.com/log-in?redirect_to=https%3A%2F%2Fr-login.wordpress.com%2Fremote-login.php%3Faction%3Dlink%26back%3Dhttps%253A%252F%252Fwanderinginn.com%252F2018%252F02%252F03%252F4-09%252F">Log in</a></li>
+																	<li class="actnbr-shortlink"><a href="https://wp.me/p7HFeU-11y">Copy shortlink</a></li>
+																	<li class="flb-report"><a href="http://en.wordpress.com/abuse/">Report this content</a></li>
+																	<li class="actnbr-reader">
+										<a href="https://wordpress.com/read/blogs/113840984/posts/3940">
+											View post in Reader										</a>
+									</li>
+																	<li class="actnbr-subs">
+										<a href="https://subscribe.wordpress.com/">Manage subscriptions</a>
+									</li>
+																		<li class="actnbr-fold"><a href="">Collapse this bar</a></li>
+															</ul>
+					</div>
+				</div>
+			</li>
+		</ul>
+	</div>
+	
+<script>
+window.addEventListener( "load", function( event ) {
+	var link = document.createElement( "link" );
+	link.href = "https://s0.wp.com/wp-content/mu-plugins/actionbar/actionbar.css?v=20210915";
+	link.type = "text/css";
+	link.rel = "stylesheet";
+	document.head.appendChild( link );
+
+	var script = document.createElement( "script" );
+	script.src = "https://s0.wp.com/wp-content/mu-plugins/actionbar/actionbar.js?v=20220329";
+	script.defer = true;
+	document.body.appendChild( script );
+} );
+</script>
+
+	<script crossorigin='anonymous' type='text/javascript' src='https://s2.wp.com/_static/??-eJx9jd0OwiAMRl9I6AxmixfGRzEMqoFRRij48/ZWk3npXfOdc1J4FOXW3DA3iAwe78FheerIOxAUskvdI3+YW4lEUxVLemkKeZO2nroqqd9CZrBeuJptBbLcsMqlWrVu4X/REpiwKaMHuMjn33CtX9lLe6bTfhwPZpqOg4lvZ0RE/g=='></script>
+<script type="text/javascript">
+// <![CDATA[
+(function() {
+try{
+  if ( window.external &&'msIsSiteMode' in window.external) {
+    if (window.external.msIsSiteMode()) {
+      var jl = document.createElement('script');
+      jl.type='text/javascript';
+      jl.async=true;
+      jl.src='/wp-content/plugins/ie-sitemode/custom-jumplist.php';
+      var s = document.getElementsByTagName('script')[0];
+      s.parentNode.insertBefore(jl, s);
+    }
+  }
+}catch(e){}
+})();
+// ]]>
+</script><script src="//stats.wp.com/w.js?63" defer></script> <script type="text/javascript">
+_tkq = window._tkq || [];
+_stq = window._stq || [];
+_tkq.push(['storeContext', {'blog_id':'113840984','blog_tz':'0','user_lang':'en','blog_lang':'en','user_id':'0'}]);
+_stq.push(['view', {'blog':'113840984','v':'wpcom','tz':'0','user_id':'0','post':'3940','subd':'wanderinginn'}]);
+_stq.push(['extra', {'crypt':'UE40eW5QN0p8M2Y/RE1mNzc2NTVTamdsd0xoLz9RQkM2K298TXY9bERQMXc2MjhEaVZfb2wwakRoSj0mUkp1THptM1NdbkV1WjZIcU9mVWQmPUIvMlN6Jk8wW3NYVEJ3dWZOWExuWD9VNTEucGVTRmZwYTB2ZD82MHd0Y1Y0RlltYWdKeC9TU05lUzUxV1pzZWh8UlVlalotK3A/NWVna2ZGUkZsS18uJmNZby5Ta2glR3JXcmNjJWw0aEFTM2JMam4vQmddOE5DY1VdSWlrNklMaUVCLW8wdS9YVXdwTUl+ZSZBXVFDTHpITHZsSTdPNE9pY2x0Sj0xVGlYeUUuTF1SW1plRlFyVWJ0TGdqVlhxWDZqLC18K2Exam5WMkF3OF1yQS4tQkErc0ZKTGVJVCx1P2gscHJFdGpaanZPWi4='}]);
+_stq.push([ 'clickTrackerInit', '113840984', '3940' ]);
+	</script>
+<noscript><img src="https://pixel.wp.com/b.gif?v=noscript" style="height:1px;width:1px;overflow:hidden;position:absolute;bottom:1px;" alt="" /></noscript>
+<script>
+if ( 'object' === typeof wpcom_mobile_user_agent_info ) {
+
+	wpcom_mobile_user_agent_info.init();
+	var mobileStatsQueryString = "";
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedPlatformName )
+		mobileStatsQueryString += "&x_" + 'mobile_platforms' + '=' + wpcom_mobile_user_agent_info.matchedPlatformName;
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedUserAgentName )
+		mobileStatsQueryString += "&x_" + 'mobile_devices' + '=' + wpcom_mobile_user_agent_info.matchedUserAgentName;
+	
+	if( wpcom_mobile_user_agent_info.isIPad() )
+		mobileStatsQueryString += "&x_" + 'ipad_views' + '=' + 'views';
+
+	if( "" != mobileStatsQueryString ) {
+		new Image().src = document.location.protocol + '//pixel.wp.com/g.gif?v=wpcom-no-pv' + mobileStatsQueryString + '&baba=' + Math.random();
+	}
+	
+}
+</script>
+</body>
+</html>

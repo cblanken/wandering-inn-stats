@@ -1,0 +1,2274 @@
+<!DOCTYPE html>
+<!--[if IE 6]>
+<html id="ie6" lang="en">
+<![endif]-->
+<!--[if IE 7]>
+<html id="ie7" lang="en">
+<![endif]-->
+<!--[if IE 8]>
+<html id="ie8" lang="en">
+<![endif]-->
+<!--[if !(IE 6) & !(IE 7) & !(IE 8)]><!-->
+<html lang="en">
+<!--<![endif]-->
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width" />
+<title>
+Epilogue | The Wandering Inn	</title>
+<link rel="profile" href="https://gmpg.org/xfn/11" />
+<link rel="stylesheet" type="text/css" media="all" href="https://s2.wp.com/wp-content/themes/pub/twentyeleven/style.css?ver=20190507" />
+<link rel="pingback" href="https://wanderinginn.com/xmlrpc.php">
+<!--[if lt IE 9]>
+<script src="https://s2.wp.com/wp-content/themes/pub/twentyeleven/js/html5.js?ver=3.7.0" type="text/javascript"></script>
+<![endif]-->
+<meta name='robots' content='max-image-preview:large' />
+
+<!-- Async WordPress.com Remote Login -->
+<script id="wpcom_remote_login_js">
+var wpcom_remote_login_extra_auth = '';
+function wpcom_remote_login_remove_dom_node_id( element_id ) {
+	var dom_node = document.getElementById( element_id );
+	if ( dom_node ) { dom_node.parentNode.removeChild( dom_node ); }
+}
+function wpcom_remote_login_remove_dom_node_classes( class_name ) {
+	var dom_nodes = document.querySelectorAll( '.' + class_name );
+	for ( var i = 0; i < dom_nodes.length; i++ ) {
+		dom_nodes[ i ].parentNode.removeChild( dom_nodes[ i ] );
+	}
+}
+function wpcom_remote_login_final_cleanup() {
+	wpcom_remote_login_remove_dom_node_classes( "wpcom_remote_login_msg" );
+	wpcom_remote_login_remove_dom_node_id( "wpcom_remote_login_key" );
+	wpcom_remote_login_remove_dom_node_id( "wpcom_remote_login_validate" );
+	wpcom_remote_login_remove_dom_node_id( "wpcom_remote_login_js" );
+	wpcom_remote_login_remove_dom_node_id( "wpcom_request_access_iframe" );
+	wpcom_remote_login_remove_dom_node_id( "wpcom_request_access_styles" );
+}
+
+// Watch for messages back from the remote login
+window.addEventListener( "message", function( e ) {
+	if ( e.origin === "https://r-login.wordpress.com" ) {
+		var data = {};
+		try {
+			data = JSON.parse( e.data );
+		} catch( e ) {
+			wpcom_remote_login_final_cleanup();
+			return;
+		}
+
+		if ( data.msg === 'LOGIN' ) {
+			// Clean up the login check iframe
+			wpcom_remote_login_remove_dom_node_id( "wpcom_remote_login_key" );
+
+			var id_regex = new RegExp( /^[0-9]+$/ );
+			var token_regex = new RegExp( /^.*|.*|.*$/ );
+			if (
+				token_regex.test( data.token )
+				&& id_regex.test( data.wpcomid )
+			) {
+				// We have everything we need to ask for a login
+				var script = document.createElement( "script" );
+				script.setAttribute( "id", "wpcom_remote_login_validate" );
+				script.src = '/remote-login.php?wpcom_remote_login=validate'
+					+ '&wpcomid=' + data.wpcomid
+					+ '&token=' + encodeURIComponent( data.token )
+					+ '&host=' + window.location.protocol
+					+ '//' + window.location.hostname
+					+ '&postid=12095'
+					+ '&is_singular=1';
+				document.body.appendChild( script );
+			}
+
+			return;
+		}
+
+		// Safari ITP, not logged in, so redirect
+		if ( data.msg === 'LOGIN-REDIRECT' ) {
+			window.location = 'https://wordpress.com/log-in?redirect_to=' + window.location.href;
+			return;
+		}
+
+		// Safari ITP, storage access failed, remove the request
+		if ( data.msg === 'LOGIN-REMOVE' ) {
+			var css_zap = 'html { -webkit-transition: margin-top 1s; transition: margin-top 1s; } /* 9001 */ html { margin-top: 0 !important; } * html body { margin-top: 0 !important; } @media screen and ( max-width: 782px ) { html { margin-top: 0 !important; } * html body { margin-top: 0 !important; } }';
+			var style_zap = document.createElement( 'style' );
+			style_zap.type = 'text/css';
+			style_zap.appendChild( document.createTextNode( css_zap ) );
+			document.body.appendChild( style_zap );
+
+			var e = document.getElementById( 'wpcom_request_access_iframe' );
+			e.parentNode.removeChild( e );
+
+			document.cookie = 'wordpress_com_login_access=denied; path=/; max-age=31536000';
+
+			return;
+		}
+
+		// Safari ITP
+		if ( data.msg === 'REQUEST_ACCESS' ) {
+			console.log( 'request access: safari' );
+
+			// Check ITP iframe enable/disable knob
+			if ( wpcom_remote_login_extra_auth !== 'safari_itp_iframe' ) {
+				return;
+			}
+
+			// If we are in a "private window" there is no ITP.
+			var private_window = false;
+			try {
+				var opendb = window.openDatabase( null, null, null, null );
+			} catch( e ) {
+				private_window = true;
+			}
+
+			if ( private_window ) {
+				console.log( 'private window' );
+				return;
+			}
+
+			var iframe = document.createElement( 'iframe' );
+			iframe.id = 'wpcom_request_access_iframe';
+			iframe.setAttribute( 'scrolling', 'no' );
+			iframe.setAttribute( 'sandbox', 'allow-storage-access-by-user-activation allow-scripts allow-same-origin allow-top-navigation-by-user-activation' );
+			iframe.src = 'https://r-login.wordpress.com/remote-login.php?wpcom_remote_login=request_access&origin=' + encodeURIComponent( data.origin ) + '&wpcomid=' + encodeURIComponent( data.wpcomid );
+
+			var css = 'html { -webkit-transition: margin-top 1s; transition: margin-top 1s; } /* 9001 */ html { margin-top: 46px !important; } * html body { margin-top: 46px !important; } @media screen and ( max-width: 660px ) { html { margin-top: 71px !important; } * html body { margin-top: 71px !important; } #wpcom_request_access_iframe { display: block; height: 71px !important; } } #wpcom_request_access_iframe { border: 0px; height: 46px; position: fixed; top: 0; left: 0; width: 100%; min-width: 100%; z-index: 99999; background: #23282d; } ';
+
+			var style = document.createElement( 'style' );
+			style.type = 'text/css';
+			style.id = 'wpcom_request_access_styles';
+			style.appendChild( document.createTextNode( css ) );
+			document.body.appendChild( style );
+
+			document.body.appendChild( iframe );
+		}
+
+		if ( data.msg === 'DONE' ) {
+			wpcom_remote_login_final_cleanup();
+		}
+	}
+}, false );
+
+// Inject the remote login iframe after the page has had a chance to load
+// more critical resources
+window.addEventListener( "DOMContentLoaded", function( e ) {
+	var iframe = document.createElement( "iframe" );
+	iframe.style.display = "none";
+	iframe.setAttribute( "scrolling", "no" );
+	iframe.setAttribute( "id", "wpcom_remote_login_key" );
+	iframe.src = "https://r-login.wordpress.com/remote-login.php"
+		+ "?wpcom_remote_login=key"
+		+ "&origin=aHR0cHM6Ly93YW5kZXJpbmdpbm4uY29t"
+		+ "&wpcomid=113840984"
+		+ "&time=1664901093";
+	document.body.appendChild( iframe );
+}, false );
+</script>
+<link rel='dns-prefetch' href='//s1.wp.com' />
+<link rel='dns-prefetch' href='//wanderinginn.wordpress.com' />
+<link rel='dns-prefetch' href='//s0.wp.com' />
+<link rel='dns-prefetch' href='//s2.wp.com' />
+<link href='https://fonts.gstatic.com' crossorigin rel='preconnect' />
+<link rel="alternate" type="application/rss+xml" title="The Wandering Inn &raquo; Feed" href="https://wanderinginn.com/feed/" />
+<link rel="alternate" type="application/rss+xml" title="The Wandering Inn &raquo; Comments Feed" href="https://wanderinginn.com/comments/feed/" />
+<link rel="alternate" type="application/rss+xml" title="The Wandering Inn &raquo; Epilogue Comments Feed" href="https://wanderinginn.com/2022/05/03/epilogue/feed/" />
+	<script type="text/javascript">
+		/* <![CDATA[ */
+		function addLoadEvent(func) {
+			var oldonload = window.onload;
+			if (typeof window.onload != 'function') {
+				window.onload = func;
+			} else {
+				window.onload = function () {
+					oldonload();
+					func();
+				}
+			}
+		}
+		/* ]]> */
+	</script>
+	<script type="text/javascript">
+window._wpemojiSettings = {"baseUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/72x72\/","ext":".png","svgUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/svg\/","svgExt":".svg","source":{"concatemoji":"https:\/\/s0.wp.com\/wp-includes\/js\/wp-emoji-release.min.js?m=1652185836h&ver=6.0.2"}};
+/*! This file is auto-generated */
+!function(e,a,t){var n,r,o,i=a.createElement("canvas"),p=i.getContext&&i.getContext("2d");function s(e,t){var a=String.fromCharCode,e=(p.clearRect(0,0,i.width,i.height),p.fillText(a.apply(this,e),0,0),i.toDataURL());return p.clearRect(0,0,i.width,i.height),p.fillText(a.apply(this,t),0,0),e===i.toDataURL()}function c(e){var t=a.createElement("script");t.src=e,t.defer=t.type="text/javascript",a.getElementsByTagName("head")[0].appendChild(t)}for(o=Array("flag","emoji"),t.supports={everything:!0,everythingExceptFlag:!0},r=0;r<o.length;r++)t.supports[o[r]]=function(e){if(!p||!p.fillText)return!1;switch(p.textBaseline="top",p.font="600 32px Arial",e){case"flag":return s([127987,65039,8205,9895,65039],[127987,65039,8203,9895,65039])?!1:!s([55356,56826,55356,56819],[55356,56826,8203,55356,56819])&&!s([55356,57332,56128,56423,56128,56418,56128,56421,56128,56430,56128,56423,56128,56447],[55356,57332,8203,56128,56423,8203,56128,56418,8203,56128,56421,8203,56128,56430,8203,56128,56423,8203,56128,56447]);case"emoji":return!s([129777,127995,8205,129778,127999],[129777,127995,8203,129778,127999])}return!1}(o[r]),t.supports.everything=t.supports.everything&&t.supports[o[r]],"flag"!==o[r]&&(t.supports.everythingExceptFlag=t.supports.everythingExceptFlag&&t.supports[o[r]]);t.supports.everythingExceptFlag=t.supports.everythingExceptFlag&&!t.supports.flag,t.DOMReady=!1,t.readyCallback=function(){t.DOMReady=!0},t.supports.everything||(n=function(){t.readyCallback()},a.addEventListener?(a.addEventListener("DOMContentLoaded",n,!1),e.addEventListener("load",n,!1)):(e.attachEvent("onload",n),a.attachEvent("onreadystatechange",function(){"complete"===a.readyState&&t.readyCallback()})),(e=t.source||{}).concatemoji?c(e.concatemoji):e.wpemoji&&e.twemoji&&(c(e.twemoji),c(e.wpemoji)))}(window,document,window._wpemojiSettings);
+</script>
+<style type="text/css">
+img.wp-smiley,
+img.emoji {
+	display: inline !important;
+	border: none !important;
+	box-shadow: none !important;
+	height: 1em !important;
+	width: 1em !important;
+	margin: 0 0.07em !important;
+	vertical-align: -0.1em !important;
+	background: none !important;
+	padding: 0 !important;
+}
+</style>
+	<link crossorigin='anonymous' rel='stylesheet' id='all-css-0-1' href='https://s0.wp.com/_static/??-eJylkd1OAyEQhV9IdlyzaeOF8Vn4meBUYAkzWHl7Z5s0Vk2riTeEw8l35gBwrMavRbAI1NQjFYbYVTpsUZ2G8DYv08N0D65TCuDS6l9NItdsG8AyEk6e+Q7+FyQvmD+DqPjUAzIcGDIGspjU1uRLUZMd2EzCaP2YMpXfcfUu9RfoevlTUw1DqXarbMfaxcRG4c/3/xbRrFCJfAXP3ZwTtnfT81ztz/I3sCOFiKI4n/dG8P02UnWMca42ZDa6ZurZnL6FN+45P8273bLsH5d5f/gAOyLUIw==?cssminify=yes' type='text/css' media='all' />
+<style id='wp-block-library-inline-css'>
+.has-text-align-justify {
+	text-align:justify;
+}
+.wp-block-cover__image-background.has-parallax {
+	background-size: cover;
+}
+</style>
+<style id='global-styles-inline-css'>
+body{--wp--preset--color--black: #000;--wp--preset--color--cyan-bluish-gray: #abb8c3;--wp--preset--color--white: #fff;--wp--preset--color--pale-pink: #f78da7;--wp--preset--color--vivid-red: #cf2e2e;--wp--preset--color--luminous-vivid-orange: #ff6900;--wp--preset--color--luminous-vivid-amber: #fcb900;--wp--preset--color--light-green-cyan: #7bdcb5;--wp--preset--color--vivid-green-cyan: #00d084;--wp--preset--color--pale-cyan-blue: #8ed1fc;--wp--preset--color--vivid-cyan-blue: #0693e3;--wp--preset--color--vivid-purple: #9b51e0;--wp--preset--color--blue: #1982d1;--wp--preset--color--dark-gray: #373737;--wp--preset--color--medium-gray: #666;--wp--preset--color--light-gray: #e2e2e2;--wp--preset--gradient--vivid-cyan-blue-to-vivid-purple: linear-gradient(135deg,rgba(6,147,227,1) 0%,rgb(155,81,224) 100%);--wp--preset--gradient--light-green-cyan-to-vivid-green-cyan: linear-gradient(135deg,rgb(122,220,180) 0%,rgb(0,208,130) 100%);--wp--preset--gradient--luminous-vivid-amber-to-luminous-vivid-orange: linear-gradient(135deg,rgba(252,185,0,1) 0%,rgba(255,105,0,1) 100%);--wp--preset--gradient--luminous-vivid-orange-to-vivid-red: linear-gradient(135deg,rgba(255,105,0,1) 0%,rgb(207,46,46) 100%);--wp--preset--gradient--very-light-gray-to-cyan-bluish-gray: linear-gradient(135deg,rgb(238,238,238) 0%,rgb(169,184,195) 100%);--wp--preset--gradient--cool-to-warm-spectrum: linear-gradient(135deg,rgb(74,234,220) 0%,rgb(151,120,209) 20%,rgb(207,42,186) 40%,rgb(238,44,130) 60%,rgb(251,105,98) 80%,rgb(254,248,76) 100%);--wp--preset--gradient--blush-light-purple: linear-gradient(135deg,rgb(255,206,236) 0%,rgb(152,150,240) 100%);--wp--preset--gradient--blush-bordeaux: linear-gradient(135deg,rgb(254,205,165) 0%,rgb(254,45,45) 50%,rgb(107,0,62) 100%);--wp--preset--gradient--luminous-dusk: linear-gradient(135deg,rgb(255,203,112) 0%,rgb(199,81,192) 50%,rgb(65,88,208) 100%);--wp--preset--gradient--pale-ocean: linear-gradient(135deg,rgb(255,245,203) 0%,rgb(182,227,212) 50%,rgb(51,167,181) 100%);--wp--preset--gradient--electric-grass: linear-gradient(135deg,rgb(202,248,128) 0%,rgb(113,206,126) 100%);--wp--preset--gradient--midnight: linear-gradient(135deg,rgb(2,3,129) 0%,rgb(40,116,252) 100%);--wp--preset--duotone--dark-grayscale: url('#wp-duotone-dark-grayscale');--wp--preset--duotone--grayscale: url('#wp-duotone-grayscale');--wp--preset--duotone--purple-yellow: url('#wp-duotone-purple-yellow');--wp--preset--duotone--blue-red: url('#wp-duotone-blue-red');--wp--preset--duotone--midnight: url('#wp-duotone-midnight');--wp--preset--duotone--magenta-yellow: url('#wp-duotone-magenta-yellow');--wp--preset--duotone--purple-green: url('#wp-duotone-purple-green');--wp--preset--duotone--blue-orange: url('#wp-duotone-blue-orange');--wp--preset--font-size--small: 13px;--wp--preset--font-size--medium: 20px;--wp--preset--font-size--large: 36px;--wp--preset--font-size--x-large: 42px;--wp--preset--spacing--20: 0.44rem;--wp--preset--spacing--30: 0.67rem;--wp--preset--spacing--40: 1rem;--wp--preset--spacing--50: 1.5rem;--wp--preset--spacing--60: 2.25rem;--wp--preset--spacing--70: 3.38rem;--wp--preset--spacing--80: 5.06rem;}:where(.is-layout-flex){gap: 0.5em;}body .is-layout-flow > .alignleft{float: left;}body .is-layout-flow > .alignright{float: right;}body .is-layout-flow > .aligncenter{margin-left: auto !important;margin-right: auto !important;}body .is-layout-constrained > .alignleft{float: left;}body .is-layout-constrained > .alignright{float: right;}body .is-layout-constrained > .aligncenter{margin-left: auto !important;margin-right: auto !important;}body .is-layout-constrained > :where(:not(.alignleft):not(.alignright):not(.alignfull)){max-width: var(--wp--style--global--content-size);margin-left: auto !important;margin-right: auto !important;}body .is-layout-constrained > .alignwide{max-width: var(--wp--style--global--wide-size);}body .is-layout-flex{display: flex;}body .is-layout-flex{flex-wrap: wrap;align-items: center;}body .is-layout-flex > *{margin: 0;}:where(.wp-block-columns.is-layout-flex){gap: 2em;}.has-black-color{color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-color{color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-color{color: var(--wp--preset--color--white) !important;}.has-pale-pink-color{color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-color{color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-color{color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-color{color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-color{color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-color{color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-color{color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-color{color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-color{color: var(--wp--preset--color--vivid-purple) !important;}.has-black-background-color{background-color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-background-color{background-color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-background-color{background-color: var(--wp--preset--color--white) !important;}.has-pale-pink-background-color{background-color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-background-color{background-color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-background-color{background-color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-background-color{background-color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-background-color{background-color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-background-color{background-color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-background-color{background-color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-background-color{background-color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-background-color{background-color: var(--wp--preset--color--vivid-purple) !important;}.has-black-border-color{border-color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-border-color{border-color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-border-color{border-color: var(--wp--preset--color--white) !important;}.has-pale-pink-border-color{border-color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-border-color{border-color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-border-color{border-color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-border-color{border-color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-border-color{border-color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-border-color{border-color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-border-color{border-color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-border-color{border-color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-border-color{border-color: var(--wp--preset--color--vivid-purple) !important;}.has-vivid-cyan-blue-to-vivid-purple-gradient-background{background: var(--wp--preset--gradient--vivid-cyan-blue-to-vivid-purple) !important;}.has-light-green-cyan-to-vivid-green-cyan-gradient-background{background: var(--wp--preset--gradient--light-green-cyan-to-vivid-green-cyan) !important;}.has-luminous-vivid-amber-to-luminous-vivid-orange-gradient-background{background: var(--wp--preset--gradient--luminous-vivid-amber-to-luminous-vivid-orange) !important;}.has-luminous-vivid-orange-to-vivid-red-gradient-background{background: var(--wp--preset--gradient--luminous-vivid-orange-to-vivid-red) !important;}.has-very-light-gray-to-cyan-bluish-gray-gradient-background{background: var(--wp--preset--gradient--very-light-gray-to-cyan-bluish-gray) !important;}.has-cool-to-warm-spectrum-gradient-background{background: var(--wp--preset--gradient--cool-to-warm-spectrum) !important;}.has-blush-light-purple-gradient-background{background: var(--wp--preset--gradient--blush-light-purple) !important;}.has-blush-bordeaux-gradient-background{background: var(--wp--preset--gradient--blush-bordeaux) !important;}.has-luminous-dusk-gradient-background{background: var(--wp--preset--gradient--luminous-dusk) !important;}.has-pale-ocean-gradient-background{background: var(--wp--preset--gradient--pale-ocean) !important;}.has-electric-grass-gradient-background{background: var(--wp--preset--gradient--electric-grass) !important;}.has-midnight-gradient-background{background: var(--wp--preset--gradient--midnight) !important;}.has-small-font-size{font-size: var(--wp--preset--font-size--small) !important;}.has-medium-font-size{font-size: var(--wp--preset--font-size--medium) !important;}.has-large-font-size{font-size: var(--wp--preset--font-size--large) !important;}.has-x-large-font-size{font-size: var(--wp--preset--font-size--x-large) !important;}
+:where(.wp-block-columns.is-layout-flex){gap: 2em;}
+.wp-block-pullquote{font-size: 1.5em;line-height: 1.6;}
+.wp-block-navigation a:where(:not(.wp-element-button)){color: inherit;}
+</style>
+<link crossorigin='anonymous' rel='stylesheet' id='all-css-2-1' href='https://s1.wp.com/_static/??-eJyNj8EOwjAMQ3+IEjYBggPiW7YSSlnaVE26an9PuYGQ0G625SfZUJOxHBWjgj4woEAqI2htwYKEM0YYie0kWyuygRV10YXQ1GQ5rGYsE2eB25CnHyYUk6g4HwUcsmljBvUcv4y50+DzPzRju+GadNBaH/YNXcOlO/b9aX/edYfnC0ReZ8I=?cssminify=yes' type='text/css' media='all' />
+<style id='jetpack-global-styles-frontend-style-inline-css'>
+:root { --font-headings: unset; --font-base: unset; --font-headings-default: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif; --font-base-default: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif;}
+</style>
+<link crossorigin='anonymous' rel='stylesheet' id='all-css-4-1' href='https://s0.wp.com/wp-content/themes/h4/global.css?m=1420737423h&cssminify=yes' type='text/css' media='all' />
+<script id='wpcom-actionbar-placeholder-js-extra'>
+var actionbardata = {"siteID":"113840984","siteURL":"https:\/\/wanderinginn.com","xhrURL":"https:\/\/wanderinginn.com\/wp-admin\/admin-ajax.php","nonce":"1ba14e6909","isLoggedIn":"","statusMessage":"","subsEmailDefault":"instantly","proxyScriptUrl":"https:\/\/s0.wp.com\/wp-content\/js\/wpcom-proxy-request.js?ver=20211021","shortlink":"https:\/\/wp.me\/s7HFeU-epilogue","i18n":{"followedText":"New posts from this site will now appear in your <a href=\"https:\/\/wordpress.com\/read\">Reader<\/a>","foldBar":"Collapse this bar","unfoldBar":"Expand this bar"}};
+</script>
+<script crossorigin='anonymous' type='text/javascript' src='https://s1.wp.com/_static/??/wp-content/js/mobile-useragent-info.js,/wp-content/js/rlt-proxy.js?m=1637704497j'></script>
+<script type='text/javascript'>
+	window.addEventListener( 'DOMContentLoaded', function() {
+		rltInitialize( {"token":null,"iframeOrigins":["https:\/\/widgets.wp.com"]} );
+	} );
+</script>
+<link crossorigin='anonymous' rel='stylesheet' id='all-css-0-2' href='https://s0.wp.com/wp-content/mu-plugins/highlander-comments/style.css?m=1663315160h&cssminify=yes' type='text/css' media='all' />
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="https://wanderinginn.wordpress.com/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="https://s1.wp.com/wp-includes/wlwmanifest.xml" /> 
+<meta name="generator" content="WordPress.com" />
+<link rel="canonical" href="https://wanderinginn.com/2022/05/03/epilogue/" />
+<link rel='shortlink' href='https://wp.me/s7HFeU-epilogue' />
+<link rel="alternate" type="application/json+oembed" href="https://public-api.wordpress.com/oembed/?format=json&amp;url=https%3A%2F%2Fwanderinginn.com%2F2022%2F05%2F03%2Fepilogue%2F&amp;for=wpcom-auto-discovery" /><link rel="alternate" type="application/xml+oembed" href="https://public-api.wordpress.com/oembed/?format=xml&amp;url=https%3A%2F%2Fwanderinginn.com%2F2022%2F05%2F03%2Fepilogue%2F&amp;for=wpcom-auto-discovery" />
+<!-- Jetpack Open Graph Tags -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="Epilogue" />
+<meta property="og:url" content="https://wanderinginn.com/2022/05/03/epilogue/" />
+<meta property="og:description" content="And then she woke up. The young woman opened her eyes. Erin Solstice sat up in her bed and thought for a moment it was a dream. Then she realized it wasn’t. It was her inn. Her bed. Her room. But t…" />
+<meta property="article:published_time" content="2022-05-03T10:00:10+00:00" />
+<meta property="article:modified_time" content="2022-06-03T02:38:39+00:00" />
+<meta property="og:site_name" content="The Wandering Inn" />
+<meta property="og:image" content="https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=200" />
+<meta property="og:image:width" content="200" />
+<meta property="og:image:height" content="200" />
+<meta property="og:image:alt" content="" />
+<meta property="og:locale" content="en_US" />
+<meta property="article:publisher" content="https://www.facebook.com/WordPresscom" />
+<meta name="twitter:text:title" content="Epilogue" />
+<meta name="twitter:image" content="https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=240" />
+<meta name="twitter:card" content="summary" />
+
+<!-- End Jetpack Open Graph Tags -->
+<link rel="search" type="application/opensearchdescription+xml" href="https://wanderinginn.com/osd.xml" title="The Wandering Inn" />
+<link rel="search" type="application/opensearchdescription+xml" href="https://s1.wp.com/opensearch.xml" title="WordPress.com" />
+	<style>
+		/* Link color */
+		a,
+		#site-title a:focus,
+		#site-title a:hover,
+		#site-title a:active,
+		.entry-title a:hover,
+		.entry-title a:focus,
+		.entry-title a:active,
+		.widget_twentyeleven_ephemera .comments-link a:hover,
+		section.recent-posts .other-recent-posts a[rel="bookmark"]:hover,
+		section.recent-posts .other-recent-posts .comments-link a:hover,
+		.format-image footer.entry-meta a:hover,
+		#site-generator a:hover {
+			color: #1583af;
+		}
+		section.recent-posts .other-recent-posts .comments-link a:hover {
+			border-color: #1583af;
+		}
+		article.feature-image.small .entry-summary p a:hover,
+		.entry-header .comments-link a:hover,
+		.entry-header .comments-link a:focus,
+		.entry-header .comments-link a:active,
+		.feature-slider a.active {
+			background-color: #1583af;
+		}
+	</style>
+	<meta name="application-name" content="The Wandering Inn" /><meta name="msapplication-window" content="width=device-width;height=device-height" /><meta name="msapplication-tooltip" content="A tale of a girl, an inn, and a world full of levels." /><meta name="msapplication-task" content="name=Subscribe;action-uri=https://wanderinginn.com/feed/;icon-uri=https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=16" /><meta name="msapplication-task" content="name=Sign up for a free blog;action-uri=http://wordpress.com/signup/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Support;action-uri=http://support.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Forums;action-uri=http://forums.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="description" content="And then she woke up. The young woman opened her eyes. Erin Solstice sat up in her bed and thought for a moment it was a dream. Then she realized it wasn’t. It was her inn. Her bed. Her room. But the panoply of people who stood around her weren’t ghosts. The Horns of Hammerad,&hellip;" />
+<link rel="icon" href="https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=32" sizes="32x32" />
+<link rel="icon" href="https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=192" sizes="192x192" />
+<link rel="apple-touch-icon" href="https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=180" />
+<meta name="msapplication-TileImage" content="https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=270" />
+		<link rel="stylesheet" id="custom-css-css" type="text/css" href="https://s0.wp.com/?custom-css=1&#038;csblog=7HFeU&#038;cscache=6&#038;csrev=3" />
+		<!-- Your Google Analytics Plugin is missing the tracking ID -->
+</head>
+
+<body class="post-template-default single single-post postid-12095 single-format-standard wp-embed-responsive customizer-styles-applied single-author singular two-column right-sidebar highlander-enabled highlander-dark">
+<div class="skip-link"><a class="assistive-text" href="#content">Skip to primary content</a></div><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-dark-grayscale"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0 0.49803921568627" /><feFuncG type="table" tableValues="0 0.49803921568627" /><feFuncB type="table" tableValues="0 0.49803921568627" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-grayscale"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0 1" /><feFuncG type="table" tableValues="0 1" /><feFuncB type="table" tableValues="0 1" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-purple-yellow"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0.54901960784314 0.98823529411765" /><feFuncG type="table" tableValues="0 1" /><feFuncB type="table" tableValues="0.71764705882353 0.25490196078431" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-blue-red"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0 1" /><feFuncG type="table" tableValues="0 0.27843137254902" /><feFuncB type="table" tableValues="0.5921568627451 0.27843137254902" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-midnight"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0 0" /><feFuncG type="table" tableValues="0 0.64705882352941" /><feFuncB type="table" tableValues="0 1" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-magenta-yellow"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0.78039215686275 1" /><feFuncG type="table" tableValues="0 0.94901960784314" /><feFuncB type="table" tableValues="0.35294117647059 0.47058823529412" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-purple-green"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0.65098039215686 0.40392156862745" /><feFuncG type="table" tableValues="0 1" /><feFuncB type="table" tableValues="0.44705882352941 0.4" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-blue-orange"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0.098039215686275 1" /><feFuncG type="table" tableValues="0 0.66274509803922" /><feFuncB type="table" tableValues="0.84705882352941 0.41960784313725" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><div id="page" class="hfeed">
+	<header id="branding">
+			<hgroup>
+				<h1 id="site-title"><span><a href="https://wanderinginn.com/" rel="home">The Wandering Inn</a></span></h1>
+				<h2 id="site-description">A tale of a girl, an inn, and a world full of levels.</h2>
+			</hgroup>
+
+						<a href="https://wanderinginn.com/">
+									<img src="https://wanderinginn.files.wordpress.com/2022/07/cropped-220725_merch_banner_launch-1.png" width="1000" height="296" alt="The Wandering Inn" />
+								</a>
+			
+									<form method="get" id="searchform" action="https://wanderinginn.com/">
+		<label for="s" class="assistive-text">Search</label>
+		<input type="text" class="field" name="s" id="s" placeholder="Search" />
+		<input type="submit" class="submit" name="submit" id="searchsubmit" value="Search" />
+	</form>
+			
+			<nav id="access">
+				<h3 class="assistive-text">Main menu</h3>
+				<div class="menu-menu-1-container"><ul id="menu-menu-1" class="menu"><li id="menu-item-1422" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-home menu-item-1422"><a href="https://wanderinginn.com/">Overview</a></li>
+<li id="menu-item-1912" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1912"><a href="https://wanderinginn.com/table-of-contents/">Table of Contents</a></li>
+<li id="menu-item-1998" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-1998"><a href="https://www.patreon.com/user?u=4240617">Patreon</a></li>
+<li id="menu-item-10438" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-10438"><a href="https://wanderinginn.com/social/">Social</a>
+<ul class="sub-menu">
+	<li id="menu-item-4811" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-4811"><a href="https://discord.gg/abwsa3y">Discord</a></li>
+	<li id="menu-item-4810" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-4810"><a href="https://www.reddit.com/r/WanderingInn/">Reddit</a></li>
+	<li id="menu-item-8944" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-8944"><a href="https://twitter.com/WanderingInn">Twitter</a></li>
+	<li id="menu-item-10440" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-10440"><a href="https://www.facebook.com/thewanderinginn/">Facebook</a></li>
+</ul>
+</li>
+<li id="menu-item-10446" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-10446"><a href="https://wanderinginn.com/publishing-3/">Publishing</a>
+<ul class="sub-menu">
+	<li id="menu-item-10448" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-10448"><a href="https://www.amazon.com/kindle-dbs/entity/author/B07XCYVYMW">E-books</a></li>
+	<li id="menu-item-10447" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-10447"><a href="https://www.audible.com/author/pirate-aba/B07XCYVYMW">Audiobooks</a></li>
+	<li id="menu-item-8761" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-8761"><a href="https://www.cloudscapecomics.com/last-tide/">The Last Tide (Comicbook)</a></li>
+</ul>
+</li>
+<li id="menu-item-1424" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1424"><a href="https://wanderinginn.com/guestbook/">Guestbook</a></li>
+<li id="menu-item-2935" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-2935"><a href="https://wanderinginn.com/fanworks/">Fanworks</a>
+<ul class="sub-menu">
+	<li id="menu-item-8557" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-8557"><a href="https://wanderinginn.com/fanworks-permissions/">Fanworks Permissions</a></li>
+</ul>
+</li>
+<li id="menu-item-1426" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1426"><a href="https://wanderinginn.com/reader-reviews/">Reader Reviews</a></li>
+<li id="menu-item-5002" class="menu-item menu-item-type-post_type menu-item-object-post menu-item-has-children menu-item-5002"><a href="https://wanderinginn.com/2018/10/19/glossary/">Glossary</a>
+<ul class="sub-menu">
+	<li id="menu-item-7035" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-7035"><a href="https://wanderinginn.com/fanworks/#B">Maps</a></li>
+</ul>
+</li>
+<li id="menu-item-5684" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-5684"><a href="https://wanderinginn.com/writing-faqs/">Writing FAQs</a></li>
+<li id="menu-item-11759" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-11759"><a href="https://aubergevagabonde.wordpress.com/">L&#8217;Auberge Vagabonde</a></li>
+<li id="menu-item-11765" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-11765"><a href="https://wanderinginn.com/contacts/">Contacts</a></li>
+<li id="menu-item-12493" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-12493"><a href="https://www.store.wanderinginn.com/">Merch Store</a></li>
+<li id="menu-item-12667" class="menu-item menu-item-type-post_type menu-item-object-post menu-item-12667"><a href="https://wanderinginn.com/2022/09/28/interlude-the-great-race/">Interlude – The Great Race</a></li>
+</ul></div>			</nav><!-- #access -->
+	</header><!-- #branding -->
+
+
+	<div id="main">
+
+		<div id="primary">
+			<div id="content" role="main">
+
+				
+					<nav id="nav-single">
+						<h3 class="assistive-text">Post navigation</h3>
+						<span class="nav-previous"><a href="https://wanderinginn.com/2022/05/03/8-85/" rel="prev"><span class="meta-nav">&larr;</span> Previous</a></span>
+						<span class="nav-next"><a href="https://wanderinginn.com/2022/06/03/9-00/" rel="next">Next <span class="meta-nav">&rarr;</span></a></span>
+					</nav><!-- #nav-single -->
+
+					
+<article id="post-12095" class="post-12095 post type-post status-publish format-standard hentry category-writing">
+	<header class="entry-header">
+		<h1 class="entry-title">Epilogue</h1>
+
+				<div class="entry-meta">
+						<span class="sep">Posted on </span><a href="https://wanderinginn.com/2022/05/03/epilogue/" title="10:00 am" rel="bookmark"><time class="entry-date" datetime="2022-05-03T10:00:10+00:00">May 3, 2022</time></a><span class="by-author"> <span class="sep"> by </span> <span class="author vcard"><a class="url fn n" href="https://wanderinginn.com/author/pirateaba/" title="View all posts by pirateaba" rel="author">pirateaba</a></span></span>		</div><!-- .entry-meta -->
+			</header><!-- .entry-header -->
+
+	<div class="entry-content">
+		<p>And then she woke up.</p>
+<p>The young woman opened her eyes. Erin Solstice sat up in her bed and thought for a moment it was a dream. Then she realized it wasn’t.</p>
+<p>It was her inn. Her bed. Her room.</p>
+<p>But the panoply of people who stood around her weren’t ghosts. The Horns of Hammerad, Mrsha, held by Lyonette, who hadn’t put her down for six hours and never would again, Selys, sobbing into an armored Olesm’s shoulder, Antinium [Crusaders] jostling with Klbkch and staring up at a huge Gnoll that Erin had never met before.</p>
+<p>She didn’t know them. Not all of them. Erin Solstice looked at the Fellowship of the Inn, grinning Cave Goblins, a white Gnoll with a staff, Inkar, Palt…</p>
+<p>And so many others. Ishkr himself was watching the creaking floorboards in alarm, but if the inn exploded—well, they’d gone through worse.</p>
+<p>“What happened?”</p>
+<p>The exhalation when Erin said that was one of a hundred people each with a <i>story</i> to tell. But Erin didn’t mean that.</p>
+<p>She’d thought she was on…a battlefield? The [Innkeeper] looked around as Mrsha tackled her and the room broke into a babble. And tears.</p>
+<p><i>She was alive.</i> What Erin didn’t know…couldn’t know was that when she’d been restored to her body, she hadn’t gotten up and walked around instantly. She’d just been possessed by the greatest Drake [General] of Izril. And he had not only gotten her arm chopped off at least once, but <i>fought</i> using her body.</p>
+<p>And she’d been dead. The mysterious Gnoll who’d helped complete the ritual—Teriarch—had pronounced her alive. He had been one of the people who offered to teleport anyone who wanted to go back to Liscor.</p>
+<p>Erin had missed…the end of the war at the Meeting of Tribes. She had missed the surrender of a number of armies. Fissival had stood down; Zeres and Manus had fallen back on their leaders’ orders.</p>
+<p>The worst carnage since the Second Antinium wars had resulted in the death of tribes. If not every Gnoll—then their leaders. Plain’s Eye was no more, and Izril was filled with white Gnolls who had nothing to cling to, not their beliefs, not their tribe.</p>
+<p>Izril would not be the same. Not even the <i>land</i> was the same. An entirely new chunk of the continent had risen, adding to the southern half, and already people were arguing over who it belonged to.</p>
+<p>The Gnolls had gone through their reckoning but…what came next? Ghosts had stepped across the world, and their words lingered in the lands of the living.</p>
+<p>The Dyed Lands and parts of Baleros had been sped up in time. The Titan had returned. Ailendamus was reeling from a disaster at its palace, and the Dawn Concordat had fallen back, but no one had ended the war.</p>
+<p>The Wind Runner of Reizmelt was alive…but what would become of her? Or the Terras faction? Erin Solstice didn’t get even a fraction of this information, of course.</p>
+<p>What she got were hugs and tears. She looked at Pisces, leaning against the doorframe and trying to sniff and pretend it wasn’t due to tears.</p>
+<p>“Pisces? Ceria! Ksmvr, Yvlon?”</p>
+<p>The Horns of Hammerad were <i>here.</i> They stood in The Wandering Inn, and there was still sand in Pisces’ robes from another continent. They had come back.</p>
+<p>Through the power of the King of Khelt in this desperate hour, and Pisces looked around as if still searching for the people he had left behind. But in that moment—he stepped forwards and grabbed Erin in a fierce hug that surprised everyone. She returned it with all the strength in her shaking arms.</p>
+<p>Mrsha was hugging all of them, sobbing and snotting onto everything. She looked at her mother, Lyonette, and the [Princess] sobbed until one of the Thronebearers handed her a tissue. The golden-ish [Knights] of Calanfer looked on the [Innkeeper] and this gathering with awe.</p>
+<p>And a bit of wariness for all the strange folk. Not least because Shriekblade, Adventurer Tessa, offered Lyonette her <i>own</i> handkerchief. She had abandoned Salazsar and stood in the inn, looking at Erin with curiosity.</p>
+<p>&nbsp;</p>
+<p>——</p>
+<p>&nbsp;</p>
+<p>“Sounds like she woke up.”</p>
+<p>Outside The Wandering Inn, more people were gathered on the hill, looking up towards the sounds coming through the window. Not just by choice; there was no room inside for so many people to stand.</p>
+<p>So, many of the [Crusaders] knelt or stood as the Antinium prayed around them. Pivr, flexing a broken wing, was doffing his hat to everyone in sight next to Normen and Alcaz. Normen had his arm in a sling, but for once…the Brothers had come back.</p>
+<p>Even some of the Antinium had survived. The Beriad of 6th Battalion stood, all seventeen of them. Seventeen, where a hundred had been that morning.</p>
+<p>A Minotaur with one arm stood next to them. His head was bowed so far it seemed it should have crushed him down.</p>
+<p>But honor and pride in them refused to let Calruz kneel. For once—the Minotaur looked up and saw he was not alone. The son of Hammerad looked at the souls of Minos in seventeen Antinium.</p>
+<p>And even Bezale and Venaz saw it too. The Minotaur [Strategist] had left Perorn behind in the Great Plains to come here. But now was not a time of judgement. He stood with Wil Kallinad, Yerranola, Merrik, and Peki, gazing up at the window.</p>
+<p>Feshi Weatherfur was not with them. The Chieftain of the Weatherfur tribe could not leave at this moment.</p>
+<p>Her adventure had ended here. She would never go back to the academy. Venaz looked up, and he saw less glory and far too much heartbreak on this adventure than he had seen when he first left Baleros with Wil.</p>
+<p>But what he had found was…something else. He looked at Calruz of Hammerad and wondered where the traitor and monster was hiding. Because he couldn’t see it. He looked at the Antinium, and his world could never look the same.</p>
+<p>&nbsp;</p>
+<p>——</p>
+<p>&nbsp;</p>
+<p>Their wounds would never heal. A little bee crawled onto Lyonette’s shoulder, clumsily holding onto the cloth with one set of legs. Her good wing fanned as Gireulashia stared down at the bee.</p>
+<p>Was it worth it? Rasktooth grinned as Infinitypear carried him on his shoulders. He patted the Worker’s head, and Fierre hugged Garia as Ulvama wiped her face on Octavia’s hair. But after so long…</p>
+<p>They were here again. Someone else joined the chaos threatening to break Erin’s bed, and Numbtongue, Badarrow, and Bird bent down as Erin looked up at them. Then she looked past them and gasped.</p>
+<p>“Relc?”</p>
+<p>The Drake was leaning on Embria’s shoulder and Klbkch’s. He kept looking at her and then away.</p>
+<p>“Klb, pinch me again.”</p>
+<p>“I have pinched you ninety one times. She is there.”</p>
+<p>“Pinch me, buddy.”</p>
+<p>A hundred times a hundred people wanted to meet Erin. The inn had a line stretching all the way to the gates, but that didn’t matter.</p>
+<p>It was a public holiday, after all. The Council had declared it in memorial of the battle of the Great Plains, a celebration honoring Strategos Olesm and Liscor’s army, and when pressed, Councilmember Lism had also added the return of Councilmembers Krshia and Beilmark. It was a commemoration of General Sserys’ ghost.</p>
+<p>There were no other reasons at all. Nor did he appear at the inn. Neither did Watch Captain Zevara. She just calmly looked at the chaos on that hill and reset her little calendar marking the days since a ‘Solstice event’ back to zero.</p>
+<p>She wasn’t smiling as she poured herself a little cup. The Watch Captain had to be at her desk. She’d go there—after clocking out.</p>
+<p>&nbsp;</p>
+<p>——</p>
+<p>&nbsp;</p>
+<p>Time. It had been a long time. The chaos would certainly return, and the Watch were already preparing briefings for the new recruits.</p>
+<p>In time, they’d surely start complaining about that stupid, crazy Human. Tomorrow. But this hour was for meetings.</p>
+<p>Some people had waited a long time to meet Erin Solstice. They could wait and watch a second longer. A minute…savoring this moment.</p>
+<p>When Rags got tired of savoring the moment, she kicked everyone in the shins, and Erin Solstice looked up from the swearing. Her eyes met a little Goblin’s, and an [Innkeeper] in her inn stared at a familiar, awkward smile.</p>
+<p>“Rags…?”</p>
+<p>She was taller and older, but then Erin was being helped up, and there they were.</p>
+<p>A Drake and an Antinium probably wasting Watch hours when they should be on duty.</p>
+<p>A strange Human girl from far away, on a long journey.</p>
+<p>A sniffing [Necromancer], pretending he was aloof to it all.</p>
+<p>And a little Goblin, who hesitated, all the words she’d practiced flying out of her head.</p>
+<p>“Rags!”</p>
+<p>“H-hello, Erin.”</p>
+<p>The [Innkeeper] looked at her in shock.</p>
+<p>“You can <i>talk?”</i></p>
+<p>Rags rolled her eyes. But then she smiled, and Erin was laughing. She looked around, and her mind whirled.</p>
+<p>They were all <i>here. </i>It was glorious. It was a miracle. Erin looked from face to face and realized—Ryoka Griffin wasn’t here. Nor was…</p>
+<p>Was…</p>
+<p>For a second, the vision of the living wavered, and Erin thought she saw another company. Of supercilious rulers. Strange legends. Bossy [Witches]. Her smile wavered, and her friends and guests saw the [Innkeeper] look about.</p>
+<p>Erin gazed around and felt, suddenly, a terrible fear sweeping over her.</p>
+<p>She had returned from the land of the dead. But a war had been lost. A screaming dead god still fell into the wound of the world. Seamwalkers had been destroyed.</p>
+<p>Yet the ones who lived stared up from their nest in the grave of gods and other continents and now <i>knew</i> there was a world above. A’ctelios had gone silent, as had Rhir, but for how long?</p>
+<p>The gods walked this mortal land. Four out of the six had been vanquished, but forever? One god was screaming in a box. Two more flew through space as the last ghost and Agelum fought them.</p>
+<p><i>A Dragon lived.</i> But how much of him? Teriarch spoke to Manus and Rafaema, but his eyes flickered to the [Maid] standing there and watching him. Not a trace of recognition was in his eyes.</p>
+<p>For, like Erin…his memory of what he had been told was changed. But that was not the only reason.</p>
+<p>&nbsp;</p>
+<p>——</p>
+<p>&nbsp;</p>
+<p><i>He was still walking. </i>A half-Elf trailed across the ground, bleeding magic. The armies had fled his death. But he was still dying.</p>
+<p>“I don’t want to die.”</p>
+<p>Eldavin whispered. He was alone. The Simulacrum was untethered forever from the Dragon. He stumbled and fell.</p>
+<p>No more magic. No hope of salvation himself. His heart was empty. He lay there until a pair of figures found him.</p>
+<p><i>Were they even there? </i>The half-Elf looked up.</p>
+<p>“Who are you?”</p>
+<p>It would be a question that echoed around the world in time. It was a herald, but the two just smiled at him. The first, an old woman with eyes like death, bent down. A mother, a young woman, next to a warrior. Both of them reached down. They whispered to him. An offer.</p>
+<p>“<i>Do you want to live, Eldavin? Take my hand.</i>”</p>
+<p>The piece of magic and a Dragon’s memories looked up. He reached out.</p>
+<p><i>He wanted to live.</i></p>
+<p>&nbsp;</p>
+<p>——</p>
+<p>&nbsp;</p>
+<p>The last foe of the tribes had also survived the battle. She always did.</p>
+<p>She had never died. The Spider, the immortal Witch of Webs, always survived. Even the greatest [Witches] of old had gone to their deaths, but Belavierr had defied fate itself.</p>
+<p>Why then did she scream? A shriek without ending, which had begun since the [Witches] bound her with truth and magic? They had let her live, for a [Witch], even one who wrought such terrible craft as Belavierr, was a <i>Witch.</i></p>
+<p>But they burned her. And they bound her with something more terrible than any spell she could worm her way out of.</p>
+<p>They whispered truth to her and set her the charge of ages. Belavierr tried to resist as she stood on Izril’s shores.</p>
+<p><i>She felt her class trembling.</i> Her very craft threatened to break. A promise older than Belavierr impelled her. She was the Temptress, the Threadbreaker…</p>
+<p>A conscript in a struggle against a foe to make Seamwalkers seem small. The last great coven of Witches was not kind. They spared Belavierr her due death to weigh a heavier task on her head.</p>
+<p>So, screaming, the [Witch] walked into the sea. Her eyes stared, one orange and ringed, one pale and weeping with the memory of Gnolls. They writhed and danced with outrage, with <i>fury</i> over being compelled. Over being—tricked.</p>
+<p><i>But there was no one to blame. No one to curse.</i> She refused! She would not…the [Witch] struggled. Those eyes stared into the dark waters, and the rings of orange light wavered. The lines of black immortality tried to crawl out of her eye. A spider made of string pulled itself out of one eye, and the other revealed the soul within, <i>bulging</i> with helpless fury.</p>
+<p>The woman walked deeper into the waves, for she had no other choice. Her dress spread out like a spill of oil, and her limbs contorted in ways that bones and flesh should not do. In the deep, Krakens stirred and began to suffer nightmares.</p>
+<p><i>Still Belavierr screamed. </i>Her shriek continued, even as the dark waters of the surf raced around her chin. Into her mouth—until her eyes stared up through dark waters. The tip of her hat vanished into the water, and her daughters felt her leave Izril.</p>
+<p><i>On a long, deep journey.</i></p>
+<p>&nbsp;</p>
+<p>——</p>
+<p>&nbsp;</p>
+<p>Each nation, each power and group in this world had just witnessed something they couldn’t explain. Khelt had fought…and had it won?</p>
+<p>The King of Khelt sailed away from Izril without even bothering to wait for Erin Solstice to wake. He would speak to her again, and besides…the King of Destruction might have been beheaded if Fetohep waited a moment longer.</p>
+<p>The presence of Antinium, undead, and Flos Reimarch himself were all threats that the Walled Cities would have done their utmost to eradicate. However—the [Soldiers] had seen their continent split in two. They looked upon the white Gnolls of Plain’s Eye and wavered.</p>
+<p>Despite what each city might order, Wall Lord Ilvriss, Dragonspeaker Luciva, First Gardener Shaerrha, and Admiral Asale all refused to lead their armies into battle on the Drakes’ side. Each one for their own reason. Luciva herself listened to the ‘white Gnoll’ with mismatched eyes, and she had found Rafaema.</p>
+<p>Moreover, they faced Khelt and the united tribes of Izril. The Drakes still tried to deal with the Goblins and Antinium on the field, but they disappeared beneath the earth or flew away on the backs of Wyverns led by a mysterious [Great Chieftain]. Rags. The rest just vanished, returning home via the power of the Dragonlord of Flame. He had no enemies in any one species, and Fetohep of Khelt swore his vengeance upon any force who drew more blood this day.</p>
+<p>In this moment, at this time—when the Walled Cities protested, the world backed Khelt. Their gratitude might wane in time, but when Fetohep spoke, the Four Great Companies of Baleros, the Blighted Kingdom of Rhir, the monarchs of Terandria, and great nations of Chandrar told the Drakes there would be war if they did not heed his words.</p>
+<p>So, for once, the Drakes abandoned their vengeance, if not their grudges. They looked forwards and back, counting the cost of this disaster. The wise ones listened to the warnings they’d been given. Perhaps they might change.</p>
+<p>As for Chandrar, the warships that had come to Izril had left the bones of countless dead in their wake. The Great Plains were shaped by the magics unleashed there, but the holds of the warships were packed. Not just with the half-Elves or his new subjects, but Gnolls.</p>
+<p>They abandoned Izril for a different land that might not be filled with so many petty enemies. Or at least, not Drakes. The King of Destruction was returned to health, but even he looked shaken by what he had witnessed.</p>
+<p>King Raelt was free. He and Queen Jecaina, both rulers of their nation, looked at each other and across the sea as Rasea Zecrew took off, chasing her own adventures.</p>
+<p>However, the Vizir Hecrelunn did not sail with Fetohep. He had felt Khelta die, and he and the half-Giants of Serept had looked back at their kingdom and found no home there. Hecrelunn flew away from Izril, screaming curses and weeping for his beloved [Queens].</p>
+<p>&nbsp;</p>
+<p>——</p>
+<p>&nbsp;</p>
+<p>A single Revenant continued the battle after it ended. Though it took him nearly a day, the [Champion of War], Salui, climbed the walls of Zeres. He had no axe. The spells consumed his body, struck his bones—</p>
+<p>But he cared not. His-Xe was dead. Salui stood on Zeres’ walls as the magic obliterated him, crying out and looking for his great [King]. Yet he would never find him.</p>
+<p>&nbsp;</p>
+<p>——</p>
+<p>&nbsp;</p>
+<p><i>The lands of the dead were no more. </i>A single goddess strode the void, and every soul which perished would belong to her.</p>
+<p>In time, she would be too powerful. But the Gnome dangling his legs over the edge of the abyss of nothing, still staring up towards where Xarkouth and Razia had fled, thought that Kasigna would not win so easily.</p>
+<p>“You know, they will fight you. Even your daughter, Cauwine. Tamaroth, Norechl, if they ever return. Laedonius may be dead, and Emerrhain’s in a box, but the blood of gods may fuel them. Even the ones who have lost everything. Or interlopers from afar. Who knows?”</p>
+<p>Kasigna had begun her great work. In the oblivion, she would remake this place. Better. With some advice. She paused a moment, for the task wearied even her. But she had longer than seven days to do it.</p>
+<p>“Little Zineryr. Do you seek to pit me against them? I am aware of every danger, and you will play no more tricks.”</p>
+<p>“But it seems I have the honor of being your last ghost. Aside from the Agelum and Void Dragon. Not very complete of you. Don’t you think you’d better wait on remaking the afterlife until Norechl and Tamaroth are gone? You’ll never get it <i>perfect</i> if Norechl stains something. And that beard hair…”</p>
+<p>The Goddess of Death glared at Zineryr as he pretended to shudder. She spoke softly.</p>
+<p>“This is the end. The ghosts did more than I thought possible, but they are all gone. So, Gnome. So, Zineryr…tell your last joke. Play your last prank. Then take my hand.”</p>
+<p>She waited, and the merry look faded on Zineryr’s face. He looked at her and then stood, brushing down the spacesuit he wore. He turned to Kasigna, and when he replied, he looked as young as the days when they had both lived.</p>
+<p>“Kasigna. I have always loved you.”</p>
+<p>She waited for the joke at her expense, the prank on the divine. But Zineryr went on.</p>
+<p>“Of all the gods, I did love you. Because you, for all the arrogance of the others, for all the cunning—even intelligence of some, the bravery of others, I knew that when I died, you would take my hand, and I would have meaning in the afterlife. Even if it was what you thought. I loved you all, but you had a vision for this world I could not countenance. I did weep when I chose to take arms against you. I did hesitate. But I loved you.”</p>
+<p>He looked in her eyes, and the Goddess stood there. Zineryr went on.</p>
+<p>“When you returned…perhaps the ghosts and I wondered if you had changed. All this strife. This destruction. Even you all wept for what came to pass. An eternity of death, yet you clung to existence. And after so long—you did not change. After all your mistakes? You did what you had done before.”</p>
+<p>He hung his head.</p>
+<p>“Perhaps…even we hoped you might become something different. Yet even Cauwine only changes slightly. Were the gods we loved so static? Will all of what passed, that even you call a time of legends, be wasted if <i>nothing changes?</i>”</p>
+<p>The Goddess of Death had nothing to say. Zineryr shrugged his shoulders wearily.</p>
+<p>“I am Zineryr, the first Gnome to fly into the stars. I am the last ghost of the Second-Furthest Travelers. I slew my gods, and I watched the ghosts of the world fight until their end. They fought with a glory and courage that has never faded from the days when I lived and breathed.”</p>
+<p>He turned, and his eyes encompassed the entire war in this blackness. The Gnome sighed.</p>
+<p>“Yet they did end. And here I stand, the last ghost of all. The Goddess of Death whom I loved and still…still a part of me loves, asks me for a final joke.”</p>
+<p>The Gnome looked up at Kasigna, and she gazed down at him. Her head lowered slightly, and Zineryr whispered.</p>
+<p>“<i>The joke is this: </i>the gods did defeat the dead. They ate every last ghost. Two gods fell, and two more were carried away, all by ghosts. A single [Innkeeper] escaped the gods, and the Faerie King drew his odd designs across fate itself. Then…then Kasigna said: we will surely win <i>this time.</i>”</p>
+<p>He turned and smiled. Up, up at the goddess, and the three-in-one did not smile. Zineryr did, and he chuckled. Then he reached out—</p>
+<p><i>And was gone.</i></p>
+<p>Kasigna stood there a while, his words echoing in her ears. Then she bent her head once more to her great task. After all…they had time.</p>
+<p>&nbsp;</p>
+<p>——</p>
+<p>&nbsp;</p>
+<p>Time. Erin Solstice looked around in a lull between all the furious voices—she wasn’t hearing much anyways, just getting hugs. Her body was so…weak.</p>
+<p>She felt dizzy. She felt despairing and hopeful and…</p>
+<p><i>They had time. </i>But she had a mission. She knew that. Erin Solstice closed her eyes. She…</p>
+<p><i>She had met…?</i></p>
+<p>“Who was he? Who were they? Why can’t I remember?”</p>
+<p>Tears sprang to her eyes, and she collapsed backwards. This changing world moved around her, and when she had the strength to get up, there was everything to do.</p>
+<p>But Erin was sure…sure she had not just been sleeping. Fetohep of Khelt had known her. Pisces told her he’d heard her horn.</p>
+<p>Yet it was all a haze. The memories—<i>too many memories</i>—jumbled in Erin’s mind, and she couldn’t hold onto them. The experiences of a ghost tried to make sense to the living girl, and she began crying.</p>
+<p><i>She had friends.</i> They had been there. She knew it. But the names and faces escaped her. The stories…everything she had been through.</p>
+<p>It was too much for one mortal mind. Erin sobbed as she lay in bed. She was so <i>weak.</i></p>
+<p>Her eyes fluttered after she wept, and exhaustion dragged her down. Erin heard a familiar voice as she slept. She supposed being dead really did mean you didn’t hear it. But now…</p>
+<p>&nbsp;</p>
+<p><i>[Magical Innkeeper Level 46!]</i></p>
+<p><i>[Skill…</i></p>
+<p>&nbsp;</p>
+<p>Then a long, long pause. As if something that wasn’t quite sentient, wasn’t quite…alive, but still had methods and ways, a system, was taking its time and figuring something out.</p>
+<p>Then Erin heard an uncertain voice.</p>
+<p>&nbsp;</p>
+<p><i>[Queen of Undeath Level 6!]</i></p>
+<p><i>[Skill </i>–<i> Command Undead: Lesser obt—</i></p>
+<p><strong><i>&lt;Khelta, [Queen of the Eternal Necrocracy]&gt; </i></strong><b><i>[Not found. Canceling.]</i></b></p>
+<p><i>[Sage’s Apprentice Level 2!]</i></p>
+<p><i>[Sk—</i></p>
+<p><strong><i>&lt;Velzi, [Sage of a Hundred Thousand Secrets&gt; </i></strong><b><i>[Not found. Canceling.]</i></b></p>
+<p><i>[Dragonfriend Level 41!]</i></p>
+<p><strong><i>&lt;Yderigrisel, Dragon&gt;</i></strong><b><i> [Not found. Canceling.]</i></b></p>
+<p><strong><i>&lt;Xarkouth, Dragon&gt;</i></strong><b><i> [Not found. Canceling.]</i></b></p>
+<p><strong><i>&lt;Rhiveile Zessoprical, Wyrm&gt; </i></strong><b><i>[Not found. Canceling.]</i></b></p>
+<p>&nbsp;</p>
+<p>On and on it went. Trying to award her…</p>
+<p>&nbsp;</p>
+<p><i>[Rebel Level 11!]</i></p>
+<p><strong><i>&lt;Elucina, [Hero of String]&gt;</i></strong><b><i> [Not found. Canceling.]</i></b></p>
+<p>&nbsp;</p>
+<p>Erin listened, trying to hold onto the names. Listening to the classes fading out. Only a few tried to stick to her.</p>
+<p>&nbsp;</p>
+<p>[Slaver Class obtained!]</p>
+<p>[Slaver Leve—</p>
+<p><span style="color:#ff0000;"><i>[Level Ups Cancelled.]</i></span></p>
+<p>&nbsp;</p>
+<p><i>[Servant of Nerrhavia Class Obtained!]</i></p>
+<p><i>[Serv—</i></p>
+<p><span style="color:#ff0000;"><i>[Level Ups Cancelled]</i></span></p>
+<p>&nbsp;</p>
+<p>And then…and then the voice in her head was silent again. As if mulling over things it could not explain. But Erin knew why…and the voice, seemingly put out by all the mysteries, gave up and went back to the start.</p>
+<p>&nbsp;</p>
+<p>[Witch Class Obtained!]</p>
+<p>[Conditions Met: Witch → Witch of Second Chances Class!]</p>
+<p>[Witch of Second Chances Level 12!]</p>
+<p>[Skill – School: Witchcraft (Undetermined) obtained!]</p>
+<p>[Skill – Basic Brewing obtained!]</p>
+<p>[Spell—</p>
+<p>&nbsp;</p>
+<p>She was still crying. Erin didn’t push away the levels. She longed for all of them, except the—the bad ones. She would have been any of them.</p>
+<p>The [Queen], the [Hero], a [Sage], a [Rebel]&#8230;she would have taken each and every class, even [Pickpocket] like…like who had shown her?</p>
+<p><i>She owed it to them. </i>To those glorious souls. She would have been a [Necromancer] if she could remember what they had told her and given her. But all she had was one class from some intelligent women with hats who knew enough to teach her how to be what they were instead of giving her something.</p>
+<p>It almost sounded like the voice in her head knew it too. The apologetic tone listed off the Skills and spells as Erin sobbed into the quiet room. Then it tremulously added one more thing.</p>
+<p>&nbsp;</p>
+<p>…[Magical Innkeeper Level 46!]</p>
+<p>[Skill – Immunity: Crossbow Bolts obtained!]</p>
+<p>&nbsp;</p>
+<p>Erin Solstice lay there, and she would have traded everything for just one face. One name. She…</p>
+<p><i>She would never forget them. Never!</i> The [Innkeeper] tried to get up. She had a purpose. She had to…</p>
+<p>She had to do more than just things for herself. More than just warn the world or get ready.</p>
+<p><i>They had told her their stories and she could not forget.</i> The [Innkeeper] clenched her fists. She had spit in the face of ___s, or tried to.</p>
+<p><i>“I’ll never forget them! Never! </i>I swore—I swore to break every chain! I promised to tell Pisces—<i>”</i></p>
+<p>Her breath caught. Erin fought to remember that name. The faces. No—she refused to forget <i>anything.</i> Even if her head exploded. She screamed, and people came running, but they found Erin collapsed in bed as she fainted.</p>
+<p><i>I will never forget what I owe them. Any one of them. </i></p>
+<p>The [Innkeeper] could not be them. She had nothing left of them. But stories. But the memory…</p>
+<p>In the silence of The Wandering Inn, Erin Solstice felt a flicker in her mind.</p>
+<p>There they were. Velzi, Elucina, Xarkouth, Gerial, Califor…the names flickered across the mortal girl’s memory, and she had met the ghosts of every continent. Heard their stories in a place where time had no meaning.</p>
+<p>No wonder she couldn’t encompass it. Perhaps—perhaps she didn’t have to. A door opened in the [Innkeeper]’s mind, and Erin Solstice gasped. She heard a triumphant voice speak and bring meaning to everything.</p>
+<p><i>Aha.</i></p>
+<p>&nbsp;</p>
+<p><strong>&lt;Class: Innkeeper&gt; </strong><b>[Quests unlocked.]</b></p>
+<p><span style="color:#cc99ff;">[Post: Basic Quest obtained!]</span></p>
+<p><span style="color:#cc99ff;">[Post: Rare Quest obtained!]</span></p>
+<p><span style="color:#cc99ff;">[Post: Heroic Quest obtained!]</span></p>
+<p><span style="color:#cc99ff;">[Post: Mythical Quest obtained!]</span></p>
+<p><span style="color:#cc99ff;">[Post: Legendary Quest obtained!]</span></p>
+<p>&nbsp;</p>
+<p>Erin Solstice opened her eyes wide, and there it was. Each face. Each story and each unfulfilled wish.</p>
+<p><i>Cawe’s last words. </i></p>
+<p>“Tell Pisces…”</p>
+<p>Velzimri’s regrets and all his secret potions and the most important man who had regretted being alone. The Djinni’s tears. The folly of Dragons and the glory of small ghosts. Earthers from home and their final words.</p>
+<p>The [Innkeeper] lay there a second. And when she opened her eyes—</p>
+<p>She remembered.</p>
+<p>&nbsp;</p>
+<p><strong>End of Volume 8.</strong></p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p><strong>Author’s Note: </strong></p>
+<p>It’s 5 AM, and I have finished writing Volume 8. I know I will be revising it, but I feel…dehydrated. Exhausted. My body’s cramped, and I don’t think this ergonomic chair is working right.</p>
+<p>I’ve written so many words this month that I’m not sure how I did it without snapping a tendon. I have never written this much before, I think, and I know it’s not perfect. But at last, Volume 8 is done.</p>
+<p>A few things. I’ve left a note at the top of the chapter…one part of it to check out Casualfarmer’s books. Or buy Book 6 on Audible? I say these housekeeping things because I am not going to be around for a month.</p>
+<p>I’ve turned off Patreon for a month and I don’t intend to write here until at least a month has passed. A month is a long time…but I don’t know if it’s long enough.</p>
+<p>Frankly, these last few days, no this month, this year as I tried to bring Volume 8 to a close, I worked so hard I could feel myself burning out. To explain what that is because everyone has their definition, I stopped smiling even when I knew a good chapter was done. After I finished writing, on days like these, I would sit for four more hours, playing games, watching Youtube videos and zone out.</p>
+<p>Even on my weeks off each month, I didn’t have the energy to start a book or new television show. I called it literally being out of thoughts; I did not have the power to conceptually get into a new television show. Even a new anime or something seemed far too taxing.</p>
+<p>Because I spend everything on The Wandering Inn. I try to think of what will happen, write dialogue…and I enjoy it. But I did notice at one point that it was all I was. I used to write a chapter twice a week over one day.</p>
+<p>Oh, I’d outline, but I’d do other things and just spend one entire day from dawn till dusk writing. Now? Now I write over three days per chapter, and I spent at least two days with 6-9 hours at the keyboard. I get one full day off and when I take my week off each month, I feel normal by the end of it and go back to writing.</p>
+<p>I think, for Volume 9, I will make the chapters shorter. Not as a joke; they have to be. I think a 30,000 word chapter can sometimes be good, but when I do it too much I’m reducing the quality of the chapter as a whole. Of course, it’s a trade. Some writers hone each chapter but they take a year to write 100,000 words of pure quality.</p>
+<p>But what we all trade is time. Some writers trade a lot of time for a lot of quality, but I’ve traded some of that quality just to…write. Write 9 million words at this point. And I know it’s a tradeoff, but that is also what a web serial is. Consistency. I don’t miss my days off. In a real sense, I am writing novels of content each month because it’s enjoyable—I assume—to read that instead of waiting multiple years for each book.</p>
+<p>I do like it, but I myself have come to my final end of the rope for Volume 8. I took one month to end the most ambitious project ever and, in hindsight, I would do it differently. All the dramatic reveals and conclusions I might space out. I would definitely have considered doing multiple volumes…but I wanted Erin back as much as you by the end of Volume 8.</p>
+<p>I have made great mistakes and yet there are chapters I am proud of now. But what I find is that I’m so tired. My arms and shoulders may need physical therapy, and I am exhausted from working, emotionally, from the stress…and that makes me realize I love writing more.</p>
+<p>If I may digress: one of my favorite authors ever, Terry Pratchett, once claimed to love the act of writing as much as the finished work itself. I thought he was insane. I hated writing. I liked the finished chapter because that was great, but writing isn’t fun. It’s work.</p>
+<p>I begin to see his point and it only took me eight million words. Writing is fulfilling. But if I keep up like this—well, I doubt I’ll kill myself, but there might not be much writer left, and no one can tell stories if there’s nothing inside them. I don’t talk about myself, and I think the author doesn’t need to be talked about.</p>
+<p>To be precise, I don’t mean the writer is dead or some fanciful way of describing my relationship with the work. I just think the author is less important than the words. The author is distracting, and frankly? Most of us are boring. It’s a rare author who’s half as interesting as the works they put out. Plus, something about social media and attention here.</p>
+<p>But I will tell you this: there have been weeks while I wrote that I looked up and said…oh. I haven’t spoken for more than ten minutes all week. That’s about personality. I am the writer in the cabin. But I think I should do more than just write. It’s been five years? Six years? Feels like eight. I think I started in 2016, which would mean six years where I’ve thrown everything I can at The Wandering Inn.</p>
+<p>Because it’s the first great story that’s been a success. Because I enjoy it. I am <i>certain</i> that I will want to be back to writing in a month—but I’ll try to strike a different balance in my life. Go out. Smell roses. Kick roses. I don’t know, maybe I’ll go to conventions or get sick with a deadly plague. I mean, a new one, not the one we have.</p>
+<p>But I will try. I’ll almost certainly backpedal on my promises and write too much, but it’s a long journey and we have gotten to a point in the road. I cannot say how much more there is. I am bad at thinking in dates and time.</p>
+<p>I don’t imagine that way. When I think of something, I can see…well, let’s take the Beriad of the Antinium as an example. I can picture that scene when I write them. I know their names, some of them, the emotion they feel, why they’re here. What comes next. I know why it matters…</p>
+<p>But I don’t <i>see</i> them. Oh, I picture them vaguely, but I don’t imagine in pictures. Nor words. My scenes often lack for detail or even sound or smell, and that’s what I have to work to add in. I can’t picture a mile because I haven’t seen it enough, I guess. The same for how long a chapter is.</p>
+<p>So when people ask me how long The Wandering Inn is going to be, I get a bit exasperated and assure them there is an ending because there is, or else I’d be blind. But I don’t know how long from here to there.</p>
+<p>But I do know the waypoints. If this is a road, I see the huge streetlights. If it’s a sea, I see buoys or something. Lighthouses I’m steering towards.</p>
+<p>This is one of them. I think I can say that we are ‘somewhere’ in the story’s arc of being one third done. Or one half of the way there. Or two thirds.</p>
+<p>I know that’s vague. The story could be one of those three options, or in between them. And that would change how it flows. But I know we have reached one of those points. Whether it continues depends on whether I can bring justice to the story. Whether people want to read it I guess…and the unexpected.</p>
+<p>But here ends Volume 8. It has been the longest volume, the biggest journey so far. We will return to the inn. The world of the dead is over. This world has new lands. This is the age of adventure and old and new things coming out.</p>
+<p>Nothing will be the same, but nothing ever is. And that is okay. I hope you’ll be there when I start Volume 9. For now—thanks for reading. See you in a bit. This strange story has certainly changed my life.</p>
+<p>&nbsp;</p>
+<p>&#8211;pirateaba</p>
+<p>&nbsp;</p>
+<hr />
+<p><a href="https://wanderinginn.com/2022/05/03/8-85/">Previous Chapter</a> <a href="https://wanderinginn.com/2022/06/03/9-00/"><span style="float:right;">Next Chapter</span></a></p>
+			</div><!-- .entry-content -->
+
+	<footer class="entry-meta">
+		This entry was posted in <a href="https://wanderinginn.com/category/writing/" rel="category tag">Writing</a> by <a href="https://wanderinginn.com/author/pirateaba/">pirateaba</a>. Bookmark the <a href="https://wanderinginn.com/2022/05/03/epilogue/" title="Permalink to Epilogue" rel="bookmark">permalink</a>.
+		
+			</footer><!-- .entry-meta -->
+</article><!-- #post-12095 -->
+
+						<div id="comments">
+	
+	
+			<h2 id="comments-title">
+			187 thoughts on &ldquo;<span>Epilogue</span>&rdquo;		</h2>
+
+				<nav id="comment-nav-above">
+			<h1 class="assistive-text">Comment navigation</h1>
+			<div class="nav-previous"><a href="https://wanderinginn.com/2022/05/03/epilogue/comment-page-2/#comments" >&larr; Older Comments</a></div>
+			<div class="nav-next"></div>
+		</nav>
+		
+		<ol class="commentlist">
+					<li class="comment byuser comment-author-beleester even thread-even depth-1 highlander-comment" id="li-comment-127084">
+		<article id="comment-127084" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/04fadbe9d315733dd228f37226d7632b?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">beleester</span> on <a href="https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/#comment-127084"><time datetime="2022-05-06T13:03:44+00:00">May 6, 2022 at 1:03 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>It&#8217;s good that Erin is finally back, and the Quests mechanic she just unlocked is certainly a promising sequel hook, but I feel like the finale was just too darn big.  I lost track of what was going on at times, stuff felt like it was coming out of nowhere, I didn&#8217;t feel like I had a good sense for what people were doing, especially at the very end when Erin came back.  And also the bit with the Gnolls and the&#8230; floating continent thing?  That felt out of nowhere.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/?replytocom=127084#respond' data-commentid="127084" data-postid="12095" data-belowelement="comment-127084" data-respondelement="respond" data-replyto="Reply to beleester" aria-label='Reply to beleester'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment odd alt depth-2 highlander-comment" id="li-comment-127096">
+		<article id="comment-127096" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://graph.facebook.com/v6.0/3401905683182378/picture?type=large' class='avatar avatar-39' height='39' width='39' /><span class="fn">Jesse Shepard</span> on <a href="https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/#comment-127096"><time datetime="2022-05-06T22:57:42+00:00">May 6, 2022 at 10:57 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Previous chapters have mentioned that Gnolls not only have magic of their own, they also were known as great explorers, with one the most famous of them known to fly better than Garudas, a people *known* for their flying prowess. Can&#8217;t give you exact chapters, but it&#8217;s been mentioned a couple times, it&#8217;s not completely out of nowhere. It was several (a dozen?) chapters ago though, I understand if you just skimmed past that part or just didn&#8217;t remember.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/?replytocom=127096#respond' data-commentid="127096" data-postid="12095" data-belowelement="comment-127096" data-respondelement="respond" data-replyto="Reply to Jesse Shepard" aria-label='Reply to Jesse Shepard'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment even depth-3 highlander-comment" id="li-comment-127317">
+		<article id="comment-127317" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/9072fb5373b89c5c8084e9b19dee4b2b?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">dp4rker</span> on <a href="https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/#comment-127317"><time datetime="2022-05-12T16:25:19+00:00">May 12, 2022 at 4:25 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Wasn&#8217;t there a mention about gnoll hanggliders, like Ryoka&#8217;s? I can&#8217;t remember but think there was a mention to a far-off tribe who used them. In retrospect, it may have been a tie-in to their legends of a tribe and city in the clouds?</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/?replytocom=127317#respond' data-commentid="127317" data-postid="12095" data-belowelement="comment-127317" data-respondelement="respond" data-replyto="Reply to dp4rker" aria-label='Reply to dp4rker'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-beleester odd alt depth-3 highlander-comment" id="li-comment-127322">
+		<article id="comment-127322" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/04fadbe9d315733dd228f37226d7632b?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">beleester</span> on <a href="https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/#comment-127322"><time datetime="2022-05-12T20:10:10+00:00">May 12, 2022 at 8:10 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>&#8220;Gnolls know how to make gliders&#8221; and &#8220;Gnolls used to live on a floating continent that subsequently sank into the sea&#8221; are kind of far apart in scale.  Like, continents are big, hard-to-sink things.  If someone was capable of doing that, I would have expected it to leave a few more traces in Innverse&#8217;s history than a tribe of Gnolls that knows about hang gliding.</p>
+<p>(Also, that section is just confusingly written.  I went back and re-read it twice and I&#8217;m still not entirely sure if Kishkeria created a new floating continent, or split Izril apart and filled in the gap with the lost continent, and if the floating thing in the sky is just an island that&#8217;s unrelated to the lost continent.)</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/?replytocom=127322#respond' data-commentid="127322" data-postid="12095" data-belowelement="comment-127322" data-respondelement="respond" data-replyto="Reply to beleester" aria-label='Reply to beleester'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment even depth-4 highlander-comment" id="li-comment-127330">
+		<article id="comment-127330" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/c1c3340cc694ca05cbc80267b2cddcb7?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">poopoo</span> on <a href="https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/#comment-127330"><time datetime="2022-05-13T03:32:10+00:00">May 13, 2022 at 3:32 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Seru&#8217;nial was the one who made new land rise out of the sea, and no, it&#8217;s not the floating city (also yeah, a continent would be way too big lol) she established. The three Gnoll ghosts made new land on Izril for Gnolls to inhabit, The sky city is a separate thing that has been mentioned several times throughout the volume (you can probably search the site for mentions of &#8220;seru&#8217;nial&#8221; to find it), which is still up there and waiting to be rediscovered.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/?replytocom=127330#respond' data-commentid="127330" data-postid="12095" data-belowelement="comment-127330" data-respondelement="respond" data-replyto="Reply to poopoo" aria-label='Reply to poopoo'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-127088">
+		<article id="comment-127088" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/06e20aaefcf55d675477e394e55f5416?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">That Guy Jay</span> on <a href="https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/#comment-127088"><time datetime="2022-05-06T18:53:03+00:00">May 6, 2022 at 6:53 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Day 1 of realizing how long I&#8217;ll be waiting for more chapters. Least it&#8217;s worth the waits.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/?replytocom=127088#respond' data-commentid="127088" data-postid="12095" data-belowelement="comment-127088" data-respondelement="respond" data-replyto="Reply to That Guy Jay" aria-label='Reply to That Guy Jay'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="li-comment-127095">
+		<article id="comment-127095" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/d55d3a55e08a11fa005d16f0d77f39bc?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Arya Winters</span> on <a href="https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/#comment-127095"><time datetime="2022-05-06T22:55:17+00:00">May 6, 2022 at 10:55 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Thank you so much this has been a truly amazing story. I&#8217;ve loved every second of it and all of its characters. Don&#8217;t let yourself get burned out too much :)</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/?replytocom=127095#respond' data-commentid="127095" data-postid="12095" data-belowelement="comment-127095" data-respondelement="respond" data-replyto="Reply to Arya Winters" aria-label='Reply to Arya Winters'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-belthanyl odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-127097">
+		<article id="comment-127097" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/6c05f01d7ebcdf227aaffae88d6de48d?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn"><a href='http://gravatar.com/belthanyl' rel='external nofollow ugc' class='url'>belthanyl</a></span> on <a href="https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/#comment-127097"><time datetime="2022-05-06T23:38:28+00:00">May 6, 2022 at 11:38 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Strategos Olesm -&gt; Strategist Olesm</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/?replytocom=127097#respond' data-commentid="127097" data-postid="12095" data-belowelement="comment-127097" data-respondelement="respond" data-replyto="Reply to belthanyl" aria-label='Reply to belthanyl'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment even depth-2 highlander-comment" id="li-comment-127110">
+		<article id="comment-127110" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/3726fa2ab912ef6bde6541e8481d0e5b?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">WuvusWoovius</span> on <a href="https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/#comment-127110"><time datetime="2022-05-07T07:39:37+00:00">May 7, 2022 at 7:39 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Olesm became an [Eleleu Strategos] at the end of the hectval arc</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/?replytocom=127110#respond' data-commentid="127110" data-postid="12095" data-belowelement="comment-127110" data-respondelement="respond" data-replyto="Reply to WuvusWoovius" aria-label='Reply to WuvusWoovius'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-even depth-1 highlander-comment" id="li-comment-127103">
+		<article id="comment-127103" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/f9edb31621b442474ca5a3237c413c4a?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Stephen</span> on <a href="https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/#comment-127103"><time datetime="2022-05-07T04:53:22+00:00">May 7, 2022 at 4:53 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>First off I will say that in general I have looked forward to your chapters release. The chapters have definitely gotten longer as I used to do two read throughs, one to just take it in as fast as possible and then again to look for what I missed and any potential issues that you may want to address&#8230; and those issues have dropped significantly over the years. The chapter length now is such that I need to stop reading several times and think about the implications or to just calm the mind.<br />
+Secondly I do not believe that any of your readers would have minded paying for a month while you are on hiatus relaxing and recuperating&#8230; and lets face it probably thinking of where the story is going next, at least I should say that I would not have begrudged paying during your break.<br />
+Thirdly I really hope that I do get to finish reading your wrapping up of this story&#8230; this part of your story as you have many pokers in the fire and I can see that there are so many more you could add.<br />
+Fourthly, please try to make sure that you do not burn yourself out trying to meet a self imposed deadline, it is not worth it to anyone and I know I would rather wait or read a smaller chapter and enjoy the story longer than have it end abruptly or just cut off/ dropped.</p>
+<p>Enjoy your well deserved break.<br />
+Kind regards,</p>
+<p>BTW your recommendation of Beware of Chicken was spot on.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/?replytocom=127103#respond' data-commentid="127103" data-postid="12095" data-belowelement="comment-127103" data-respondelement="respond" data-replyto="Reply to Stephen" aria-label='Reply to Stephen'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment even thread-odd thread-alt depth-1 highlander-comment" id="li-comment-127124">
+		<article id="comment-127124" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/95ef57b018cd7b42be99e7d0ce51ba50?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Gabriel</span> on <a href="https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/#comment-127124"><time datetime="2022-05-07T14:29:43+00:00">May 7, 2022 at 2:29 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Pirate, you are amazing i have never cried, smiled and gasped more in my life. Thank you for creating this beautiful world</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/?replytocom=127124#respond' data-commentid="127124" data-postid="12095" data-belowelement="comment-127124" data-respondelement="respond" data-replyto="Reply to Gabriel" aria-label='Reply to Gabriel'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment odd alt thread-even depth-1 highlander-comment" id="li-comment-127127">
+		<article id="comment-127127" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/513dc19ebf35b96736b8b39ea13d92fa?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">rex</span> on <a href="https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/#comment-127127"><time datetime="2022-05-07T16:53:12+00:00">May 7, 2022 at 4:53 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Thank You, Pirateaba. I know every story has its end, but I wish this tale kept on going forever. Take care &amp; wish you peace and happiness.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/?replytocom=127127#respond' data-commentid="127127" data-postid="12095" data-belowelement="comment-127127" data-respondelement="respond" data-replyto="Reply to rex" aria-label='Reply to rex'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment even thread-odd thread-alt depth-1 highlander-comment" id="li-comment-127131">
+		<article id="comment-127131" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/ba62dba126611c91b6a2e44911b80d7c?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Pride</span> on <a href="https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/#comment-127131"><time datetime="2022-05-07T18:24:24+00:00">May 7, 2022 at 6:24 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>An amazing story.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/?replytocom=127131#respond' data-commentid="127131" data-postid="12095" data-belowelement="comment-127131" data-respondelement="respond" data-replyto="Reply to Pride" aria-label='Reply to Pride'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-lenjrd odd alt thread-even depth-1 highlander-comment" id="li-comment-127133">
+		<article id="comment-127133" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/5023744ab3c2ee1b3677929ed581c346?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn"><a href='http://lenjrd.wordpress.com' rel='external nofollow ugc' class='url'>lenjrd</a></span> on <a href="https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/#comment-127133"><time datetime="2022-05-07T18:41:28+00:00">May 7, 2022 at 6:41 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Thank you for the story.<br />
+I really liked this volume.<br />
+Wish you have a great break and rest all you need</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/?replytocom=127133#respond' data-commentid="127133" data-postid="12095" data-belowelement="comment-127133" data-respondelement="respond" data-replyto="Reply to lenjrd" aria-label='Reply to lenjrd'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment even thread-odd thread-alt depth-1 highlander-comment" id="li-comment-127138">
+		<article id="comment-127138" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/c6ec0c400343e77e2358c0990523f9e4?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Detton</span> on <a href="https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/#comment-127138"><time datetime="2022-05-07T19:55:05+00:00">May 7, 2022 at 7:55 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>If i had to take all the time necessary to tell you how much I appreciate the work that you put into The Wandering Inn, then my reply itself may be comparable to the volumes of words you have written for us.</p>
+<p>So I will just say this: Thank you. Take your break, get your rest.  When you are back, I will be here waiting for more stories.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/?replytocom=127138#respond' data-commentid="127138" data-postid="12095" data-belowelement="comment-127138" data-respondelement="respond" data-replyto="Reply to Detton" aria-label='Reply to Detton'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-sirrealtor odd alt thread-even depth-1 highlander-comment" id="li-comment-127148">
+		<article id="comment-127148" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/df1e04ab5e47de6c43e72ac3f1e17a13?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn"><a href='http://gravatar.com/sirrealtor' rel='external nofollow ugc' class='url'>Aaron Smith</a></span> on <a href="https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/#comment-127148"><time datetime="2022-05-08T03:11:20+00:00">May 8, 2022 at 3:11 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Thank you for a remarkable story full of people I want to meet, and places I want to see.  And I wouldn&#8217;t have mind e d paying for a month&#8217;s hiatus, too.  You deserve it.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/?replytocom=127148#respond' data-commentid="127148" data-postid="12095" data-belowelement="comment-127148" data-respondelement="respond" data-replyto="Reply to Aaron Smith" aria-label='Reply to Aaron Smith'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-lordnikko even thread-odd thread-alt depth-1 highlander-comment" id="li-comment-127156">
+		<article id="comment-127156" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/6f274bbedacf3e8f12fbaaa3b5033d38?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn"><a href='http://gravatar.com/lordnikko' rel='external nofollow ugc' class='url'>lordnikko</a></span> on <a href="https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/#comment-127156"><time datetime="2022-05-08T13:54:07+00:00">May 8, 2022 at 1:54 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Loved it. Happy holidays.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/?replytocom=127156#respond' data-commentid="127156" data-postid="12095" data-belowelement="comment-127156" data-respondelement="respond" data-replyto="Reply to lordnikko" aria-label='Reply to lordnikko'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment odd alt thread-even depth-1 highlander-comment" id="li-comment-127158">
+		<article id="comment-127158" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/7638ff019bece7ae1e78ad1f813158e9?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Algon33</span> on <a href="https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/#comment-127158"><time datetime="2022-05-08T14:16:45+00:00">May 8, 2022 at 2:16 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>None shall begrudge you living life, Pirate. You&#8217;ve given us hundreds of hours of joy, for free. Thank you, and go smell the roses.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/?replytocom=127158#respond' data-commentid="127158" data-postid="12095" data-belowelement="comment-127158" data-respondelement="respond" data-replyto="Reply to Algon33" aria-label='Reply to Algon33'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment even thread-odd thread-alt depth-1 highlander-comment" id="li-comment-127188">
+		<article id="comment-127188" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/15a5c0fb126f60722d8ad275fd4c0e40?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">HedgeSage</span> on <a href="https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/#comment-127188"><time datetime="2022-05-09T06:22:56+00:00">May 9, 2022 at 6:22 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>I love this story, I love the characters and the world. The intensity of it all can’t be matched by anything else that I’ve read. I usually binge whatever you post immediately, but I forced myself to read in smaller chunks this time, so that I could savor the end of volume 8. Well done, really.</p>
+<p>And Relc rocks, as always.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/?replytocom=127188#respond' data-commentid="127188" data-postid="12095" data-belowelement="comment-127188" data-respondelement="respond" data-replyto="Reply to HedgeSage" aria-label='Reply to HedgeSage'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-jbeh888 odd alt thread-even depth-1 highlander-comment" id="li-comment-127189">
+		<article id="comment-127189" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/45df4590434c3bc2e2eedf5e899339a8?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">TheDreamLeaf</span> on <a href="https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/#comment-127189"><time datetime="2022-05-09T06:25:59+00:00">May 9, 2022 at 6:25 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>I hope you recover.  Look after yourself!</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/?replytocom=127189#respond' data-commentid="127189" data-postid="12095" data-belowelement="comment-127189" data-respondelement="respond" data-replyto="Reply to TheDreamLeaf" aria-label='Reply to TheDreamLeaf'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-inithello even thread-odd thread-alt depth-1 highlander-comment" id="li-comment-127196">
+		<article id="comment-127196" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/0005026b2919eb9d8283edd9a19360c0?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">inithello</span> on <a href="https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/#comment-127196"><time datetime="2022-05-09T13:11:50+00:00">May 9, 2022 at 1:11 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>I learned to read in 1986. Then I had to wait 30 more years for a story as fun to read as The Wandering Inn. Along with Beware of Chicken, this is very easily in my top 10 writings ever.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/?replytocom=127196#respond' data-commentid="127196" data-postid="12095" data-belowelement="comment-127196" data-respondelement="respond" data-replyto="Reply to inithello" aria-label='Reply to inithello'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment odd alt thread-even depth-1 highlander-comment" id="li-comment-127201">
+		<article id="comment-127201" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/b50e62a358a8e9346f45906bfa2f8a9e?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Icarium</span> on <a href="https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/#comment-127201"><time datetime="2022-05-09T15:14:38+00:00">May 9, 2022 at 3:14 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>This is one of the few books (or volumes) I&#8217;ve read where I feel the right level of bitter-sweet satisfaction at reading the final word, brilliant job.<br />
+Thanks for the chapters, and volume. I&#8217;ve enjoyed the story for a long time, love your work.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/?replytocom=127201#respond' data-commentid="127201" data-postid="12095" data-belowelement="comment-127201" data-respondelement="respond" data-replyto="Reply to Icarium" aria-label='Reply to Icarium'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment even thread-odd thread-alt depth-1 highlander-comment" id="li-comment-127202">
+		<article id="comment-127202" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/74fa7cac795980d45e0fac7c349c723a?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Acerola</span> on <a href="https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/#comment-127202"><time datetime="2022-05-09T15:28:59+00:00">May 9, 2022 at 3:28 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>I love your wandering inn sir!  I wish you a healthy mind and body! I hope more people will discover this work of yours. </p>
+<p>For my selfishness, I preferred Erin stays single and full of happiness.</p>
+<p>Why i am thinking like this??</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/?replytocom=127202#respond' data-commentid="127202" data-postid="12095" data-belowelement="comment-127202" data-respondelement="respond" data-replyto="Reply to Acerola" aria-label='Reply to Acerola'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment odd alt thread-even depth-1 highlander-comment" id="li-comment-127240">
+		<article id="comment-127240" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/3a8092eb4d16fc13e75b984bb347695b?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Gustav Sjökvist</span> on <a href="https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/#comment-127240"><time datetime="2022-05-10T12:01:53+00:00">May 10, 2022 at 12:01 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Thank you, from the bottom of my heart. This is the first time I&#8217;ve commented, and I just feel like I have to say something. The Wandering Inn has changed my life, and it is by far my favorite work of art that I have come across.</p>
+<p>Thank you for all that you have given us! God bless you!</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/?replytocom=127240#respond' data-commentid="127240" data-postid="12095" data-belowelement="comment-127240" data-respondelement="respond" data-replyto="Reply to Gustav Sjökvist" aria-label='Reply to Gustav Sjökvist'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment even thread-odd thread-alt depth-1 highlander-comment" id="li-comment-127253">
+		<article id="comment-127253" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/0e03ff64ad83e912a3a0e0ebbec98791?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">samuel ndaro</span> on <a href="https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/#comment-127253"><time datetime="2022-05-10T18:34:41+00:00">May 10, 2022 at 6:34 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>thank you pirateaba<br />
+I&#8217;m an english teacher in kenya (part-time) and a student the rest of the year&#8230;<br />
+you know what I&#8217;m hooked and The Wandering Inn is my fix!&#8230;and I&#8217;m on a campaign to pass my addiction to my family, friends and colleagues..(and my students after graduation)<br />
+have a nice rest see you next chapter&#8230;I&#8217;m hoping something good happened to Geneva&#8230;this has nothing to do with my nursing diploma.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/?replytocom=127253#respond' data-commentid="127253" data-postid="12095" data-belowelement="comment-127253" data-respondelement="respond" data-replyto="Reply to samuel ndaro" aria-label='Reply to samuel ndaro'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment odd alt thread-even depth-1 highlander-comment" id="li-comment-127286">
+		<article id="comment-127286" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/1c87d63a689c3d46c727a7c703ea4fbf?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Lankhmar</span> on <a href="https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/#comment-127286"><time datetime="2022-05-11T18:03:12+00:00">May 11, 2022 at 6:03 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Glad to hear youre planning to write less. Its odd to say but..</p>
+<p>I enjoy your best writing, more than I enjoy lots of writing.<br />
+I like knowing you&#8217;re not killing yourself for what I&#8217;m reading.<br />
+I don&#8217;t mind waiting a few extra months to end an arc &#8211; beauty of readers, we&#8217;re usually quite patient people</p>
+<p>Have a good rest. Get well. Thank you for everything.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/?replytocom=127286#respond' data-commentid="127286" data-postid="12095" data-belowelement="comment-127286" data-respondelement="respond" data-replyto="Reply to Lankhmar" aria-label='Reply to Lankhmar'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment even thread-odd thread-alt depth-1 highlander-comment" id="li-comment-127288">
+		<article id="comment-127288" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/361aee42cf783d4b51852019fad6b655?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Forum Solipsist</span> on <a href="https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/#comment-127288"><time datetime="2022-05-12T00:47:35+00:00">May 12, 2022 at 12:47 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Take all the time you need.<br />
+We will be waiting.</p>
+<p>Thank you.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/?replytocom=127288#respond' data-commentid="127288" data-postid="12095" data-belowelement="comment-127288" data-respondelement="respond" data-replyto="Reply to Forum Solipsist" aria-label='Reply to Forum Solipsist'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-defualt836 odd alt thread-even depth-1 highlander-comment" id="li-comment-127295">
+		<article id="comment-127295" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/8e5bdf3ed834bf0ced1120b0ffe15673?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn"><a href='http://default836.wordpress.com' rel='external nofollow ugc' class='url'>defualt836</a></span> on <a href="https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/#comment-127295"><time datetime="2022-05-12T05:20:40+00:00">May 12, 2022 at 5:20 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Thank you for the volume! See you next time!~</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/?replytocom=127295#respond' data-commentid="127295" data-postid="12095" data-belowelement="comment-127295" data-respondelement="respond" data-replyto="Reply to defualt836" aria-label='Reply to defualt836'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment even thread-odd thread-alt depth-1 highlander-comment" id="li-comment-127364">
+		<article id="comment-127364" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/5266c74a041f594a5fc2338bb3f3ff77?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Benoît</span> on <a href="https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/#comment-127364"><time datetime="2022-05-14T05:48:34+00:00">May 14, 2022 at 5:48 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Take your time, enjoy your break ;)</p>
+<p>I could wait for 5 years and still be there waiting for the next Arc. (Please don&#8217;t&#8230; xD)<br />
+Reading The Wandering Inn has been a real pleasure. And i hope the story will keep going for a long time ! </p>
+<p>So Enjoy your break, take your time, and most important of all, Have Fun writing. Because that&#8217;s what will make you proud of it, and readers enjoying it. If you have to take more break or reduce lenght chapter, so be it. No, Please DO IT. Because the story will only get better.</p>
+<p>And may it keep going forever :D</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/?replytocom=127364#respond' data-commentid="127364" data-postid="12095" data-belowelement="comment-127364" data-respondelement="respond" data-replyto="Reply to Benoît" aria-label='Reply to Benoît'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment odd alt thread-even depth-1 highlander-comment" id="li-comment-127447">
+		<article id="comment-127447" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/a62d2ef43c504301b2da74008cf974b8?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Robert Rider</span> on <a href="https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/#comment-127447"><time datetime="2022-05-17T04:53:28+00:00">May 17, 2022 at 4:53 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>I like all here thank you for the many hours, days, months of enjoyment.  This year I have lost my father and reading has helped me handle the loss. He got me into reading and he would have loved this story.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/?replytocom=127447#respond' data-commentid="127447" data-postid="12095" data-belowelement="comment-127447" data-respondelement="respond" data-replyto="Reply to Robert Rider" aria-label='Reply to Robert Rider'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment even thread-odd thread-alt depth-1 highlander-comment" id="li-comment-127509">
+		<article id="comment-127509" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/67848f0d0e066cd41815152ec42a0b11?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Dresden</span> on <a href="https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/#comment-127509"><time datetime="2022-05-18T23:40:26+00:00">May 18, 2022 at 11:40 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Pirateaba,</p>
+<p>I&#8217;ve been reading your story since 2017 and I can resolutely state that no other story has made me cry, laugh, and cheer on a character as much as yours has. Your use of language and narrative building has been a treat to experience and I hope you continue to bless us for as long as you feel able. That being said, burnout is real. I&#8217;m in Healthcare and I got into this to help people. There are days where I can feel my empathy slipping and I imagine it&#8217;s much the same for you. Protect your purpose. Protect your product. Protect yourself. We&#8217;ll be here when you&#8217;re ready to continue or to wish you well when you&#8217;re done.</p>
+<p>Thank you from the bottom of my heart,</p>
+<p>A dedicated reader</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/?replytocom=127509#respond' data-commentid="127509" data-postid="12095" data-belowelement="comment-127509" data-respondelement="respond" data-replyto="Reply to Dresden" aria-label='Reply to Dresden'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment odd alt thread-even depth-1 highlander-comment" id="li-comment-127580">
+		<article id="comment-127580" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/8a32789bda79142782388cff656223ec?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Frozenchicken</span> on <a href="https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/#comment-127580"><time datetime="2022-05-21T18:15:54+00:00">May 21, 2022 at 6:15 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Have we seen the System use purple text before? It feels like that&#8217;s new.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/?replytocom=127580#respond' data-commentid="127580" data-postid="12095" data-belowelement="comment-127580" data-respondelement="respond" data-replyto="Reply to Frozenchicken" aria-label='Reply to Frozenchicken'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment even depth-2 highlander-comment" id="li-comment-127614">
+		<article id="comment-127614" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/62be5d2c56b824936aeb1fee5cd157e6?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">The dude</span> on <a href="https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/#comment-127614"><time datetime="2022-05-23T14:32:11+00:00">May 23, 2022 at 2:32 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Once, Lyonette&#8217;s sister got one.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/?replytocom=127614#respond' data-commentid="127614" data-postid="12095" data-belowelement="comment-127614" data-respondelement="respond" data-replyto="Reply to The dude" aria-label='Reply to The dude'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-127611">
+		<article id="comment-127611" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/cacd227161e905310f540a298ff67e6f?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Chi</span> on <a href="https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/#comment-127611"><time datetime="2022-05-23T13:39:02+00:00">May 23, 2022 at 1:39 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Dang&#8230; this entire arc I was just waiting for Brunkr to show up, but he never did ;/<br />
+Oh well, it was still fun to read</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/?replytocom=127611#respond' data-commentid="127611" data-postid="12095" data-belowelement="comment-127611" data-respondelement="respond" data-replyto="Reply to Chi" aria-label='Reply to Chi'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-rekeshrika even thread-even depth-1 highlander-comment" id="li-comment-127620">
+		<article id="comment-127620" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/c5744a3ded02d623751d1dbe80bc443c?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Lyra</span> on <a href="https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/#comment-127620"><time datetime="2022-05-23T16:50:58+00:00">May 23, 2022 at 4:50 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>I&#8217;ve read my whole life and devoured novels like I drink water. Your story is the greatest I&#8217;ve ever read and believe to be one of the best ever written and I can&#8217;t wait to finish this story, it has been a true epic of our era.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/?replytocom=127620#respond' data-commentid="127620" data-postid="12095" data-belowelement="comment-127620" data-respondelement="respond" data-replyto="Reply to Lyra" aria-label='Reply to Lyra'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-127624">
+		<article id="comment-127624" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/63d4871c206169d644e41b7e1f6789d9?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Frostie</span> on <a href="https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/#comment-127624"><time datetime="2022-05-23T22:13:11+00:00">May 23, 2022 at 10:13 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Hey pirateaba, I don&#8217;t remember if I have commented before 6 years is a long time but I just wanted to say that this story has and does mean the world to me. I have grown so much since 2016 I remember staying up to ridiculous hours of the morning to finish your chapters.(this story being one amongst like 40 I was reading at the time). The others though have all fallen by the wayside and though there are some that I have continued reading (practical guide to evil for e.g) this one has always always been my absolute favourite. Honestly you could quit now and the memories I have of reading these chapters across the last 6 years would be all I need</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/?replytocom=127624#respond' data-commentid="127624" data-postid="12095" data-belowelement="comment-127624" data-respondelement="respond" data-replyto="Reply to Frostie" aria-label='Reply to Frostie'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="li-comment-127656">
+		<article id="comment-127656" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/8306497713479f738ffbc2a9880a4595?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">G0RG0N</span> on <a href="https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/#comment-127656"><time datetime="2022-05-24T19:43:38+00:00">May 24, 2022 at 7:43 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>OMg, that was some real scrimmer in chapter name,  thank god it is not over.( However im still on chapter 7)</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/?replytocom=127656#respond' data-commentid="127656" data-postid="12095" data-belowelement="comment-127656" data-respondelement="respond" data-replyto="Reply to G0RG0N" aria-label='Reply to G0RG0N'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-127843">
+		<article id="comment-127843" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/11a2269cdbd509fb8a0bc4d7a26c1f9a?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Patrick</span> on <a href="https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/#comment-127843"><time datetime="2022-05-28T00:53:14+00:00">May 28, 2022 at 12:53 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Wouldn&#8217;t Erin level in Innkeeper more cause she technically had a bunch of crazy guests in the world of the dead?</p>
+<p>Not complaining, I was just surprised she only got 1ish levels in Innkeeper.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/?replytocom=127843#respond' data-commentid="127843" data-postid="12095" data-belowelement="comment-127843" data-respondelement="respond" data-replyto="Reply to Patrick" aria-label='Reply to Patrick'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="li-comment-127930">
+		<article id="comment-127930" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/516358976eaba4133eddb2197e1fce4b?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Sampo</span> on <a href="https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/#comment-127930"><time datetime="2022-05-30T19:39:14+00:00">May 30, 2022 at 7:39 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Still waiting for The moment The inn sprouts 2 wooden chicken legs like Baba Jagas hut and starts to wander around.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/?replytocom=127930#respond' data-commentid="127930" data-postid="12095" data-belowelement="comment-127930" data-respondelement="respond" data-replyto="Reply to Sampo" aria-label='Reply to Sampo'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-127946">
+		<article id="comment-127946" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/e52384e9d308b3fde1ca855f42e6c097?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Devi Jhonas</span> on <a href="https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/#comment-127946"><time datetime="2022-05-31T14:46:03+00:00">May 31, 2022 at 2:46 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Aba, I first found the wandering inn through audible. In a land if stories that barely lasted me half a day, yours kept me satisfied for two. It was incredible, and I&#8217;ve listened to it enough times where it&#8217;s almost just part of my brain now. As soon as I found out it was a web novel, I came running. And oh the glory. Recently tried to get my friends into the series, and I will always remember my description.</p>
+<p>The &#8220;One Piece&#8221; of books.</p>
+<p>It is a massive mountain of a series, that anyone who invests the time to learn, loves. I&#8217;m so thankful you decided to write it. I wait, hoping and praying you don&#8217;t hit a wall, and do it with a smile on my face.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/?replytocom=127946#respond' data-commentid="127946" data-postid="12095" data-belowelement="comment-127946" data-respondelement="respond" data-replyto="Reply to Devi Jhonas" aria-label='Reply to Devi Jhonas'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="li-comment-127983">
+		<article id="comment-127983" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/fdf43102edb64619f7afc29562031859?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Loedeon</span> on <a href="https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/#comment-127983"><time datetime="2022-06-02T03:28:58+00:00">June 2, 2022 at 3:28 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Thanks so much for this final chapter. and I think your quality throughout was excellent. The only chapters u write that I don&#8217;t like are Realt and Tom because I think they are both dicks but they also move the story line along. And I hope Ceria gets her master&#8217;s book back soon.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/?replytocom=127983#respond' data-commentid="127983" data-postid="12095" data-belowelement="comment-127983" data-respondelement="respond" data-replyto="Reply to Loedeon" aria-label='Reply to Loedeon'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-127990">
+		<article id="comment-127990" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/857c43371930d57dcf97c7bb3c6b405e?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">sorryifimbad</span> on <a href="https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/#comment-127990"><time datetime="2022-06-02T10:44:03+00:00">June 2, 2022 at 10:44 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>I took a break from this fiction probably around 2 years ago after reading it whenever chapters would release on Royal Road, but I came back to it about a month ago, and I have just been catching up on all of the chapters I missed since then. I was very happy to see that the wanderinginn website was alive and well, but when I saw the little tab-things at the top of the page that said &#8220;8.82 (Pt. 1), &#8230; , Epilogue,&#8221; I was&#8230; sort of down. I had left off somewhere in volume 6, and I didn&#8217;t feel ready for what I thought would be the end of your amazingly wonderful and wacky story. I started volume 8 with a sense of dread, and that sense of unease did not go away up until I read your comment at the end. I&#8217;ve seen a few fictions get axed or dropped as things were still going pretty good, so I am super relieved to know that this ride won&#8217;t be stopping for quite a while, and that I&#8217;ll probably at least get to see some of the cliffhangers of this volume be resolved (or evolve into something so much greater).</p>
+<p>I love the world you created, and there&#8217;s so much to look forward to! The exploration of the new continent, the adventures of the Horns of Hammerad, Erin doing her quests, Erin giving Saliss some super valuable potion recipes, perhaps the ghosts not being dead dead..?? cause they were super cool and all and although I had forgotten about Gerial, he was honestly great, and there&#8217;s so many other developments! I know that this story will end some day, but I felt bad about not being there when I mistakenly thought it happened. Not that I would guarantee that I would be there on time when the day does come, but just know that I would have wanted to be there because of how much&#8230; joy and heartbreak the Wandering Inn has caused me to feel.</p>
+<p>Anyways, I am so glad you&#8217;re alive! Even if you dropped the Wandering Inn for whatever reason, I would still thank you for everything thus far. I hope you have a wonderful life, you awesome author, you. Please, take care.</p>
+<p>PS: I particularly loved the part where Pisces hugged Erin, and when Erin got her quests!</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/?replytocom=127990#respond' data-commentid="127990" data-postid="12095" data-belowelement="comment-127990" data-respondelement="respond" data-replyto="Reply to sorryifimbad" aria-label='Reply to sorryifimbad'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment even depth-2 highlander-comment" id="li-comment-128010">
+		<article id="comment-128010" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/da210984d544997c8e08aa9b8edc0bc2?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">lurking</span> on <a href="https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/#comment-128010"><time datetime="2022-06-03T04:15:02+00:00">June 3, 2022 at 4:15 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>I think the garden of sanctuary is another afterlife?  Everyone she ever remembered remained there as a statue, so maybe thats a poace the true afterlife can be represented sincr I feel like the Death goddess afterlife only has the people who leveled&#8217;s level imprint present or something.  Were there any ghosts without levels, wait some dragons and gnomes and elves probably had levels oop nvm.  But also the Antinium are worshipping Erin specifically as a goddess and thats probably important and will empower her, so maybe she could create fadcimiles of her people or revive them or the Antinium will pray them into Antinium heaven.. maybe thats why Brunkr isnt in the afterlife, he got invited into Antinium Heaven and wrote in that book, no wait then why would Erin not be there&#8230; Many theories</p>
+<p>For the goblins the garden of sanctuary is definitely their afterlife from in story canon.  Also this last volume has just strengthened my suspicions that Goblins are Fae and are like&#8230; maybe Titania&#8217;s remains/why new Fae arent being born, they were subverted to becoming goblins and maybe enough evolutions will be Fae Fae but it has to be outside the gods system.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/?replytocom=128010#respond' data-commentid="128010" data-postid="12095" data-belowelement="comment-128010" data-respondelement="respond" data-replyto="Reply to lurking" aria-label='Reply to lurking'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-even depth-1 highlander-comment" id="li-comment-128009">
+		<article id="comment-128009" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/da210984d544997c8e08aa9b8edc0bc2?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">lurking</span> on <a href="https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/#comment-128009"><time datetime="2022-06-03T04:08:13+00:00">June 3, 2022 at 4:08 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Author-tan thank you so much for your hard work!</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/?replytocom=128009#respond' data-commentid="128009" data-postid="12095" data-belowelement="comment-128009" data-respondelement="respond" data-replyto="Reply to lurking" aria-label='Reply to lurking'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment even thread-odd thread-alt depth-1 highlander-comment" id="li-comment-128158">
+		<article id="comment-128158" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/69a002cd75c6a9654a12b0f4105c13e5?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Val</span> on <a href="https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/#comment-128158"><time datetime="2022-06-07T13:25:54+00:00">June 7, 2022 at 1:25 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Thank you so much for writing all this. It&#8217;s like a whole other world, the way so many different pieces and parts have come to life. Can get lost in it for hours. I got discouraged at reading this, near the very start, over some stupid things. But I&#8217;m so glad that I pushed through that initial impression. I&#8217;ve never read anything like the wandering inn and it feels like something special.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/?replytocom=128158#respond' data-commentid="128158" data-postid="12095" data-belowelement="comment-128158" data-respondelement="respond" data-replyto="Reply to Val" aria-label='Reply to Val'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment odd alt thread-even depth-1 highlander-comment" id="li-comment-128278">
+		<article id="comment-128278" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/f46edd3523f90631fc117b583ebedf09?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Nani</span> on <a href="https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/#comment-128278"><time datetime="2022-06-09T18:48:57+00:00">June 9, 2022 at 6:48 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Thanks for this great story. I&#8217;m in love with it!</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/?replytocom=128278#respond' data-commentid="128278" data-postid="12095" data-belowelement="comment-128278" data-respondelement="respond" data-replyto="Reply to Nani" aria-label='Reply to Nani'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-danielrobblpc even thread-odd thread-alt depth-1 highlander-comment" id="li-comment-128395">
+		<article id="comment-128395" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/2b330b597e4857688cf3acfbaf872a71?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn"><a href='http://braindraino.wordpress.com' rel='external nofollow ugc' class='url'>danielrobblpc</a></span> on <a href="https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/#comment-128395"><time datetime="2022-06-12T04:04:09+00:00">June 12, 2022 at 4:04 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Thank you so much for writing.  I&#8217;m not good enough with words to express how much I value and treasure your work.  Please don&#8217;t stop.  Please stay healthy in mind and body.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/?replytocom=128395#respond' data-commentid="128395" data-postid="12095" data-belowelement="comment-128395" data-respondelement="respond" data-replyto="Reply to danielrobblpc" aria-label='Reply to danielrobblpc'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment odd alt thread-even depth-1 highlander-comment" id="li-comment-129783">
+		<article id="comment-129783" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/9a31c1331da5f2675fabd958a1508cd6?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Star Of East</span> on <a href="https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/#comment-129783"><time datetime="2022-07-14T09:35:17+00:00">July 14, 2022 at 9:35 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Pirateaba, I think you are selling yourself far too short on the whole distracting personality of the author. You embody some part of everything you write, and we get to know you through this legendary work of fiction. That isn&#8217;t to say this is all you are, but it&#8217;s more like an imprint in clay of bits and pieces. And just from those pieces, I feel regret at all the possible people like you that I might have missed so far. You&#8217;re definitely not boring.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/?replytocom=129783#respond' data-commentid="129783" data-postid="12095" data-belowelement="comment-129783" data-respondelement="respond" data-replyto="Reply to Star Of East" aria-label='Reply to Star Of East'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment even thread-odd thread-alt depth-1 highlander-comment" id="li-comment-130261">
+		<article id="comment-130261" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/d09511af27ba7b7b60ad21db92813c29?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Red</span> on <a href="https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/#comment-130261"><time datetime="2022-07-23T14:43:51+00:00">July 23, 2022 at 2:43 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Ow.</p>
+<p>Like Yellroan, Ceria, Pisces and Erin. I started to invest too much into this story.</p>
+<p>All I have left in my life is ideas. And that is too much.</p>
+<p>Have you ever been so shunned by everyone&#8230;</p>
+<p>That all you have left is your own weird brain and the way it works overwhelms everyone?</p>
+<p>To the point where you feel lonely even amongst family members.</p>
+<p>No one understands.</p>
+<p>When you&#8217;ve lost everything that mattered to you and you cling to the one thing that makes you feel understood?</p>
+<p>And even that is taken away&#8230; not by anything other than those ideas in your head becoming too much for another&#8230;?</p>
+<p>This month, I practically lived and breathed this series but I can see now that I&#8217;ve overstepped and it was overkill.</p>
+<p>All I have left is my ideas&#8230;.</p>
+<p>It hurts so much.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/?replytocom=130261#respond' data-commentid="130261" data-postid="12095" data-belowelement="comment-130261" data-respondelement="respond" data-replyto="Reply to Red" aria-label='Reply to Red'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment odd alt thread-even depth-1 highlander-comment" id="li-comment-130386">
+		<article id="comment-130386" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/06a290f2e6ae406bc189d1aa7e5ffa01?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Blackjack</span> on <a href="https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/#comment-130386"><time datetime="2022-07-25T20:20:28+00:00">July 25, 2022 at 8:20 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>There isn&#8217;t much I can say that hasn&#8217;t been said already. Instead I&#8217;ll simply say, thank you. Your story is the best thing in my life. Not that my life is bad, but each chapter brings a greatness to it that I cannot find elsewhere. I smile continually while reading because your writing is a thing of joy and glory. You are, hands down, my favorite author and I live for your work. Pace yourself, find a balance that brings as much happiness to you as you bring to others, and be safe. You are a blessing to the written word and the world is better for having you in it.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/?replytocom=130386#respond' data-commentid="130386" data-postid="12095" data-belowelement="comment-130386" data-respondelement="respond" data-replyto="Reply to Blackjack" aria-label='Reply to Blackjack'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment even thread-odd thread-alt depth-1 highlander-comment" id="li-comment-131456">
+		<article id="comment-131456" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/c547f8b2ec019fd770adc5e4da305e43?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">TickleGrim</span> on <a href="https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/#comment-131456"><time datetime="2022-08-11T22:04:15+00:00">August 11, 2022 at 10:04 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Hmmm.  Making Erin Solstice  the SOURCE of quests. </p>
+<p>Now, that is interesting. Will there be rewards? Copper, experience?\</p>
+<p>Great story.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/?replytocom=131456#respond' data-commentid="131456" data-postid="12095" data-belowelement="comment-131456" data-respondelement="respond" data-replyto="Reply to TickleGrim" aria-label='Reply to TickleGrim'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment odd alt thread-even depth-1 highlander-comment" id="li-comment-133981">
+		<article id="comment-133981" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/432f3b9aceaed495790e0a7f47ff1c47?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Almighty-Darkseid</span> on <a href="https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/#comment-133981"><time datetime="2022-09-24T22:27:36+00:00">September 24, 2022 at 10:27 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Thank you for this volume and this series and these characters. They make me feel like a kid again, reading my favorite novels till 2 in the morning on a school night.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2022/05/03/epilogue/comment-page-3/?replytocom=133981#respond' data-commentid="133981" data-postid="12095" data-belowelement="comment-133981" data-respondelement="respond" data-replyto="Reply to Almighty-Darkseid" aria-label='Reply to Almighty-Darkseid'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		</ol>
+
+				<nav id="comment-nav-below">
+			<h1 class="assistive-text">Comment navigation</h1>
+			<div class="nav-previous"><a href="https://wanderinginn.com/2022/05/03/epilogue/comment-page-2/#comments" >&larr; Older Comments</a></div>
+			<div class="nav-next"></div>
+		</nav>
+		
+		
+	
+		<div id="respond" class="comment-respond">
+		<h3 id="reply-title" class="comment-reply-title">Leave a Reply <small><a rel="nofollow" id="cancel-comment-reply-link" href="/2022/05/03/epilogue/#respond" style="display:none;">Cancel reply</a></small></h3><form action="https://wanderinginn.com/wp-comments-post.php" method="post" id="commentform" class="comment-form"><input type="hidden" id="highlander_comment_nonce" name="highlander_comment_nonce" value="bd33e1bdd8" /><input type="hidden" name="_wp_http_referer" value="/2022/05/03/epilogue/" />
+<input type="hidden" name="hc_post_as" id="hc_post_as" value="guest" />
+
+<div class="comment-form-field comment-textarea">
+	<label for="comment">Enter your comment here...</label>
+	<div id="comment-form-comment"><textarea id="comment" name="comment" title="Enter your comment here..."></textarea></div>
+</div>
+
+<div id="comment-form-identity">
+	<div id="comment-form-nascar">
+		<p>Fill in your details below or click an icon to log in:</p>
+		<ul>
+			<li class="selected" style="display:none;">
+				<a href="#comment-form-guest" id="postas-guest" class="nascar-signin-link"
+				 title="Login via Guest" 				>
+									</a>
+			</li>
+			<li>
+				<a href="#comment-form-load-service:WordPress.com" id="postas-wordpress" class="nascar-signin-link"
+				 title="Login via WordPress.com" 				>
+					<svg xmlns="http://www.w3.org/2000/svg" role="presentation" viewBox="0 0 24 24" ><rect x="0" fill="none" width="24" height="24"/><g><path fill="#FFF" d="M12.158 12.786l-2.698 7.84c.806.236 1.657.365 2.54.365 1.047 0 2.05-.18 2.986-.51-.024-.037-.046-.078-.065-.123l-2.762-7.57zM3.008 12c0 3.56 2.07 6.634 5.068 8.092L3.788 8.342c-.5 1.117-.78 2.354-.78 3.658zm15.06-.454c0-1.112-.398-1.88-.74-2.48-.456-.74-.883-1.368-.883-2.11 0-.825.627-1.595 1.51-1.595.04 0 .078.006.116.008-1.598-1.464-3.73-2.36-6.07-2.36-3.14 0-5.904 1.613-7.512 4.053.21.008.41.012.58.012.94 0 2.395-.114 2.395-.114.484-.028.54.684.057.74 0 0-.487.058-1.03.086l3.275 9.74 1.968-5.902-1.4-3.838c-.485-.028-.944-.085-.944-.085-.486-.03-.43-.77.056-.742 0 0 1.484.114 2.368.114.94 0 2.397-.114 2.397-.114.486-.028.543.684.058.74 0 0-.488.058-1.03.086l3.25 9.665.897-2.997c.456-1.17.684-2.137.684-2.907zm1.82-3.86c.04.286.06.593.06.924 0 .912-.17 1.938-.683 3.22l-2.746 7.94c2.672-1.558 4.47-4.454 4.47-7.77 0-1.564-.4-3.033-1.1-4.314zM12 22C6.486 22 2 17.514 2 12S6.486 2 12 2s10 4.486 10 10-4.486 10-10 10z"/></g></svg>				</a>
+			</li>
+			<li>
+				<a href="#comment-form-load-service:Twitter" id="postas-twitter" class="nascar-signin-link"
+				 title="Login via Twitter" 				>
+					<svg xmlns="http://www.w3.org/2000/svg" role="presentation" viewBox="0 0 24 24" ><rect x="0" fill="none" width="24" height="24"/><g><path fill="#FFF" d="M22.23 5.924c-.736.326-1.527.547-2.357.646.847-.508 1.498-1.312 1.804-2.27-.793.47-1.67.812-2.606.996C18.325 4.498 17.258 4 16.078 4c-2.266 0-4.103 1.837-4.103 4.103 0 .322.036.635.106.935-3.41-.17-6.433-1.804-8.457-4.287-.353.607-.556 1.312-.556 2.064 0 1.424.724 2.68 1.825 3.415-.673-.022-1.305-.207-1.86-.514v.052c0 1.988 1.415 3.647 3.293 4.023-.344.095-.707.145-1.08.145-.265 0-.522-.026-.773-.074.522 1.63 2.038 2.817 3.833 2.85-1.404 1.1-3.174 1.757-5.096 1.757-.332 0-.66-.02-.98-.057 1.816 1.164 3.973 1.843 6.29 1.843 7.547 0 11.675-6.252 11.675-11.675 0-.178-.004-.355-.012-.53.802-.578 1.497-1.3 2.047-2.124z"/></g></svg>				</a>
+			</li>
+			<li>
+				<a href="#comment-form-load-service:Facebook" id="postas-facebook" class="nascar-signin-link"
+				 title="Login via Facebook" 				>
+					<svg xmlns="http://www.w3.org/2000/svg" role="presentation" viewBox="0 0 24 24" ><rect x="0" fill="none" width="24" height="24"/><g><path fill="#FFF" d="M20.007 3H3.993C3.445 3 3 3.445 3 3.993v16.013c0 .55.445.994.993.994h8.62v-6.97H10.27V11.31h2.346V9.31c0-2.325 1.42-3.59 3.494-3.59.993 0 1.847.073 2.096.106v2.43h-1.438c-1.128 0-1.346.537-1.346 1.324v1.734h2.69l-.35 2.717h-2.34V21h4.587c.548 0 .993-.445.993-.993V3.993c0-.548-.445-.993-.993-.993z"/></g></svg>				</a>
+			</li>
+		</ul>
+	</div>
+
+	<div id="comment-form-guest" class="comment-form-service selected">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+<a href="https://gravatar.com/site/signup/" target="_blank">				<img src="https://1.gravatar.com/avatar/ad516503a11cd5ca435acc9bb6523536?s=25&amp;d=identicon&amp;forcedefault=y&amp;r=PG" alt="Gravatar" width="25" class="no-grav" />
+</a>			</div>
+
+				<div class="comment-form-fields">
+				<div class="comment-form-field comment-form-email">
+					<label for="email">Email <span class="required">(required)</span> <span class="nopublish">(Address never made public)</span></label>
+					<div class="comment-form-input"><input id="email" name="email" type="email" value="" /></div>
+				</div>
+				<div class="comment-form-field comment-form-author">
+					<label for="author">Name <span class="required">(required)</span></label>
+					<div class="comment-form-input"><input id="author" name="author" type="text" value="" /></div>
+				</div>
+				<div class="comment-form-field comment-form-url">
+					<label for="url">Website</label>
+					<div class="comment-form-input"><input id="url" name="url" type="url" value="" /></div>
+				</div>
+			</div>
+			
+		</div>
+	</div>
+
+	<div id="comment-form-wordpress" class="comment-form-service">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+				<img src="https://1.gravatar.com/avatar/ad516503a11cd5ca435acc9bb6523536?s=25&amp;d=identicon&amp;forcedefault=y&amp;r=PG" alt="WordPress.com Logo" width="25" class="no-grav" />
+			</div>
+
+				<div class="comment-form-fields">
+				<input type="hidden" name="wp_avatar" id="wordpress-avatar" class="comment-meta-wordpress" value="" />
+				<input type="hidden" name="wp_user_id" id="wordpress-user_id" class="comment-meta-wordpress" value="" />
+				<input type="hidden" name="wp_access_token" id="wordpress-access_token" class="comment-meta-wordpress" value="" />
+						<p class="comment-form-posting-as pa-wordpress">
+			<strong></strong>
+			You are commenting using your WordPress.com account.			<span class="comment-form-log-out">
+				(&nbsp;<a href="javascript:HighlanderComments.doExternalLogout( 'wordpress' );">Log&nbsp;Out</a>&nbsp;/&nbsp;
+				<a href="#" onclick="javascript:HighlanderComments.switchAccount();return false;">Change</a>&nbsp;)
+			</span>
+			<span class="pa-icon"><svg xmlns="http://www.w3.org/2000/svg" role="presentation" viewBox="0 0 24 24" ><rect x="0" fill="none" width="24" height="24"/><g><path fill="#FFF" d="M12.158 12.786l-2.698 7.84c.806.236 1.657.365 2.54.365 1.047 0 2.05-.18 2.986-.51-.024-.037-.046-.078-.065-.123l-2.762-7.57zM3.008 12c0 3.56 2.07 6.634 5.068 8.092L3.788 8.342c-.5 1.117-.78 2.354-.78 3.658zm15.06-.454c0-1.112-.398-1.88-.74-2.48-.456-.74-.883-1.368-.883-2.11 0-.825.627-1.595 1.51-1.595.04 0 .078.006.116.008-1.598-1.464-3.73-2.36-6.07-2.36-3.14 0-5.904 1.613-7.512 4.053.21.008.41.012.58.012.94 0 2.395-.114 2.395-.114.484-.028.54.684.057.74 0 0-.487.058-1.03.086l3.275 9.74 1.968-5.902-1.4-3.838c-.485-.028-.944-.085-.944-.085-.486-.03-.43-.77.056-.742 0 0 1.484.114 2.368.114.94 0 2.397-.114 2.397-.114.486-.028.543.684.058.74 0 0-.488.058-1.03.086l3.25 9.665.897-2.997c.456-1.17.684-2.137.684-2.907zm1.82-3.86c.04.286.06.593.06.924 0 .912-.17 1.938-.683 3.22l-2.746 7.94c2.672-1.558 4.47-4.454 4.47-7.77 0-1.564-.4-3.033-1.1-4.314zM12 22C6.486 22 2 17.514 2 12S6.486 2 12 2s10 4.486 10 10-4.486 10-10 10z"/></g></svg></span>
+		</p>
+					</div>
+	
+		</div>
+	</div>
+
+	<div id="comment-form-twitter" class="comment-form-service">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+				<img src="https://1.gravatar.com/avatar/ad516503a11cd5ca435acc9bb6523536?s=25&amp;d=identicon&amp;forcedefault=y&amp;r=PG" alt="Twitter picture" width="25" class="no-grav" />
+			</div>
+
+				<div class="comment-form-fields">
+				<input type="hidden" name="twitter_avatar" id="twitter-avatar" class="comment-meta-twitter" value="" />
+				<input type="hidden" name="twitter_user_id" id="twitter-user_id" class="comment-meta-twitter" value="" />
+				<input type="hidden" name="twitter_access_token" id="twitter-access_token" class="comment-meta-twitter" value="" />
+						<p class="comment-form-posting-as pa-twitter">
+			<strong></strong>
+			You are commenting using your Twitter account.			<span class="comment-form-log-out">
+				(&nbsp;<a href="javascript:HighlanderComments.doExternalLogout( 'twitter' );">Log&nbsp;Out</a>&nbsp;/&nbsp;
+				<a href="#" onclick="javascript:HighlanderComments.switchAccount();return false;">Change</a>&nbsp;)
+			</span>
+			<span class="pa-icon"><svg xmlns="http://www.w3.org/2000/svg" role="presentation" viewBox="0 0 24 24" ><rect x="0" fill="none" width="24" height="24"/><g><path fill="#FFF" d="M22.23 5.924c-.736.326-1.527.547-2.357.646.847-.508 1.498-1.312 1.804-2.27-.793.47-1.67.812-2.606.996C18.325 4.498 17.258 4 16.078 4c-2.266 0-4.103 1.837-4.103 4.103 0 .322.036.635.106.935-3.41-.17-6.433-1.804-8.457-4.287-.353.607-.556 1.312-.556 2.064 0 1.424.724 2.68 1.825 3.415-.673-.022-1.305-.207-1.86-.514v.052c0 1.988 1.415 3.647 3.293 4.023-.344.095-.707.145-1.08.145-.265 0-.522-.026-.773-.074.522 1.63 2.038 2.817 3.833 2.85-1.404 1.1-3.174 1.757-5.096 1.757-.332 0-.66-.02-.98-.057 1.816 1.164 3.973 1.843 6.29 1.843 7.547 0 11.675-6.252 11.675-11.675 0-.178-.004-.355-.012-.53.802-.578 1.497-1.3 2.047-2.124z"/></g></svg></span>
+		</p>
+					</div>
+	
+		</div>
+	</div>
+
+	<div id="comment-form-facebook" class="comment-form-service">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+				<img src="" alt="Facebook photo" width="25" class="no-grav" />
+			</div>
+
+				<div class="comment-form-fields">
+				<input type="hidden" name="fb_avatar" id="facebook-avatar" class="comment-meta-facebook" value="" />
+				<input type="hidden" name="fb_user_id" id="facebook-user_id" class="comment-meta-facebook" value="" />
+				<input type="hidden" name="fb_access_token" id="facebook-access_token" class="comment-meta-facebook" value="" />
+						<p class="comment-form-posting-as pa-facebook">
+			<strong></strong>
+			You are commenting using your Facebook account.			<span class="comment-form-log-out">
+				(&nbsp;<a href="javascript:HighlanderComments.doExternalLogout( 'facebook' );">Log&nbsp;Out</a>&nbsp;/&nbsp;
+				<a href="#" onclick="javascript:HighlanderComments.switchAccount();return false;">Change</a>&nbsp;)
+			</span>
+			<span class="pa-icon"><svg xmlns="http://www.w3.org/2000/svg" role="presentation" viewBox="0 0 24 24" ><rect x="0" fill="none" width="24" height="24"/><g><path fill="#FFF" d="M20.007 3H3.993C3.445 3 3 3.445 3 3.993v16.013c0 .55.445.994.993.994h8.62v-6.97H10.27V11.31h2.346V9.31c0-2.325 1.42-3.59 3.494-3.59.993 0 1.847.073 2.096.106v2.43h-1.438c-1.128 0-1.346.537-1.346 1.324v1.734h2.69l-.35 2.717h-2.34V21h4.587c.548 0 .993-.445.993-.993V3.993c0-.548-.445-.993-.993-.993z"/></g></svg></span>
+		</p>
+					</div>
+	
+		</div>
+	</div>
+
+
+	<div id="comment-form-load-service" class="comment-form-service">
+		<div class="comment-form-posting-as-cancel"><a href="javascript:HighlanderComments.cancelExternalWindow();">Cancel</a></div>
+		<p>Connecting to %s</p>
+	</div>
+
+</div>
+
+<script type="text/javascript">
+var highlander_expando_javascript = function () {
+
+	function hide( sel ) {
+		var el = document.querySelector( sel );
+		if ( el ) {
+			el.style.setProperty( 'display', 'none' );
+		}
+	}
+
+	function show( sel ) {
+		var el = document.querySelector( sel );
+		if ( el ) {
+			el.style.removeProperty( 'display' );
+		}
+	}
+
+	var input = document.createElement( 'input' );
+	var comment = document.querySelector( '#comment' );
+
+	if ( input && comment && 'placeholder' in input ) {
+		var label = document.querySelector( '.comment-textarea label' );
+		if ( label ) {
+			var text = label.textContent;
+			label.parentNode.removeChild( label );
+			comment.setAttribute( 'placeholder', text );
+		}
+	}
+
+	// Expando Mode: start small, then auto-resize on first click + text length
+	hide( '#comment-form-identity' );
+	hide( '#comment-form-subscribe' );
+	hide( '#commentform .form-submit' );
+
+	if ( comment ) {
+		comment.style.height = '10px';
+
+		var handler = function () {
+			comment.style.height = HighlanderComments.initialHeight + 'px';
+			show( '#comment-form-identity' );
+			show( '#comment-form-subscribe' );
+			show( '#commentform .form-submit' );
+			HighlanderComments.resizeCallback();
+
+			comment.removeEventListener( 'focus', handler );
+		};
+
+		comment.addEventListener( 'focus', handler );
+	}
+}
+
+if ( document.readyState !== 'loading' ) {
+	highlander_expando_javascript();
+} else {
+	document.addEventListener( 'DOMContentLoaded', highlander_expando_javascript );
+}
+
+</script>
+
+<div id="comment-form-subscribe">
+	<p class="comment-subscription-form"><input type="checkbox" name="subscribe" id="subscribe" value="subscribe" style="width: auto;"/> <label class="subscribe-label" id="subscribe-label" for="subscribe" style="display: inline;">Notify me of new comments via email.</label></p><p class="post-subscription-form"><input type="checkbox" name="subscribe_blog" id="subscribe_blog" value="subscribe" style="width: auto;"/> <label class="subscribe-label" id="subscribe-blog-label" for="subscribe_blog"  style="display: inline;">Notify me of new posts via email.</label></p></div>
+
+
+
+
+<p class="form-submit"><input name="submit" type="submit" id="comment-submit" class="submit button" value="Post Comment" /> <input type='hidden' name='comment_post_ID' value='12095' id='comment_post_ID' />
+<input type='hidden' name='comment_parent' id='comment_parent' value='0' />
+</p><p style="display: none;"><input type="hidden" id="akismet_comment_nonce" name="akismet_comment_nonce" value="a1f1a030ce" /></p>
+<input type="hidden" name="genseq" value="1664901093" />
+<p style="display: none !important;"><label>&#916;<textarea name="ak_hp_textarea" cols="45" rows="8" maxlength="100"></textarea></label><input type="hidden" id="ak_js_1" name="ak_js" value="196"/><script>document.getElementById( "ak_js_1" ).setAttribute( "value", ( new Date() ).getTime() );</script></p></form>	</div><!-- #respond -->
+	<div style="clear: both"></div>
+</div><!-- #comments -->
+
+				
+			</div><!-- #content -->
+		</div><!-- #primary -->
+
+
+	</div><!-- #main -->
+
+	<footer id="colophon">
+
+			
+
+			<div id="site-generator">
+				 								<a href="https://wordpress.com/?ref=footer_blog" rel="nofollow">Blog at WordPress.com.</a>
+			</div>
+	</footer><!-- #colophon -->
+</div><!-- #page -->
+
+<!--  -->
+<script type="text/javascript">
+	window._tkq = window._tkq || [];
+	if ( Math.random() < 0.01 ) {
+		window._tkq.push( [
+			'recordEvent',
+			'wpcom_wordads_noad',
+			{"theme":"pub\/twentyeleven","blog_id":113840984,"post_id":12095,"reason_noadverts_plugin":1,"reason_upgrade":1,"reason_blog_null":1,"reason_post_null":1}
+		] );
+	}
+</script><script src='//0.gravatar.com/js/gprofiles.js?ver=202240z' id='grofiles-cards-js'></script>
+<script id='wpgroho-js-extra'>
+var WPGroHo = {"my_hash":""};
+</script>
+<script crossorigin='anonymous' type='text/javascript' src='https://s1.wp.com/wp-content/mu-plugins/gravatar-hovercards/wpgroho.js?m=1610363240h'></script>
+
+	<script>
+		// Initialize and attach hovercards to all gravatars
+		( function() {
+			function init() {
+				if ( typeof Gravatar === 'undefined' ) {
+					return;
+				}
+
+				if ( typeof Gravatar.init !== 'function' ) {
+					return;
+				}
+
+				Gravatar.profile_cb = function ( hash, id ) {
+					WPGroHo.syncProfileData( hash, id );
+				};
+
+				Gravatar.my_hash = WPGroHo.my_hash;
+				Gravatar.init( 'body', '#wp-admin-bar-my-account' );
+			}
+
+			if ( document.readyState !== 'loading' ) {
+				init();
+			} else {
+				document.addEventListener( 'DOMContentLoaded', init );
+			}
+		} )();
+	</script>
+
+		<div style="display:none">
+	<div class="grofile-hash-map-04fadbe9d315733dd228f37226d7632b">
+	</div>
+	<div class="grofile-hash-map-356bcae87ffe98c6fcfa9f5f54266a84">
+	</div>
+	<div class="grofile-hash-map-9072fb5373b89c5c8084e9b19dee4b2b">
+	</div>
+	<div class="grofile-hash-map-c1c3340cc694ca05cbc80267b2cddcb7">
+	</div>
+	<div class="grofile-hash-map-06e20aaefcf55d675477e394e55f5416">
+	</div>
+	<div class="grofile-hash-map-d55d3a55e08a11fa005d16f0d77f39bc">
+	</div>
+	<div class="grofile-hash-map-6c05f01d7ebcdf227aaffae88d6de48d">
+	</div>
+	<div class="grofile-hash-map-3726fa2ab912ef6bde6541e8481d0e5b">
+	</div>
+	<div class="grofile-hash-map-f9edb31621b442474ca5a3237c413c4a">
+	</div>
+	<div class="grofile-hash-map-95ef57b018cd7b42be99e7d0ce51ba50">
+	</div>
+	<div class="grofile-hash-map-513dc19ebf35b96736b8b39ea13d92fa">
+	</div>
+	<div class="grofile-hash-map-ba62dba126611c91b6a2e44911b80d7c">
+	</div>
+	<div class="grofile-hash-map-5023744ab3c2ee1b3677929ed581c346">
+	</div>
+	<div class="grofile-hash-map-c6ec0c400343e77e2358c0990523f9e4">
+	</div>
+	<div class="grofile-hash-map-df1e04ab5e47de6c43e72ac3f1e17a13">
+	</div>
+	<div class="grofile-hash-map-6f274bbedacf3e8f12fbaaa3b5033d38">
+	</div>
+	<div class="grofile-hash-map-7638ff019bece7ae1e78ad1f813158e9">
+	</div>
+	<div class="grofile-hash-map-15a5c0fb126f60722d8ad275fd4c0e40">
+	</div>
+	<div class="grofile-hash-map-45df4590434c3bc2e2eedf5e899339a8">
+	</div>
+	<div class="grofile-hash-map-0005026b2919eb9d8283edd9a19360c0">
+	</div>
+	<div class="grofile-hash-map-b50e62a358a8e9346f45906bfa2f8a9e">
+	</div>
+	<div class="grofile-hash-map-74fa7cac795980d45e0fac7c349c723a">
+	</div>
+	<div class="grofile-hash-map-3a8092eb4d16fc13e75b984bb347695b">
+	</div>
+	<div class="grofile-hash-map-0e03ff64ad83e912a3a0e0ebbec98791">
+	</div>
+	<div class="grofile-hash-map-1c87d63a689c3d46c727a7c703ea4fbf">
+	</div>
+	<div class="grofile-hash-map-361aee42cf783d4b51852019fad6b655">
+	</div>
+	<div class="grofile-hash-map-8e5bdf3ed834bf0ced1120b0ffe15673">
+	</div>
+	<div class="grofile-hash-map-5266c74a041f594a5fc2338bb3f3ff77">
+	</div>
+	<div class="grofile-hash-map-a62d2ef43c504301b2da74008cf974b8">
+	</div>
+	<div class="grofile-hash-map-67848f0d0e066cd41815152ec42a0b11">
+	</div>
+	<div class="grofile-hash-map-8a32789bda79142782388cff656223ec">
+	</div>
+	<div class="grofile-hash-map-62be5d2c56b824936aeb1fee5cd157e6">
+	</div>
+	<div class="grofile-hash-map-cacd227161e905310f540a298ff67e6f">
+	</div>
+	<div class="grofile-hash-map-c5744a3ded02d623751d1dbe80bc443c">
+	</div>
+	<div class="grofile-hash-map-63d4871c206169d644e41b7e1f6789d9">
+	</div>
+	<div class="grofile-hash-map-8306497713479f738ffbc2a9880a4595">
+	</div>
+	<div class="grofile-hash-map-11a2269cdbd509fb8a0bc4d7a26c1f9a">
+	</div>
+	<div class="grofile-hash-map-516358976eaba4133eddb2197e1fce4b">
+	</div>
+	<div class="grofile-hash-map-e52384e9d308b3fde1ca855f42e6c097">
+	</div>
+	<div class="grofile-hash-map-fdf43102edb64619f7afc29562031859">
+	</div>
+	<div class="grofile-hash-map-857c43371930d57dcf97c7bb3c6b405e">
+	</div>
+	<div class="grofile-hash-map-da210984d544997c8e08aa9b8edc0bc2">
+	</div>
+	<div class="grofile-hash-map-69a002cd75c6a9654a12b0f4105c13e5">
+	</div>
+	<div class="grofile-hash-map-f46edd3523f90631fc117b583ebedf09">
+	</div>
+	<div class="grofile-hash-map-2b330b597e4857688cf3acfbaf872a71">
+	</div>
+	<div class="grofile-hash-map-9a31c1331da5f2675fabd958a1508cd6">
+	</div>
+	<div class="grofile-hash-map-d09511af27ba7b7b60ad21db92813c29">
+	</div>
+	<div class="grofile-hash-map-06a290f2e6ae406bc189d1aa7e5ffa01">
+	</div>
+	<div class="grofile-hash-map-c547f8b2ec019fd770adc5e4da305e43">
+	</div>
+	<div class="grofile-hash-map-432f3b9aceaed495790e0a7f47ff1c47">
+	</div>
+	</div>
+<script id='highlander-comments-js-extra'>
+var HighlanderComments = {"loggingInText":"Logging In\u2026","submittingText":"Posting Comment\u2026","postCommentText":"Post Comment","connectingToText":"Connecting to %s","commentingAsText":"%1$s: You are commenting using your %2$s account.","logoutText":"Log Out","loginText":"Log In","connectURL":"https:\/\/wanderinginn.wordpress.com\/public.api\/connect\/?action=request&domain=wanderinginn.com","logoutURL":"https:\/\/wanderinginn.wordpress.com\/wp-login.php?action=logout&_wpnonce=027032d4fa","homeURL":"https:\/\/wanderinginn.com\/","postID":"12095","gravDefault":"identicon","enterACommentError":"Please enter a comment","enterEmailError":"Please enter your email address here","invalidEmailError":"Invalid email address","enterAuthorError":"Please enter your name here","gravatarFromEmail":"This picture will show whenever you leave a comment. Click to customize it.","logInToExternalAccount":"Log in to use details from one of these accounts.","change":"Change","changeAccount":"Change Account","comment_registration":"","userIsLoggedIn":"","isJetpack":"","text_direction":"ltr"};
+</script>
+<script crossorigin='anonymous' type='text/javascript' src='https://s0.wp.com/_static/??/wp-content/js/textarea-autosize.min.js,/wp-content/mu-plugins/highlander-comments/script.js?m=1663141412j'></script>
+	<div id="actionbar" style="display: none;"
+			class="actnbr-pub-twentyeleven actnbr-has-follow">
+		<ul>
+								<li class="actnbr-btn actnbr-hidden">
+								<a class="actnbr-action actnbr-actn-follow " href="">
+			<svg class="gridicon gridicons-reader-follow" height="24" width="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g><path d="M23 16v2h-3v3h-2v-3h-3v-2h3v-3h2v3h3zM20 2v9h-4v3h-3v4H4c-1.1 0-2-.9-2-2V2h18zM8 13v-1H4v1h4zm3-3H4v1h7v-1zm0-2H4v1h7V8zm7-4H4v2h14V4z"/></g></svg><span>Follow</span>
+		</a>
+		<a class="actnbr-action actnbr-actn-following  no-display" href="">
+			<svg class="gridicon gridicons-reader-following" height="24" width="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g><path d="M23 13.482L15.508 21 12 17.4l1.412-1.388 2.106 2.188 6.094-6.094L23 13.482zm-7.455 1.862L20 10.89V2H2v14c0 1.1.9 2 2 2h4.538l4.913-4.832 2.095 2.176zM8 13H4v-1h4v1zm3-2H4v-1h7v1zm0-2H4V8h7v1zm7-3H4V4h14v2z"/></g></svg><span>Following</span>
+		</a>
+							<div class="actnbr-popover tip tip-top-left actnbr-notice" id="follow-bubble">
+							<div class="tip-arrow"></div>
+							<div class="tip-inner actnbr-follow-bubble">
+															<ul>
+											<li class="actnbr-sitename">
+			<a href="https://wanderinginn.com">
+				<img alt='' src='https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=50' class='avatar avatar-50' height='50' width='50' />				The Wandering Inn			</a>
+		</li>
+										<form method="post" action="https://subscribe.wordpress.com" accept-charset="utf-8" style="display: none;">
+																						<div class="actnbr-follow-count">Join 2,697 other followers</div>
+																					<div>
+										<input type="email" name="email" placeholder="Enter your email address" class="actnbr-email-field" aria-label="Enter your email address" />
+										</div>
+										<input type="hidden" name="action" value="subscribe" />
+										<input type="hidden" name="blog_id" value="113840984" />
+										<input type="hidden" name="source" value="https://wanderinginn.com/2022/05/03/epilogue/" />
+										<input type="hidden" name="sub-type" value="actionbar-follow" />
+										<input type="hidden" id="_wpnonce" name="_wpnonce" value="9bb017f338" />										<div class="actnbr-button-wrap">
+											<button type="submit" value="Sign me up">
+												Sign me up											</button>
+										</div>
+									</form>
+									<li class="actnbr-login-nudge">
+										<div>
+											Already have a WordPress.com account? <a href="https://wordpress.com/log-in?redirect_to=https%3A%2F%2Fr-login.wordpress.com%2Fremote-login.php%3Faction%3Dlink%26back%3Dhttps%253A%252F%252Fwanderinginn.com%252F2022%252F05%252F03%252Fepilogue%252F">Log in now.</a>										</div>
+									</li>
+								</ul>
+															</div>
+						</div>
+					</li>
+							<li class="actnbr-ellipsis actnbr-hidden">
+				<svg class="gridicon gridicons-ellipsis" height="24" width="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g><path d="M7 12c0 1.104-.896 2-2 2s-2-.896-2-2 .896-2 2-2 2 .896 2 2zm12-2c-1.104 0-2 .896-2 2s.896 2 2 2 2-.896 2-2-.896-2-2-2zm-7 0c-1.104 0-2 .896-2 2s.896 2 2 2 2-.896 2-2-.896-2-2-2z"/></g></svg>				<div class="actnbr-popover tip tip-top-left actnbr-more">
+					<div class="tip-arrow"></div>
+					<div class="tip-inner">
+						<ul>
+									<li class="actnbr-sitename">
+			<a href="https://wanderinginn.com">
+				<img alt='' src='https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=50' class='avatar avatar-50' height='50' width='50' />				The Wandering Inn			</a>
+		</li>
+								<li class="actnbr-folded-customize">
+								<a href="https://wanderinginn.wordpress.com/wp-admin/customize.php?url=https%3A%2F%2Fwanderinginn.wordpress.com%2F2022%2F05%2F03%2Fepilogue%2F">
+									<svg class="gridicon gridicons-customize" height="20" width="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g><path d="M2 6c0-1.505.78-3.08 2-4 0 .845.69 2 2 2 1.657 0 3 1.343 3 3 0 .386-.08.752-.212 1.09.74.594 1.476 1.19 2.19 1.81L8.9 11.98c-.62-.716-1.214-1.454-1.807-2.192C6.753 9.92 6.387 10 6 10c-2.21 0-4-1.79-4-4zm12.152 6.848l1.34-1.34c.607.304 1.283.492 2.008.492 2.485 0 4.5-2.015 4.5-4.5 0-.725-.188-1.4-.493-2.007L18 9l-2-2 3.507-3.507C18.9 3.188 18.225 3 17.5 3 15.015 3 13 5.015 13 7.5c0 .725.188 1.4.493 2.007L3 20l2 2 6.848-6.848c1.885 1.928 3.874 3.753 5.977 5.45l1.425 1.148 1.5-1.5-1.15-1.425c-1.695-2.103-3.52-4.092-5.448-5.977z"/></g></svg>									<span>Customize</span>
+								</a>
+							</li>
+																<li class="actnbr-folded-follow">
+												<a class="actnbr-action actnbr-actn-follow " href="">
+			<svg class="gridicon gridicons-reader-follow" height="24" width="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g><path d="M23 16v2h-3v3h-2v-3h-3v-2h3v-3h2v3h3zM20 2v9h-4v3h-3v4H4c-1.1 0-2-.9-2-2V2h18zM8 13v-1H4v1h4zm3-3H4v1h7v-1zm0-2H4v1h7V8zm7-4H4v2h14V4z"/></g></svg><span>Follow</span>
+		</a>
+		<a class="actnbr-action actnbr-actn-following  no-display" href="">
+			<svg class="gridicon gridicons-reader-following" height="24" width="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g><path d="M23 13.482L15.508 21 12 17.4l1.412-1.388 2.106 2.188 6.094-6.094L23 13.482zm-7.455 1.862L20 10.89V2H2v14c0 1.1.9 2 2 2h4.538l4.913-4.832 2.095 2.176zM8 13H4v-1h4v1zm3-2H4v-1h7v1zm0-2H4V8h7v1zm7-3H4V4h14v2z"/></g></svg><span>Following</span>
+		</a>
+										</li>
+																	<li class="actnbr-signup"><a href="https://wordpress.com/start/">Sign up</a></li>
+									<li class="actnbr-login"><a href="https://wordpress.com/log-in?redirect_to=https%3A%2F%2Fr-login.wordpress.com%2Fremote-login.php%3Faction%3Dlink%26back%3Dhttps%253A%252F%252Fwanderinginn.com%252F2022%252F05%252F03%252Fepilogue%252F">Log in</a></li>
+																	<li class="actnbr-shortlink"><a href="https://wp.me/s7HFeU-epilogue">Copy shortlink</a></li>
+																	<li class="flb-report"><a href="http://en.wordpress.com/abuse/">Report this content</a></li>
+																	<li class="actnbr-reader">
+										<a href="https://wordpress.com/read/blogs/113840984/posts/12095">
+											View post in Reader										</a>
+									</li>
+																	<li class="actnbr-subs">
+										<a href="https://subscribe.wordpress.com/">Manage subscriptions</a>
+									</li>
+																		<li class="actnbr-fold"><a href="">Collapse this bar</a></li>
+															</ul>
+					</div>
+				</div>
+			</li>
+		</ul>
+	</div>
+	
+<script>
+window.addEventListener( "load", function( event ) {
+	var link = document.createElement( "link" );
+	link.href = "https://s0.wp.com/wp-content/mu-plugins/actionbar/actionbar.css?v=20210915";
+	link.type = "text/css";
+	link.rel = "stylesheet";
+	document.head.appendChild( link );
+
+	var script = document.createElement( "script" );
+	script.src = "https://s0.wp.com/wp-content/mu-plugins/actionbar/actionbar.js?v=20220329";
+	script.defer = true;
+	document.body.appendChild( script );
+} );
+</script>
+
+	<script crossorigin='anonymous' type='text/javascript' src='https://s2.wp.com/_static/??-eJx9jd0OwiAMRl9I6AxmixfGRzEMqoFRRij48/ZWk3npXfOdc1J4FOXW3DA3iAwe78FheerIOxAUskvdI3+YW4lEUxVLemkKeZO2nroqqd9CZrBeuJptBbLcsMqlWrVu4X/REpiwKaMHuMjn33CtX9lLe6bTfhwPZpqOg4lvZ0RE/g=='></script>
+<script type="text/javascript">
+// <![CDATA[
+(function() {
+try{
+  if ( window.external &&'msIsSiteMode' in window.external) {
+    if (window.external.msIsSiteMode()) {
+      var jl = document.createElement('script');
+      jl.type='text/javascript';
+      jl.async=true;
+      jl.src='/wp-content/plugins/ie-sitemode/custom-jumplist.php';
+      var s = document.getElementsByTagName('script')[0];
+      s.parentNode.insertBefore(jl, s);
+    }
+  }
+}catch(e){}
+})();
+// ]]>
+</script><script src="//stats.wp.com/w.js?63" defer></script> <script type="text/javascript">
+_tkq = window._tkq || [];
+_stq = window._stq || [];
+_tkq.push(['storeContext', {'blog_id':'113840984','blog_tz':'0','user_lang':'en','blog_lang':'en','user_id':'0'}]);
+_stq.push(['view', {'blog':'113840984','v':'wpcom','tz':'0','user_id':'0','post':'12095','subd':'wanderinginn'}]);
+_stq.push(['extra', {'crypt':'UE40eW5QN0p8M2Y/RE1mNzc2NTVTamdsd0xoLz9RQkM2K298TXY9bERQMXc2MjhEaVZfb2wwakRoSj0mUkp1THptM1NdbkV1WjZIcU9mVWQmPUIvMlN6Jk8wW3NYVEJ3dWZOWExuWD9VNTEucGVTRmZwYTB2ZD82MHd0Y1Y0RlltYWdKeC9TU05lUzUxV1pzZWh8UlVlalotK3A/NWVna2ZGUkZscGk0dE85VFJicUMwLmIlJURKRV81bnhnJUR4YXVtJW5nXWlERHJBV0Z4V0NidE9vdHlLZ3JtXUlafFhPbVgxbVQyT0ZHS21kJV1QPXF2LEFOa2ZnMlErU2R6TmFfLDdHWlNMLGstLT18YnVsR11FLm84SlB+a0NHeG5ZXVldbERYJiVMWElSR1BkYSZYL3klLkg0RU91eFN8TQ=='}]);
+_stq.push([ 'clickTrackerInit', '113840984', '12095' ]);
+	</script>
+<noscript><img src="https://pixel.wp.com/b.gif?v=noscript" style="height:1px;width:1px;overflow:hidden;position:absolute;bottom:1px;" alt="" /></noscript>
+<script>
+if ( 'object' === typeof wpcom_mobile_user_agent_info ) {
+
+	wpcom_mobile_user_agent_info.init();
+	var mobileStatsQueryString = "";
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedPlatformName )
+		mobileStatsQueryString += "&x_" + 'mobile_platforms' + '=' + wpcom_mobile_user_agent_info.matchedPlatformName;
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedUserAgentName )
+		mobileStatsQueryString += "&x_" + 'mobile_devices' + '=' + wpcom_mobile_user_agent_info.matchedUserAgentName;
+	
+	if( wpcom_mobile_user_agent_info.isIPad() )
+		mobileStatsQueryString += "&x_" + 'ipad_views' + '=' + 'views';
+
+	if( "" != mobileStatsQueryString ) {
+		new Image().src = document.location.protocol + '//pixel.wp.com/g.gif?v=wpcom-no-pv' + mobileStatsQueryString + '&baba=' + Math.random();
+	}
+	
+}
+</script>
+</body>
+</html>
+<!--
+	generated in 0.351 seconds
+	191095 bytes batcached for 300 seconds
+-->

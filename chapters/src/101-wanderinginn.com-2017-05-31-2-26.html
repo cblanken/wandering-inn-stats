@@ -1,0 +1,2058 @@
+<!DOCTYPE html>
+<!--[if IE 6]>
+<html id="ie6" lang="en">
+<![endif]-->
+<!--[if IE 7]>
+<html id="ie7" lang="en">
+<![endif]-->
+<!--[if IE 8]>
+<html id="ie8" lang="en">
+<![endif]-->
+<!--[if !(IE 6) & !(IE 7) & !(IE 8)]><!-->
+<html lang="en">
+<!--<![endif]-->
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width" />
+<title>
+2.31 | The Wandering Inn	</title>
+<link rel="profile" href="https://gmpg.org/xfn/11" />
+<link rel="stylesheet" type="text/css" media="all" href="https://s2.wp.com/wp-content/themes/pub/twentyeleven/style.css?ver=20190507" />
+<link rel="pingback" href="https://wanderinginn.com/xmlrpc.php">
+<!--[if lt IE 9]>
+<script src="https://s2.wp.com/wp-content/themes/pub/twentyeleven/js/html5.js?ver=3.7.0" type="text/javascript"></script>
+<![endif]-->
+<meta name='robots' content='max-image-preview:large' />
+
+<!-- Async WordPress.com Remote Login -->
+<script id="wpcom_remote_login_js">
+var wpcom_remote_login_extra_auth = '';
+function wpcom_remote_login_remove_dom_node_id( element_id ) {
+	var dom_node = document.getElementById( element_id );
+	if ( dom_node ) { dom_node.parentNode.removeChild( dom_node ); }
+}
+function wpcom_remote_login_remove_dom_node_classes( class_name ) {
+	var dom_nodes = document.querySelectorAll( '.' + class_name );
+	for ( var i = 0; i < dom_nodes.length; i++ ) {
+		dom_nodes[ i ].parentNode.removeChild( dom_nodes[ i ] );
+	}
+}
+function wpcom_remote_login_final_cleanup() {
+	wpcom_remote_login_remove_dom_node_classes( "wpcom_remote_login_msg" );
+	wpcom_remote_login_remove_dom_node_id( "wpcom_remote_login_key" );
+	wpcom_remote_login_remove_dom_node_id( "wpcom_remote_login_validate" );
+	wpcom_remote_login_remove_dom_node_id( "wpcom_remote_login_js" );
+	wpcom_remote_login_remove_dom_node_id( "wpcom_request_access_iframe" );
+	wpcom_remote_login_remove_dom_node_id( "wpcom_request_access_styles" );
+}
+
+// Watch for messages back from the remote login
+window.addEventListener( "message", function( e ) {
+	if ( e.origin === "https://r-login.wordpress.com" ) {
+		var data = {};
+		try {
+			data = JSON.parse( e.data );
+		} catch( e ) {
+			wpcom_remote_login_final_cleanup();
+			return;
+		}
+
+		if ( data.msg === 'LOGIN' ) {
+			// Clean up the login check iframe
+			wpcom_remote_login_remove_dom_node_id( "wpcom_remote_login_key" );
+
+			var id_regex = new RegExp( /^[0-9]+$/ );
+			var token_regex = new RegExp( /^.*|.*|.*$/ );
+			if (
+				token_regex.test( data.token )
+				&& id_regex.test( data.wpcomid )
+			) {
+				// We have everything we need to ask for a login
+				var script = document.createElement( "script" );
+				script.setAttribute( "id", "wpcom_remote_login_validate" );
+				script.src = '/remote-login.php?wpcom_remote_login=validate'
+					+ '&wpcomid=' + data.wpcomid
+					+ '&token=' + encodeURIComponent( data.token )
+					+ '&host=' + window.location.protocol
+					+ '//' + window.location.hostname
+					+ '&postid=2064'
+					+ '&is_singular=1';
+				document.body.appendChild( script );
+			}
+
+			return;
+		}
+
+		// Safari ITP, not logged in, so redirect
+		if ( data.msg === 'LOGIN-REDIRECT' ) {
+			window.location = 'https://wordpress.com/log-in?redirect_to=' + window.location.href;
+			return;
+		}
+
+		// Safari ITP, storage access failed, remove the request
+		if ( data.msg === 'LOGIN-REMOVE' ) {
+			var css_zap = 'html { -webkit-transition: margin-top 1s; transition: margin-top 1s; } /* 9001 */ html { margin-top: 0 !important; } * html body { margin-top: 0 !important; } @media screen and ( max-width: 782px ) { html { margin-top: 0 !important; } * html body { margin-top: 0 !important; } }';
+			var style_zap = document.createElement( 'style' );
+			style_zap.type = 'text/css';
+			style_zap.appendChild( document.createTextNode( css_zap ) );
+			document.body.appendChild( style_zap );
+
+			var e = document.getElementById( 'wpcom_request_access_iframe' );
+			e.parentNode.removeChild( e );
+
+			document.cookie = 'wordpress_com_login_access=denied; path=/; max-age=31536000';
+
+			return;
+		}
+
+		// Safari ITP
+		if ( data.msg === 'REQUEST_ACCESS' ) {
+			console.log( 'request access: safari' );
+
+			// Check ITP iframe enable/disable knob
+			if ( wpcom_remote_login_extra_auth !== 'safari_itp_iframe' ) {
+				return;
+			}
+
+			// If we are in a "private window" there is no ITP.
+			var private_window = false;
+			try {
+				var opendb = window.openDatabase( null, null, null, null );
+			} catch( e ) {
+				private_window = true;
+			}
+
+			if ( private_window ) {
+				console.log( 'private window' );
+				return;
+			}
+
+			var iframe = document.createElement( 'iframe' );
+			iframe.id = 'wpcom_request_access_iframe';
+			iframe.setAttribute( 'scrolling', 'no' );
+			iframe.setAttribute( 'sandbox', 'allow-storage-access-by-user-activation allow-scripts allow-same-origin allow-top-navigation-by-user-activation' );
+			iframe.src = 'https://r-login.wordpress.com/remote-login.php?wpcom_remote_login=request_access&origin=' + encodeURIComponent( data.origin ) + '&wpcomid=' + encodeURIComponent( data.wpcomid );
+
+			var css = 'html { -webkit-transition: margin-top 1s; transition: margin-top 1s; } /* 9001 */ html { margin-top: 46px !important; } * html body { margin-top: 46px !important; } @media screen and ( max-width: 660px ) { html { margin-top: 71px !important; } * html body { margin-top: 71px !important; } #wpcom_request_access_iframe { display: block; height: 71px !important; } } #wpcom_request_access_iframe { border: 0px; height: 46px; position: fixed; top: 0; left: 0; width: 100%; min-width: 100%; z-index: 99999; background: #23282d; } ';
+
+			var style = document.createElement( 'style' );
+			style.type = 'text/css';
+			style.id = 'wpcom_request_access_styles';
+			style.appendChild( document.createTextNode( css ) );
+			document.body.appendChild( style );
+
+			document.body.appendChild( iframe );
+		}
+
+		if ( data.msg === 'DONE' ) {
+			wpcom_remote_login_final_cleanup();
+		}
+	}
+}, false );
+
+// Inject the remote login iframe after the page has had a chance to load
+// more critical resources
+window.addEventListener( "DOMContentLoaded", function( e ) {
+	var iframe = document.createElement( "iframe" );
+	iframe.style.display = "none";
+	iframe.setAttribute( "scrolling", "no" );
+	iframe.setAttribute( "id", "wpcom_remote_login_key" );
+	iframe.src = "https://r-login.wordpress.com/remote-login.php"
+		+ "?wpcom_remote_login=key"
+		+ "&origin=aHR0cHM6Ly93YW5kZXJpbmdpbm4uY29t"
+		+ "&wpcomid=113840984"
+		+ "&time=1664899889";
+	document.body.appendChild( iframe );
+}, false );
+</script>
+<link rel='dns-prefetch' href='//s1.wp.com' />
+<link rel='dns-prefetch' href='//wanderinginn.wordpress.com' />
+<link rel='dns-prefetch' href='//s0.wp.com' />
+<link rel='dns-prefetch' href='//s2.wp.com' />
+<link href='https://fonts.gstatic.com' crossorigin rel='preconnect' />
+<link rel="alternate" type="application/rss+xml" title="The Wandering Inn &raquo; Feed" href="https://wanderinginn.com/feed/" />
+<link rel="alternate" type="application/rss+xml" title="The Wandering Inn &raquo; Comments Feed" href="https://wanderinginn.com/comments/feed/" />
+<link rel="alternate" type="application/rss+xml" title="The Wandering Inn &raquo; 2.31 Comments Feed" href="https://wanderinginn.com/2017/05/31/2-26/feed/" />
+	<script type="text/javascript">
+		/* <![CDATA[ */
+		function addLoadEvent(func) {
+			var oldonload = window.onload;
+			if (typeof window.onload != 'function') {
+				window.onload = func;
+			} else {
+				window.onload = function () {
+					oldonload();
+					func();
+				}
+			}
+		}
+		/* ]]> */
+	</script>
+	<script type="text/javascript">
+window._wpemojiSettings = {"baseUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/72x72\/","ext":".png","svgUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/svg\/","svgExt":".svg","source":{"concatemoji":"https:\/\/s0.wp.com\/wp-includes\/js\/wp-emoji-release.min.js?m=1652185836h&ver=6.0.2"}};
+/*! This file is auto-generated */
+!function(e,a,t){var n,r,o,i=a.createElement("canvas"),p=i.getContext&&i.getContext("2d");function s(e,t){var a=String.fromCharCode,e=(p.clearRect(0,0,i.width,i.height),p.fillText(a.apply(this,e),0,0),i.toDataURL());return p.clearRect(0,0,i.width,i.height),p.fillText(a.apply(this,t),0,0),e===i.toDataURL()}function c(e){var t=a.createElement("script");t.src=e,t.defer=t.type="text/javascript",a.getElementsByTagName("head")[0].appendChild(t)}for(o=Array("flag","emoji"),t.supports={everything:!0,everythingExceptFlag:!0},r=0;r<o.length;r++)t.supports[o[r]]=function(e){if(!p||!p.fillText)return!1;switch(p.textBaseline="top",p.font="600 32px Arial",e){case"flag":return s([127987,65039,8205,9895,65039],[127987,65039,8203,9895,65039])?!1:!s([55356,56826,55356,56819],[55356,56826,8203,55356,56819])&&!s([55356,57332,56128,56423,56128,56418,56128,56421,56128,56430,56128,56423,56128,56447],[55356,57332,8203,56128,56423,8203,56128,56418,8203,56128,56421,8203,56128,56430,8203,56128,56423,8203,56128,56447]);case"emoji":return!s([129777,127995,8205,129778,127999],[129777,127995,8203,129778,127999])}return!1}(o[r]),t.supports.everything=t.supports.everything&&t.supports[o[r]],"flag"!==o[r]&&(t.supports.everythingExceptFlag=t.supports.everythingExceptFlag&&t.supports[o[r]]);t.supports.everythingExceptFlag=t.supports.everythingExceptFlag&&!t.supports.flag,t.DOMReady=!1,t.readyCallback=function(){t.DOMReady=!0},t.supports.everything||(n=function(){t.readyCallback()},a.addEventListener?(a.addEventListener("DOMContentLoaded",n,!1),e.addEventListener("load",n,!1)):(e.attachEvent("onload",n),a.attachEvent("onreadystatechange",function(){"complete"===a.readyState&&t.readyCallback()})),(e=t.source||{}).concatemoji?c(e.concatemoji):e.wpemoji&&e.twemoji&&(c(e.twemoji),c(e.wpemoji)))}(window,document,window._wpemojiSettings);
+</script>
+<style type="text/css">
+img.wp-smiley,
+img.emoji {
+	display: inline !important;
+	border: none !important;
+	box-shadow: none !important;
+	height: 1em !important;
+	width: 1em !important;
+	margin: 0 0.07em !important;
+	vertical-align: -0.1em !important;
+	background: none !important;
+	padding: 0 !important;
+}
+</style>
+	<link crossorigin='anonymous' rel='stylesheet' id='all-css-0-1' href='https://s0.wp.com/_static/??-eJylkd1OAyEQhV9IdlyzaeOF8Vn4meBUYAkzWHl7Z5s0Vk2riTeEw8l35gBwrMavRbAI1NQjFYbYVTpsUZ2G8DYv08N0D65TCuDS6l9NItdsG8AyEk6e+Q7+FyQvmD+DqPjUAzIcGDIGspjU1uRLUZMd2EzCaP2YMpXfcfUu9RfoevlTUw1DqXarbMfaxcRG4c/3/xbRrFCJfAXP3ZwTtnfT81ztz/I3sCOFiKI4n/dG8P02UnWMca42ZDa6ZurZnL6FN+45P8273bLsH5d5f/gAOyLUIw==?cssminify=yes' type='text/css' media='all' />
+<style id='wp-block-library-inline-css'>
+.has-text-align-justify {
+	text-align:justify;
+}
+.wp-block-cover__image-background.has-parallax {
+	background-size: cover;
+}
+</style>
+<style id='global-styles-inline-css'>
+body{--wp--preset--color--black: #000;--wp--preset--color--cyan-bluish-gray: #abb8c3;--wp--preset--color--white: #fff;--wp--preset--color--pale-pink: #f78da7;--wp--preset--color--vivid-red: #cf2e2e;--wp--preset--color--luminous-vivid-orange: #ff6900;--wp--preset--color--luminous-vivid-amber: #fcb900;--wp--preset--color--light-green-cyan: #7bdcb5;--wp--preset--color--vivid-green-cyan: #00d084;--wp--preset--color--pale-cyan-blue: #8ed1fc;--wp--preset--color--vivid-cyan-blue: #0693e3;--wp--preset--color--vivid-purple: #9b51e0;--wp--preset--color--blue: #1982d1;--wp--preset--color--dark-gray: #373737;--wp--preset--color--medium-gray: #666;--wp--preset--color--light-gray: #e2e2e2;--wp--preset--gradient--vivid-cyan-blue-to-vivid-purple: linear-gradient(135deg,rgba(6,147,227,1) 0%,rgb(155,81,224) 100%);--wp--preset--gradient--light-green-cyan-to-vivid-green-cyan: linear-gradient(135deg,rgb(122,220,180) 0%,rgb(0,208,130) 100%);--wp--preset--gradient--luminous-vivid-amber-to-luminous-vivid-orange: linear-gradient(135deg,rgba(252,185,0,1) 0%,rgba(255,105,0,1) 100%);--wp--preset--gradient--luminous-vivid-orange-to-vivid-red: linear-gradient(135deg,rgba(255,105,0,1) 0%,rgb(207,46,46) 100%);--wp--preset--gradient--very-light-gray-to-cyan-bluish-gray: linear-gradient(135deg,rgb(238,238,238) 0%,rgb(169,184,195) 100%);--wp--preset--gradient--cool-to-warm-spectrum: linear-gradient(135deg,rgb(74,234,220) 0%,rgb(151,120,209) 20%,rgb(207,42,186) 40%,rgb(238,44,130) 60%,rgb(251,105,98) 80%,rgb(254,248,76) 100%);--wp--preset--gradient--blush-light-purple: linear-gradient(135deg,rgb(255,206,236) 0%,rgb(152,150,240) 100%);--wp--preset--gradient--blush-bordeaux: linear-gradient(135deg,rgb(254,205,165) 0%,rgb(254,45,45) 50%,rgb(107,0,62) 100%);--wp--preset--gradient--luminous-dusk: linear-gradient(135deg,rgb(255,203,112) 0%,rgb(199,81,192) 50%,rgb(65,88,208) 100%);--wp--preset--gradient--pale-ocean: linear-gradient(135deg,rgb(255,245,203) 0%,rgb(182,227,212) 50%,rgb(51,167,181) 100%);--wp--preset--gradient--electric-grass: linear-gradient(135deg,rgb(202,248,128) 0%,rgb(113,206,126) 100%);--wp--preset--gradient--midnight: linear-gradient(135deg,rgb(2,3,129) 0%,rgb(40,116,252) 100%);--wp--preset--duotone--dark-grayscale: url('#wp-duotone-dark-grayscale');--wp--preset--duotone--grayscale: url('#wp-duotone-grayscale');--wp--preset--duotone--purple-yellow: url('#wp-duotone-purple-yellow');--wp--preset--duotone--blue-red: url('#wp-duotone-blue-red');--wp--preset--duotone--midnight: url('#wp-duotone-midnight');--wp--preset--duotone--magenta-yellow: url('#wp-duotone-magenta-yellow');--wp--preset--duotone--purple-green: url('#wp-duotone-purple-green');--wp--preset--duotone--blue-orange: url('#wp-duotone-blue-orange');--wp--preset--font-size--small: 13px;--wp--preset--font-size--medium: 20px;--wp--preset--font-size--large: 36px;--wp--preset--font-size--x-large: 42px;--wp--preset--spacing--20: 0.44rem;--wp--preset--spacing--30: 0.67rem;--wp--preset--spacing--40: 1rem;--wp--preset--spacing--50: 1.5rem;--wp--preset--spacing--60: 2.25rem;--wp--preset--spacing--70: 3.38rem;--wp--preset--spacing--80: 5.06rem;}:where(.is-layout-flex){gap: 0.5em;}body .is-layout-flow > .alignleft{float: left;}body .is-layout-flow > .alignright{float: right;}body .is-layout-flow > .aligncenter{margin-left: auto !important;margin-right: auto !important;}body .is-layout-constrained > .alignleft{float: left;}body .is-layout-constrained > .alignright{float: right;}body .is-layout-constrained > .aligncenter{margin-left: auto !important;margin-right: auto !important;}body .is-layout-constrained > :where(:not(.alignleft):not(.alignright):not(.alignfull)){max-width: var(--wp--style--global--content-size);margin-left: auto !important;margin-right: auto !important;}body .is-layout-constrained > .alignwide{max-width: var(--wp--style--global--wide-size);}body .is-layout-flex{display: flex;}body .is-layout-flex{flex-wrap: wrap;align-items: center;}body .is-layout-flex > *{margin: 0;}:where(.wp-block-columns.is-layout-flex){gap: 2em;}.has-black-color{color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-color{color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-color{color: var(--wp--preset--color--white) !important;}.has-pale-pink-color{color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-color{color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-color{color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-color{color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-color{color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-color{color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-color{color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-color{color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-color{color: var(--wp--preset--color--vivid-purple) !important;}.has-black-background-color{background-color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-background-color{background-color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-background-color{background-color: var(--wp--preset--color--white) !important;}.has-pale-pink-background-color{background-color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-background-color{background-color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-background-color{background-color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-background-color{background-color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-background-color{background-color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-background-color{background-color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-background-color{background-color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-background-color{background-color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-background-color{background-color: var(--wp--preset--color--vivid-purple) !important;}.has-black-border-color{border-color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-border-color{border-color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-border-color{border-color: var(--wp--preset--color--white) !important;}.has-pale-pink-border-color{border-color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-border-color{border-color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-border-color{border-color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-border-color{border-color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-border-color{border-color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-border-color{border-color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-border-color{border-color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-border-color{border-color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-border-color{border-color: var(--wp--preset--color--vivid-purple) !important;}.has-vivid-cyan-blue-to-vivid-purple-gradient-background{background: var(--wp--preset--gradient--vivid-cyan-blue-to-vivid-purple) !important;}.has-light-green-cyan-to-vivid-green-cyan-gradient-background{background: var(--wp--preset--gradient--light-green-cyan-to-vivid-green-cyan) !important;}.has-luminous-vivid-amber-to-luminous-vivid-orange-gradient-background{background: var(--wp--preset--gradient--luminous-vivid-amber-to-luminous-vivid-orange) !important;}.has-luminous-vivid-orange-to-vivid-red-gradient-background{background: var(--wp--preset--gradient--luminous-vivid-orange-to-vivid-red) !important;}.has-very-light-gray-to-cyan-bluish-gray-gradient-background{background: var(--wp--preset--gradient--very-light-gray-to-cyan-bluish-gray) !important;}.has-cool-to-warm-spectrum-gradient-background{background: var(--wp--preset--gradient--cool-to-warm-spectrum) !important;}.has-blush-light-purple-gradient-background{background: var(--wp--preset--gradient--blush-light-purple) !important;}.has-blush-bordeaux-gradient-background{background: var(--wp--preset--gradient--blush-bordeaux) !important;}.has-luminous-dusk-gradient-background{background: var(--wp--preset--gradient--luminous-dusk) !important;}.has-pale-ocean-gradient-background{background: var(--wp--preset--gradient--pale-ocean) !important;}.has-electric-grass-gradient-background{background: var(--wp--preset--gradient--electric-grass) !important;}.has-midnight-gradient-background{background: var(--wp--preset--gradient--midnight) !important;}.has-small-font-size{font-size: var(--wp--preset--font-size--small) !important;}.has-medium-font-size{font-size: var(--wp--preset--font-size--medium) !important;}.has-large-font-size{font-size: var(--wp--preset--font-size--large) !important;}.has-x-large-font-size{font-size: var(--wp--preset--font-size--x-large) !important;}
+:where(.wp-block-columns.is-layout-flex){gap: 2em;}
+.wp-block-pullquote{font-size: 1.5em;line-height: 1.6;}
+.wp-block-navigation a:where(:not(.wp-element-button)){color: inherit;}
+</style>
+<link crossorigin='anonymous' rel='stylesheet' id='all-css-2-1' href='https://s1.wp.com/_static/??-eJyNj8EOwjAMQ3+IEjYBggPiW7YSSlnaVE26an9PuYGQ0G625SfZUJOxHBWjgj4woEAqI2htwYKEM0YYie0kWyuygRV10YXQ1GQ5rGYsE2eB25CnHyYUk6g4HwUcsmljBvUcv4y50+DzPzRju+GadNBaH/YNXcOlO/b9aX/edYfnC0ReZ8I=?cssminify=yes' type='text/css' media='all' />
+<style id='jetpack-global-styles-frontend-style-inline-css'>
+:root { --font-headings: unset; --font-base: unset; --font-headings-default: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif; --font-base-default: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif;}
+</style>
+<link crossorigin='anonymous' rel='stylesheet' id='all-css-4-1' href='https://s0.wp.com/wp-content/themes/h4/global.css?m=1420737423h&cssminify=yes' type='text/css' media='all' />
+<script id='wpcom-actionbar-placeholder-js-extra'>
+var actionbardata = {"siteID":"113840984","siteURL":"https:\/\/wanderinginn.com","xhrURL":"https:\/\/wanderinginn.com\/wp-admin\/admin-ajax.php","nonce":"1ba14e6909","isLoggedIn":"","statusMessage":"","subsEmailDefault":"instantly","proxyScriptUrl":"https:\/\/s0.wp.com\/wp-content\/js\/wpcom-proxy-request.js?ver=20211021","shortlink":"https:\/\/wp.me\/p7HFeU-xi","i18n":{"followedText":"New posts from this site will now appear in your <a href=\"https:\/\/wordpress.com\/read\">Reader<\/a>","foldBar":"Collapse this bar","unfoldBar":"Expand this bar"}};
+</script>
+<script crossorigin='anonymous' type='text/javascript' src='https://s1.wp.com/_static/??/wp-content/js/mobile-useragent-info.js,/wp-content/js/rlt-proxy.js?m=1637704497j'></script>
+<script type='text/javascript'>
+	window.addEventListener( 'DOMContentLoaded', function() {
+		rltInitialize( {"token":null,"iframeOrigins":["https:\/\/widgets.wp.com"]} );
+	} );
+</script>
+<link crossorigin='anonymous' rel='stylesheet' id='all-css-0-2' href='https://s0.wp.com/wp-content/mu-plugins/highlander-comments/style.css?m=1663315160h&cssminify=yes' type='text/css' media='all' />
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="https://wanderinginn.wordpress.com/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="https://s1.wp.com/wp-includes/wlwmanifest.xml" /> 
+<meta name="generator" content="WordPress.com" />
+<link rel="canonical" href="https://wanderinginn.com/2017/05/31/2-26/" />
+<link rel='shortlink' href='https://wp.me/p7HFeU-xi' />
+<link rel="alternate" type="application/json+oembed" href="https://public-api.wordpress.com/oembed/?format=json&amp;url=https%3A%2F%2Fwanderinginn.com%2F2017%2F05%2F31%2F2-26%2F&amp;for=wpcom-auto-discovery" /><link rel="alternate" type="application/xml+oembed" href="https://public-api.wordpress.com/oembed/?format=xml&amp;url=https%3A%2F%2Fwanderinginn.com%2F2017%2F05%2F31%2F2-26%2F&amp;for=wpcom-auto-discovery" />
+<!-- Jetpack Open Graph Tags -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="2.31" />
+<meta property="og:url" content="https://wanderinginn.com/2017/05/31/2-26/" />
+<meta property="og:description" content="Erin stared hard at the golden substance bubbling and turning brown over the fire. It was cheese. Cheese, on top of a tomato sauce spread evenly over a doughy base. With pepperoni. It had to be wit…" />
+<meta property="article:published_time" content="2017-05-31T01:07:00+00:00" />
+<meta property="article:modified_time" content="2019-09-27T03:41:33+00:00" />
+<meta property="og:site_name" content="The Wandering Inn" />
+<meta property="og:image" content="https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=200" />
+<meta property="og:image:width" content="200" />
+<meta property="og:image:height" content="200" />
+<meta property="og:image:alt" content="" />
+<meta property="og:locale" content="en_US" />
+<meta property="article:publisher" content="https://www.facebook.com/WordPresscom" />
+<meta name="twitter:text:title" content="2.31" />
+<meta name="twitter:image" content="https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=240" />
+<meta name="twitter:card" content="summary" />
+
+<!-- End Jetpack Open Graph Tags -->
+<link rel="search" type="application/opensearchdescription+xml" href="https://wanderinginn.com/osd.xml" title="The Wandering Inn" />
+<link rel="search" type="application/opensearchdescription+xml" href="https://s1.wp.com/opensearch.xml" title="WordPress.com" />
+	<style>
+		/* Link color */
+		a,
+		#site-title a:focus,
+		#site-title a:hover,
+		#site-title a:active,
+		.entry-title a:hover,
+		.entry-title a:focus,
+		.entry-title a:active,
+		.widget_twentyeleven_ephemera .comments-link a:hover,
+		section.recent-posts .other-recent-posts a[rel="bookmark"]:hover,
+		section.recent-posts .other-recent-posts .comments-link a:hover,
+		.format-image footer.entry-meta a:hover,
+		#site-generator a:hover {
+			color: #1583af;
+		}
+		section.recent-posts .other-recent-posts .comments-link a:hover {
+			border-color: #1583af;
+		}
+		article.feature-image.small .entry-summary p a:hover,
+		.entry-header .comments-link a:hover,
+		.entry-header .comments-link a:focus,
+		.entry-header .comments-link a:active,
+		.feature-slider a.active {
+			background-color: #1583af;
+		}
+	</style>
+	<meta name="application-name" content="The Wandering Inn" /><meta name="msapplication-window" content="width=device-width;height=device-height" /><meta name="msapplication-tooltip" content="A tale of a girl, an inn, and a world full of levels." /><meta name="msapplication-task" content="name=Subscribe;action-uri=https://wanderinginn.com/feed/;icon-uri=https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=16" /><meta name="msapplication-task" content="name=Sign up for a free blog;action-uri=http://wordpress.com/signup/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Support;action-uri=http://support.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Forums;action-uri=http://forums.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="description" content="Erin stared hard at the golden substance bubbling and turning brown over the fire. It was cheese. Cheese, on top of a tomato sauce spread evenly over a doughy base. With pepperoni. It had to be with pepperoni, or else there wouldn’t be any point, would there? Erin was a firm believer in pepperoni; she&hellip;" />
+<link rel="icon" href="https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=32" sizes="32x32" />
+<link rel="icon" href="https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=192" sizes="192x192" />
+<link rel="apple-touch-icon" href="https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=180" />
+<meta name="msapplication-TileImage" content="https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=270" />
+		<link rel="stylesheet" id="custom-css-css" type="text/css" href="https://s0.wp.com/?custom-css=1&#038;csblog=7HFeU&#038;cscache=6&#038;csrev=3" />
+		<!-- Your Google Analytics Plugin is missing the tracking ID -->
+</head>
+
+<body class="post-template-default single single-post postid-2064 single-format-standard wp-embed-responsive customizer-styles-applied single-author singular two-column right-sidebar highlander-enabled highlander-dark">
+<div class="skip-link"><a class="assistive-text" href="#content">Skip to primary content</a></div><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-dark-grayscale"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0 0.49803921568627" /><feFuncG type="table" tableValues="0 0.49803921568627" /><feFuncB type="table" tableValues="0 0.49803921568627" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-grayscale"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0 1" /><feFuncG type="table" tableValues="0 1" /><feFuncB type="table" tableValues="0 1" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-purple-yellow"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0.54901960784314 0.98823529411765" /><feFuncG type="table" tableValues="0 1" /><feFuncB type="table" tableValues="0.71764705882353 0.25490196078431" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-blue-red"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0 1" /><feFuncG type="table" tableValues="0 0.27843137254902" /><feFuncB type="table" tableValues="0.5921568627451 0.27843137254902" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-midnight"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0 0" /><feFuncG type="table" tableValues="0 0.64705882352941" /><feFuncB type="table" tableValues="0 1" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-magenta-yellow"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0.78039215686275 1" /><feFuncG type="table" tableValues="0 0.94901960784314" /><feFuncB type="table" tableValues="0.35294117647059 0.47058823529412" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-purple-green"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0.65098039215686 0.40392156862745" /><feFuncG type="table" tableValues="0 1" /><feFuncB type="table" tableValues="0.44705882352941 0.4" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-blue-orange"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0.098039215686275 1" /><feFuncG type="table" tableValues="0 0.66274509803922" /><feFuncB type="table" tableValues="0.84705882352941 0.41960784313725" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><div id="page" class="hfeed">
+	<header id="branding">
+			<hgroup>
+				<h1 id="site-title"><span><a href="https://wanderinginn.com/" rel="home">The Wandering Inn</a></span></h1>
+				<h2 id="site-description">A tale of a girl, an inn, and a world full of levels.</h2>
+			</hgroup>
+
+						<a href="https://wanderinginn.com/">
+									<img src="https://wanderinginn.files.wordpress.com/2022/07/cropped-220725_merch_banner_launch-1.png" width="1000" height="296" alt="The Wandering Inn" />
+								</a>
+			
+									<form method="get" id="searchform" action="https://wanderinginn.com/">
+		<label for="s" class="assistive-text">Search</label>
+		<input type="text" class="field" name="s" id="s" placeholder="Search" />
+		<input type="submit" class="submit" name="submit" id="searchsubmit" value="Search" />
+	</form>
+			
+			<nav id="access">
+				<h3 class="assistive-text">Main menu</h3>
+				<div class="menu-menu-1-container"><ul id="menu-menu-1" class="menu"><li id="menu-item-1422" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-home menu-item-1422"><a href="https://wanderinginn.com/">Overview</a></li>
+<li id="menu-item-1912" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1912"><a href="https://wanderinginn.com/table-of-contents/">Table of Contents</a></li>
+<li id="menu-item-1998" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-1998"><a href="https://www.patreon.com/user?u=4240617">Patreon</a></li>
+<li id="menu-item-10438" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-10438"><a href="https://wanderinginn.com/social/">Social</a>
+<ul class="sub-menu">
+	<li id="menu-item-4811" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-4811"><a href="https://discord.gg/abwsa3y">Discord</a></li>
+	<li id="menu-item-4810" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-4810"><a href="https://www.reddit.com/r/WanderingInn/">Reddit</a></li>
+	<li id="menu-item-8944" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-8944"><a href="https://twitter.com/WanderingInn">Twitter</a></li>
+	<li id="menu-item-10440" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-10440"><a href="https://www.facebook.com/thewanderinginn/">Facebook</a></li>
+</ul>
+</li>
+<li id="menu-item-10446" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-10446"><a href="https://wanderinginn.com/publishing-3/">Publishing</a>
+<ul class="sub-menu">
+	<li id="menu-item-10448" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-10448"><a href="https://www.amazon.com/kindle-dbs/entity/author/B07XCYVYMW">E-books</a></li>
+	<li id="menu-item-10447" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-10447"><a href="https://www.audible.com/author/pirate-aba/B07XCYVYMW">Audiobooks</a></li>
+	<li id="menu-item-8761" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-8761"><a href="https://www.cloudscapecomics.com/last-tide/">The Last Tide (Comicbook)</a></li>
+</ul>
+</li>
+<li id="menu-item-1424" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1424"><a href="https://wanderinginn.com/guestbook/">Guestbook</a></li>
+<li id="menu-item-2935" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-2935"><a href="https://wanderinginn.com/fanworks/">Fanworks</a>
+<ul class="sub-menu">
+	<li id="menu-item-8557" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-8557"><a href="https://wanderinginn.com/fanworks-permissions/">Fanworks Permissions</a></li>
+</ul>
+</li>
+<li id="menu-item-1426" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1426"><a href="https://wanderinginn.com/reader-reviews/">Reader Reviews</a></li>
+<li id="menu-item-5002" class="menu-item menu-item-type-post_type menu-item-object-post menu-item-has-children menu-item-5002"><a href="https://wanderinginn.com/2018/10/19/glossary/">Glossary</a>
+<ul class="sub-menu">
+	<li id="menu-item-7035" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-7035"><a href="https://wanderinginn.com/fanworks/#B">Maps</a></li>
+</ul>
+</li>
+<li id="menu-item-5684" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-5684"><a href="https://wanderinginn.com/writing-faqs/">Writing FAQs</a></li>
+<li id="menu-item-11759" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-11759"><a href="https://aubergevagabonde.wordpress.com/">L&#8217;Auberge Vagabonde</a></li>
+<li id="menu-item-11765" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-11765"><a href="https://wanderinginn.com/contacts/">Contacts</a></li>
+<li id="menu-item-12493" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-12493"><a href="https://www.store.wanderinginn.com/">Merch Store</a></li>
+<li id="menu-item-12667" class="menu-item menu-item-type-post_type menu-item-object-post menu-item-12667"><a href="https://wanderinginn.com/2022/09/28/interlude-the-great-race/">Interlude – The Great Race</a></li>
+</ul></div>			</nav><!-- #access -->
+	</header><!-- #branding -->
+
+
+	<div id="main">
+
+		<div id="primary">
+			<div id="content" role="main">
+
+				
+					<nav id="nav-single">
+						<h3 class="assistive-text">Post navigation</h3>
+						<span class="nav-previous"><a href="https://wanderinginn.com/2017/05/28/s02-the-antinium-wars-pt-1/" rel="prev"><span class="meta-nav">&larr;</span> Previous</a></span>
+						<span class="nav-next"><a href="https://wanderinginn.com/2017/05/31/s02-the-antinium-wars-pt-2/" rel="next">Next <span class="meta-nav">&rarr;</span></a></span>
+					</nav><!-- #nav-single -->
+
+					
+<article id="post-2064" class="post-2064 post type-post status-publish format-standard hentry category-writing tag-fantasy tag-inn tag-web-novel tag-web-serial tag-writing">
+	<header class="entry-header">
+		<h1 class="entry-title">2.31</h1>
+
+				<div class="entry-meta">
+						<span class="sep">Posted on </span><a href="https://wanderinginn.com/2017/05/31/2-26/" title="1:07 am" rel="bookmark"><time class="entry-date" datetime="2017-05-31T01:07:00+00:00">May 31, 2017</time></a><span class="by-author"> <span class="sep"> by </span> <span class="author vcard"><a class="url fn n" href="https://wanderinginn.com/author/pirateaba/" title="View all posts by pirateaba" rel="author">pirateaba</a></span></span>		</div><!-- .entry-meta -->
+			</header><!-- .entry-header -->
+
+	<div class="entry-content">
+		<p>Erin stared hard at the golden substance bubbling and turning brown over the fire. It was cheese. Cheese, on top of a tomato sauce spread evenly over a doughy base.</p>
+<p>With pepperoni. It had to be with pepperoni, or else there wouldn’t be any point, would there? Erin was a firm believer in pepperoni; she could take or leave pineapple and she refused to acknowledge anchovies.</p>
+<p>These were the essential secrets of the universe, and this was the substance that made the world spin. Okay, maybe they weren’t <em>essential</em>, but they were pretty important!</p>
+<p>“Pizza.”</p>
+<p>Erin breathed the word, as she sensed the moment was now. She reached forwards and yanked the pizza off the metal rack over the fire, glad that she’d remembered to wear gloves this time.</p>
+<p>“<em>Pizza!</em>”</p>
+<p>It was glorious. Perfectly round, with a radius you could bite into with fluffy crust and generous toppings of both cheese and meat. None of the skimpy, bare-bones layer over the tomato sauce, thank you very much.</p>
+<p>Erin slid the pizza onto the counter and grabbed a knife. She didn’t have a pizza roller, but it was easy enough to cut into the traditional eight slices. That too was essential; you couldn’t have unevenly sized slices, or someone might get stabbed.</p>
+<p>It was done. Erin stared at her newest creation and felt her stomach rumble. But no, this wasn’t for her. This was for her customers.</p>
+<p>As Erin swept back into the common room she enjoyed the sound of that word. Customer. She had some! But maybe that wasn’t the word for the people sitting in her inn. Hm. Patron? No, that sounded awful.</p>
+<p>“Guest.”</p>
+<p>That was a good word. Erin beamed as she sat her pizza down in front of the Drakes who eyed the food suspiciously. She didn’t know them, and <em>that</em> was glorious too!</p>
+<p>She had guests that weren’t friends. It didn’t sound like much, but it was progress! For the last few days, Erin had been getting Gnolls, Drakes, and the odd Human into her inn, and not just her friends and Pisces. She was <em>making money</em>, and with her newest creation she was sure she was going to make even more.</p>
+<p>“Is this…‘pizza’?”</p>
+<p>One of the Drakes poked at a slice with a claw. Erin nodded proudly.</p>
+<p>“Yup! It’s really good! As good as a hamburger. Try it; you’ll see!”</p>
+<p>One of the three Drakes who’d come to her inn for lunch looked at his companions. He shrugged, and gingerly picked up a still-steaming slice. He blew on it a few times, and then nibbled it.</p>
+<p>His eyes widened, and his tail twitched a bit. Erin watched his face and his tail anxiously. Drakes were like dogs, and Gnolls were even more like Dogs. They could lie pretty well, but their tails always gave them away.</p>
+<p>“Hm. Lots of cheese. And chewy. Warm.”</p>
+<p>He bit deeper into the slice as his companions watched expectantly. Erin held her breath. His tail twitched…and then began to wag!</p>
+<p>Just a bit. But when the Drake finished the rest of his slice and reached for another one Erin knew she’d done it again. Or rather, copied it again.</p>
+<p>“How is it?”</p>
+<p>The Drake chewed thoughtfully and then nodded in satisfaction.</p>
+<p>“Delicious. It quite suits our needs.”</p>
+<p>Erin beamed, and the other Drakes nodded happily in approval. One picked up a slice, but rather than eat it, began to dissect it, examining the parts.</p>
+<p>“Melted cheese, sauce…from a tomato? And rising dough. Extraordinary. But how delicious!”</p>
+<p>The third Drake nodded. He wasn’t eating either, which was strange to Erin, but he also inspected the pizza with great interest.</p>
+<p>“It seems easy to make. Simple recipe—”</p>
+<p>“Tomatoes might be hard to come by. Not much call for them.”</p>
+<p>“There will be. Put in an order and we’ll have enough.”</p>
+<p>The first Drake nodded as he licked his claws.</p>
+<p>“Cheese and sauce base—the meat is good, but I can see sliced fish being equally appealing. I’ll do a few prototypes.”</p>
+<p>“Prototypes?”</p>
+<p>All three Drakes froze and looked over at Erin. The second one gave her an unconvincing smile.</p>
+<p>“W-well, we were just saying what an extraordinary recipe it is.”</p>
+<p>“Oh. Um. Thanks? Are you some kind of [Cooks]?”</p>
+<p>The third Drake nodded. He stood and extended a claw to Erin. She shook it, still not quite sure what was going on.</p>
+<p>“Terres Hangclaw, at your service. I’m a [Chef] at the Dancing Drake in Liscor.”</p>
+<p>“Oh, it’s very nice to—”</p>
+<p>Erin paused as her mind caught up with what he’d said. She frowned at the third Drake, who cringed as the other two glared at him.</p>
+<p>“Wait a second, what was that? You’re a [Chef]? Why are you here to—”</p>
+<p>One of the Drakes hurriedly tossed down several silver coins on the table. His two companions rose and they gathered up the slices of pizza and retreated towards the door.</p>
+<p>“Much appreciated Miss Human. But we’ve got to go. Don’t worry about the change!”</p>
+<p>They practically dashed out of the inn with the rest of the pizza. Erin watched them go, mouth gaping.</p>
+<p>“I’ve just been plagiarized! Again!”</p>
+<p>She stared at the table, at her coins, and at the open door. She felt she should be upset, but they’d left a <em>lot</em> of money for one pizza. But they’d taken the recipe! …Which wasn’t hers. But it was still theft!</p>
+<p>The door began to swing closed, but someone caught it. Ceria walked in, staring over her shoulder suspiciously.</p>
+<p>“…Did I just see three Drakes running away with a bunch of food in their arms?”</p>
+<p>“It’s called ‘pizza’ and they just stole my recipe.”</p>
+<p>Ceria blinked at Erin. It was hard for the girl to explain, but the half-Elf got the gist of what had happened after only a few seconds.</p>
+<p>“Ah, recipe thieves. It happens. The instant someone makes something worth eating, there’s always a huge race for other famous [Chefs] and [Cooks] to find out how it was made and improve on the recipe. I suppose it’s a sign of how well those hamburgers did that they were sticking around for you to come up with something else.”</p>
+<p>“Yeah, but—!”</p>
+<p>Erin gestured helplessly at the door as Ceria helped her gather all the silver coins. Ceria glanced out the door—the Drakes hadn’t yet made it to the city gates. They weren’t exactly fast on their feet, especially as they tried not to drop the pizza slices.</p>
+<p>“Want me to hit them with a spell? I’ve got a pretty good aim.”</p>
+<p>“No, no. I just wish I’d had a day to sell my food before it got taken away. I guess they’re going to earn a lot of money tonight.”</p>
+<p>Ceria patted Erin sympathetically on the shoulder.</p>
+<p>“If it helps, I think people will know where the food came from. Next time, you should only bring out the new stuff when it’s dinnertime. That way you’ll get at least one big crowd.”</p>
+<p>Erin sighed, and Ceria offered her the handful of silver.</p>
+<p>“Don’t worry about it. It’s not like they’re your only customers.”</p>
+<p>It was true. Erin had been happy with her increase in clientele, but they still weren’t exactly the crowds that she’d seen in Peslas’ inn.</p>
+<p>“I guess.”</p>
+<p>She took the silver coins, and then hesitated. Erin looked over at Ceria and smiled, forgetting about her stolen pizza recipe for just one second. She’d been looking forward to <em>this</em> all day.</p>
+<p>“Say, Ceria, I’m running low on silver. Can you exchange a gold coin for me?”</p>
+<p>“No problem.”</p>
+<p>Ceria reached for her pouch, and blinked as Erin handed her a shiny gold coin.</p>
+<p>“That was quick. You shouldn’t keep your gold lying out.”</p>
+<p>“Oh, I had one lying around.”</p>
+<p>Erin smiled mischievously at Ceria. The half-Elf frowned but reached for the coin.</p>
+<p>“Well, thanks anyw—”</p>
+<p>Ceria paused and stared hard at the gold coin Erin handed her. Then her eyes slowly travelled over to one of the windows. There, the boxes full of faerie flowers were still blooming, golden and shining in the sunlight. Ceria stared at the gold coin, and then narrowed her eyes at Erin. The Human girl tried to keep her face straight as Ceria peered hard at her.</p>
+<p>“A gold coin, huh? Well, I’m happy to accept one. Let me just—”</p>
+<p>Ceria raised the coin up and tried to bend it with both fingers. She frowned.</p>
+<p>“Huh.”</p>
+<p>The half-Elf hesitated, and eyed Erin’s twitching face. Slowly, she raised it to her mouth and bit the gold coin. She eyed the faint marks her teeth had left in the soft gold.</p>
+<p>“It <em>tastes</em> like gold, but—Erin. Is this an illusion or not?”</p>
+<p>“It’s fake! Isn’t it so <em>cool?</em>”</p>
+<p>Erin pointed to the flowers.</p>
+<p>“I just figured out how to make them turn into coins like the faeries did! See, if I pluck it and say ‘gold’—”</p>
+<p>Erin carefully broke a flower off by the stem and Ceria blinked. Suddenly, Erin was holding a second gold coin in her hand.</p>
+<p>“That’s incredible, Erin. I didn’t even sense any magic. And these coins <em>feel</em> like gold—real gold too, not the partially gold coins we use.”</p>
+<p>She frowned at the coin in her hand and hefted it slightly.</p>
+<p>“It weighs the same, feels the same, tastes and smells…rot, that’s good magic. Can you transform the flowers into anything else?”</p>
+<p>Erin shook her head.</p>
+<p>“It doesn’t seem to work with other things, really. But the coin <em>feels</em> real for an entire day. Then it turns back into a flower in the morning.”</p>
+<p>Ceria eyed the bed of flowers speculatively. The blooms were growing quite fast even in the winter, and already Erin had seen a few more shoots poking their head out of the soil.</p>
+<p>“Looks like that faerie prank is more useful than it seems. Are you planning on doing anything with the flowers?”</p>
+<p>Erin looked at her friend blankly.</p>
+<p>“Like what?”</p>
+<p>“Oh, I don’t know…use them to buy something nice, perhaps?”</p>
+<p>Ceria rolled the gold coin between her fingers. Erin frowned.</p>
+<p>“Why would I do that? I mean, they’d find out and it’d be stealing, right?”</p>
+<p>Ceria coughed into one hand.</p>
+<p>“I know a few Human shopkeepers that—rot, never mind. You’re too nice.”</p>
+<p>Erin laughed. Ceria tossed the coin back on the table and folded her arms.</p>
+<p>“But seriously, Erin. Those flowers might be useful, but your new recipes are just as valuable. Be careful about letting people run off with them, okay?”</p>
+<p>Erin nodded meekly. She chatted with Ceria for a bit longer before the half-Elf trooped upstairs to rest and practice some spells. Erin sighed as she went back into the kitchen. She put the gold coin on a counter next to her silver ones and sighed twice as she stared at the empty pan.</p>
+<p>Another day up, another day down. It wasn’t as if it had been a particularly bad one so far, it was just that Erin felt like she was missing something. Someone, perhaps. She wondered where Ryoka was. She missed being able to talk to her.</p>
+<p>And as for the recipe…</p>
+<p>Shaking her head, Erin flipped the coin into the air and caught it. It really was amazing. But it wasn’t useful. She <em>plonked</em> the coin back onto the counter. After a minute, she mumbled into the silence.</p>
+<p>“Besides, I probably wouldn’t get away with it…”</p>
+<p>&nbsp;</p>
+<p>&#8212;-</p>
+<p>&nbsp;</p>
+<p>Halrac was in a foul mood, and he didn’t bother trying to hide it. Not that that was particularly surprising to his teammates—the [Scout] was usually grumpy at the best times.</p>
+<p>But right now he was sitting in an inn, and contrary to most people’s preferences, Halrac preferred to be outdoors sitting in the rain or sloughing through mud than indoors. Part of that was because of the company he had to share.</p>
+<p>Gold-rank parties were often highly selective as to the people they recruited. New adventurers went through a thorough vetting process, but even the best parties usually had their moments of friction.</p>
+<p>In this case, friction was a daily state of being between Halrac, Revi, and Typhenous. Ulrien was their silent leader and usually didn’t get into their arguments, but Halrac made no effort to hide his feelings about his new teammates, and Revi and Typhenous were typical mages through and through.</p>
+<p>“Calm down, Halrac.”</p>
+<p>Ulrien said it, but Halrac had been adventuring longer than his Captain, and he’d known Ulrien back when the other man had been a Bronze-rank adventurer. Halrac glared at his Captain and moderated his tone only slightly.</p>
+<p>“I’m telling you, we shouldn’t be here! It’s a waste of coin, especially if all we do is sit on our asses!”</p>
+<p>Revi frowned at Halrac and Typhenous barely looked up from his spellbook. But he spoke in a bored voice.</p>
+<p>“We don’t have much to do but sit while we look for someone to dig out those ruins. I don’t see what the problem is, Halrac.”</p>
+<p>The [Scout] gritted his teeth.</p>
+<p>“The problem is that we’re not doing anything while other adventurers could be getting the drop on us!”</p>
+<p>He pointed out of their private room. Griffon Hunt had been seated in this expensive side room in the inn, ostensibly as a mark of respect for their rank and the amount of gold they were paying the innkeeper—but also he suspected, to keep them out of the sight of the regular clientele of Drakes.</p>
+<p>“That damn Drake seems to delight in serving us all the local recipes. With what we’re paying him, we should be eating whatever we want.”</p>
+<p>Revi raised her eyebrows.</p>
+<p>“Then tell him to make your local specialty or whatever, Halrac. But stop grouching because we can’t find anyone to dig.”</p>
+<p>“How are there no [Miners] in this entire damn city?”</p>
+<p>“There are. But they’re all Antinium. If we hire them—”</p>
+<p>Typhenous broke off as Ulrien shook his head and Halrac <em>growled.</em></p>
+<p>“I’m not working with those monsters. Besides, the Halfseekers have tried and had no luck.”</p>
+<p>“Well then, until we either decide to call out some people from Esthelm or pick up a spade ourselves, I think we’re stuck here. Come on, sit back and have a pint.”</p>
+<p>Halrac shook his head and stood up.</p>
+<p>“I’ve had enough of sitting in that inn waiting for something to happen. I’m going to look for some [Diggers] or [Miners] again. I’ll be back tonight or tomorrow.”</p>
+<p>None of his comrades stopped him. Ulrien went back to reading, Typhenous did likewise, and Revi made another attempt at downing the bottle of wine she’d bought. Halrac shook his head as he stomped out of the inn, completely ignoring the Drake innkeeper who halfheartedly tried to persuade him to sit and have a drink.</p>
+<p>Halrac walked through the streets, avoiding the crowds and trying to find his way through the unfamiliar territory. That was another thing. He was a [Scout]; he could fight in cities, but it didn’t mean he enjoyed trying to find his way through streets where everything was written in the Drake’s language and incomprehensible to him.</p>
+<p>He scowled as he passed by a group of laughing Drakes. They fell silent as he walked past, which only caused Halrac’s scowl to deepen.</p>
+<p>This entire quest for the dungeon’s treasure – if there even was a dungeon – was pointless. He never should have let Ulrien talk him into this. Griffon Hunt was wasting time and money here when they could be doing good somewhere else.</p>
+<p>Plus, Halrac hated this city. He didn’t like Drakes much. Halrac had spent too much time fighting them off-and-on over the years as a soldier to trust them. The same went for Gnolls, and as for the Antinium…</p>
+<p>The [Scout]’s gaze darkened as he saw one of the Workers scuttling down the street. He could never trust one of them. They were all heartless monsters.</p>
+<p>He turned away in disgust. Even if he’d ever consider hiring the Antinium – and there was little chance of that! – he’d heard they were refusing to dig even for other adventuring groups. Self serving, useless—</p>
+<p>“Oh, hey, you’re that [Scout] guy!”</p>
+<p>Halrac stopped and turned. A young woman was approaching him down the street. A Human. He recognized her, but dimly. Where had he—?</p>
+<p>Oh. The inn. She was the owner of the undead skeleton. The [Scout] debated walking off, but at least she didn’t have scales, fur, or chitin. He tried to remember her name. Solstice…?</p>
+<p>“Good evening, Miss.”</p>
+<p>“Hey, how are you doing? Sorry about the other day. Uh, you’re…H…Hal…?”</p>
+<p>“Halrac.”</p>
+<p>The [Scout] tried not to frown at her, or glare, or do any of the hundred things which he had been told he shouldn’t do when talking to people. But the young woman had an energetic enthusiasm about her and more importantly, the ability to completely ignore Halrac’s own dour mood.</p>
+<p>“Halrac, right! I’m Erin Solstice. We uh, met when you were trying to kill my skeleton. I threw a rock at you.”</p>
+<p>“I remember.”</p>
+<p>“Um. Right. Sorry about that.”</p>
+<p>“It’s nothing.”</p>
+<p>What did she want? Halrac looked around. He had no idea where to find a guild for [Miners], if there even was one. He could start asking around, but that was likely to be a fruitless endeavor.</p>
+<p>“So, um, how are you doing?”</p>
+<p>Halrac looked back at Erin in mild surprise. He wasn’t used to people continuing to engage him in conversation.</p>
+<p>“Nothing in particular. Why?”</p>
+<p>“Oh, no reason. I mean, I heard your party was staying at an inn, but I’m always looking for customers—and I made this great new food! So I was wondering if you’d like to try it. At my inn, I mean.”</p>
+<p>The older man blinked down at Erin a few times. He opened his mouth to refuse, and then hesitated. It wasn’t an issue of money that made him pause; he had more than he could spend when it came to drinks and food as a Gold-rank adventurer, but he was on a mission.</p>
+<p>And yet, the idea of interviewing a bunch of unfriendly Drakes and Gnolls lost a lot of its appeal when he considered sitting by himself in her inn. It was certainly better than the other Drake’s inn where the large innkeeper would be constantly laughing and talking with a raised voice and getting on Halrac’s nerves.</p>
+<p>“…How full is your inn?”</p>
+<p>“My inn?”</p>
+<p>Suddenly, the young woman looked wary. She scuffed at the paving stones.</p>
+<p>“Well…there might be a few people, but even if there’s not, I’m great company!”</p>
+<p>She didn’t expect the smile that appeared on Halrac’s face, but then, neither did he. An empty inn? Perfect. He was a [Scout], and used to isolation. And it beat having that fat Drake waddling around all the time.</p>
+<p>What was his name? Peslas? Halrac shook his head, but he accepted the girl’s offer.</p>
+<p>“Just give me a table in the corner and I’ll be fine.”</p>
+<p>The girl beamed at him and led him towards her inn. Halrac followed, bemused, as she chattered to him the entire time. Erin Solstice seemed to have no trouble carrying on a conversation by herself, but to his surprise he found himself talking to her after a bit.</p>
+<p>“If money is an issue, why not become an adventurer?”</p>
+<p>“Really? You think I’d be good at it? I don’t like—I mean, I’m not a killer.”</p>
+<p>Halrac shrugged uncomfortably as he walked through the snow with her. It had been a long time since he’d chatted with anyone who was female and not part of his team. It was a nostalgic, slightly bittersweet experience.</p>
+<p>“You picked a fight with a Gnoll warrior and won. Barehanded. That’s as good as any Bronze-rank adventurer, and your skeleton is dangerous.”</p>
+<p>“Yeah, yeah. I guess you’re right.”</p>
+<p>“Is it still…alive?”</p>
+<p>Halrac had pierced the undead creature’s skull with an arrow, but he had seen it walking around after the battle was over.</p>
+<p>“What, Toren? He’s fine. But you know, it’s weird. I think he had some kind of gemstone in his head—this red gem that I got after these undead attacked my inn. It made his eyes purple, but even after it broke, his eyes haven’t changed back! How weird is that?”</p>
+<p>As far as Halrac was concerned, the skeleton was a walking mystery that he desperately wanted to solve by grinding its bones into dust, but he held his tongue. He didn’t understand the comment about the undead, but that did explain the skeleton’s gaze that seemed to emit fear.</p>
+<p>“Who knows?”</p>
+<p>“I don’t. Oh, here’s the inn!”</p>
+<p>They’d come to it surprisingly quickly. Halrac watched Erin opened the door and usher him inside. There she seated him in a table near one corner of the room as he’d requested, but she was almost as bad as Peslas. She pestered him with questions, offering him a glass of warm milk, and then hovered around him as she gave him a menu with very few options, only two or three of which he actually recognized as food.</p>
+<p>“Can I interest you in our newest dish?”</p>
+<p>Halrac hesitated. His first response was a curt ‘no’, but it was a hard thing to say to the innkeeper’s friendly expression.</p>
+<p>“…What is it?”</p>
+<p>“Pizza!”</p>
+<p>Halrac had never heard of pizza, but he listened to the girl’s description of what it was and decided he could always claim he was sick. But cheese layered over tomato sauce and bread? It didn’t sound that good.</p>
+<p>It didn’t look that good to Halrac either when the innkeeper came out with it. He eyed the slices of pizza and touched it experimentally. Some kind of open-faced sandwich…?</p>
+<p>Sensing the girl’s eyes on him, Halrac reluctantly took a bite. It wasn’t as bad as he expected, and the tomato sauce oozed into his mouth as he chewed on the melted cheese and dough. No, it wasn’t bad at all; had he been a soldier on a cold night huddled around a campfire, Halrac imagined he would have loved this food.</p>
+<p>As it was, there were far worse things to eat for dinner, and Halrac hated wasting food. He took another bite and decided that the pizza was warm and filling. That was when the door opened and a girl stomped in.</p>
+<p>“A <em>[Barmaid]!</em>”</p>
+<p>She screeched at Erin as she hurled a bundle of sticks to the ground. Halrac half-turned with his hand on his dagger, but this new girl’s anger was directed solely at Erin Solstice. He watched as she stormed up to the other young woman and realized this was the girl he’d helped save.</p>
+<p>Perhaps it had been a mistake. Halrac winced as the blonde girl raised her voice another octave and shouted at Erin, who was wearing a fed-up expression.</p>
+<p>“What is it now, Lyon?”</p>
+<p>“<em>Lyonette! </em>And I just leveled up as a…a&#8230;[Barmaid]!”</p>
+<p>“That’s good, isn’t it? And hold on, why did you level up? I told you to get firewood!”</p>
+<p>The girl named Lyon or possibly Lyonette hesitated, and Halrac rolled his eyes. He could see dampness on her thick winter clothes, and the girl even had snow caught between the folds of her clothing. She’d probably been taking a nap while she ran the errand—it was a miracle something hadn’t found and eaten her while she slept.</p>
+<p>“I may have—that is not important! I am <em>noble!</em> I will not be sullied with a—<em>commoner’s </em>class!”</p>
+<p>Erin’s brows snapped together and she began to argue with Lyon as Halrac grunted to himself and tried to turn off his ears. The girl was a noble? A runaway or an impoverished one, perhaps.</p>
+<p>That explained a lot. Halrac had already heard people in Liscor grumbling about the Human thief, and she looked and acted like many of the jumped-up aristocrats he’d had the misfortune of encountering. He decided he didn’t like her and proceeded to ignore the girl’s argument with Erin as he reached for another slice of pizza.</p>
+<p>Somehow, the platter was empty and Halrac was looking into an empty mug by the time Erin won the argument. The angry blonde girl sullenly gathered up her bundle of firewood and flounced into the kitchen. Erin came back over to smile apologetically at Halrac and refill his mug.</p>
+<p>“Sorry. She’s—well, she’s new.”</p>
+<p>He grunted and waved a hand. Now that his belly was full, Halrac was tempted to leave for his bed, but he doubted he’d be able to sleep just yet. Instead, he eyed his mug. Warm water was all very well, but—</p>
+<p>“Alcohol? I mean, yeah, I’ve got some. I think.”</p>
+<p>Erin blinked at Halrac a few times as if she was taken aback by his request. But she dutifully went behind her counter and exclaimed in surprise.</p>
+<p>“Hey, look! A keg! I wonder what’s in it?”</p>
+<p>As unwelcome as that statement was, it wouldn’t be the worst thing Halrac had heard when being served drinks. The girl came back with a mug full of too much foam, but with the promising amber liquid at the bottom.</p>
+<p>“Thanks.”</p>
+<p>He took a sip, and tried to hide a grimace. Erin glanced at Halrac as he took another gulp. This time his face didn’t change, but hers fell.</p>
+<p>“You don’t like it.”</p>
+<p>Halrac was starting to dislike this young woman’s ability to read his expression. He shrugged, and tried to pick his words carefully, which it had to be said, wasn’t his strong suit.</p>
+<p>“It’s fine.”</p>
+<p>He’d grown spoiled after becoming a successful adventurer. Halrac had drunk worse swill before, even if this keg tasted as if someone had watered the ale quite heavily.</p>
+<p>“No, no. It’s not.”</p>
+<p>Erin waved her hands about in distress while Halrac saw Lyon sneaking upstairs, probably to take another nap.</p>
+<p>“I <em>knew</em> I shouldn’t have bought the cheapest kind!”</p>
+<p>She rushed around, looking for another keg while Halrac debated whether it was worth drinking more just so he could get drunk, or cutting his losses and leaving now. But oddly, he was feeling relaxed, despite the oddness of this inn. Maybe it was just because he was around humans, or maybe it was just Erin. She asked constant questions without reserve, but she didn’t <em>pry</em> or judge like other people.</p>
+<p>“Aha! I’ve got it!”</p>
+<p>Halrac looked over and saw the girl standing by a windowsill. She was picking at something—a box set on a table illuminated by the sunlight. Halrac’s enhanced vision had no problems picking out the golden flowers Erin was gathering up and…<em>squeezing</em> into a mug?</p>
+<p>The girl was crushing the flowers and gathering up the few drops of nectar into a mug. Then she added more ale—even more sloppily this time, so that there was just as much foam as liquid. She brought over the dubious concoction to Halrac and shoved it in his face.</p>
+<p>“Here, try this! It’s a special drink.”</p>
+<p>“What’s in those flowers?”</p>
+<p>“Um. I don’t know.”</p>
+<p>Halrac looked at Erin, and she hurried to explain.</p>
+<p>“They’re <em>magic</em> flowers, and when you drink the nectar, you get sort-of drunk. And I mean it might go well with alcohol—spice it up, you know? I’ve got this skill – [Wondrous Fare], and it was telling me that this would work.”</p>
+<p>Halrac had never heard of that skill, but Erin looked at him pleadingly, and it wasn’t as if he had anything better to do. Or drink.</p>
+<p>He sniffed at the mug suspiciously. It seemed unlikely the innkeeper would try to poison or drug him, but he was always cautious. None of his Skills were warning him of anything though, so he took a cautious sip.</p>
+<p>And—</p>
+<p>&nbsp;</p>
+<p><em>The wind ruffled Halrac’s hair. He glanced around and wondered where the girl had gone. But in the next moment he forgot about her, because he realized where he was.</em></p>
+<p><em>Home.</em></p>
+<p><em>Not the burnt wreck that was all that remained in the real world, but home, the home Halrac had known all his life before it had been taken away. He was standing on a green hilltop in the midst of a fall day, the trees around him full of color, the air crisp and fresh. Below him, his small hamlet bustled with life and motion as [Farmers] went about their chores and children helped chase animals or played together in the street.</em></p>
+<p><em>Halrac looked down and saw his arms. Young skin, unblemished by scars and not yet tanned or covered with hair shone in the sunlight. He was a lad of seventeen again, and he felt as if his body were like air, full of youthful strength and energy.</em></p>
+<p><em>“Halrac? What are you doing?”</em></p>
+<p><em>His heart skipped a beat. Halrac turned, and saw Ariael. She was wearing the soft white cotton robe of the Harvest Maiden – given to the most beautiful girl in the village. And she was standing on the hilltop with him, smiling. At him.</em></p>
+<p><em>It hadn’t been like that. Halrac remembered this day, when she’d been standing with Telfar instead, laughing with him while Halrac looked on miserably. But this moment was different, and Halrac knew she was in love with him. And he? He’d been in love with her all his life, right up until the day she died with the others.</em></p>
+<p><em>And now she was here, with him.</em></p>
+<p><em>Halrac laughed, and flung his arms around Ariael, swinging her around in the air like he’d always dreamed of doing. She clung to him and kissed his face as they tumbled around on the green hilltop, free and light, together for one perfect day.</em></p>
+<p><em>The young man turned and saw his small village below him bustling with life and people after the harvest. He could see his father laughing together with his mother as he lifted a huge bundle of grain on one shoulder and she carried a bucket of milk inside their house. He pointed, and Ariael turned and saw the first pies being brought out and set on the long table for all to eat. She tugged at his hand and he followed, stumbling, laughing as he—</em></p>
+<p>&nbsp;</p>
+<p>&#8212;-</p>
+<p>&nbsp;</p>
+<p>Erin had never considered herself a murderer, but it was clear she had a talent for killing people. This was an issue she felt she should think seriously about at some point, but right now all she could think of was that she’d made yet another huge mistake.</p>
+<p>“Please wake up, <em>please</em> wake up!”</p>
+<p>She shook Halrac desperately, rattling the older man back and forth as he sat in his chair, staring at nothing. She’d already prized the mug from his hands—he’d kept sipping at it even while he went into whatever trance he was in—but he was still out of it.</p>
+<p>“Come on, it’s only a drink! Just a few flowers—more than a few! It’s not a drug if it’s magic, and you’re <em>not</em> overdosing or whatever! Come <em>on</em>, wake up!”</p>
+<p>Erin wondered if she should slap Halrac. That never seemed to work. Water, then. She looked around, gave up, and threw the non-faerie-flower drink in his face.</p>
+<p>Halrac blinked as the alcohol splashed over him. He coughed, spluttered, and looked around.</p>
+<p>“Ariael? What—?”</p>
+<p>“I am <em>so sorry</em>, Halrac! I didn’t know that would happen! I thought you’d just think you were suddenly big like in the stories—but the alcohol did something. It’s a drug. I’ll throw it out—”</p>
+<p>Erin seized the mug, but Halrac’s hand moved and he was suddenly gripping her hand. The usually dour-faced adventurer stared at Erin with such intensity she as frightened.</p>
+<p>“It’s <em>not</em> a drug. It’s memory. Give me another drink, please! I’ll pay anything—”</p>
+<p>“No, it’s dangerous! You went all blank-stare on me. I shouldn’t give it to anyone, not until I’ve tested—&#8221;</p>
+<p>The two fought over the mug. Halrac was stronger than Erin, but he was at a bad angle and trying not to spill the drink; at this point, Erin was trying to upend it on the floor. They engaged in a silent match until someone spoke right behind them.</p>
+<p>“Erin? Is he bothering you?”</p>
+<p>Both Halrac and Erin froze. Erin turned her neck and saw Ceria. The half-Elf had walked up behind the two and her skeletal hand was glowing with magic.</p>
+<p>She wasn’t <em>quite</em> pointing her glowing finger at Halrac’s face, but her expression was grim. Halrac and Erin exchanged a glance, and both realized that Ceria had entirely the wrong idea of what was happening.</p>
+<p>Slowly, Halrac let go of Erin and she stepped back.</p>
+<p>“It’s nothing Ceria. I uh, gave him a drink with that nectar in it. You know, from the flowers?”</p>
+<p>“Oh?”</p>
+<p>Ceria hesitated, but her finger stopped glowing. Erin tried to explain, and the half-Elf sighed, in what sounded like relief.</p>
+<p>“Of course that’s what would happen. Well I’m—well, good.”</p>
+<p>She nodded to Halrac and he nodded back. The older man looked at Erin and bowed his head.</p>
+<p>“I’m sorry.”</p>
+<p>“Oh, no. I’m sorry! I shouldn’t have given you that drink without testing it on Pisces first. My Skill just told me to do it and—sorry! Um, uh, would you like anything else, Halrac? Anything? Anything but a certain faerie drink which I’m not sure I’m ever going to serve again?”</p>
+<p>He hesitated. The Gold-rank adventurer still looked shaken, and Erin saw him pass a hand over his face several times before he looked at her.</p>
+<p>“Food. Yeah.”</p>
+<p>“How about a hamburger?”</p>
+<p>“A wh—fine. Fine. I’ll have that and as much ale as you’ve got.”</p>
+<p>Nervously, Erin took the mug of with the faerie flower nectar in it back into the kitchen and started cooking while Ceria took a seat next to her in the kitchen.</p>
+<p>“I had <em>no idea</em> that would happen. But he seemed so…gone!”</p>
+<p>“That’s not necessarily a bad thing. He said it was memory? Hm.”</p>
+<p>Ceria rubbed at her chin as Erin flipped two patties, distractedly cooking while she talked. The half-Elf eyed the half-empty mug, but didn’t make a move for it.</p>
+<p>“I’m no expert Erin, but it seems like those flowers are part of the Frost Faerie’s illusion. You can make them look like gold coins, and you said you felt like a giant when you sipped some. Perhaps they’re enchanted with illusions that make us see what we want to.”</p>
+<p>“Oh, so Halrac was seeing what he wanted to? He said a name—I think it was a girl’s…”</p>
+<p>Ceria shrugged.</p>
+<p>“I don’t know, but it’s rare for him to lose his cool.”</p>
+<p>“Wait a second. You know Halrac? You never said!”</p>
+<p>“Know him? Hah! Only by reputation. He’s a veteran Gold-rank adventurer, Erin. He founded Griffon Hunt with Ulrien nearly a decade ago, and he’s famous for never panicking or breaking under stress. That drink of yours must be powerful stuff if it got him.”</p>
+<p>Erin frowned at the drink as her hands mechanically slapped a burger together.</p>
+<p>“I didn’t mean to do anything bad. I just listened to my Skill.”</p>
+<p>“That’s not always the wisest move. In any case, I don’t think what you did was wrong. If anything, I think he’ll pay in gold if you give him more of that stuff.”</p>
+<p>“Maybe.”</p>
+<p>Erin didn’t know. But she took the hamburger out to Halrac, who accepted it and a non-magical drink with a grunt. Ceria and Erin had a meal of another hamburger—Erin was too rattled to make a pizza at the moment—on the other side of the inn.</p>
+<p>After about an hour of talk—during which Halrac just ate his food and stared at his arms and hands as if he were still in that trance—the door to the inn opened and two more familiar guests walked in.</p>
+<p>“Good evening, Erin.”</p>
+<p>Pawn nodded to Erin as she turned and beamed at him, and a familiar Drake poked his head in as well.</p>
+<p>“Oh, uh, hi Erin! Fancy meeting you here!”</p>
+<p>Ceria snorted as Olesm edged his way in behind Pawn. Halrac had frozen in his seat, but Erin welcomed both Drake and Antinium in, seating them in the center of the room.</p>
+<p>“Pawn! Olesm! I haven’t seen either of you two for ages! Why haven’t you stopped by?”</p>
+<p>Pawn nodded his head while Olesm stared over Erin’s shoulder.</p>
+<p>“I am sorry, but I was busy within our Hive, attempting to make more Individuals. And until recently, I was being interviewed by Klbkch, Ksmvr, and the Queen.”</p>
+<p>“Whoa. That’s big stuff!”</p>
+<p>“It is indeed. Olesm was with me until I suggested we eat here for the night.”</p>
+<p>Erin looked at Olesm, and the Drake scratched at his head spines and looked the other way.</p>
+<p>“I didn’t know you were in the Hive! That’s cool—are you teaching the Antinium? And why haven’t you come by earlier? You know I’m always up for a game of chess!”</p>
+<p>Olesm waffled as he avoided looking straight at Erin.</p>
+<p>“You know how it is, Erin.”</p>
+<p>“No I don’t.”</p>
+<p>He faltered, looking over at Ceria for support. The half-Elf just rolled her eyes as she bit into her second hamburger.</p>
+<p>“Well, it’s just that I wanted to try playing other players and the Antinium are always willing to play—and even pay me for their time! And I know you’re busy and I wouldn’t want to take away from…”</p>
+<p>His eyes flicked left, and Erin looked over and saw her magical chessboard, the pieces sitting ghostly and transparent on the wood. She’d left a game unfinished with her mystery opponent, as he’d had to stop for some reason. Erin frowned in confusion, and then glared at Olesm.</p>
+<p>“Now wait just one minute, Olesm. Even if I play someone else, I’m happy to play you! Even if you’re not as good as he is yet, you’re still a great player!”</p>
+<p>The Drake shook his head.</p>
+<p>“I know how good I am Erin, and after that game with him—I wouldn’t want to hold you back, really.”</p>
+<p>“Hey!”</p>
+<p>Erin seized Olesm and glared at the surprised Drake.</p>
+<p>“How good you are shouldn’t have anything to do with being allowed to play the game. Anyone can play chess, and you should play me as much as you want! That’s the only way you’re going to get better and—”</p>
+<p>She glared at Pawn who shrank back in his seat.</p>
+<p>“—And I don’t mind teaching new players either. I like chess. Anyone who likes chess is welcome to play me, anytime, anywhere! Well, not anywhere, but most of the time I’m up for a game!”</p>
+<p>Olesm blinked at Erin, but as her glare transitioned into a smile, he managed one too.</p>
+<p>“I’m sorry, Erin. You’re right. I don’t know what I was thinking—of course I’d love to play.”</p>
+<p>“Good. In that case I&#8217;ll play you and Pawn at the same time. I love to play a dual game. Just let me feed you two first. Hey, do you want to try some pizza?”</p>
+<p>“What’s ‘pizza’?”</p>
+<p>“It’s—”</p>
+<p>“Olesm?”</p>
+<p>The Drake’s head turned. His eyes widened, and Erin blinked in surprise.</p>
+<p>“Zevara? What are you doing here?”</p>
+<p>The Captain of the Watch and tall Drake with an attitude and flame for breath walked slowly into the inn. She nodded awkwardly at Erin.</p>
+<p>“Human. Is your inn open at the moment?”</p>
+<p>“What? Oh, yeah, yeah, it is! Um, do you want to eat here? Or drink something?”</p>
+<p>Erin hesitated. She’d never seen Zevara in a non-shouting context, and she was totally off-guard. But the Drake Captain looked at Olesm and looked almost as unsure as Erin.</p>
+<p>“I suppose I could have something. I uh, just came by because I’m off-duty and I saw you walking this way, Olesm. Do you mind if I join you?”</p>
+<p>“Me? Uh—”</p>
+<p>Olesm glanced at Ceria for some reason. The half-Elf shrugged, again for reasons Erin couldn’t understand, and Zevara looked at her.</p>
+<p>“Springwalker.”</p>
+<p>“Zevara. I’m sure Olesm wouldn’t mind if we shared a table, would he?”</p>
+<p>“What, me? No, no…I just thought I’d play a game of chess…”</p>
+<p>“We can do that later. You should talk, Olesm!”</p>
+<p>Erin beamed and the Drake sagged as the two women sat next to him. Pawn politely offered his chair to Ceria and the half-Elf took a seat on Olesm’s left while Zevara took a seat on his right.</p>
+<p>Now that she had multiple guests, Erin remembered Lyon and looked around for her. But the newly leveled [Barmaid] was nowhere to be seen.</p>
+<p>“Every time I need someone to serve drinks and food…it’s not even that hard! I do all the cooking!”</p>
+<p>“I’ll go find her, if you want.”</p>
+<p>Olesm stood up, but Erin hurriedly waved him back down.</p>
+<p>“She’s probably hiding or something. I’ll get Toren to look after her when he comes back. I’m not sure where he is. No, you sit. I’m sure Olesm would like the company.”</p>
+<p>The Drake had the oddest expression on his face. Meanwhile, Ceria started talking quite friendly with Zevara, and the Captain seemed just as polite. Erin smiled; it was good to see both getting along so well, although Olesm was very quiet. Erin bustled around the kitchen, getting food ready while the others talked or sat in silence. There was quite a lot of that, despite the full table.</p>
+<p>Olesm must have been hungry, because he looked incredibly relieved when Erin came back with two hot pizzas, one on each glove. Pawn nodded in appreciation, but paused as he glanced at Ceria and Zevara. The two hadn’t even looked at the pizza; they were smiling at each other and laughing, although Erin must have missed the joke.</p>
+<p>“I believe I would like to play a game, Erin, if you’re free.”</p>
+<p>“Totally! Just holler if you need anything, okay?”</p>
+<p>Ceria and Zevara nodded without looking her way. Olesm hesitated, and then slowly pushed back his chair.</p>
+<p>“I guess I’ll play—”</p>
+<p>“<em>Sit.</em>”</p>
+<p>He sat. Erin found a table closer to Halrac and sat at it with Pawn. The [Scout] hadn’t asked for much more than a refill and he nursed his drink quietly while she talked with the Antinium.</p>
+<p>Erin arranged the chess board as Pawn sat in his chair, chewing quietly on a piece of pizza. She wasn’t sure if he liked it, but she hadn’t found any more bugs for the Antinium to eat, so she just prayed it was edible for them.</p>
+<p>“Okay, would you like to be black or white, Pawn?”</p>
+<p>“I shall choose white, if it is acceptable to you, Erin.”</p>
+<p>She nodded happily, and Pawn studied the board for a minute before moving a pawn up to D4. Erin immediately moved a pawn up to D5, and Pawn moved a second pawn up to C5, initiating the Queen’s Gambit.</p>
+<p>Erin immediately pushed a second pawn into Slav Defense, C6, and there the game paused for a moment. Pawn studied the board, and then, unusually, looked up at Erin.</p>
+<p>Normally the Antinium was concentrated totally on the game, so this change made Erin stop pondering chess strategy for a moment and look at him.</p>
+<p>“Something wrong, Pawn? Is the pizza no good?”</p>
+<p>“The pizza is perfectly fine, Erin. But I have something I wish to talk to you about.”</p>
+<p>Erin frowned.</p>
+<p>“Oh? What’s that?”</p>
+<p>Pawn placed a hand over a chess piece and hesitated. He looked directly at Erin again, and she started to sense that he hadn’t come to her inn to play chess after all.</p>
+<p>“I came here to ask for your advice, Erin.”</p>
+<p>Pawn lowered his voice as Olesm began trying to teach both Zevara and Ceria the game of chess. Erin stared at the Antinium, concerned.</p>
+<p>“Why? What happened? I mean, is something wrong?”</p>
+<p>“Nothing—well, I suppose that is not accurate. Today I was summoned before my Queen, as I said. I, along with four other Antinium, the four that became individual.”</p>
+<p>“Oh.”</p>
+<p>That sounded big, to Erin. She still didn’t quite understand why individuals were so important to the Antinium, but she’d gotten a vague idea of Pawn’s new significance. He nodded to her as he slowly moved a piece forwards.</p>
+<p>“Yes. She called us and asked us questions about our nature. She…analyzed us for what we might be, what we might achieve.”</p>
+<p>Erin stared at the board. Pawn had moved a pawn forwards again—only it was a terrible move. C4-C5? That was Bad Slav. She’d taught him to avoid that. Erin looked at Pawn in confusion and for the first time noticed that something <em>was</em> different about Pawn today.</p>
+<p>He looked…smaller. The Antinium sat hunched over in his seat, and Erin realized he looked much like she’d first seen him. That was to say, like a normal Worker, meek, inconspicuous, unnoticed.</p>
+<p>“Pawn?”</p>
+<p>What had happened? What had his Queen said to him—done to him? Erin remembered Ksmvr, but Pawn didn’t look hurt. He just looked…</p>
+<p>Helpless.</p>
+<p>Erin looked at the board, and then abandoned her game. She looked at Pawn, seriously.</p>
+<p>“What happened? What did she do to you?”</p>
+<p>He shook his head slowly.</p>
+<p>“Questions. That is all she asked of us. Questions.”</p>
+<p>“What kind of questions?”</p>
+<p>Questions could be bad and hurtful. But Pawn only raised one hand, palm up, helplessly.</p>
+<p>“Questions we could not answer. Erin. She asked us what being individual meant. How it happened. We could not answer. And she asked more questions—what will we become? What classes can we take? How can we serve the hive?”</p>
+<p>He shook his head.</p>
+<p>“She asked if I would lead Soldiers to battle. Me. Because I have gained a class from playing chess and am highest-level besides Klbkch. But me?”</p>
+<p>Erin looked at Pawn. She couldn’t imagine him fighting like Klbkch or Ksmvr. An image flashed in her mind. A memory. She saw a Worker, flailing at Goblins, fighting like a child as they stabbed him—</p>
+<p>Pawn continued to speak, haltingly. His voice was strained with an emotion she’d never heard from an Antinium before.</p>
+<p>“I told her that I loved this game. I enjoy playing chess. But I cannot lead armies. I have a [Tactician] class, but&#8230;I have stopped leveling.”</p>
+<p>Erin blinked. Pawn nodded at her.</p>
+<p>“It is problematic. Yet I have no desire to carry out another occupation. I cannot go back to being a Worker, but not even my Queen knows what we are now.”</p>
+<p>He spread his hands, knocking over pieces on the board. Pawn jerked in surprise, and then clumsily reached for the pieces. But he abandoned them and looked at Erin.</p>
+<p>“I am lost. If I am not a Worker, what am I?”</p>
+<p>“I don’t know. Pawn—”</p>
+<p>He shook his head.</p>
+<p>“My Queen did not know. You do not know. No one knows. Not even us.”</p>
+<p>He stared at Erin, and she felt helpless. Pawn’s expression didn’t change, but it couldn’t, not really. He had no nose or skin or even tear ducts. But his mandibles clicked together softly, and his hands clenched on the table.</p>
+<p>“We are all lost. But I am the first, and so they look to me. And I—”</p>
+<p>Pawn glanced up at Erin, and then away.</p>
+<p>“I do not know.”</p>
+<p>“Pawn. It’s not something you can figure out right away. Stuff like this is complex. It takes time.”</p>
+<p>Erin reached out to touch Pawn’s hand, but he knocked hers away. He stared at Erin, trembling slightly.</p>
+<p>“I asked them to go to you that night. I gathered the Workers and told them to fight. And die.”</p>
+<p>Erin felt a hole open up in her stomach. Pawn stared into her eyes, his multi-faceted ones direct, full of hidden emotion.</p>
+<p>“I asked them to go. They did it willingly, but I was the one who suggested it, who told them to do it. Not my Queen, not Ksmvr or Klbkch. I, and no other.”</p>
+<p>She remembered. Erin’s eyes were stinging, but she made herself look at Pawn.</p>
+<p>“They saved me, Pawn.”</p>
+<p>He nodded.</p>
+<p>“Yes, and it was necessary! It was good! But—but what happens next?”</p>
+<p>“What?”</p>
+<p>Erin didn’t understand. Pawn looked at her, as if willing her to.</p>
+<p>“They died to save you. It was well. But what will become of those dead? When Bird, Garry, Belgrade and Anand and I die, who will remember the fallen? They lived. Magnus, Rook, Calabrian, Vladimir, Emmanuel…they lived. But only we remember. Only we care.”</p>
+<p>Erin stared at Pawn. This was beyond her. So far beyond her. But Pawn had come to her for help. Only, what help could she give? What advice could she give someone on a road no one had walked before?</p>
+<p>“I don’t know, Pawn. I’m sorry.”</p>
+<p>The Antinium sat in his chair, shivering. No. Not shivering. Erin looked at him more closely.</p>
+<p>He was…twitching. Shaking. It was just like when Erin had first asked him his name, only more violent now.</p>
+<p>“What wIll we dO, EriN? wHAt wILL We bEcOme?”</p>
+<p>His voice—Erin felt a cold chill run down her back, but she refused to move back. She looked at Pawn. He stared back.</p>
+<p>“whAt ArE wE?”</p>
+<p>A faint sound made Erin look away from Pawn. Olesm, Ceria, and Zevara hadn’t noticed his behavior, but Halrac had. He was holding something in his left hand. A dagger.</p>
+<p>Erin looked at him and shook her head slightly. He stared at Pawn, his face grim, and his eyes flicked to her. She stared into his eyes. Just stared.</p>
+<p>Slowly, Halrac sheathed his blade. Erin turned back to Pawn. He was still shaking. She put a hand on his shoulder.</p>
+<p>“Hey. Hey, listen to me. You’re not alone. There are others like you.”</p>
+<p>“nONe aRe LIke Me.”</p>
+<p>It was true. But not true. Something stirred in Erin’s memory. She looked at Pawn. The first of his kind, the leader of a people who no one trusted, who were unimportant. Who didn’t know…</p>
+<p>Memory flickered in Erin’s mind. Not recent memory, but stories. Fragments of something she’d heard long ago, in a quiet place as a child.</p>
+<p>Perhaps it was the last name Pawn had spoken. Emmanuel. But Erin remembered, and so she pushed aside the chess board and edged her chair closer next to Pawn. She put one hand on his cool chitin.</p>
+<p>“You know, there was once a guy like you. He wanted to save his people, too.”</p>
+<p>“ReaLLy?”</p>
+<p>His voice was calming down. Erin smiled at Pawn, and sensed Halrac’s eyes on her back.</p>
+<p>“Yeah. In fact, I know a story about this guy. He was famous, you know. His name is Moses, and a lot of Human kids know about him.”</p>
+<p>“What did…what did he do? Who was he?”</p>
+<p>“He was…a normal person. Well, not normal. But he didn’t think he’d do anything special, until the day he realized he was different than the people around him. And then he realized he had a people who were being mistreated, who were in need. And he led them.”</p>
+<p>That was sort of true. Sort of. Depending on which story you listened to. Which movie you watched. Erin had never watched <em>The Ten Commandments</em>, but she had seen <em>The Prince of Egypt </em>more than once.</p>
+<p>“His people were slaves. They were ruled by a harsh king – a Pharaoh. But Moses was called, and so he led his people to freedom.”</p>
+<p>Pawn cocked his head at her. His voice returned to its normal pitch.</p>
+<p>“Is this an instructional story or a historical narrative?”</p>
+<p>Erin paused. She scratched her head and smiled.</p>
+<p>“I dunno. It’s just a story. Would you like to hear it?”</p>
+<p>He hesitated, and then nodded. So Erin told him a story from childhood.</p>
+<p>“Once upon a time, in a place named Egypt, there were two peoples. Both were Humans, but they were…different. One people were called Egyptians, and they had slaves. And the slaves were called Hebrews. And the king of the Egyptians was called the Pharaoh. But he was afraid that the Hebrews would rise up one day, so he ordered every baby boy to be killed. And Moses’ mother didn’t want that to happen. So she found a river – the River Nile – and put Moses in a basket. Then waited until someone found Moses. It was the Pharaoh’s daughter, and she took him into the Pharaoh’s house so Moses grew up as an Egyptian prince when he was really a Hebrew. But one day he discovered who he truly was. It was when he found a burning bush…”</p>
+<p>&nbsp;</p>
+<p>&#8212;-</p>
+<p>&nbsp;</p>
+<p>Erin told the story of Moses, abridged and slightly inaccurately, but from start to finish. Pawn listened quietly until she was done, but when he finished he just shook his head at her.</p>
+<p>“It is a good story, but I fear it is not as easy for us. The Antinium are not slaves to our Queen—she is part of the Hive, as are we all. It is just that there is no place for us now, and our purpose…”</p>
+<p>He broke off, shaking his head harder.</p>
+<p>“Rebellion would only lead to death. Senseless death.”</p>
+<p>Erin waved her hands hurriedly and nearly knocked over her chess board.</p>
+<p>“Oh, no, no—I didn’t mean the Queen was like the Pharaoh. It’s just a story. A parable. I was just saying that Moses was like a leader, and you’re like a leader.”</p>
+<p>He paused.</p>
+<p>“It is a good story, but I am no chosen one. Moreover, you say this Moses was chosen by a god. You speak of gods, but I am told the gods are dead.”</p>
+<p>Erin hesitated.</p>
+<p>“Maybe. I mean, here it seems like that’s true. But I always grew up knowing there was a god. Then later I…well, where I’m from people believe there are gods. People believe they came to earth, like Jesus Christ.”</p>
+<p>“Jesus? Is that another Human who led his people?”</p>
+<p>It sounded odd to hear an Antinium speak of Jesus. Erin had to smile.</p>
+<p>“Yeah, you could say that. He was someone who saved his people. Actually, he saved the Hebrew just like Moses, just after a long time had passed. And he was the son of God! Well, depending on who you ask.”</p>
+<p>Pawn stared at Erin. Across the room Halrac’s head slowly lifted and he looked over at Erin. He raised his voice and both Antinium and innkeeper looked over.</p>
+<p>“The gods are dead. Everyone knows that. But I’ve never heard of a descendant of gods.”</p>
+<p>“I uh, well, everyone says it where <em>I </em>come from.”</p>
+<p>Erin realized she was on the edge of what Ryoka had warned her about. But it was too late to go back.</p>
+<p>“We have gods. Or one god. There are more, but the one I was told about when I was young—I mean, people just call him…God. Or it God. Her God. It’s hard to explain.”</p>
+<p>Halrac eyed Erin dubiously, but he actually moved his chair closer.</p>
+<p>“Explain that. I’ve always known the gods are dead. Always. And I’ve never heard of one just called…God.”</p>
+<p>Explain Christianity? Erin wasn’t sure. But now Pawn was looking at her too, and he’d stopped shaking. So she took a breath and tried.</p>
+<p>“Well, they say he—I mean, God—created the earth and everything in it in seven days and did all this stuff. You know, god stuff. He cast out Humans from paradise because we were sinful, and pretty much uh, let the world work for a long time. But his people, his chosen people I mean, he always watched over. That story of Moses—that was one example of how God chose his prophets and messengers to help save them.”</p>
+<p>“After they became slaves.”</p>
+<p>Halrac snorted decisively.</p>
+<p>“Some God.”</p>
+<p>Erin had nothing to say to that. But she felt like she owed the religion a tiny bit of defense.</p>
+<p>“Well, he did save them eventually. I think it was sort of like a punishment for something. Maybe. Anyways, later he sent his only son to die for our sakes.”</p>
+<p>“Our sakes? His son? I do not understand.”</p>
+<p>Pawn looked at Erin while Halrac grunted again. And Erin—</p>
+<p>Hesitated.</p>
+<p>The story of Jesus was on her lips. It wasn’t what Pawn wanted – it wasn’t the story that could help him figure out who the Antinium were. But it was a good story.</p>
+<p>Perhaps it was only a story. Maybe it wasn’t. Erin didn’t know.</p>
+<p>She didn’t believe. Not anymore. But she’d heard the same stories over and over, and she could repeat them to her listeners.</p>
+<p>“Just listen, okay? It gets complicated, but I guess one day, long after Moses had saved the Hebrews, they were suffering in another land. This time under the Romans. And God knew they were in trouble, but he was sort of looking at the entire world, you know? And everywhere he looked he saw sin. So he decided to do something about it. So he looked for good people—Mary of Nazareth and her husband, Joseph of Nazareth, and chose them to raise his son who he would send down from heaven…”</p>
+<p>“Heaven?”</p>
+<p>Pawn interrupted Erin. He looked at her intently.</p>
+<p>“What is ‘heaven’? I know of hell, but I have never heard of heaven.”</p>
+<p>Erin wavered.</p>
+<p>“Wait a second. How can you know of hell and not heaven? What’s hell over here?”</p>
+<p>Halrac was the one to answer. He fiddled with his mug.</p>
+<p>“Hell is where the Demons come from. In Rhir—there is a place where no army has returned. That is what people call hell. Is that what you mean?”</p>
+<p>Erin frowned.</p>
+<p>“No…hell is more like—well, it’s a place you go when you die, not a location.”</p>
+<p>Pawn and Halrac both looked at each other, and then away. Halrac scowled. Erin shook her head.</p>
+<p>“Hell isn’t a place. I mean, not a place on earth. Not in this world. It’s the afterlife. The place where bad people go when they die. We go to hell because we sin. We suffer in life because we sin—that’s what the Bible says, anyways.”</p>
+<p>“Bible?”</p>
+<p>“The…history of all this, I guess. I mean, the history of the Hebrews and their God.”</p>
+<p>“Ah. And heaven?”</p>
+<p>How could you describe heaven to someone? Erin closed her eyes. She looked at the ceiling, and did her best.</p>
+<p>“Heaven is a place where good people go. It’s a place where there’s no pain, no suffering…everyone’s there. You can see your family, your friends, and everything is happy. Forever. That’s what heaven is, I think.”</p>
+<p>When she looked back down, Halrac and Pawn were staring at her.</p>
+<p>“What? Don’t you believe in life after death?”</p>
+<p>Halrac shook his head slowly.</p>
+<p>“When I was a lad, I was taught that we’d come back to life after we died. It depended on our class and our level—the higher level we were, the better life we’d have. If we didn’t do much and died with low levels, we’d come back as animals, or worse, monsters. But that’s all.”</p>
+<p>“And you, Pawn?”</p>
+<p>He was silent for a few minutes.</p>
+<p>“The Antinium know of nothing after death. But we do know of death. When an Antinium dies, their memory remains in the Hive. But of the Antinium themselves…nothing. Only a few are kept to return to the Hive in times of need. Klbkch is one such. But even they fade. And in time, all Antinium will die. And after that…”</p>
+<p>He looked at Erin.</p>
+<p>“They cease to be. That is what happens after the Antinium die.”</p>
+<p>She stared at him.</p>
+<p>“That’s…not what some Humans believe. They think everyone can go to heaven, if they believe.”</p>
+<p>“Everyone? Even an Antinium?”</p>
+<p>“I guess so. But let me finish my story. You see, God was sad because we were all sinning—doing bad things. So he sent his son to die for our sakes. Because if he did, all our sins would be forgiven.”</p>
+<p>Halrac eyed Erin.</p>
+<p>“Like some kind of blood ritual? Magic?”</p>
+<p>“No. Redemption. No magic, no ritual. Just forgiveness. It would be a second chance for all of us.”</p>
+<p>“A second chance. To do what?”</p>
+<p>Erin paused.</p>
+<p>“Anything.”</p>
+<p>And Pawn looked at her, silently, with the same grave emotionless expression that all the Antinium shared. But there was a spark in his dark eyes, a glimmer of something.</p>
+<p>Hope.</p>
+<p>So Erin took a deep breath, and reached back. She reached back to childhood, to youth, to innocence and faith. And she told them stories. She told them of a son who died upon a cross to save the world, of a God who created everything and gave law to the lawless. She told the listening adventurer and Antinium parables, stories, and tales of miracles and deliverance.</p>
+<p>At some point Olesm knocked his chair over across the room and ran out the door with Ceria and Zevara in hot pursuit. But no one paid any attention. Erin told stories to the listening man, full of skepticism and bitterness, and to the Antinium, lost, afraid, and alone.</p>
+<p>And they listened. It was not an [Immortal Moment]. There was nothing immortal in the way Erin would backtrack, or make mistakes or get up and serve another round of drinks. Perhaps because she did not believe.</p>
+<p>But there was something there. Something which captured the heart and made Pawn listen, and Halrac stay. And it continued into the night, whispering to the three.</p>
+<p>Stories.</p>
+<p>Faith.</p>
+<p>Religion.</p>
+<p>&nbsp;</p>
+<p>&#8212;-</p>
+<p>&nbsp;</p>
+<p>The inn was quiet when Erin finally locked her door and her last guest vanished into the snowy night. Olesm had fled long ago and not come back, and neither had Ceria or Zevara. But Halrac and Pawn had stayed until past midnight, listening to Erin.</p>
+<p>The adventurer had gone first, with generous tips for Erin multiplied several times over the normal rate. He’d ignored all her protests, and insisted on it.</p>
+<p>Halrac had left after filling his water flask to the brim with Erin’s faerie-flower drink, but he’d walked back towards Liscor without touching it. Instead, he’d stared up at the sky as the Gold-rank adventurer slowly walked back through the snow.</p>
+<p>Pawn looked up too as he made his way back towards the city. He saw only stars and the twin moons overhead. Nothing he hadn’t seen a hundred times before.</p>
+<p>But…how many times had Pawn actually looked up at the sky? When he thought about it, it was more than likely he’d looked up less than a hundred times. And he had never paid attention to the shining stars. They had simply been objects, irrelevant parts of his world.</p>
+<p>But now Pawn looked up and wondered what lay beyond the stars in the sky. He looked up and wondered if out there, somewhere, there was a place where he could go. A place for the lost like him. A place to be saved.</p>
+<p>As he looked up, Pawn felt something in his chest. It was desire, a yearning that came so strongly that the Antinium shuddered. He had never felt such a <em>want</em> in his life, but how it came over him, a fierce desire for something he didn’t have.</p>
+<p>Sin. Hell. Slavery. Betrayal.</p>
+<p>Erin’s stories stuck in the Antinium’s mind, whispering to him, speaking into his heart.</p>
+<p>Redemption, salvation, rebirth. Resurrection. The forgiveness of sins.</p>
+<p>His only son.</p>
+<p>And—</p>
+<p>“Heaven.”</p>
+<p>It was just for a second. It was only a hope, the small desire of one who had never known he wanted it. But for one moment, Pawn wished it were all true. And in that moment, he <em>believed.</em></p>
+<p>And as he looked up, the Antinium heard the whisper. It came out of his heart, and then Pawn heard the voice in his mind.</p>
+<p>&nbsp;</p>
+<p>[Acolyte Class Obtained!]</p>
+<p>[Acolyte Level 1!]</p>
+<p>[Skill – Prayer Obtained!]</p>
+<p>&nbsp;</p>
+<p>It struck the Antinium from above, and he fell to his knees, in the snow and the night. He stared up, and <em>knew</em>.</p>
+<p>The night sky hung overhead, silent, distant, but no longer simply the sky. Now there was something behind it. Something made of dreams and hope and belief, but something nevertheless. Pawn believed, and he hoped, and that was enough. It was enough to dream of salvation.</p>
+<p>And then there were Gods. Or at least, one.</p>
+<p>&nbsp;</p>
+<hr />
+<p><a href="https://wanderinginn.wordpress.com/2017/05/28/2-25/">Previous Chapter</a> <span style="float:right;"><a href="https://wanderinginn.wordpress.com/2017/06/04/2-00-h/">Next Chapter</a></span></p>
+			</div><!-- .entry-content -->
+
+	<footer class="entry-meta">
+		This entry was posted in <a href="https://wanderinginn.com/tag/writing/" rel="category tag">Writing</a> and tagged <a href="https://wanderinginn.com/tag/fantasy/" rel="tag">fantasy</a>, <a href="https://wanderinginn.com/tag/inn/" rel="tag">inn</a>, <a href="https://wanderinginn.com/tag/web-novel/" rel="tag">web novel</a>, <a href="https://wanderinginn.com/tag/web-serial/" rel="tag">web serial</a>, <a href="https://wanderinginn.com/tag/writing/" rel="tag">Writing</a> by <a href="https://wanderinginn.com/author/pirateaba/">pirateaba</a>. Bookmark the <a href="https://wanderinginn.com/2017/05/31/2-26/" title="Permalink to 2.31" rel="bookmark">permalink</a>.
+		
+			</footer><!-- .entry-meta -->
+</article><!-- #post-2064 -->
+
+						<div id="comments">
+	
+	
+			<h2 id="comments-title">
+			142 thoughts on &ldquo;<span>2.31</span>&rdquo;		</h2>
+
+				<nav id="comment-nav-above">
+			<h1 class="assistive-text">Comment navigation</h1>
+			<div class="nav-previous"><a href="https://wanderinginn.com/2017/05/31/2-26/comment-page-1/#comments" >&larr; Older Comments</a></div>
+			<div class="nav-next"></div>
+		</nav>
+		
+		<ol class="commentlist">
+					<li class="comment even thread-even depth-1 highlander-comment" id="li-comment-8919">
+		<article id="comment-8919" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/dd226ed24e241453b2ccd15a204fb152?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Lou2earth</span> on <a href="https://wanderinginn.com/2017/05/31/2-26/comment-page-2/#comment-8919"><time datetime="2017-12-03T19:27:42+00:00">December 3, 2017 at 7:27 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>This story has taken a definite turn for the worst. Religion? Way to introduce more side for conflict and suffering in an already conflict torn world</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/05/31/2-26/comment-page-2/?replytocom=8919#respond' data-commentid="8919" data-postid="2064" data-belowelement="comment-8919" data-respondelement="respond" data-replyto="Reply to Lou2earth" aria-label='Reply to Lou2earth'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment odd alt depth-2 highlander-comment" id="li-comment-95017">
+		<article id="comment-95017" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/555dcaf3c529e779f16730919c5d980b?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">Paladin</span> on <a href="https://wanderinginn.com/2017/05/31/2-26/comment-page-2/#comment-95017"><time datetime="2020-12-02T11:01:59+00:00">December 2, 2020 at 11:01 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Religion definitely has been part of some terrible things in history, but I hardly think it can be blamed for all our mistakes, and having hope for something better is essential. I don&#8217;t know if Religion is essential, but Religion is a good way to get that hope I think. Plus there are enough unexplained things in the world that I think it&#8217;s unreasonable to throw the possibility of religion being true out the door entirely.<br />
+Besides which, you can&#8217;t argue with the fact that Religion has been an integral part of human history. I think the lack of religion in this world is almost kinda unrealistic honestly. I&#8217;m glad it&#8217;s being considered now, even if it was kinda ignored earlier.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/05/31/2-26/comment-page-2/?replytocom=95017#respond' data-commentid="95017" data-postid="2064" data-belowelement="comment-95017" data-respondelement="respond" data-replyto="Reply to Paladin" aria-label='Reply to Paladin'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment even depth-3 highlander-comment" id="li-comment-99663">
+		<article id="comment-99663" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/fc9e71680bd067f72e581eafbea777e3?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">Jeffrey Strahm</span> on <a href="https://wanderinginn.com/2017/05/31/2-26/comment-page-2/#comment-99663"><time datetime="2021-02-01T18:23:25+00:00">February 1, 2021 at 6:23 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>They didn&#8217;t really ignore it earlier. They mentioned the &#8220;levelers&#8221;, I think the name was? Their goal was to get as high a level as they could and that it was their purpose in life. Obviously, religion takes on a different form when in history gods died.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/05/31/2-26/comment-page-2/?replytocom=99663#respond' data-commentid="99663" data-postid="2064" data-belowelement="comment-99663" data-respondelement="respond" data-replyto="Reply to Jeffrey Strahm" aria-label='Reply to Jeffrey Strahm'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		<li class="comment odd alt depth-2 highlander-comment" id="li-comment-104938">
+		<article id="comment-104938" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/44dd09e4b9ce7eec5b52da927aabe38a?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">Matsiv</span> on <a href="https://wanderinginn.com/2017/05/31/2-26/comment-page-2/#comment-104938"><time datetime="2021-05-15T10:42:10+00:00">May 15, 2021 at 10:42 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Skills are the reflection of a combination of what people wish for, how they are perceived, their actions and probably much more. So maybe believing hard enough is enough for the sysrem to consider you a cleric class or prerequisite class.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/05/31/2-26/comment-page-2/?replytocom=104938#respond' data-commentid="104938" data-postid="2064" data-belowelement="comment-104938" data-respondelement="respond" data-replyto="Reply to Matsiv" aria-label='Reply to Matsiv'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-astrumvicis even thread-odd thread-alt depth-1 highlander-comment" id="li-comment-9825">
+		<article id="comment-9825" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/b5990715766b9ebd24552fdd8abf16f7?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn"><a href='http://astrumvicis.wordpress.com' rel='external nofollow ugc' class='url'>astrumvicis</a></span> on <a href="https://wanderinginn.com/2017/05/31/2-26/comment-page-2/#comment-9825"><time datetime="2018-01-14T04:54:28+00:00">January 14, 2018 at 4:54 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Olesm stood up, but Erin hurriedly waved him back down.</p>
+<p>“She’s probably hiding or something. I’ll get Toren to look after her when he comes back. I’m not sure where he is. No, you sit. I’m sure Olesm would like the company</p>
+<p>Olesm is both the one staning and the one told to sit and a company himself.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/05/31/2-26/comment-page-2/?replytocom=9825#respond' data-commentid="9825" data-postid="2064" data-belowelement="comment-9825" data-respondelement="respond" data-replyto="Reply to astrumvicis" aria-label='Reply to astrumvicis'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment odd alt thread-even depth-1 highlander-comment" id="li-comment-10344">
+		<article id="comment-10344" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/20643ab6c7c9e4c6970456d69a4df529?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">[Druid] [Level 62]</span> on <a href="https://wanderinginn.com/2017/05/31/2-26/comment-page-2/#comment-10344"><time datetime="2018-02-07T04:37:59+00:00">February 7, 2018 at 4:37 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Oh no&#8230; Why introduce religion!!! Erin you stupid little ball of sunshine!!! Did you never learn about the crusades? Or the hundreds of problems that religion bring? Always making trouble, tch, the faeries are going to have a blast with that</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/05/31/2-26/comment-page-2/?replytocom=10344#respond' data-commentid="10344" data-postid="2064" data-belowelement="comment-10344" data-respondelement="respond" data-replyto="Reply to [Druid] [Level 62]" aria-label='Reply to [Druid] [Level 62]'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment even depth-2 highlander-comment" id="li-comment-99665">
+		<article id="comment-99665" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/fc9e71680bd067f72e581eafbea777e3?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">Jeffrey Strahm</span> on <a href="https://wanderinginn.com/2017/05/31/2-26/comment-page-2/#comment-99665"><time datetime="2021-02-01T18:37:08+00:00">February 1, 2021 at 6:37 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>That is a bit of an overly pessimistic way to view religion. While it isn&#8217;t completely unwarranted, it isn&#8217;t fair either. It is the equivalent to the gnolls have to deal with the adventurers and the princess thief and saying &#8220;all humans must be trouble making thieves&#8221;</p>
+<p>Have people used religion as an excuse to do terrible things? Yes. But has it also brought hope to the downtrodden, driven people to do great and charitable/merciful things? Also yes. Pawn is an excellent example of the good it can do. (I am not going to bring the is God real argument into this as it is irrelevant to this situation).</p>
+<p>another example would the nationalism that drove Hitler to cause genocide. Does that mean all nationalism is bad? Does that mean humans are inherently genocidal and evil? I would say know.</p>
+<p>In the end, it&#8217;s much like a hammer. You can use it to build a house and grant shelter for yourself or others, or you can cave people&#8217;s skull in with it. Either way, it isn&#8217;t really the hammer&#8217;s fault, it is the person behind it, it just helps get the job done. The big thing is its capacity for helping is easily determined but it is just one of many replaceable tools to pull off the skull bashing.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/05/31/2-26/comment-page-2/?replytocom=99665#respond' data-commentid="99665" data-postid="2064" data-belowelement="comment-99665" data-respondelement="respond" data-replyto="Reply to Jeffrey Strahm" aria-label='Reply to Jeffrey Strahm'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment odd alt depth-3 highlander-comment" id="li-comment-108034">
+		<article id="comment-108034" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/a9a4685f81c8afe7c63a6908290158d0?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">J Preacher</span> on <a href="https://wanderinginn.com/2017/05/31/2-26/comment-page-2/#comment-108034"><time datetime="2021-07-10T05:21:15+00:00">July 10, 2021 at 5:21 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Religion is in fact fundamentally evil. Many good people are religious. Do not confuse the two concepts. An analogy would be global warming. We are causing mass ecological damage. Does that make someone evil if they drive to the grocery store? Of course not. Yet the system is damaging and harmful. Religion, all religion, is a fundamentally harmful system.</p>
+<p>More specifically it is the faith that is evil. Ironically there is a parable from the bible which illustrates it well: the parable of the grapes. A rich man decides to retire to the countryside and grow wine. He is offered help but refuses. He is a hardworking man and he has faith. God will reward his dedication. He needs no help. He puts in much effort carefully tending and fertilizing the grapes. The harvest fails. But he has faith so he perseveres. Year after year he toils refusing to give up or accept any help. He will succeed for he is a godly man. Yet the crop always fails, even as others succeed. Until finally one day he loses faith, and does nothing. He does not tend to the grapes at all, and in that final year they flourish. I once heard a minister deliver a sermon on this, and he told his flock that it was a test of god. That we all have trials and just needed to have faith, that in the end our own hard work was meaningless in place of what god does and that final season was God&#8217;s work. I however was born and raised on a farm. So I know a far simpler truth: he was poisoning the grapes. Different plants grow better in different soils. Grapes do not like the dark loam most people think of for growing plants. While they do need some fertilizer occassionally, on the years you do that they grow bushy and bear little fruit. Every year he carefully fertilized, poisoned, his grapes. Confident his faith and effort would be rewarded. Until the year he did nothing. It is better to do nothing than to act on blind faith. So teaches the bible. </p>
+<p>Faith is a funny thing. It makes you feel good. So does cocaine. Yet every large scale evil in the world has faith in some form at its heart. Not just religion, all evil. Faith in being the superior race. Faith in being the superior nation. Faith that those who work hard are rewarded so those who are not successful must be inherently lazy or lesser. Faith that the world is simply too big for human action to be harming it. Faith that I am special and I deserve better than those other people. Faith that my magic mutterings will send me to heaven and others will go to hell. All evil has a core of faith, all that chooses faith over reason is evil, and religion is faith.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/05/31/2-26/comment-page-2/?replytocom=108034#respond' data-commentid="108034" data-postid="2064" data-belowelement="comment-108034" data-respondelement="respond" data-replyto="Reply to J Preacher" aria-label='Reply to J Preacher'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment even depth-4 highlander-comment" id="li-comment-108050">
+		<article id="comment-108050" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/fc9e71680bd067f72e581eafbea777e3?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">Jeffrey Strahm</span> on <a href="https://wanderinginn.com/2017/05/31/2-26/comment-page-2/#comment-108050"><time datetime="2021-07-11T02:12:02+00:00">July 11, 2021 at 2:12 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>It is an interesting perspective but far too narrow. Faith can be a good force in the world and an evil force. Just like rocks can make walls that keep the weather off our backs, so too can they crush our bones when they fall upon us. In the same way, the walls are experienced more often but the crushing is talked about more often.</p>
+<p>I did find your factual analysis of the parable very interesting even if it was rather unrelated. I think that is simply a poor interpretation, as the man believed that he could do anything from faith and needed no help when God helps us through other people. Reminds me of the parable of the drowning man that turned down help till he died. Had the man sought help, he would have never poisoned his crops in the first place, as you have just shown, due to help from experienced farmers.</p>
+<p>Faith can get people through a hard time and help them recover from fatal illnesses. The placebo effect is truly an amazing effect, showing how faith can physically manifest in the real world. Even a lack of faith can end life as willpower plays a far greater role in when people die than people think. Faith can draw communities together and get people the support they need. Even help them get off of cocaine and find genuine, not fleeting, happiness. I have seen people whose lives have been transformed and brought from the brink of suicide by it. If that is an evil force then sign me up for the dark lord&#8217;s army.</p>
+<p>I am sorry that you view faith as an evil force. You gotta remember faith is just another force, one usually used for good. Sadly history focuses a lot more on the large evils and it causes people to forget the good things do.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/05/31/2-26/comment-page-2/?replytocom=108050#respond' data-commentid="108050" data-postid="2064" data-belowelement="comment-108050" data-respondelement="respond" data-replyto="Reply to Jeffrey Strahm" aria-label='Reply to Jeffrey Strahm'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-jim15229 odd alt depth-4 highlander-comment" id="li-comment-127870">
+		<article id="comment-127870" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/6559bbce4cbb763a47c2e773eacce4b3?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn"><a href='http://153fishorg.wordpress.com' rel='external nofollow ugc' class='url'>Jim H</a></span> on <a href="https://wanderinginn.com/2017/05/31/2-26/comment-page-2/#comment-127870"><time datetime="2022-05-29T11:21:00+00:00">May 29, 2022 at 11:21 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>I&#8217;m sorry, but I&#8217;m not familiar with that parable&#8230; Can you tell me where it is in the Bible?</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/05/31/2-26/comment-page-2/?replytocom=127870#respond' data-commentid="127870" data-postid="2064" data-belowelement="comment-127870" data-respondelement="respond" data-replyto="Reply to Jim H" aria-label='Reply to Jim H'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment even depth-5 highlander-comment" id="li-comment-128086">
+		<article id="comment-128086" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/fc9e71680bd067f72e581eafbea777e3?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">Jeffrey Strahm</span> on <a href="https://wanderinginn.com/2017/05/31/2-26/comment-page-2/#comment-128086"><time datetime="2022-06-04T20:20:47+00:00">June 4, 2022 at 8:20 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>It is not in the bible, though the bible does have strong themes (the new testament mainly) of God giving us free will. This includes the freedom to do both great and terrible things. Here is the full parable if you are interested.</p>
+<p>&#8220;&#8221;&#8221;<br />
+A storm descends on a small town, and the downpour soon turns into a flood. As the waters rise, the local preacher kneels in prayer on the church porch, surrounded by water. By and by, one of the townsfolk comes up the street in a canoe.</p>
+<p>&#8220;Better get in, Preacher. The waters are rising fast.&#8221;</p>
+<p>&#8220;No,&#8221; says the preacher. &#8220;I have faith in the Lord. He will save me.&#8221;</p>
+<p>Still the waters rise. Now the preacher is up on the balcony, wringing his hands in supplication, when another guy zips up in a motorboat.</p>
+<p>&#8220;Come on, Preacher. We need to get you out of here. The levee&#8217;s gonna break any minute.&#8221;</p>
+<p>Once again, the preacher is unmoved. &#8220;I shall remain. The Lord will see me through.&#8221;</p>
+<p>After a while the levee breaks, and the flood rushes over the church until only the steeple remains above water. The preacher is up there, clinging to the cross, when a helicopter descends out of the clouds, and a state trooper calls down to him through a megaphone.</p>
+<p>&#8220;Grab the ladder, Preacher. This is your last chance.&#8221;</p>
+<p>Once again, the preacher insists the Lord will deliver him.</p>
+<p>And, predictably, he drowns.</p>
+<p>A pious man, the preacher goes to heaven. After a while he gets an interview with God, and he asks the Almighty, &#8220;Lord, I had unwavering faith in you. Why didn&#8217;t you deliver me from that flood?&#8221;</p>
+<p>God shakes his head. &#8220;What did you want from me? I sent you two boats and a helicopter.&#8221;<br />
+&#8220;&#8221;&#8221;</p>
+<p>We have free will so we can make our own choices. It is not that Faith is evil, it is that there are evil people with faith. People have even done an interesting experiment where they had people place good and bad events in either the past, present or future. The past was littered with the bad while the future was filled with the good. We as a species focus on the bad thing and remember them. It is why social media is filled with hate. hate and news of hate spread faster and last longer. This can cause good things to be poisoned by a few terrible events.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/05/31/2-26/comment-page-2/?replytocom=128086#respond' data-commentid="128086" data-postid="2064" data-belowelement="comment-128086" data-respondelement="respond" data-replyto="Reply to Jeffrey Strahm" aria-label='Reply to Jeffrey Strahm'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		<li class="comment odd alt depth-2 highlander-comment" id="li-comment-119504">
+		<article id="comment-119504" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/27d66d6d55475f44437dfc9155ae6be3?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">dragon723</span> on <a href="https://wanderinginn.com/2017/05/31/2-26/comment-page-2/#comment-119504"><time datetime="2021-12-29T20:39:07+00:00">December 29, 2021 at 8:39 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>The crusades were not primarily fought for religious reasons, they were fought to stop the arabic and moorish conquest of Europe. Later replaced by the Ottoman attempts to conquer eastern Europe. </p>
+<p> At that point North Africa and the Middle East had fallen under the sway of Islam, and for a long time it seemed certain that Spain would follow. The reconquista wasn&#8217;t a religious crusade though, it was an attempt to expell the moors. The wars for Constantinople and Italy weren&#8217;t inspired by religion, they were also fought to resist aggression. </p>
+<p>About the only crusades that were actually fought for religion were the wars fought to free or conquer (depending on perspective) the holy land.</p>
+<p>Religion is rarely the reason for war, but often a justification.</p>
+<p>The same can be said for most political ideologies, they are rarely the true reason for war but often the justification used by leaders.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/05/31/2-26/comment-page-2/?replytocom=119504#respond' data-commentid="119504" data-postid="2064" data-belowelement="comment-119504" data-respondelement="respond" data-replyto="Reply to dragon723" aria-label='Reply to dragon723'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		<li class="comment even thread-odd thread-alt depth-1 highlander-comment" id="li-comment-42283">
+		<article id="comment-42283" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/42a70ed969b87caddfbafa0873e4f780?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Ostracus</span> on <a href="https://wanderinginn.com/2017/05/31/2-26/comment-page-2/#comment-42283"><time datetime="2018-08-23T23:12:24+00:00">August 23, 2018 at 11:12 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>I&#8217;m amused more by the gold mine that introducing religion to ants represents. As if individuallity wasn&#8217;t enough.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/05/31/2-26/comment-page-2/?replytocom=42283#respond' data-commentid="42283" data-postid="2064" data-belowelement="comment-42283" data-respondelement="respond" data-replyto="Reply to Ostracus" aria-label='Reply to Ostracus'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment odd alt thread-even depth-1 highlander-comment" id="li-comment-46331">
+		<article id="comment-46331" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/bbf7e13e161354fb4a13b494fad4b51d?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Pisces</span> on <a href="https://wanderinginn.com/2017/05/31/2-26/comment-page-2/#comment-46331"><time datetime="2018-09-23T13:24:30+00:00">September 23, 2018 at 1:24 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Inconsistency!<br />
+<em>Perhaps it had been a mistake. Halrac winced as the blonde girl raised her voice another octave and shouted at Erin, who was wearing a fed-up expression.</em></p>
+<p>Halrac is saying that Lyon has blonde hair, when she has actually red hair; that was at least stated in 2.13 and 2.21</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/05/31/2-26/comment-page-2/?replytocom=46331#respond' data-commentid="46331" data-postid="2064" data-belowelement="comment-46331" data-respondelement="respond" data-replyto="Reply to Pisces" aria-label='Reply to Pisces'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment even depth-2 highlander-comment" id="li-comment-120456">
+		<article id="comment-120456" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/938c2fcb3429fa3327f8cff752d0c2cd?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">Herb Powell</span> on <a href="https://wanderinginn.com/2017/05/31/2-26/comment-page-2/#comment-120456"><time datetime="2022-01-22T10:05:56+00:00">January 22, 2022 at 10:05 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>And a commenter noted then that it was previously stated to be blonde; perhaps it is some kind of strawberry blonde.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/05/31/2-26/comment-page-2/?replytocom=120456#respond' data-commentid="120456" data-postid="2064" data-belowelement="comment-120456" data-respondelement="respond" data-replyto="Reply to Herb Powell" aria-label='Reply to Herb Powell'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-vastdistances odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-47265">
+		<article id="comment-47265" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/49db4e1d137208769673fe6f00bb4aab?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">James C</span> on <a href="https://wanderinginn.com/2017/05/31/2-26/comment-page-2/#comment-47265"><time datetime="2018-10-14T13:35:23+00:00">October 14, 2018 at 1:35 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Oh&#8230; That&#8217;s probably a good thing? Maybe&#8230; Important at least</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/05/31/2-26/comment-page-2/?replytocom=47265#respond' data-commentid="47265" data-postid="2064" data-belowelement="comment-47265" data-respondelement="respond" data-replyto="Reply to James C" aria-label='Reply to James C'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="li-comment-52771">
+		<article id="comment-52771" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/13629d56ae44080765094272fdcf32f2?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Sunshineunits</span> on <a href="https://wanderinginn.com/2017/05/31/2-26/comment-page-2/#comment-52771"><time datetime="2019-01-14T04:18:29+00:00">January 14, 2019 at 4:18 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Sad no one has commented on how erin gave Pawn something amazing, how an entire world ,believing all faith, all divinity dead and more importantly, HOPE was gone, could only see hopeless life, wa es of monsters, horrors, cursed lands, and yet hope changed everything for one lonely nearly broken creature, pawn.  Well done pirateba :).   Pawn to queens bishop three!         (And to those complaining about &#8220;eww religion!&#8221;. Hopelessness is just as much a religion for these characters (even for us) as any real world one, darker rituals, sadder afterlife. Hope is better)</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/05/31/2-26/comment-page-2/?replytocom=52771#respond' data-commentid="52771" data-postid="2064" data-belowelement="comment-52771" data-respondelement="respond" data-replyto="Reply to Sunshineunits" aria-label='Reply to Sunshineunits'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment byuser comment-author-cdlevit odd alt depth-2 highlander-comment" id="li-comment-54283">
+		<article id="comment-54283" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/9a908f23a831006705346a0881b90675?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">cdlevit</span> on <a href="https://wanderinginn.com/2017/05/31/2-26/comment-page-2/#comment-54283"><time datetime="2019-02-09T01:15:27+00:00">February 9, 2019 at 1:15 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>That was kinda predictible&#8230; the idea of Gods being dead, in itself, was foreshadowing that aspect.  And, to be honest, that was bound to happend and it coudn&#8217;t be avoided. And I&#8217;m saying that because, many people were &#8216;summoned&#8217; to that world. At some moment, in the chat conversation the &#8216;blind believer&#8217; archetype was introduced. Unfortunatelly, I fear for the ant people. Their individuality isn&#8217;t explored too well. On one side, they are creatures drived by a hive mind. In some contexts, a parallel can be made with the &#8216;brain washed&#8217; notion, but that&#8217;s not enough. The hive mind notion says that there&#8217;s no concept of individuality and it&#8217;s more than that, on a inherent level, the &#8220;we&#8221; notion&#8217;s more that the &#8220;I&#8217;.  And by &#8216;more&#8217; I want to say that it can&#8217;t be controled as in being eliminated &#8211; at least, I don&#8217;t see how &#8211; that&#8217;s becahse it&#8217;s something inherent to the being itself.</p>
+<p>The chapters tried to show how the individuality appearence generated conflict with the hive mind. That&#8217;s because the &#8220;I&#8221; and the &#8220;us/we&#8221; concept can&#8217;t coexist, simultanly, at the same time. At least, from a certain perspective. Humans do that by exploring and by using thoughts &#8211; we read stories, we learn to to analyze ourselves and others, but, we can never trully be others, just ourselves. Each existence is unique in itself, it can&#8217;t be repetated, nor copied &#8211; the Kr&#8230; and, the first Progunator was like that. I don&#8217;t believe in the Queen&#8217;s power to &#8216;revieve&#8217; him. It&#8217;s similar to the clone concept &#8211; you clone something, but, time wise, no creature can be nore than itself at the same time. Existence needs continuity, you can&#8217;t stop to exist. Though, philosophy, religion, personal beliefs can be goals for some.</p>
+<p>Unfortunatelly, what I find hard to believe is the lack of proper culture/beliefs in that world. It seems too artificially at this point&#8230; the world seems too lacking &#8211; like, everything used to be, to exist, but now it exists no longer. The gods are dead? I don&#8217;t believe that. The faeries said that the Earth&#8217;s gods were also dead and a bit more- hm, is that really true? Who knows. The same things was said about dragons, and here we are, somewhere close to a dragon &#8216;chapter&#8217;. </p>
+<p>I&#8217;m disappointed, though, that &#8216;religion&#8217; is made to be extraodinary, unique, amazing, &#8216;magical&#8217; when in fact it isn&#8217;t. It&#8217;s just something different &#8211; each to his/her own, as it&#8217;s usually said &#8211; why not believe in the &#8216;good&#8217; concept, why not be a believer of &#8216;live each day as if it were your last day?&#8221;. Except the existence of magic, this &#8216;new&#8217; world seems lacking-what&#8217;s so amazing, what&#8217;s so special, what&#8217;s so unique to it? Nothing. It&#8217;s just another world so&#8230; why make it seem to backward? Even in Middle Age, in our world, there were interesting and beautiful things. Even in the worst place exist things that, for some, may be interesting. And this is what this story seems to be lacking up to this point &#8211; beliefs, true and raw/pure beliefs, most characters seem (sometimes) artificial.</p>
+<p>When I was younger, I&#8217;ve used to think that humans need emotions as emotions can be used to &#8216;further&#8217; evolve the intellect as they give &#8216;birth&#8217; to the necessary conflict that&#8217;s needed by the intellect to develop &#8211; now, things changed a bit. Pure mathematichs can&#8217;t be of help if they exist only for themselves, they need &#8216;reason&#8217;s, causes, a need for them to exist for others. Sometimes,  what&#8217;s the need for a genius to exist, if he/she&#8217;s of no help to others? To the person him/herself she/he&#8217;s enough, but, to others, his/her existence needs to be &#8216;proved&#8217;. Few people accept the existence of something just for it&#8217;s existence. </p>
+<p>This new world&#8217;s a conflictuall world and that&#8217;s great. Unfortunatelly, the puzzle&#8217;s pieces need to seamelessly bend for those concepts to work. How can people explain religion to others? It can&#8217;t really be. I&#8217;m wondering, if there&#8217;ll ever be a character who&#8217;ll let others decide for themselves. Like, explain what&#8217;s to belief in something and let people choose for themselves, let them choose if they want to believe or not, let them choose in what to believe. Will the ant preach religion? Will he just say that he&#8217;s a believers and let others decide for themselves? hard to say at this point of story.</p>
+<p>Dragons and few other powerfull creatures seem to be &#8216;restricted&#8217; to some areas. The world seems old enough for some myths, for some stories to exist, but, alas, no &#8216;real&#8217; ones were &#8216;given&#8217;. </p>
+<p>Will there be a clash of worlds, similar to the one from &#8220;Gates: Thus the JDSF fought there&#8221;? What can those worlds can offer ot each other, what can they exchange? Culture, literacy. Nothing&#8217;s new &#8216;under the sun&#8217;, there&#8217;s only a repetition of the same old stuff. People are people, they lack the time and other necessary resources to &#8216;be&#8217; more.  This World and Earth&#8217;s world should have some &#8216;common&#8217; archetypes, the villain, the bandit (there were some Bandit lords mentioned, no?), the king, the mage, the peasant, the farmer and so on, no? The fact that the goblins have something like an &#8216;ancenstry&#8217;/hereditary memory means that they can go &#8216;back&#8217; in time and find knowledge related to the Gods, no? That meanst that, at some point of time, religion was bound to happen. Can a gobling leader experience something withouth &#8216;being&#8217; for, even for a second, that something? </p>
+<p>&#8230;I&#8217;ll stop here as I&#8217;ve rambled too much.</p>
+<p>Thanks for writing!</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/05/31/2-26/comment-page-2/?replytocom=54283#respond' data-commentid="54283" data-postid="2064" data-belowelement="comment-54283" data-respondelement="respond" data-replyto="Reply to cdlevit" aria-label='Reply to cdlevit'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-sunflowerofice even depth-2 highlander-comment" id="li-comment-64580">
+		<article id="comment-64580" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/d50de38f7a7127218c97f516b623ac45?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">sunflowerofice</span> on <a href="https://wanderinginn.com/2017/05/31/2-26/comment-page-2/#comment-64580"><time datetime="2019-08-22T22:15:41+00:00">August 22, 2019 at 10:15 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>And now there is a chance of, i think the class was, clerics. Something that can actually heal with their magic in a way that most can&#8217;t. Something that has been mentioned before. I&#8217;m not surprised that it came back because even if you don&#8217;t like the idea of religion mingling into this world it, to me at least, seemed inevitable.</p>
+<p>It would have just taken one person to talk about it and we can&#8217;t know at this time if erin was the first to mention it, although i suspect based on the bit at the end she was the first to be a success at spreading the words that were spoken.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/05/31/2-26/comment-page-2/?replytocom=64580#respond' data-commentid="64580" data-postid="2064" data-belowelement="comment-64580" data-respondelement="respond" data-replyto="Reply to sunflowerofice" aria-label='Reply to sunflowerofice'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-57143">
+		<article id="comment-57143" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/28d3b72e8790806f122f12cb18b75fe1?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">BuLLZ3Y3</span> on <a href="https://wanderinginn.com/2017/05/31/2-26/comment-page-2/#comment-57143"><time datetime="2019-04-02T01:50:25+00:00">April 2, 2019 at 1:50 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>I know I&#8217;m like two years late here but I just discovered your story.  As someone who is a devout Christian I really appreciated what Erin did here.  I&#8217;ve known too many people on the internet who would use their stories to bash Christianity as stupid and vile.  I just wanted to say thanks, this chapter was really fantastic and it really touched me.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/05/31/2-26/comment-page-2/?replytocom=57143#respond' data-commentid="57143" data-postid="2064" data-belowelement="comment-57143" data-respondelement="respond" data-replyto="Reply to BuLLZ3Y3" aria-label='Reply to BuLLZ3Y3'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="li-comment-59122">
+		<article id="comment-59122" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/b4615c0f066b3049dcb04379549e4d58?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Onyavar</span> on <a href="https://wanderinginn.com/2017/05/31/2-26/comment-page-2/#comment-59122"><time datetime="2019-05-12T06:06:38+00:00">May 12, 2019 at 6:06 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Ryoka has, so far, introduced to this world: Icecream, Pepperspray, Napalm, Smoke grenades and Stink bombs (and if readers think that Octavia will mit disseminate the inventions to others, well, haha). Erin has brought hamburgers, pizza and monotheistic belief. The rock concert and the faerie lore are/were joint efforts.</p>
+<p>But wait, there is already a religious nut in the Innverse. What are the odds that &#8220;Prophet&#8221; has introduced the &#8220;Acolyte&#8221; class in his place already?<br />
+Anyway, for the individual Antinium I hope this development is a good one and that they don&#8217;t become fanatics.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/05/31/2-26/comment-page-2/?replytocom=59122#respond' data-commentid="59122" data-postid="2064" data-belowelement="comment-59122" data-respondelement="respond" data-replyto="Reply to Onyavar" aria-label='Reply to Onyavar'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-66881">
+		<article id="comment-66881" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/0a9b528ede4473dfa0d83e9c1a269016?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Amanda Ruff</span> on <a href="https://wanderinginn.com/2017/05/31/2-26/comment-page-2/#comment-66881"><time datetime="2019-09-26T05:35:12+00:00">September 26, 2019 at 5:35 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Small continuity error note; When Erin tastes the flowers, she thought she had shrunk and didn&#8217;t want Toren to pick her up because he might squish her. But in this chapter it mentions her thinking she was a giant.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/05/31/2-26/comment-page-2/?replytocom=66881#respond' data-commentid="66881" data-postid="2064" data-belowelement="comment-66881" data-respondelement="respond" data-replyto="Reply to Amanda Ruff" aria-label='Reply to Amanda Ruff'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment even depth-2 highlander-comment" id="li-comment-101320">
+		<article id="comment-101320" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/e831be72b9d64d56ee1bdc9b096d0794?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">Khaim</span> on <a href="https://wanderinginn.com/2017/05/31/2-26/comment-page-2/#comment-101320"><time datetime="2021-03-11T22:18:10+00:00">March 11, 2021 at 10:18 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Not an error. She&#8217;s talking about the potion and cake in &#8220;Alice in Wonderland&#8221;. One made you shrink and the other made you grow. The flowers made her imagine one of those, so she&#8217;s wildly guessing that it might make someone imagine the other.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/05/31/2-26/comment-page-2/?replytocom=101320#respond' data-commentid="101320" data-postid="2064" data-belowelement="comment-101320" data-respondelement="respond" data-replyto="Reply to Khaim" aria-label='Reply to Khaim'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-sargothwise odd alt thread-even depth-1 highlander-comment" id="li-comment-75319">
+		<article id="comment-75319" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/095d822eae19bfd68148eb4a0252f7f8?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Smaug</span> on <a href="https://wanderinginn.com/2017/05/31/2-26/comment-page-2/#comment-75319"><time datetime="2020-01-12T00:52:16+00:00">January 12, 2020 at 12:52 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Oh no.</p>
+<p>This is exactly the kind of thing Ryoka feared.</p>
+<p>A god unleashed upon this world, even worse if it&#8217;s the Abrahamic kind, full of spite and jealousy.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/05/31/2-26/comment-page-2/?replytocom=75319#respond' data-commentid="75319" data-postid="2064" data-belowelement="comment-75319" data-respondelement="respond" data-replyto="Reply to Smaug" aria-label='Reply to Smaug'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment even thread-odd thread-alt depth-1 highlander-comment" id="li-comment-83027">
+		<article id="comment-83027" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/6d2d8cd4de9dd67619056286a36a1341?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Vento</span> on <a href="https://wanderinginn.com/2017/05/31/2-26/comment-page-2/#comment-83027"><time datetime="2020-05-26T21:13:18+00:00">May 26, 2020 at 9:13 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Couple of typos/suggestions:</p>
+<p>I’ve had enough of sitting in that inn waiting for something to happen. → of sitting in this inn</p>
+<p>“So, um, how are you doing?” → So, um, what are you doing? [since Halrac’s reply is: “Nothing in particular. Why?”]</p>
+<p>Instead, he’d stared up at the sky as the Gold-rank adventurer slowly walked back through the snow. →  Instead, he’d stared up at the sky and slowly walked back through the snow. [“he” and “Gold-rank adventurer” are the same subject, Halrac, so the sentence construction is rather odd]</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/05/31/2-26/comment-page-2/?replytocom=83027#respond' data-commentid="83027" data-postid="2064" data-belowelement="comment-83027" data-respondelement="respond" data-replyto="Reply to Vento" aria-label='Reply to Vento'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment odd alt thread-even depth-1 highlander-comment" id="li-comment-101366">
+		<article id="comment-101366" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/8530f4c9945f023ebd5d1cd5a1db4cd0?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">mano987</span> on <a href="https://wanderinginn.com/2017/05/31/2-26/comment-page-2/#comment-101366"><time datetime="2021-03-13T00:01:20+00:00">March 13, 2021 at 12:01 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>&#8220;She’d already prized the mug from his hands—he’d kept sipping at it even while he went into whatever trance he was in—but he was still out of it.&#8221;<br />
+prized &#8211;&gt; pried</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/05/31/2-26/comment-page-2/?replytocom=101366#respond' data-commentid="101366" data-postid="2064" data-belowelement="comment-101366" data-respondelement="respond" data-replyto="Reply to mano987" aria-label='Reply to mano987'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-valmorian1234 even thread-odd thread-alt depth-1 highlander-comment" id="li-comment-102845">
+		<article id="comment-102845" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/e88d41eedb81670d9499a37690906adc?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">valmorian1234</span> on <a href="https://wanderinginn.com/2017/05/31/2-26/comment-page-2/#comment-102845"><time datetime="2021-04-07T20:28:08+00:00">April 7, 2021 at 8:28 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>I&#8217;m reading all the comments, but I look at  it a bit like american gods by Neil Gaiman. people bring there gods with them when they came to the new world maybe the gods the old world  had are dead, or maybe people gave up on them, I&#8217;m not sure, but I can see things getting very interesting if it works that way, there seem to be people drawn from all over the world, with there own beliefs, I assume strange gods could easily cause havic with what ever systems they have going on. We haven&#8217;t been told about the gods that world already had aside from that there dead  and maybe  the god was there all along.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/05/31/2-26/comment-page-2/?replytocom=102845#respond' data-commentid="102845" data-postid="2064" data-belowelement="comment-102845" data-respondelement="respond" data-replyto="Reply to valmorian1234" aria-label='Reply to valmorian1234'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment odd alt thread-even depth-1 highlander-comment" id="li-comment-104597">
+		<article id="comment-104597" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/fa9959c2c3bc133260b9625ea3849584?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">sotty</span> on <a href="https://wanderinginn.com/2017/05/31/2-26/comment-page-2/#comment-104597"><time datetime="2021-05-07T15:31:05+00:00">May 7, 2021 at 3:31 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>I&#8217;m not very religious, but this chapter made me cry. Pawn&#8217;s desire for purpose and salvation feels so innocent, so authentic. His struggle over the meaning of his existence&#8230; thanks for writing this chapter.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/05/31/2-26/comment-page-2/?replytocom=104597#respond' data-commentid="104597" data-postid="2064" data-belowelement="comment-104597" data-respondelement="respond" data-replyto="Reply to sotty" aria-label='Reply to sotty'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment even thread-odd thread-alt depth-1 highlander-comment" id="li-comment-113870">
+		<article id="comment-113870" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/751a20c342c3537ad227521eb1fb1fba?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Forest</span> on <a href="https://wanderinginn.com/2017/05/31/2-26/comment-page-2/#comment-113870"><time datetime="2021-10-04T23:59:38+00:00">October 4, 2021 at 11:59 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Error: early on we learn Klbch and his kind cannot eat gluten. Now Erin forgets this and &#8220;hopes&#8221; Pawn can eat pizza?! Or is she just clueless as to what gluten is&#8230;</p>
+<p>Comment: so far this book has been good about pointing out racism and Whiteness as normative. However, now this book defaults to Christianity as the first thing [White] Americans think of when asked about religion, without the same self awareness. Why not Hinduism or Budhism or Islam? Plenty of Americans practice these&#8230; Also, annoyed that Ryoka shares stories of superman but not supergirl or batgirl. I would think Ryoka would be the type to go out of her way to find a female superhero role model. Or at least a non white superhero&#8230;oh well. America = white men, white male heroes, male gods.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/05/31/2-26/comment-page-2/?replytocom=113870#respond' data-commentid="113870" data-postid="2064" data-belowelement="comment-113870" data-respondelement="respond" data-replyto="Reply to Forest" aria-label='Reply to Forest'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment odd alt thread-even depth-1 highlander-comment" id="li-comment-132926">
+		<article id="comment-132926" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/f58915f96c8f9aa31ce57e17c56bac00?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn"><a href='https://allybrennan.com/' rel='external nofollow ugc' class='url'>Ally</a></span> on <a href="https://wanderinginn.com/2017/05/31/2-26/comment-page-2/#comment-132926"><time datetime="2022-09-05T01:27:00+00:00">September 5, 2022 at 1:27 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>SHEEEEEESH I came straight to the comments. I applaud you for this chapter. Even though Erin’s explanation of Christianity was a bit bumbling and cringy, I like that she gave it her best shot at giving Pawn a direction towards hope and purpose, and didn’t just pat him on the shoulder. As someone who is ex-Christian but definitely not atheist, I can relate. I have bad associations with religion, yet I can also see a lot of good in putting faith in a higher power. I’m hoping Pawn’s newfound faith won’t turn ugly and have horrific repercussions, because that’s pretty common in non-religious fiction and I get super creeped out by overly zealous religious characters, but I’m very interested in seeing where this will go. Pawn had a confusing void from losing his Worker identity and being the first Individual, so it’s satisfying in a plot sense to see something powerful fill that.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/05/31/2-26/comment-page-2/?replytocom=132926#respond' data-commentid="132926" data-postid="2064" data-belowelement="comment-132926" data-respondelement="respond" data-replyto="Reply to Ally" aria-label='Reply to Ally'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		</ol>
+
+				<nav id="comment-nav-below">
+			<h1 class="assistive-text">Comment navigation</h1>
+			<div class="nav-previous"><a href="https://wanderinginn.com/2017/05/31/2-26/comment-page-1/#comments" >&larr; Older Comments</a></div>
+			<div class="nav-next"></div>
+		</nav>
+		
+		
+	
+		<div id="respond" class="comment-respond">
+		<h3 id="reply-title" class="comment-reply-title">Leave a Reply <small><a rel="nofollow" id="cancel-comment-reply-link" href="/2017/05/31/2-26/#respond" style="display:none;">Cancel reply</a></small></h3><form action="https://wanderinginn.com/wp-comments-post.php" method="post" id="commentform" class="comment-form"><input type="hidden" id="highlander_comment_nonce" name="highlander_comment_nonce" value="bd33e1bdd8" /><input type="hidden" name="_wp_http_referer" value="/2017/05/31/2-26/" />
+<input type="hidden" name="hc_post_as" id="hc_post_as" value="guest" />
+
+<div class="comment-form-field comment-textarea">
+	<label for="comment">Enter your comment here...</label>
+	<div id="comment-form-comment"><textarea id="comment" name="comment" title="Enter your comment here..."></textarea></div>
+</div>
+
+<div id="comment-form-identity">
+	<div id="comment-form-nascar">
+		<p>Fill in your details below or click an icon to log in:</p>
+		<ul>
+			<li class="selected" style="display:none;">
+				<a href="#comment-form-guest" id="postas-guest" class="nascar-signin-link"
+				 title="Login via Guest" 				>
+									</a>
+			</li>
+			<li>
+				<a href="#comment-form-load-service:WordPress.com" id="postas-wordpress" class="nascar-signin-link"
+				 title="Login via WordPress.com" 				>
+					<svg xmlns="http://www.w3.org/2000/svg" role="presentation" viewBox="0 0 24 24" ><rect x="0" fill="none" width="24" height="24"/><g><path fill="#FFF" d="M12.158 12.786l-2.698 7.84c.806.236 1.657.365 2.54.365 1.047 0 2.05-.18 2.986-.51-.024-.037-.046-.078-.065-.123l-2.762-7.57zM3.008 12c0 3.56 2.07 6.634 5.068 8.092L3.788 8.342c-.5 1.117-.78 2.354-.78 3.658zm15.06-.454c0-1.112-.398-1.88-.74-2.48-.456-.74-.883-1.368-.883-2.11 0-.825.627-1.595 1.51-1.595.04 0 .078.006.116.008-1.598-1.464-3.73-2.36-6.07-2.36-3.14 0-5.904 1.613-7.512 4.053.21.008.41.012.58.012.94 0 2.395-.114 2.395-.114.484-.028.54.684.057.74 0 0-.487.058-1.03.086l3.275 9.74 1.968-5.902-1.4-3.838c-.485-.028-.944-.085-.944-.085-.486-.03-.43-.77.056-.742 0 0 1.484.114 2.368.114.94 0 2.397-.114 2.397-.114.486-.028.543.684.058.74 0 0-.488.058-1.03.086l3.25 9.665.897-2.997c.456-1.17.684-2.137.684-2.907zm1.82-3.86c.04.286.06.593.06.924 0 .912-.17 1.938-.683 3.22l-2.746 7.94c2.672-1.558 4.47-4.454 4.47-7.77 0-1.564-.4-3.033-1.1-4.314zM12 22C6.486 22 2 17.514 2 12S6.486 2 12 2s10 4.486 10 10-4.486 10-10 10z"/></g></svg>				</a>
+			</li>
+			<li>
+				<a href="#comment-form-load-service:Twitter" id="postas-twitter" class="nascar-signin-link"
+				 title="Login via Twitter" 				>
+					<svg xmlns="http://www.w3.org/2000/svg" role="presentation" viewBox="0 0 24 24" ><rect x="0" fill="none" width="24" height="24"/><g><path fill="#FFF" d="M22.23 5.924c-.736.326-1.527.547-2.357.646.847-.508 1.498-1.312 1.804-2.27-.793.47-1.67.812-2.606.996C18.325 4.498 17.258 4 16.078 4c-2.266 0-4.103 1.837-4.103 4.103 0 .322.036.635.106.935-3.41-.17-6.433-1.804-8.457-4.287-.353.607-.556 1.312-.556 2.064 0 1.424.724 2.68 1.825 3.415-.673-.022-1.305-.207-1.86-.514v.052c0 1.988 1.415 3.647 3.293 4.023-.344.095-.707.145-1.08.145-.265 0-.522-.026-.773-.074.522 1.63 2.038 2.817 3.833 2.85-1.404 1.1-3.174 1.757-5.096 1.757-.332 0-.66-.02-.98-.057 1.816 1.164 3.973 1.843 6.29 1.843 7.547 0 11.675-6.252 11.675-11.675 0-.178-.004-.355-.012-.53.802-.578 1.497-1.3 2.047-2.124z"/></g></svg>				</a>
+			</li>
+			<li>
+				<a href="#comment-form-load-service:Facebook" id="postas-facebook" class="nascar-signin-link"
+				 title="Login via Facebook" 				>
+					<svg xmlns="http://www.w3.org/2000/svg" role="presentation" viewBox="0 0 24 24" ><rect x="0" fill="none" width="24" height="24"/><g><path fill="#FFF" d="M20.007 3H3.993C3.445 3 3 3.445 3 3.993v16.013c0 .55.445.994.993.994h8.62v-6.97H10.27V11.31h2.346V9.31c0-2.325 1.42-3.59 3.494-3.59.993 0 1.847.073 2.096.106v2.43h-1.438c-1.128 0-1.346.537-1.346 1.324v1.734h2.69l-.35 2.717h-2.34V21h4.587c.548 0 .993-.445.993-.993V3.993c0-.548-.445-.993-.993-.993z"/></g></svg>				</a>
+			</li>
+		</ul>
+	</div>
+
+	<div id="comment-form-guest" class="comment-form-service selected">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+<a href="https://gravatar.com/site/signup/" target="_blank">				<img src="https://1.gravatar.com/avatar/ad516503a11cd5ca435acc9bb6523536?s=25&amp;d=identicon&amp;forcedefault=y&amp;r=PG" alt="Gravatar" width="25" class="no-grav" />
+</a>			</div>
+
+				<div class="comment-form-fields">
+				<div class="comment-form-field comment-form-email">
+					<label for="email">Email <span class="required">(required)</span> <span class="nopublish">(Address never made public)</span></label>
+					<div class="comment-form-input"><input id="email" name="email" type="email" value="" /></div>
+				</div>
+				<div class="comment-form-field comment-form-author">
+					<label for="author">Name <span class="required">(required)</span></label>
+					<div class="comment-form-input"><input id="author" name="author" type="text" value="" /></div>
+				</div>
+				<div class="comment-form-field comment-form-url">
+					<label for="url">Website</label>
+					<div class="comment-form-input"><input id="url" name="url" type="url" value="" /></div>
+				</div>
+			</div>
+			
+		</div>
+	</div>
+
+	<div id="comment-form-wordpress" class="comment-form-service">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+				<img src="https://1.gravatar.com/avatar/ad516503a11cd5ca435acc9bb6523536?s=25&amp;d=identicon&amp;forcedefault=y&amp;r=PG" alt="WordPress.com Logo" width="25" class="no-grav" />
+			</div>
+
+				<div class="comment-form-fields">
+				<input type="hidden" name="wp_avatar" id="wordpress-avatar" class="comment-meta-wordpress" value="" />
+				<input type="hidden" name="wp_user_id" id="wordpress-user_id" class="comment-meta-wordpress" value="" />
+				<input type="hidden" name="wp_access_token" id="wordpress-access_token" class="comment-meta-wordpress" value="" />
+						<p class="comment-form-posting-as pa-wordpress">
+			<strong></strong>
+			You are commenting using your WordPress.com account.			<span class="comment-form-log-out">
+				(&nbsp;<a href="javascript:HighlanderComments.doExternalLogout( 'wordpress' );">Log&nbsp;Out</a>&nbsp;/&nbsp;
+				<a href="#" onclick="javascript:HighlanderComments.switchAccount();return false;">Change</a>&nbsp;)
+			</span>
+			<span class="pa-icon"><svg xmlns="http://www.w3.org/2000/svg" role="presentation" viewBox="0 0 24 24" ><rect x="0" fill="none" width="24" height="24"/><g><path fill="#FFF" d="M12.158 12.786l-2.698 7.84c.806.236 1.657.365 2.54.365 1.047 0 2.05-.18 2.986-.51-.024-.037-.046-.078-.065-.123l-2.762-7.57zM3.008 12c0 3.56 2.07 6.634 5.068 8.092L3.788 8.342c-.5 1.117-.78 2.354-.78 3.658zm15.06-.454c0-1.112-.398-1.88-.74-2.48-.456-.74-.883-1.368-.883-2.11 0-.825.627-1.595 1.51-1.595.04 0 .078.006.116.008-1.598-1.464-3.73-2.36-6.07-2.36-3.14 0-5.904 1.613-7.512 4.053.21.008.41.012.58.012.94 0 2.395-.114 2.395-.114.484-.028.54.684.057.74 0 0-.487.058-1.03.086l3.275 9.74 1.968-5.902-1.4-3.838c-.485-.028-.944-.085-.944-.085-.486-.03-.43-.77.056-.742 0 0 1.484.114 2.368.114.94 0 2.397-.114 2.397-.114.486-.028.543.684.058.74 0 0-.488.058-1.03.086l3.25 9.665.897-2.997c.456-1.17.684-2.137.684-2.907zm1.82-3.86c.04.286.06.593.06.924 0 .912-.17 1.938-.683 3.22l-2.746 7.94c2.672-1.558 4.47-4.454 4.47-7.77 0-1.564-.4-3.033-1.1-4.314zM12 22C6.486 22 2 17.514 2 12S6.486 2 12 2s10 4.486 10 10-4.486 10-10 10z"/></g></svg></span>
+		</p>
+					</div>
+	
+		</div>
+	</div>
+
+	<div id="comment-form-twitter" class="comment-form-service">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+				<img src="https://1.gravatar.com/avatar/ad516503a11cd5ca435acc9bb6523536?s=25&amp;d=identicon&amp;forcedefault=y&amp;r=PG" alt="Twitter picture" width="25" class="no-grav" />
+			</div>
+
+				<div class="comment-form-fields">
+				<input type="hidden" name="twitter_avatar" id="twitter-avatar" class="comment-meta-twitter" value="" />
+				<input type="hidden" name="twitter_user_id" id="twitter-user_id" class="comment-meta-twitter" value="" />
+				<input type="hidden" name="twitter_access_token" id="twitter-access_token" class="comment-meta-twitter" value="" />
+						<p class="comment-form-posting-as pa-twitter">
+			<strong></strong>
+			You are commenting using your Twitter account.			<span class="comment-form-log-out">
+				(&nbsp;<a href="javascript:HighlanderComments.doExternalLogout( 'twitter' );">Log&nbsp;Out</a>&nbsp;/&nbsp;
+				<a href="#" onclick="javascript:HighlanderComments.switchAccount();return false;">Change</a>&nbsp;)
+			</span>
+			<span class="pa-icon"><svg xmlns="http://www.w3.org/2000/svg" role="presentation" viewBox="0 0 24 24" ><rect x="0" fill="none" width="24" height="24"/><g><path fill="#FFF" d="M22.23 5.924c-.736.326-1.527.547-2.357.646.847-.508 1.498-1.312 1.804-2.27-.793.47-1.67.812-2.606.996C18.325 4.498 17.258 4 16.078 4c-2.266 0-4.103 1.837-4.103 4.103 0 .322.036.635.106.935-3.41-.17-6.433-1.804-8.457-4.287-.353.607-.556 1.312-.556 2.064 0 1.424.724 2.68 1.825 3.415-.673-.022-1.305-.207-1.86-.514v.052c0 1.988 1.415 3.647 3.293 4.023-.344.095-.707.145-1.08.145-.265 0-.522-.026-.773-.074.522 1.63 2.038 2.817 3.833 2.85-1.404 1.1-3.174 1.757-5.096 1.757-.332 0-.66-.02-.98-.057 1.816 1.164 3.973 1.843 6.29 1.843 7.547 0 11.675-6.252 11.675-11.675 0-.178-.004-.355-.012-.53.802-.578 1.497-1.3 2.047-2.124z"/></g></svg></span>
+		</p>
+					</div>
+	
+		</div>
+	</div>
+
+	<div id="comment-form-facebook" class="comment-form-service">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+				<img src="" alt="Facebook photo" width="25" class="no-grav" />
+			</div>
+
+				<div class="comment-form-fields">
+				<input type="hidden" name="fb_avatar" id="facebook-avatar" class="comment-meta-facebook" value="" />
+				<input type="hidden" name="fb_user_id" id="facebook-user_id" class="comment-meta-facebook" value="" />
+				<input type="hidden" name="fb_access_token" id="facebook-access_token" class="comment-meta-facebook" value="" />
+						<p class="comment-form-posting-as pa-facebook">
+			<strong></strong>
+			You are commenting using your Facebook account.			<span class="comment-form-log-out">
+				(&nbsp;<a href="javascript:HighlanderComments.doExternalLogout( 'facebook' );">Log&nbsp;Out</a>&nbsp;/&nbsp;
+				<a href="#" onclick="javascript:HighlanderComments.switchAccount();return false;">Change</a>&nbsp;)
+			</span>
+			<span class="pa-icon"><svg xmlns="http://www.w3.org/2000/svg" role="presentation" viewBox="0 0 24 24" ><rect x="0" fill="none" width="24" height="24"/><g><path fill="#FFF" d="M20.007 3H3.993C3.445 3 3 3.445 3 3.993v16.013c0 .55.445.994.993.994h8.62v-6.97H10.27V11.31h2.346V9.31c0-2.325 1.42-3.59 3.494-3.59.993 0 1.847.073 2.096.106v2.43h-1.438c-1.128 0-1.346.537-1.346 1.324v1.734h2.69l-.35 2.717h-2.34V21h4.587c.548 0 .993-.445.993-.993V3.993c0-.548-.445-.993-.993-.993z"/></g></svg></span>
+		</p>
+					</div>
+	
+		</div>
+	</div>
+
+
+	<div id="comment-form-load-service" class="comment-form-service">
+		<div class="comment-form-posting-as-cancel"><a href="javascript:HighlanderComments.cancelExternalWindow();">Cancel</a></div>
+		<p>Connecting to %s</p>
+	</div>
+
+</div>
+
+<script type="text/javascript">
+var highlander_expando_javascript = function () {
+
+	function hide( sel ) {
+		var el = document.querySelector( sel );
+		if ( el ) {
+			el.style.setProperty( 'display', 'none' );
+		}
+	}
+
+	function show( sel ) {
+		var el = document.querySelector( sel );
+		if ( el ) {
+			el.style.removeProperty( 'display' );
+		}
+	}
+
+	var input = document.createElement( 'input' );
+	var comment = document.querySelector( '#comment' );
+
+	if ( input && comment && 'placeholder' in input ) {
+		var label = document.querySelector( '.comment-textarea label' );
+		if ( label ) {
+			var text = label.textContent;
+			label.parentNode.removeChild( label );
+			comment.setAttribute( 'placeholder', text );
+		}
+	}
+
+	// Expando Mode: start small, then auto-resize on first click + text length
+	hide( '#comment-form-identity' );
+	hide( '#comment-form-subscribe' );
+	hide( '#commentform .form-submit' );
+
+	if ( comment ) {
+		comment.style.height = '10px';
+
+		var handler = function () {
+			comment.style.height = HighlanderComments.initialHeight + 'px';
+			show( '#comment-form-identity' );
+			show( '#comment-form-subscribe' );
+			show( '#commentform .form-submit' );
+			HighlanderComments.resizeCallback();
+
+			comment.removeEventListener( 'focus', handler );
+		};
+
+		comment.addEventListener( 'focus', handler );
+	}
+}
+
+if ( document.readyState !== 'loading' ) {
+	highlander_expando_javascript();
+} else {
+	document.addEventListener( 'DOMContentLoaded', highlander_expando_javascript );
+}
+
+</script>
+
+<div id="comment-form-subscribe">
+	<p class="comment-subscription-form"><input type="checkbox" name="subscribe" id="subscribe" value="subscribe" style="width: auto;"/> <label class="subscribe-label" id="subscribe-label" for="subscribe" style="display: inline;">Notify me of new comments via email.</label></p><p class="post-subscription-form"><input type="checkbox" name="subscribe_blog" id="subscribe_blog" value="subscribe" style="width: auto;"/> <label class="subscribe-label" id="subscribe-blog-label" for="subscribe_blog"  style="display: inline;">Notify me of new posts via email.</label></p></div>
+
+
+
+
+<p class="form-submit"><input name="submit" type="submit" id="comment-submit" class="submit button" value="Post Comment" /> <input type='hidden' name='comment_post_ID' value='2064' id='comment_post_ID' />
+<input type='hidden' name='comment_parent' id='comment_parent' value='0' />
+</p><p style="display: none;"><input type="hidden" id="akismet_comment_nonce" name="akismet_comment_nonce" value="78d0206505" /></p>
+<input type="hidden" name="genseq" value="1664899889" />
+<p style="display: none !important;"><label>&#916;<textarea name="ak_hp_textarea" cols="45" rows="8" maxlength="100"></textarea></label><input type="hidden" id="ak_js_1" name="ak_js" value="118"/><script>document.getElementById( "ak_js_1" ).setAttribute( "value", ( new Date() ).getTime() );</script></p></form>	</div><!-- #respond -->
+	<div style="clear: both"></div>
+</div><!-- #comments -->
+
+				
+			</div><!-- #content -->
+		</div><!-- #primary -->
+
+
+	</div><!-- #main -->
+
+	<footer id="colophon">
+
+			
+
+			<div id="site-generator">
+				 								<a href="https://wordpress.com/?ref=footer_blog" rel="nofollow">Blog at WordPress.com.</a>
+			</div>
+	</footer><!-- #colophon -->
+</div><!-- #page -->
+
+<!--  -->
+<script type="text/javascript">
+	window._tkq = window._tkq || [];
+	if ( Math.random() < 0.01 ) {
+		window._tkq.push( [
+			'recordEvent',
+			'wpcom_wordads_noad',
+			{"theme":"pub\/twentyeleven","blog_id":113840984,"post_id":2064,"reason_noadverts_plugin":1,"reason_upgrade":1,"reason_blog_null":1,"reason_post_null":1}
+		] );
+	}
+</script><script src='//0.gravatar.com/js/gprofiles.js?ver=202240z' id='grofiles-cards-js'></script>
+<script id='wpgroho-js-extra'>
+var WPGroHo = {"my_hash":""};
+</script>
+<script crossorigin='anonymous' type='text/javascript' src='https://s1.wp.com/wp-content/mu-plugins/gravatar-hovercards/wpgroho.js?m=1610363240h'></script>
+
+	<script>
+		// Initialize and attach hovercards to all gravatars
+		( function() {
+			function init() {
+				if ( typeof Gravatar === 'undefined' ) {
+					return;
+				}
+
+				if ( typeof Gravatar.init !== 'function' ) {
+					return;
+				}
+
+				Gravatar.profile_cb = function ( hash, id ) {
+					WPGroHo.syncProfileData( hash, id );
+				};
+
+				Gravatar.my_hash = WPGroHo.my_hash;
+				Gravatar.init( 'body', '#wp-admin-bar-my-account' );
+			}
+
+			if ( document.readyState !== 'loading' ) {
+				init();
+			} else {
+				document.addEventListener( 'DOMContentLoaded', init );
+			}
+		} )();
+	</script>
+
+		<div style="display:none">
+	<div class="grofile-hash-map-dd226ed24e241453b2ccd15a204fb152">
+	</div>
+	<div class="grofile-hash-map-555dcaf3c529e779f16730919c5d980b">
+	</div>
+	<div class="grofile-hash-map-fc9e71680bd067f72e581eafbea777e3">
+	</div>
+	<div class="grofile-hash-map-44dd09e4b9ce7eec5b52da927aabe38a">
+	</div>
+	<div class="grofile-hash-map-b5990715766b9ebd24552fdd8abf16f7">
+	</div>
+	<div class="grofile-hash-map-20643ab6c7c9e4c6970456d69a4df529">
+	</div>
+	<div class="grofile-hash-map-a9a4685f81c8afe7c63a6908290158d0">
+	</div>
+	<div class="grofile-hash-map-6559bbce4cbb763a47c2e773eacce4b3">
+	</div>
+	<div class="grofile-hash-map-27d66d6d55475f44437dfc9155ae6be3">
+	</div>
+	<div class="grofile-hash-map-42a70ed969b87caddfbafa0873e4f780">
+	</div>
+	<div class="grofile-hash-map-bbf7e13e161354fb4a13b494fad4b51d">
+	</div>
+	<div class="grofile-hash-map-938c2fcb3429fa3327f8cff752d0c2cd">
+	</div>
+	<div class="grofile-hash-map-49db4e1d137208769673fe6f00bb4aab">
+	</div>
+	<div class="grofile-hash-map-13629d56ae44080765094272fdcf32f2">
+	</div>
+	<div class="grofile-hash-map-9a908f23a831006705346a0881b90675">
+	</div>
+	<div class="grofile-hash-map-d50de38f7a7127218c97f516b623ac45">
+	</div>
+	<div class="grofile-hash-map-28d3b72e8790806f122f12cb18b75fe1">
+	</div>
+	<div class="grofile-hash-map-b4615c0f066b3049dcb04379549e4d58">
+	</div>
+	<div class="grofile-hash-map-0a9b528ede4473dfa0d83e9c1a269016">
+	</div>
+	<div class="grofile-hash-map-e831be72b9d64d56ee1bdc9b096d0794">
+	</div>
+	<div class="grofile-hash-map-095d822eae19bfd68148eb4a0252f7f8">
+	</div>
+	<div class="grofile-hash-map-6d2d8cd4de9dd67619056286a36a1341">
+	</div>
+	<div class="grofile-hash-map-8530f4c9945f023ebd5d1cd5a1db4cd0">
+	</div>
+	<div class="grofile-hash-map-e88d41eedb81670d9499a37690906adc">
+	</div>
+	<div class="grofile-hash-map-fa9959c2c3bc133260b9625ea3849584">
+	</div>
+	<div class="grofile-hash-map-751a20c342c3537ad227521eb1fb1fba">
+	</div>
+	<div class="grofile-hash-map-f58915f96c8f9aa31ce57e17c56bac00">
+	</div>
+	</div>
+<script id='highlander-comments-js-extra'>
+var HighlanderComments = {"loggingInText":"Logging In\u2026","submittingText":"Posting Comment\u2026","postCommentText":"Post Comment","connectingToText":"Connecting to %s","commentingAsText":"%1$s: You are commenting using your %2$s account.","logoutText":"Log Out","loginText":"Log In","connectURL":"https:\/\/wanderinginn.wordpress.com\/public.api\/connect\/?action=request&domain=wanderinginn.com","logoutURL":"https:\/\/wanderinginn.wordpress.com\/wp-login.php?action=logout&_wpnonce=027032d4fa","homeURL":"https:\/\/wanderinginn.com\/","postID":"2064","gravDefault":"identicon","enterACommentError":"Please enter a comment","enterEmailError":"Please enter your email address here","invalidEmailError":"Invalid email address","enterAuthorError":"Please enter your name here","gravatarFromEmail":"This picture will show whenever you leave a comment. Click to customize it.","logInToExternalAccount":"Log in to use details from one of these accounts.","change":"Change","changeAccount":"Change Account","comment_registration":"","userIsLoggedIn":"","isJetpack":"","text_direction":"ltr"};
+</script>
+<script crossorigin='anonymous' type='text/javascript' src='https://s0.wp.com/_static/??/wp-content/js/textarea-autosize.min.js,/wp-content/mu-plugins/highlander-comments/script.js?m=1663141412j'></script>
+	<div id="actionbar" style="display: none;"
+			class="actnbr-pub-twentyeleven actnbr-has-follow">
+		<ul>
+								<li class="actnbr-btn actnbr-hidden">
+								<a class="actnbr-action actnbr-actn-follow " href="">
+			<svg class="gridicon gridicons-reader-follow" height="24" width="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g><path d="M23 16v2h-3v3h-2v-3h-3v-2h3v-3h2v3h3zM20 2v9h-4v3h-3v4H4c-1.1 0-2-.9-2-2V2h18zM8 13v-1H4v1h4zm3-3H4v1h7v-1zm0-2H4v1h7V8zm7-4H4v2h14V4z"/></g></svg><span>Follow</span>
+		</a>
+		<a class="actnbr-action actnbr-actn-following  no-display" href="">
+			<svg class="gridicon gridicons-reader-following" height="24" width="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g><path d="M23 13.482L15.508 21 12 17.4l1.412-1.388 2.106 2.188 6.094-6.094L23 13.482zm-7.455 1.862L20 10.89V2H2v14c0 1.1.9 2 2 2h4.538l4.913-4.832 2.095 2.176zM8 13H4v-1h4v1zm3-2H4v-1h7v1zm0-2H4V8h7v1zm7-3H4V4h14v2z"/></g></svg><span>Following</span>
+		</a>
+							<div class="actnbr-popover tip tip-top-left actnbr-notice" id="follow-bubble">
+							<div class="tip-arrow"></div>
+							<div class="tip-inner actnbr-follow-bubble">
+															<ul>
+											<li class="actnbr-sitename">
+			<a href="https://wanderinginn.com">
+				<img alt='' src='https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=50' class='avatar avatar-50' height='50' width='50' />				The Wandering Inn			</a>
+		</li>
+										<form method="post" action="https://subscribe.wordpress.com" accept-charset="utf-8" style="display: none;">
+																						<div class="actnbr-follow-count">Join 2,697 other followers</div>
+																					<div>
+										<input type="email" name="email" placeholder="Enter your email address" class="actnbr-email-field" aria-label="Enter your email address" />
+										</div>
+										<input type="hidden" name="action" value="subscribe" />
+										<input type="hidden" name="blog_id" value="113840984" />
+										<input type="hidden" name="source" value="https://wanderinginn.com/2017/05/31/2-26/" />
+										<input type="hidden" name="sub-type" value="actionbar-follow" />
+										<input type="hidden" id="_wpnonce" name="_wpnonce" value="9bb017f338" />										<div class="actnbr-button-wrap">
+											<button type="submit" value="Sign me up">
+												Sign me up											</button>
+										</div>
+									</form>
+									<li class="actnbr-login-nudge">
+										<div>
+											Already have a WordPress.com account? <a href="https://wordpress.com/log-in?redirect_to=https%3A%2F%2Fr-login.wordpress.com%2Fremote-login.php%3Faction%3Dlink%26back%3Dhttps%253A%252F%252Fwanderinginn.com%252F2017%252F05%252F31%252F2-26%252F">Log in now.</a>										</div>
+									</li>
+								</ul>
+															</div>
+						</div>
+					</li>
+							<li class="actnbr-ellipsis actnbr-hidden">
+				<svg class="gridicon gridicons-ellipsis" height="24" width="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g><path d="M7 12c0 1.104-.896 2-2 2s-2-.896-2-2 .896-2 2-2 2 .896 2 2zm12-2c-1.104 0-2 .896-2 2s.896 2 2 2 2-.896 2-2-.896-2-2-2zm-7 0c-1.104 0-2 .896-2 2s.896 2 2 2 2-.896 2-2-.896-2-2-2z"/></g></svg>				<div class="actnbr-popover tip tip-top-left actnbr-more">
+					<div class="tip-arrow"></div>
+					<div class="tip-inner">
+						<ul>
+									<li class="actnbr-sitename">
+			<a href="https://wanderinginn.com">
+				<img alt='' src='https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=50' class='avatar avatar-50' height='50' width='50' />				The Wandering Inn			</a>
+		</li>
+								<li class="actnbr-folded-customize">
+								<a href="https://wanderinginn.wordpress.com/wp-admin/customize.php?url=https%3A%2F%2Fwanderinginn.wordpress.com%2F2017%2F05%2F31%2F2-26%2F">
+									<svg class="gridicon gridicons-customize" height="20" width="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g><path d="M2 6c0-1.505.78-3.08 2-4 0 .845.69 2 2 2 1.657 0 3 1.343 3 3 0 .386-.08.752-.212 1.09.74.594 1.476 1.19 2.19 1.81L8.9 11.98c-.62-.716-1.214-1.454-1.807-2.192C6.753 9.92 6.387 10 6 10c-2.21 0-4-1.79-4-4zm12.152 6.848l1.34-1.34c.607.304 1.283.492 2.008.492 2.485 0 4.5-2.015 4.5-4.5 0-.725-.188-1.4-.493-2.007L18 9l-2-2 3.507-3.507C18.9 3.188 18.225 3 17.5 3 15.015 3 13 5.015 13 7.5c0 .725.188 1.4.493 2.007L3 20l2 2 6.848-6.848c1.885 1.928 3.874 3.753 5.977 5.45l1.425 1.148 1.5-1.5-1.15-1.425c-1.695-2.103-3.52-4.092-5.448-5.977z"/></g></svg>									<span>Customize</span>
+								</a>
+							</li>
+																<li class="actnbr-folded-follow">
+												<a class="actnbr-action actnbr-actn-follow " href="">
+			<svg class="gridicon gridicons-reader-follow" height="24" width="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g><path d="M23 16v2h-3v3h-2v-3h-3v-2h3v-3h2v3h3zM20 2v9h-4v3h-3v4H4c-1.1 0-2-.9-2-2V2h18zM8 13v-1H4v1h4zm3-3H4v1h7v-1zm0-2H4v1h7V8zm7-4H4v2h14V4z"/></g></svg><span>Follow</span>
+		</a>
+		<a class="actnbr-action actnbr-actn-following  no-display" href="">
+			<svg class="gridicon gridicons-reader-following" height="24" width="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g><path d="M23 13.482L15.508 21 12 17.4l1.412-1.388 2.106 2.188 6.094-6.094L23 13.482zm-7.455 1.862L20 10.89V2H2v14c0 1.1.9 2 2 2h4.538l4.913-4.832 2.095 2.176zM8 13H4v-1h4v1zm3-2H4v-1h7v1zm0-2H4V8h7v1zm7-3H4V4h14v2z"/></g></svg><span>Following</span>
+		</a>
+										</li>
+																	<li class="actnbr-signup"><a href="https://wordpress.com/start/">Sign up</a></li>
+									<li class="actnbr-login"><a href="https://wordpress.com/log-in?redirect_to=https%3A%2F%2Fr-login.wordpress.com%2Fremote-login.php%3Faction%3Dlink%26back%3Dhttps%253A%252F%252Fwanderinginn.com%252F2017%252F05%252F31%252F2-26%252F">Log in</a></li>
+																	<li class="actnbr-shortlink"><a href="https://wp.me/p7HFeU-xi">Copy shortlink</a></li>
+																	<li class="flb-report"><a href="http://en.wordpress.com/abuse/">Report this content</a></li>
+																	<li class="actnbr-reader">
+										<a href="https://wordpress.com/read/blogs/113840984/posts/2064">
+											View post in Reader										</a>
+									</li>
+																	<li class="actnbr-subs">
+										<a href="https://subscribe.wordpress.com/">Manage subscriptions</a>
+									</li>
+																		<li class="actnbr-fold"><a href="">Collapse this bar</a></li>
+															</ul>
+					</div>
+				</div>
+			</li>
+		</ul>
+	</div>
+	
+<script>
+window.addEventListener( "load", function( event ) {
+	var link = document.createElement( "link" );
+	link.href = "https://s0.wp.com/wp-content/mu-plugins/actionbar/actionbar.css?v=20210915";
+	link.type = "text/css";
+	link.rel = "stylesheet";
+	document.head.appendChild( link );
+
+	var script = document.createElement( "script" );
+	script.src = "https://s0.wp.com/wp-content/mu-plugins/actionbar/actionbar.js?v=20220329";
+	script.defer = true;
+	document.body.appendChild( script );
+} );
+</script>
+
+	<script crossorigin='anonymous' type='text/javascript' src='https://s2.wp.com/_static/??-eJx9jd0OwiAMRl9I6AxmixfGRzEMqoFRRij48/ZWk3npXfOdc1J4FOXW3DA3iAwe78FheerIOxAUskvdI3+YW4lEUxVLemkKeZO2nroqqd9CZrBeuJptBbLcsMqlWrVu4X/REpiwKaMHuMjn33CtX9lLe6bTfhwPZpqOg4lvZ0RE/g=='></script>
+<script type="text/javascript">
+// <![CDATA[
+(function() {
+try{
+  if ( window.external &&'msIsSiteMode' in window.external) {
+    if (window.external.msIsSiteMode()) {
+      var jl = document.createElement('script');
+      jl.type='text/javascript';
+      jl.async=true;
+      jl.src='/wp-content/plugins/ie-sitemode/custom-jumplist.php';
+      var s = document.getElementsByTagName('script')[0];
+      s.parentNode.insertBefore(jl, s);
+    }
+  }
+}catch(e){}
+})();
+// ]]>
+</script><script src="//stats.wp.com/w.js?63" defer></script> <script type="text/javascript">
+_tkq = window._tkq || [];
+_stq = window._stq || [];
+_tkq.push(['storeContext', {'blog_id':'113840984','blog_tz':'0','user_lang':'en','blog_lang':'en','user_id':'0'}]);
+_stq.push(['view', {'blog':'113840984','v':'wpcom','tz':'0','user_id':'0','post':'2064','subd':'wanderinginn'}]);
+_stq.push(['extra', {'crypt':'UE40eW5QN0p8M2Y/RE1mNzc2NTVTamdsd0xoLz9RQkM2K298TXY9bERQMXc2MjhEaVZfb2wwakRoSj0mUkp1THptM1NdbkV1WjZIcU9mVWQmPUIvMlN6Jk8wW3NYVEJ3dWZOWExuWD9VNTEucGVTRmZwYTB2ZD82MHd0Y1Y0RlltYWdKeC9TU05lUzUxV1pzZWh8UlVlalotK3A/NWVna2ZGUkZsXWlPZ0Uudk8vQWtbZDh1JWVnME4yJXhaPTFbWWNWUUg3d0t6SnFUbDd3a0dbVll2b1FyZXNsWHhIUVVMdVUsQlZ8LDFjMl1xP1Zhd2NTYXlIYzZ5LS96S241ck1LPW01NUQzS05jLEhuOXl8cT1jTC95Qm5VWWNUOGhrd0Qsa2ddb3hERFdneE9LLTA1QzNBZ2tKfFRCZSxPTjA='}]);
+_stq.push([ 'clickTrackerInit', '113840984', '2064' ]);
+	</script>
+<noscript><img src="https://pixel.wp.com/b.gif?v=noscript" style="height:1px;width:1px;overflow:hidden;position:absolute;bottom:1px;" alt="" /></noscript>
+<script>
+if ( 'object' === typeof wpcom_mobile_user_agent_info ) {
+
+	wpcom_mobile_user_agent_info.init();
+	var mobileStatsQueryString = "";
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedPlatformName )
+		mobileStatsQueryString += "&x_" + 'mobile_platforms' + '=' + wpcom_mobile_user_agent_info.matchedPlatformName;
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedUserAgentName )
+		mobileStatsQueryString += "&x_" + 'mobile_devices' + '=' + wpcom_mobile_user_agent_info.matchedUserAgentName;
+	
+	if( wpcom_mobile_user_agent_info.isIPad() )
+		mobileStatsQueryString += "&x_" + 'ipad_views' + '=' + 'views';
+
+	if( "" != mobileStatsQueryString ) {
+		new Image().src = document.location.protocol + '//pixel.wp.com/g.gif?v=wpcom-no-pv' + mobileStatsQueryString + '&baba=' + Math.random();
+	}
+	
+}
+</script>
+</body>
+</html>

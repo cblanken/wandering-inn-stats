@@ -1,0 +1,2115 @@
+<!DOCTYPE html>
+<!--[if IE 6]>
+<html id="ie6" lang="en">
+<![endif]-->
+<!--[if IE 7]>
+<html id="ie7" lang="en">
+<![endif]-->
+<!--[if IE 8]>
+<html id="ie8" lang="en">
+<![endif]-->
+<!--[if !(IE 6) & !(IE 7) & !(IE 8)]><!-->
+<html lang="en">
+<!--<![endif]-->
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width" />
+<title>
+Wistram Days (Pt. 4) | The Wandering Inn	</title>
+<link rel="profile" href="https://gmpg.org/xfn/11" />
+<link rel="stylesheet" type="text/css" media="all" href="https://s2.wp.com/wp-content/themes/pub/twentyeleven/style.css?ver=20190507" />
+<link rel="pingback" href="https://wanderinginn.com/xmlrpc.php">
+<!--[if lt IE 9]>
+<script src="https://s2.wp.com/wp-content/themes/pub/twentyeleven/js/html5.js?ver=3.7.0" type="text/javascript"></script>
+<![endif]-->
+<meta name='robots' content='max-image-preview:large' />
+
+<!-- Async WordPress.com Remote Login -->
+<script id="wpcom_remote_login_js">
+var wpcom_remote_login_extra_auth = '';
+function wpcom_remote_login_remove_dom_node_id( element_id ) {
+	var dom_node = document.getElementById( element_id );
+	if ( dom_node ) { dom_node.parentNode.removeChild( dom_node ); }
+}
+function wpcom_remote_login_remove_dom_node_classes( class_name ) {
+	var dom_nodes = document.querySelectorAll( '.' + class_name );
+	for ( var i = 0; i < dom_nodes.length; i++ ) {
+		dom_nodes[ i ].parentNode.removeChild( dom_nodes[ i ] );
+	}
+}
+function wpcom_remote_login_final_cleanup() {
+	wpcom_remote_login_remove_dom_node_classes( "wpcom_remote_login_msg" );
+	wpcom_remote_login_remove_dom_node_id( "wpcom_remote_login_key" );
+	wpcom_remote_login_remove_dom_node_id( "wpcom_remote_login_validate" );
+	wpcom_remote_login_remove_dom_node_id( "wpcom_remote_login_js" );
+	wpcom_remote_login_remove_dom_node_id( "wpcom_request_access_iframe" );
+	wpcom_remote_login_remove_dom_node_id( "wpcom_request_access_styles" );
+}
+
+// Watch for messages back from the remote login
+window.addEventListener( "message", function( e ) {
+	if ( e.origin === "https://r-login.wordpress.com" ) {
+		var data = {};
+		try {
+			data = JSON.parse( e.data );
+		} catch( e ) {
+			wpcom_remote_login_final_cleanup();
+			return;
+		}
+
+		if ( data.msg === 'LOGIN' ) {
+			// Clean up the login check iframe
+			wpcom_remote_login_remove_dom_node_id( "wpcom_remote_login_key" );
+
+			var id_regex = new RegExp( /^[0-9]+$/ );
+			var token_regex = new RegExp( /^.*|.*|.*$/ );
+			if (
+				token_regex.test( data.token )
+				&& id_regex.test( data.wpcomid )
+			) {
+				// We have everything we need to ask for a login
+				var script = document.createElement( "script" );
+				script.setAttribute( "id", "wpcom_remote_login_validate" );
+				script.src = '/remote-login.php?wpcom_remote_login=validate'
+					+ '&wpcomid=' + data.wpcomid
+					+ '&token=' + encodeURIComponent( data.token )
+					+ '&host=' + window.location.protocol
+					+ '//' + window.location.hostname
+					+ '&postid=3716'
+					+ '&is_singular=1';
+				document.body.appendChild( script );
+			}
+
+			return;
+		}
+
+		// Safari ITP, not logged in, so redirect
+		if ( data.msg === 'LOGIN-REDIRECT' ) {
+			window.location = 'https://wordpress.com/log-in?redirect_to=' + window.location.href;
+			return;
+		}
+
+		// Safari ITP, storage access failed, remove the request
+		if ( data.msg === 'LOGIN-REMOVE' ) {
+			var css_zap = 'html { -webkit-transition: margin-top 1s; transition: margin-top 1s; } /* 9001 */ html { margin-top: 0 !important; } * html body { margin-top: 0 !important; } @media screen and ( max-width: 782px ) { html { margin-top: 0 !important; } * html body { margin-top: 0 !important; } }';
+			var style_zap = document.createElement( 'style' );
+			style_zap.type = 'text/css';
+			style_zap.appendChild( document.createTextNode( css_zap ) );
+			document.body.appendChild( style_zap );
+
+			var e = document.getElementById( 'wpcom_request_access_iframe' );
+			e.parentNode.removeChild( e );
+
+			document.cookie = 'wordpress_com_login_access=denied; path=/; max-age=31536000';
+
+			return;
+		}
+
+		// Safari ITP
+		if ( data.msg === 'REQUEST_ACCESS' ) {
+			console.log( 'request access: safari' );
+
+			// Check ITP iframe enable/disable knob
+			if ( wpcom_remote_login_extra_auth !== 'safari_itp_iframe' ) {
+				return;
+			}
+
+			// If we are in a "private window" there is no ITP.
+			var private_window = false;
+			try {
+				var opendb = window.openDatabase( null, null, null, null );
+			} catch( e ) {
+				private_window = true;
+			}
+
+			if ( private_window ) {
+				console.log( 'private window' );
+				return;
+			}
+
+			var iframe = document.createElement( 'iframe' );
+			iframe.id = 'wpcom_request_access_iframe';
+			iframe.setAttribute( 'scrolling', 'no' );
+			iframe.setAttribute( 'sandbox', 'allow-storage-access-by-user-activation allow-scripts allow-same-origin allow-top-navigation-by-user-activation' );
+			iframe.src = 'https://r-login.wordpress.com/remote-login.php?wpcom_remote_login=request_access&origin=' + encodeURIComponent( data.origin ) + '&wpcomid=' + encodeURIComponent( data.wpcomid );
+
+			var css = 'html { -webkit-transition: margin-top 1s; transition: margin-top 1s; } /* 9001 */ html { margin-top: 46px !important; } * html body { margin-top: 46px !important; } @media screen and ( max-width: 660px ) { html { margin-top: 71px !important; } * html body { margin-top: 71px !important; } #wpcom_request_access_iframe { display: block; height: 71px !important; } } #wpcom_request_access_iframe { border: 0px; height: 46px; position: fixed; top: 0; left: 0; width: 100%; min-width: 100%; z-index: 99999; background: #23282d; } ';
+
+			var style = document.createElement( 'style' );
+			style.type = 'text/css';
+			style.id = 'wpcom_request_access_styles';
+			style.appendChild( document.createTextNode( css ) );
+			document.body.appendChild( style );
+
+			document.body.appendChild( iframe );
+		}
+
+		if ( data.msg === 'DONE' ) {
+			wpcom_remote_login_final_cleanup();
+		}
+	}
+}, false );
+
+// Inject the remote login iframe after the page has had a chance to load
+// more critical resources
+window.addEventListener( "DOMContentLoaded", function( e ) {
+	var iframe = document.createElement( "iframe" );
+	iframe.style.display = "none";
+	iframe.setAttribute( "scrolling", "no" );
+	iframe.setAttribute( "id", "wpcom_remote_login_key" );
+	iframe.src = "https://r-login.wordpress.com/remote-login.php"
+		+ "?wpcom_remote_login=key"
+		+ "&origin=aHR0cHM6Ly93YW5kZXJpbmdpbm4uY29t"
+		+ "&wpcomid=113840984"
+		+ "&time=1664899931";
+	document.body.appendChild( iframe );
+}, false );
+</script>
+<link rel='dns-prefetch' href='//s1.wp.com' />
+<link rel='dns-prefetch' href='//wanderinginn.wordpress.com' />
+<link rel='dns-prefetch' href='//s0.wp.com' />
+<link rel='dns-prefetch' href='//s2.wp.com' />
+<link href='https://fonts.gstatic.com' crossorigin rel='preconnect' />
+<link rel="alternate" type="application/rss+xml" title="The Wandering Inn &raquo; Feed" href="https://wanderinginn.com/feed/" />
+<link rel="alternate" type="application/rss+xml" title="The Wandering Inn &raquo; Comments Feed" href="https://wanderinginn.com/comments/feed/" />
+<link rel="alternate" type="application/rss+xml" title="The Wandering Inn &raquo; Wistram Days (Pt.&nbsp;4) Comments Feed" href="https://wanderinginn.com/2017/11/12/wistram-days-pt-4/feed/" />
+	<script type="text/javascript">
+		/* <![CDATA[ */
+		function addLoadEvent(func) {
+			var oldonload = window.onload;
+			if (typeof window.onload != 'function') {
+				window.onload = func;
+			} else {
+				window.onload = function () {
+					oldonload();
+					func();
+				}
+			}
+		}
+		/* ]]> */
+	</script>
+	<script type="text/javascript">
+window._wpemojiSettings = {"baseUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/72x72\/","ext":".png","svgUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/svg\/","svgExt":".svg","source":{"concatemoji":"https:\/\/s0.wp.com\/wp-includes\/js\/wp-emoji-release.min.js?m=1652185836h&ver=6.0.2"}};
+/*! This file is auto-generated */
+!function(e,a,t){var n,r,o,i=a.createElement("canvas"),p=i.getContext&&i.getContext("2d");function s(e,t){var a=String.fromCharCode,e=(p.clearRect(0,0,i.width,i.height),p.fillText(a.apply(this,e),0,0),i.toDataURL());return p.clearRect(0,0,i.width,i.height),p.fillText(a.apply(this,t),0,0),e===i.toDataURL()}function c(e){var t=a.createElement("script");t.src=e,t.defer=t.type="text/javascript",a.getElementsByTagName("head")[0].appendChild(t)}for(o=Array("flag","emoji"),t.supports={everything:!0,everythingExceptFlag:!0},r=0;r<o.length;r++)t.supports[o[r]]=function(e){if(!p||!p.fillText)return!1;switch(p.textBaseline="top",p.font="600 32px Arial",e){case"flag":return s([127987,65039,8205,9895,65039],[127987,65039,8203,9895,65039])?!1:!s([55356,56826,55356,56819],[55356,56826,8203,55356,56819])&&!s([55356,57332,56128,56423,56128,56418,56128,56421,56128,56430,56128,56423,56128,56447],[55356,57332,8203,56128,56423,8203,56128,56418,8203,56128,56421,8203,56128,56430,8203,56128,56423,8203,56128,56447]);case"emoji":return!s([129777,127995,8205,129778,127999],[129777,127995,8203,129778,127999])}return!1}(o[r]),t.supports.everything=t.supports.everything&&t.supports[o[r]],"flag"!==o[r]&&(t.supports.everythingExceptFlag=t.supports.everythingExceptFlag&&t.supports[o[r]]);t.supports.everythingExceptFlag=t.supports.everythingExceptFlag&&!t.supports.flag,t.DOMReady=!1,t.readyCallback=function(){t.DOMReady=!0},t.supports.everything||(n=function(){t.readyCallback()},a.addEventListener?(a.addEventListener("DOMContentLoaded",n,!1),e.addEventListener("load",n,!1)):(e.attachEvent("onload",n),a.attachEvent("onreadystatechange",function(){"complete"===a.readyState&&t.readyCallback()})),(e=t.source||{}).concatemoji?c(e.concatemoji):e.wpemoji&&e.twemoji&&(c(e.twemoji),c(e.wpemoji)))}(window,document,window._wpemojiSettings);
+</script>
+<style type="text/css">
+img.wp-smiley,
+img.emoji {
+	display: inline !important;
+	border: none !important;
+	box-shadow: none !important;
+	height: 1em !important;
+	width: 1em !important;
+	margin: 0 0.07em !important;
+	vertical-align: -0.1em !important;
+	background: none !important;
+	padding: 0 !important;
+}
+</style>
+	<link crossorigin='anonymous' rel='stylesheet' id='all-css-0-1' href='https://s0.wp.com/_static/??-eJylkd1OAyEQhV9IdlyzaeOF8Vn4meBUYAkzWHl7Z5s0Vk2riTeEw8l35gBwrMavRbAI1NQjFYbYVTpsUZ2G8DYv08N0D65TCuDS6l9NItdsG8AyEk6e+Q7+FyQvmD+DqPjUAzIcGDIGspjU1uRLUZMd2EzCaP2YMpXfcfUu9RfoevlTUw1DqXarbMfaxcRG4c/3/xbRrFCJfAXP3ZwTtnfT81ztz/I3sCOFiKI4n/dG8P02UnWMca42ZDa6ZurZnL6FN+45P8273bLsH5d5f/gAOyLUIw==?cssminify=yes' type='text/css' media='all' />
+<style id='wp-block-library-inline-css'>
+.has-text-align-justify {
+	text-align:justify;
+}
+.wp-block-cover__image-background.has-parallax {
+	background-size: cover;
+}
+</style>
+<style id='global-styles-inline-css'>
+body{--wp--preset--color--black: #000;--wp--preset--color--cyan-bluish-gray: #abb8c3;--wp--preset--color--white: #fff;--wp--preset--color--pale-pink: #f78da7;--wp--preset--color--vivid-red: #cf2e2e;--wp--preset--color--luminous-vivid-orange: #ff6900;--wp--preset--color--luminous-vivid-amber: #fcb900;--wp--preset--color--light-green-cyan: #7bdcb5;--wp--preset--color--vivid-green-cyan: #00d084;--wp--preset--color--pale-cyan-blue: #8ed1fc;--wp--preset--color--vivid-cyan-blue: #0693e3;--wp--preset--color--vivid-purple: #9b51e0;--wp--preset--color--blue: #1982d1;--wp--preset--color--dark-gray: #373737;--wp--preset--color--medium-gray: #666;--wp--preset--color--light-gray: #e2e2e2;--wp--preset--gradient--vivid-cyan-blue-to-vivid-purple: linear-gradient(135deg,rgba(6,147,227,1) 0%,rgb(155,81,224) 100%);--wp--preset--gradient--light-green-cyan-to-vivid-green-cyan: linear-gradient(135deg,rgb(122,220,180) 0%,rgb(0,208,130) 100%);--wp--preset--gradient--luminous-vivid-amber-to-luminous-vivid-orange: linear-gradient(135deg,rgba(252,185,0,1) 0%,rgba(255,105,0,1) 100%);--wp--preset--gradient--luminous-vivid-orange-to-vivid-red: linear-gradient(135deg,rgba(255,105,0,1) 0%,rgb(207,46,46) 100%);--wp--preset--gradient--very-light-gray-to-cyan-bluish-gray: linear-gradient(135deg,rgb(238,238,238) 0%,rgb(169,184,195) 100%);--wp--preset--gradient--cool-to-warm-spectrum: linear-gradient(135deg,rgb(74,234,220) 0%,rgb(151,120,209) 20%,rgb(207,42,186) 40%,rgb(238,44,130) 60%,rgb(251,105,98) 80%,rgb(254,248,76) 100%);--wp--preset--gradient--blush-light-purple: linear-gradient(135deg,rgb(255,206,236) 0%,rgb(152,150,240) 100%);--wp--preset--gradient--blush-bordeaux: linear-gradient(135deg,rgb(254,205,165) 0%,rgb(254,45,45) 50%,rgb(107,0,62) 100%);--wp--preset--gradient--luminous-dusk: linear-gradient(135deg,rgb(255,203,112) 0%,rgb(199,81,192) 50%,rgb(65,88,208) 100%);--wp--preset--gradient--pale-ocean: linear-gradient(135deg,rgb(255,245,203) 0%,rgb(182,227,212) 50%,rgb(51,167,181) 100%);--wp--preset--gradient--electric-grass: linear-gradient(135deg,rgb(202,248,128) 0%,rgb(113,206,126) 100%);--wp--preset--gradient--midnight: linear-gradient(135deg,rgb(2,3,129) 0%,rgb(40,116,252) 100%);--wp--preset--duotone--dark-grayscale: url('#wp-duotone-dark-grayscale');--wp--preset--duotone--grayscale: url('#wp-duotone-grayscale');--wp--preset--duotone--purple-yellow: url('#wp-duotone-purple-yellow');--wp--preset--duotone--blue-red: url('#wp-duotone-blue-red');--wp--preset--duotone--midnight: url('#wp-duotone-midnight');--wp--preset--duotone--magenta-yellow: url('#wp-duotone-magenta-yellow');--wp--preset--duotone--purple-green: url('#wp-duotone-purple-green');--wp--preset--duotone--blue-orange: url('#wp-duotone-blue-orange');--wp--preset--font-size--small: 13px;--wp--preset--font-size--medium: 20px;--wp--preset--font-size--large: 36px;--wp--preset--font-size--x-large: 42px;--wp--preset--spacing--20: 0.44rem;--wp--preset--spacing--30: 0.67rem;--wp--preset--spacing--40: 1rem;--wp--preset--spacing--50: 1.5rem;--wp--preset--spacing--60: 2.25rem;--wp--preset--spacing--70: 3.38rem;--wp--preset--spacing--80: 5.06rem;}:where(.is-layout-flex){gap: 0.5em;}body .is-layout-flow > .alignleft{float: left;}body .is-layout-flow > .alignright{float: right;}body .is-layout-flow > .aligncenter{margin-left: auto !important;margin-right: auto !important;}body .is-layout-constrained > .alignleft{float: left;}body .is-layout-constrained > .alignright{float: right;}body .is-layout-constrained > .aligncenter{margin-left: auto !important;margin-right: auto !important;}body .is-layout-constrained > :where(:not(.alignleft):not(.alignright):not(.alignfull)){max-width: var(--wp--style--global--content-size);margin-left: auto !important;margin-right: auto !important;}body .is-layout-constrained > .alignwide{max-width: var(--wp--style--global--wide-size);}body .is-layout-flex{display: flex;}body .is-layout-flex{flex-wrap: wrap;align-items: center;}body .is-layout-flex > *{margin: 0;}:where(.wp-block-columns.is-layout-flex){gap: 2em;}.has-black-color{color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-color{color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-color{color: var(--wp--preset--color--white) !important;}.has-pale-pink-color{color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-color{color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-color{color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-color{color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-color{color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-color{color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-color{color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-color{color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-color{color: var(--wp--preset--color--vivid-purple) !important;}.has-black-background-color{background-color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-background-color{background-color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-background-color{background-color: var(--wp--preset--color--white) !important;}.has-pale-pink-background-color{background-color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-background-color{background-color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-background-color{background-color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-background-color{background-color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-background-color{background-color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-background-color{background-color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-background-color{background-color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-background-color{background-color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-background-color{background-color: var(--wp--preset--color--vivid-purple) !important;}.has-black-border-color{border-color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-border-color{border-color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-border-color{border-color: var(--wp--preset--color--white) !important;}.has-pale-pink-border-color{border-color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-border-color{border-color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-border-color{border-color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-border-color{border-color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-border-color{border-color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-border-color{border-color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-border-color{border-color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-border-color{border-color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-border-color{border-color: var(--wp--preset--color--vivid-purple) !important;}.has-vivid-cyan-blue-to-vivid-purple-gradient-background{background: var(--wp--preset--gradient--vivid-cyan-blue-to-vivid-purple) !important;}.has-light-green-cyan-to-vivid-green-cyan-gradient-background{background: var(--wp--preset--gradient--light-green-cyan-to-vivid-green-cyan) !important;}.has-luminous-vivid-amber-to-luminous-vivid-orange-gradient-background{background: var(--wp--preset--gradient--luminous-vivid-amber-to-luminous-vivid-orange) !important;}.has-luminous-vivid-orange-to-vivid-red-gradient-background{background: var(--wp--preset--gradient--luminous-vivid-orange-to-vivid-red) !important;}.has-very-light-gray-to-cyan-bluish-gray-gradient-background{background: var(--wp--preset--gradient--very-light-gray-to-cyan-bluish-gray) !important;}.has-cool-to-warm-spectrum-gradient-background{background: var(--wp--preset--gradient--cool-to-warm-spectrum) !important;}.has-blush-light-purple-gradient-background{background: var(--wp--preset--gradient--blush-light-purple) !important;}.has-blush-bordeaux-gradient-background{background: var(--wp--preset--gradient--blush-bordeaux) !important;}.has-luminous-dusk-gradient-background{background: var(--wp--preset--gradient--luminous-dusk) !important;}.has-pale-ocean-gradient-background{background: var(--wp--preset--gradient--pale-ocean) !important;}.has-electric-grass-gradient-background{background: var(--wp--preset--gradient--electric-grass) !important;}.has-midnight-gradient-background{background: var(--wp--preset--gradient--midnight) !important;}.has-small-font-size{font-size: var(--wp--preset--font-size--small) !important;}.has-medium-font-size{font-size: var(--wp--preset--font-size--medium) !important;}.has-large-font-size{font-size: var(--wp--preset--font-size--large) !important;}.has-x-large-font-size{font-size: var(--wp--preset--font-size--x-large) !important;}
+:where(.wp-block-columns.is-layout-flex){gap: 2em;}
+.wp-block-pullquote{font-size: 1.5em;line-height: 1.6;}
+.wp-block-navigation a:where(:not(.wp-element-button)){color: inherit;}
+</style>
+<link crossorigin='anonymous' rel='stylesheet' id='all-css-2-1' href='https://s1.wp.com/_static/??-eJyNj8EOwjAMQ3+IEjYBggPiW7YSSlnaVE26an9PuYGQ0G625SfZUJOxHBWjgj4woEAqI2htwYKEM0YYie0kWyuygRV10YXQ1GQ5rGYsE2eB25CnHyYUk6g4HwUcsmljBvUcv4y50+DzPzRju+GadNBaH/YNXcOlO/b9aX/edYfnC0ReZ8I=?cssminify=yes' type='text/css' media='all' />
+<style id='jetpack-global-styles-frontend-style-inline-css'>
+:root { --font-headings: unset; --font-base: unset; --font-headings-default: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif; --font-base-default: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif;}
+</style>
+<link crossorigin='anonymous' rel='stylesheet' id='all-css-4-1' href='https://s0.wp.com/wp-content/themes/h4/global.css?m=1420737423h&cssminify=yes' type='text/css' media='all' />
+<script id='wpcom-actionbar-placeholder-js-extra'>
+var actionbardata = {"siteID":"113840984","siteURL":"https:\/\/wanderinginn.com","xhrURL":"https:\/\/wanderinginn.com\/wp-admin\/admin-ajax.php","nonce":"1ba14e6909","isLoggedIn":"","statusMessage":"","subsEmailDefault":"instantly","proxyScriptUrl":"https:\/\/s0.wp.com\/wp-content\/js\/wpcom-proxy-request.js?ver=20211021","shortlink":"https:\/\/wp.me\/p7HFeU-XW","i18n":{"followedText":"New posts from this site will now appear in your <a href=\"https:\/\/wordpress.com\/read\">Reader<\/a>","foldBar":"Collapse this bar","unfoldBar":"Expand this bar"}};
+</script>
+<script crossorigin='anonymous' type='text/javascript' src='https://s1.wp.com/_static/??/wp-content/js/mobile-useragent-info.js,/wp-content/js/rlt-proxy.js?m=1637704497j'></script>
+<script type='text/javascript'>
+	window.addEventListener( 'DOMContentLoaded', function() {
+		rltInitialize( {"token":null,"iframeOrigins":["https:\/\/widgets.wp.com"]} );
+	} );
+</script>
+<link crossorigin='anonymous' rel='stylesheet' id='all-css-0-2' href='https://s0.wp.com/wp-content/mu-plugins/highlander-comments/style.css?m=1663315160h&cssminify=yes' type='text/css' media='all' />
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="https://wanderinginn.wordpress.com/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="https://s1.wp.com/wp-includes/wlwmanifest.xml" /> 
+<meta name="generator" content="WordPress.com" />
+<link rel="canonical" href="https://wanderinginn.com/2017/11/12/wistram-days-pt-4/" />
+<link rel='shortlink' href='https://wp.me/p7HFeU-XW' />
+<link rel="alternate" type="application/json+oembed" href="https://public-api.wordpress.com/oembed/?format=json&amp;url=https%3A%2F%2Fwanderinginn.com%2F2017%2F11%2F12%2Fwistram-days-pt-4%2F&amp;for=wpcom-auto-discovery" /><link rel="alternate" type="application/xml+oembed" href="https://public-api.wordpress.com/oembed/?format=xml&amp;url=https%3A%2F%2Fwanderinginn.com%2F2017%2F11%2F12%2Fwistram-days-pt-4%2F&amp;for=wpcom-auto-discovery" />
+<!-- Jetpack Open Graph Tags -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="Wistram Days (Pt. 4)" />
+<meta property="og:url" content="https://wanderinginn.com/2017/11/12/wistram-days-pt-4/" />
+<meta property="og:description" content="Wistram was a world unto itself, with a different set of rules, a different kind of people. And yes, Ceria thought to herself as she cautiously opened her door, a different sense of time. This earl…" />
+<meta property="article:published_time" content="2017-11-12T04:32:41+00:00" />
+<meta property="article:modified_time" content="2020-10-26T03:37:05+00:00" />
+<meta property="og:site_name" content="The Wandering Inn" />
+<meta property="og:image" content="https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=200" />
+<meta property="og:image:width" content="200" />
+<meta property="og:image:height" content="200" />
+<meta property="og:image:alt" content="" />
+<meta property="og:locale" content="en_US" />
+<meta property="article:publisher" content="https://www.facebook.com/WordPresscom" />
+<meta name="twitter:text:title" content="Wistram Days (Pt.&nbsp;4)" />
+<meta name="twitter:image" content="https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=240" />
+<meta name="twitter:card" content="summary" />
+
+<!-- End Jetpack Open Graph Tags -->
+<link rel="search" type="application/opensearchdescription+xml" href="https://wanderinginn.com/osd.xml" title="The Wandering Inn" />
+<link rel="search" type="application/opensearchdescription+xml" href="https://s1.wp.com/opensearch.xml" title="WordPress.com" />
+	<style>
+		/* Link color */
+		a,
+		#site-title a:focus,
+		#site-title a:hover,
+		#site-title a:active,
+		.entry-title a:hover,
+		.entry-title a:focus,
+		.entry-title a:active,
+		.widget_twentyeleven_ephemera .comments-link a:hover,
+		section.recent-posts .other-recent-posts a[rel="bookmark"]:hover,
+		section.recent-posts .other-recent-posts .comments-link a:hover,
+		.format-image footer.entry-meta a:hover,
+		#site-generator a:hover {
+			color: #1583af;
+		}
+		section.recent-posts .other-recent-posts .comments-link a:hover {
+			border-color: #1583af;
+		}
+		article.feature-image.small .entry-summary p a:hover,
+		.entry-header .comments-link a:hover,
+		.entry-header .comments-link a:focus,
+		.entry-header .comments-link a:active,
+		.feature-slider a.active {
+			background-color: #1583af;
+		}
+	</style>
+	<meta name="application-name" content="The Wandering Inn" /><meta name="msapplication-window" content="width=device-width;height=device-height" /><meta name="msapplication-tooltip" content="A tale of a girl, an inn, and a world full of levels." /><meta name="msapplication-task" content="name=Subscribe;action-uri=https://wanderinginn.com/feed/;icon-uri=https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=16" /><meta name="msapplication-task" content="name=Sign up for a free blog;action-uri=http://wordpress.com/signup/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Support;action-uri=http://support.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Forums;action-uri=http://forums.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="description" content="Wistram was a world unto itself, with a different set of rules, a different kind of people. And yes, Ceria thought to herself as she cautiously opened her door, a different sense of time. This early in the morning the hallway was empty. Seemingly empty. But Ceria knew better than to step out incautiously. She&hellip;" />
+<link rel="icon" href="https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=32" sizes="32x32" />
+<link rel="icon" href="https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=192" sizes="192x192" />
+<link rel="apple-touch-icon" href="https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=180" />
+<meta name="msapplication-TileImage" content="https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=270" />
+		<link rel="stylesheet" id="custom-css-css" type="text/css" href="https://s0.wp.com/?custom-css=1&#038;csblog=7HFeU&#038;cscache=6&#038;csrev=3" />
+		<!-- Your Google Analytics Plugin is missing the tracking ID -->
+</head>
+
+<body class="post-template-default single single-post postid-3716 single-format-standard wp-embed-responsive customizer-styles-applied single-author singular two-column right-sidebar highlander-enabled highlander-dark">
+<div class="skip-link"><a class="assistive-text" href="#content">Skip to primary content</a></div><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-dark-grayscale"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0 0.49803921568627" /><feFuncG type="table" tableValues="0 0.49803921568627" /><feFuncB type="table" tableValues="0 0.49803921568627" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-grayscale"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0 1" /><feFuncG type="table" tableValues="0 1" /><feFuncB type="table" tableValues="0 1" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-purple-yellow"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0.54901960784314 0.98823529411765" /><feFuncG type="table" tableValues="0 1" /><feFuncB type="table" tableValues="0.71764705882353 0.25490196078431" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-blue-red"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0 1" /><feFuncG type="table" tableValues="0 0.27843137254902" /><feFuncB type="table" tableValues="0.5921568627451 0.27843137254902" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-midnight"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0 0" /><feFuncG type="table" tableValues="0 0.64705882352941" /><feFuncB type="table" tableValues="0 1" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-magenta-yellow"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0.78039215686275 1" /><feFuncG type="table" tableValues="0 0.94901960784314" /><feFuncB type="table" tableValues="0.35294117647059 0.47058823529412" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-purple-green"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0.65098039215686 0.40392156862745" /><feFuncG type="table" tableValues="0 1" /><feFuncB type="table" tableValues="0.44705882352941 0.4" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-blue-orange"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0.098039215686275 1" /><feFuncG type="table" tableValues="0 0.66274509803922" /><feFuncB type="table" tableValues="0.84705882352941 0.41960784313725" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><div id="page" class="hfeed">
+	<header id="branding">
+			<hgroup>
+				<h1 id="site-title"><span><a href="https://wanderinginn.com/" rel="home">The Wandering Inn</a></span></h1>
+				<h2 id="site-description">A tale of a girl, an inn, and a world full of levels.</h2>
+			</hgroup>
+
+						<a href="https://wanderinginn.com/">
+									<img src="https://wanderinginn.files.wordpress.com/2022/07/cropped-220725_merch_banner_launch-1.png" width="1000" height="296" alt="The Wandering Inn" />
+								</a>
+			
+									<form method="get" id="searchform" action="https://wanderinginn.com/">
+		<label for="s" class="assistive-text">Search</label>
+		<input type="text" class="field" name="s" id="s" placeholder="Search" />
+		<input type="submit" class="submit" name="submit" id="searchsubmit" value="Search" />
+	</form>
+			
+			<nav id="access">
+				<h3 class="assistive-text">Main menu</h3>
+				<div class="menu-menu-1-container"><ul id="menu-menu-1" class="menu"><li id="menu-item-1422" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-home menu-item-1422"><a href="https://wanderinginn.com/">Overview</a></li>
+<li id="menu-item-1912" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1912"><a href="https://wanderinginn.com/table-of-contents/">Table of Contents</a></li>
+<li id="menu-item-1998" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-1998"><a href="https://www.patreon.com/user?u=4240617">Patreon</a></li>
+<li id="menu-item-10438" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-10438"><a href="https://wanderinginn.com/social/">Social</a>
+<ul class="sub-menu">
+	<li id="menu-item-4811" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-4811"><a href="https://discord.gg/abwsa3y">Discord</a></li>
+	<li id="menu-item-4810" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-4810"><a href="https://www.reddit.com/r/WanderingInn/">Reddit</a></li>
+	<li id="menu-item-8944" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-8944"><a href="https://twitter.com/WanderingInn">Twitter</a></li>
+	<li id="menu-item-10440" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-10440"><a href="https://www.facebook.com/thewanderinginn/">Facebook</a></li>
+</ul>
+</li>
+<li id="menu-item-10446" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-10446"><a href="https://wanderinginn.com/publishing-3/">Publishing</a>
+<ul class="sub-menu">
+	<li id="menu-item-10448" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-10448"><a href="https://www.amazon.com/kindle-dbs/entity/author/B07XCYVYMW">E-books</a></li>
+	<li id="menu-item-10447" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-10447"><a href="https://www.audible.com/author/pirate-aba/B07XCYVYMW">Audiobooks</a></li>
+	<li id="menu-item-8761" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-8761"><a href="https://www.cloudscapecomics.com/last-tide/">The Last Tide (Comicbook)</a></li>
+</ul>
+</li>
+<li id="menu-item-1424" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1424"><a href="https://wanderinginn.com/guestbook/">Guestbook</a></li>
+<li id="menu-item-2935" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-2935"><a href="https://wanderinginn.com/fanworks/">Fanworks</a>
+<ul class="sub-menu">
+	<li id="menu-item-8557" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-8557"><a href="https://wanderinginn.com/fanworks-permissions/">Fanworks Permissions</a></li>
+</ul>
+</li>
+<li id="menu-item-1426" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1426"><a href="https://wanderinginn.com/reader-reviews/">Reader Reviews</a></li>
+<li id="menu-item-5002" class="menu-item menu-item-type-post_type menu-item-object-post menu-item-has-children menu-item-5002"><a href="https://wanderinginn.com/2018/10/19/glossary/">Glossary</a>
+<ul class="sub-menu">
+	<li id="menu-item-7035" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-7035"><a href="https://wanderinginn.com/fanworks/#B">Maps</a></li>
+</ul>
+</li>
+<li id="menu-item-5684" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-5684"><a href="https://wanderinginn.com/writing-faqs/">Writing FAQs</a></li>
+<li id="menu-item-11759" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-11759"><a href="https://aubergevagabonde.wordpress.com/">L&#8217;Auberge Vagabonde</a></li>
+<li id="menu-item-11765" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-11765"><a href="https://wanderinginn.com/contacts/">Contacts</a></li>
+<li id="menu-item-12493" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-12493"><a href="https://www.store.wanderinginn.com/">Merch Store</a></li>
+<li id="menu-item-12667" class="menu-item menu-item-type-post_type menu-item-object-post menu-item-12667"><a href="https://wanderinginn.com/2022/09/28/interlude-the-great-race/">Interlude – The Great Race</a></li>
+</ul></div>			</nav><!-- #access -->
+	</header><!-- #branding -->
+
+
+	<div id="main">
+
+		<div id="primary">
+			<div id="content" role="main">
+
+				
+					<nav id="nav-single">
+						<h3 class="assistive-text">Post navigation</h3>
+						<span class="nav-previous"><a href="https://wanderinginn.com/2017/11/11/wistram-days-pt-3/" rel="prev"><span class="meta-nav">&larr;</span> Previous</a></span>
+						<span class="nav-next"><a href="https://wanderinginn.com/2017/11/14/wistram-days-pt-5/" rel="next">Next <span class="meta-nav">&rarr;</span></a></span>
+					</nav><!-- #nav-single -->
+
+					
+<article id="post-3716" class="post-3716 post type-post status-publish format-standard hentry category-writing tag-fantasy tag-inn tag-web-novel tag-web-serial tag-writing">
+	<header class="entry-header">
+		<h1 class="entry-title">Wistram Days (Pt.&nbsp;4)</h1>
+
+				<div class="entry-meta">
+						<span class="sep">Posted on </span><a href="https://wanderinginn.com/2017/11/12/wistram-days-pt-4/" title="4:32 am" rel="bookmark"><time class="entry-date" datetime="2017-11-12T04:32:41+00:00">November 12, 2017</time></a><span class="by-author"> <span class="sep"> by </span> <span class="author vcard"><a class="url fn n" href="https://wanderinginn.com/author/pirateaba/" title="View all posts by pirateaba" rel="author">pirateaba</a></span></span>		</div><!-- .entry-meta -->
+			</header><!-- .entry-header -->
+
+	<div class="entry-content">
+		<p>Wistram was a world unto itself, with a different set of rules, a different kind of people. And yes, Ceria thought to herself as she cautiously opened her door, a different sense of time.</p>
+<p>This early in the morning the hallway was empty. Seemingly empty. But Ceria knew better than to step out incautiously. She whispered a spell as she stared hard at the floor and ceiling.</p>
+<p>“[Detect Magic].”</p>
+<p>The world faded. Colors became less vivid in Ceria’s eyes, while others sprung out at her, as if they were the only real things in a blurred reality. And so when she looked again, Ceria could clearly see the hex that had been drawn on the flagstones in front of her door.</p>
+<p>“Of course.”</p>
+<p>It was a spell that would make the ground slippery like grease. Ceria moved to destroy the hex and then paused. She glanced suspiciously around the hex, and then peeked her head around the doorjamb. That’s when she saw the second, far less obvious spell about to go off.</p>
+<p>She gritted her teeth. Ceria pushed mana into her hands and raised it. A jet of flame scorched the stone and disrupted the fragile matrix of the trap spell. The half-Elf grimly watched both spells disappear as she dared step outside at last.</p>
+<p>“A shock spell? Dead gods. Those damn Human—”</p>
+<p>She caught herself. She didn’t <em>know</em> it was a Human who’d cast the spell. But she was pretty sure it was.</p>
+<p>“Charles de Trevalier.”</p>
+<p>Ceria muttered his name as she stalked down the corridors towards the banquet hall. She was in no mood to wait for Pisces to get up—he usually woke up late unless they had class in the mornings, anyways. So Ceria contented herself with grabbing some fruit and a piece of cheese and eating alone at one of the tables.</p>
+<p>Two weeks had passed since she and Pisces had stolen the spellbook, or rather, reclaimed it from the library with Cognita’s help. It wasn’t really stealing, actually. True, other students had found the book and probably intended to retrieve it, but as Ceria and Pisces both pointed out to each other, they hadn’t gotten to it in time.</p>
+<p>Therefore the book was rightfully theirs, or rather, Pisces’ property. Still, neither student had told a soul about what they’d done, even Calvaron or Beatrice. A secret like that would be worth a huge amount and Ceria didn’t want to risk having a bunch of older students angry at them.</p>
+<p>Especially not at this time. There was less than a week left until the exam that would decide everything for Ceria. In five short days, she’d be tested on her magical abilities and Skills, and demonstrate what spells she’d learned while studying here.</p>
+<p>In truth, this was as much of a test of her abilities as a student as it was her prowess as a mage before she’d arrived at Wistram. Ceria had heard from Calvaron and Beatrice just what the tests measured.</p>
+<p>“They’ll look to see how powerful you are <em>and</em> whether you picked up on the lessons. If you’re talented in either respect, you’ll gain points. So a good mage could get accepted on their abilities or someone who’s mastered every lesson could get in solely based on that, but it’s best to be outstanding in both areas.”</p>
+<p>They’d be measured in many different areas, from their ability to control fundamental magic, to how they analyzed enchantments and held their cool in battle. There were several tests Ceria had practiced for, but it was the last one, a grueling obstacle course where the students would be allowed to use attack spells to get to the end quickly, that she was focused on.</p>
+<p>After so long, Ceria knew how she ranked among the prospective students in Wistram. It was common knowledge; the entrance exams were the subject of quite a number of bets and power games, again according to Calvaron.</p>
+<p>Your ranking was critically important, but Ceria knew it wasn’t the only key to passing the exams. How much wealth you had—or your family had—and whether you were well liked by any influential mages could also be key.</p>
+<p>Unfortunately, Ceria hadn’t made any strong connections with anyone but Calvaron and Beatrice. She had no wealth besides the money she’d scraped together for the application fee. So all she could rely on was her talent.</p>
+<p>And to be fair, Ceria wasn’t bad at magic. She had a higher level than most new students, and she was also quicker than most at picking up each lesson. However, the key here was ‘better than most’. Ceria wasn’t at the top of her class; she was only gifted.</p>
+<p>That wasn’t reassuring. And to make it worse, Ceria knew someone who was consistently at the top of any class he took.</p>
+<p>Pisces.</p>
+<p>She hadn’t realized it at first, but after nearly a month of hanging out with the young man and becoming friends, Ceria had realized he truly was a prodigy at magic.</p>
+<p>Pisces could pick up a spell twice as fast as Ceria could. Worse, he had a finer control over his magic. <em>His</em> lightning didn’t spark all over the place, and he could remember almost everything he was taught in class with his memory alone.</p>
+<p>It made Ceria incredibly jealous at times. She knew Pisces couldn’t help being gifted anymore than she could give up her race’s affinity with magic that let them channel mana better than any other species. And yet, she couldn’t help but feel that in a few days he might be the one to stay while she left.</p>
+<p>Hence, her decision to wake up so early. Ceria glumly chewed down the last of her fruit and finished the cheese. She normally liked to eat meat—morning, noon and night and for a snack—but she couldn’t have a full stomach for what she was about to do.</p>
+<p>Leaving her dishes where they were—a Golem would come by and pick them up if some other students didn’t levitate them to another table—Ceria headed towards the entrance of Wistram. In truth, she’d had little reason to leave the academy before now.</p>
+<p>The half-Elf took a breath of the crisp morning air and then scowled as that crisp air turned out to be full of water. She spluttered as a wave crashing against the rocks of the isle sent a spray of water into her face.</p>
+<p>“Nature.”</p>
+<p>She groused to herself as she stomped down the winding steps that led down to the large stone pier. The isle that was Wistram was really very small, in truth. Aside from the towering citadel that seemed to reach into the sky, there was only the docks and a separate bay where other ships could disgorge their cargo. Both were built out of stone and could hold dozens of vessels at a time, but Wistram had no grass or open areas to speak of.</p>
+<p>All that was inside. Ceria had actually seen a large plaza filled with grass and trees in  one part of Wistram, the top open to the sky. The magics that made up the citadel were such that the finite building that represented the outside couldn’t hint at the full expanse of Wistram on the inside.</p>
+<p>And yet today, Ceria left the steps and made her way down to a bunch of large boulders that protected Wistram from the direct impact of the tide. This early in the morning she saw only a few other mages about. Ceria found a secluded spot where she could stare out across the ocean and took a breath.</p>
+<p>“Time to practice.”</p>
+<p>The first thing she did was hurl a few orbs created with the [Light] spell. The shimmering spheres hovered in the air in front of Ceria, some relatively close, but others floated up to a hundred feet away. Ceria took a deep breath, and aimed carefully at the nearest one.</p>
+<p>“[Stone Dart]!”</p>
+<p>It was her favorite spell and the one she was most proficient at. The dagger of stone cut through the air with a whistling sound and pierced the center of the first ball of light. Ceria grinned triumphantly as it vanished.</p>
+<p>She raised her hand and carefully aimed at the next orb. Ceria concentrated hard to make sure she was right on target; it wasn’t just that she had to aim with her finger. The image of the floating orb was just as important in her mind; it could inform the angle and trajectory her spell took.</p>
+<p>A second stone missile flew, and again the orb vanished soundlessly. The seagulls circling about the isle cawed raucously and the ocean waves blew up gouts of water while Ceria lined up her next shot.</p>
+<p>She was practicing for the combat trial. Ceria knew most of the new students knew only a few combat spells and only Tier 1 spells at that. But she’d actually fought before! True, she’d only worked as a Bronze-rank adventurer to make ends meet now and then, but she was confident she could demonstrate her abilities in that section of the exam more than any other.</p>
+<p>She just had to make sure her aim was spot-on. Thus, Ceria was practicing hitting the targets as they floated in the air. She’d done it all the time back in the forests around her home, only then she’d hunted animals and shot leaves out of trees. Here she had to make her own targets; she wasn’t about to kill the seagulls just to practice. Unless one of them pooped on her head, that was.</p>
+<p>Ceria found aiming at the nearest orbs of light easy. She could hit them in rapid succession once she’d gotten her mental eye in. But past fifty feet her aim grew worse and worse. The wind blew her spells off course and she had to hit each ball of light in the center or she wouldn’t destabilize the spell enough for it to vanish.</p>
+<p>The final orb floated tantalizingly some one hundred and twenty feet away. Ceria cursed as she launched dart after dart at it, growing more tired with each shot. She could only fire about thirty or so before she had to rest and she was nearing her limit even with the short break she’d took.</p>
+<p>But she was determined to hit it. Ceria waited for the wind to die down and then shot a dart across the ocean. She held her breath as she stared at the orb of light and then flung her arms out in success as it went out.</p>
+<p>Only when she had finally shot down the last floating orb did Ceria realize she had an audience. She turned and nearly had a heart attack as she saw a cluster of mages, all far older than any of the students Ceria hung out with—watching her.</p>
+<p>These were true mages, the ones who’d stopped being students and now either taught classes or studied magic on their own. Men and women in robes, Drakes, Lizardfolk—standing a ways away from the Drakes—a Dullahan and one of the Stitch People regarded Ceria silently. Ceria saw a bird-man standing next to two women she recognized.</p>
+<p>Her heart stopped. There, standing with the mages was Illphres. And standing next to her, smiling slightly was none other than Amerys, one of the King’s Seven.</p>
+<p>The Calm Flower of the Battlefield. One of the King of Destruction’s generals, who had conquered a continent and threatened the world. Ceria forgot she was a fellow mage for a second and froze in panic.</p>
+<p>But these mages—why were they here? Had she broken a rule for some reason? Only, they didn’t seem angry. They were just watching her. Some looked amused, others, considering.</p>
+<p>“Um.”</p>
+<p>Ceria could barely breathe. The mages regarded her for another silent moment, and then they moved off, as if they were done. Several leapt impossibly high into the air and floated down to rocks closer to the waves—others simply walked off in different directions around the isle.</p>
+<p>Only one mage stayed. Illphres. She approached Ceria, moving slowly, face unreadable. She passed a hand over her lips and then Ceria saw a smile appear. It was slightly mocking.</p>
+<p>“Sloppy aim.”</p>
+<p>“What?”</p>
+<p>“Your aim is bad. You took far too long to hit that last target.”</p>
+<p>Illphres nodded slowly to the ocean. Ceria felt herself blush hotly as she realized all the mages had seen her struggle to hit her final target.</p>
+<p>“I got it in the end!”</p>
+<p>She was angry that they’d seen her, but angrier at Illphres for lecturing her. The mage passed a hand over her face and Ceria saw her smirking now.</p>
+<p>“You can hit a stationary target, but you don’t compensate for the wind. If that was a Goblin archer he would have shot you full of arrows by now.”</p>
+<p>That stung because it was true. Ceria replied sharply.</p>
+<p>“So I suppose you’re telling me you can aim better?”</p>
+<p>“Of course. Watch.”</p>
+<p>Illphres pointed, and Ceria looked up. She saw only the sky, and a flock of seagulls looking for scraps or perhaps a tasty mollusk washed up by the tides. The ice mage gestured, and one of the passing seagulls suddenly <em>squawked</em> in terror and plummeted towards the ocean. Ice had encased both of its wings.</p>
+<p>Ceria bit her lip. That was a masterful shot; she’d barely seen the streak of light that had shot from Illphres’ hand to hit the bird. But killing an animal just to prove a point seemed wrong to her.</p>
+<p>But the seagull never hit the water. A few feet before it would have smacked into the surf pounding the rocks around Wistram it suddenly flapped its wings and flew back upwards, still making sounds of distress. Ceria saw the ice on its wings flaking off, melting with rapid speed.</p>
+<p>The gull flew off, and Illphres turned back to Ceria. She passed a hand over her face and looked expressionlessly at Ceria again.</p>
+<p>“Everything is a moving target. You’ll never improve by aiming at stationary points.”</p>
+<p>It was all true, but Ceria just couldn’t accept the lecture. She pointed at Illphres angrily.</p>
+<p>“Teach me, then! Show me how to cast better spells!”</p>
+<p>“Melt my ice first.”</p>
+<p>Illphres looked at Ceria, and the half-Elf didn’t know what to say in reply. Illphres walked off, leaving Ceria alone to fume.</p>
+<p>&nbsp;</p>
+<p>&#8212;-</p>
+<p>&nbsp;</p>
+<p>Ceria didn’t stay long after her encounter with the mages. She saw them standing on the rocks, doing something close to what she’d done. The only difference was the scale. Instead of sending out orbs of light, some created actual illusions of monsters or incoming spells which they in turn warded against or shot down with their own magic.</p>
+<p>She saw Illphres shooting countless discs of frozen ice up into the air at extreme speed and then bolts of lightning catching each one and blasting it to bits. Amerys did that for about ten minutes before she switched and started conjuring birds made of electricity which Illphres shot down in turn.</p>
+<p>So. Other mages did what she did? Ceria walked back to Wistram, thoroughly humiliated and not a little bit angry. It was still early and she debated going back to the banquet hall for a second breakfast and to meet up with Pisces before class today. But she paused when she saw him in the hallway.</p>
+<p>He wasn’t alone. Pisces was talking with another Human—a young man Ceria recognized with a sinking feeling in her stomach. He had a pointy noise and far too gangly legs in her opinion, but he was attired in rich, colorful clothing like a [Lord]. Which he was, she supposed. It wasn’t Charles himself, but one of his good friends.</p>
+<p>Timor du Havrington.</p>
+<p>He looked condescending as ever, but what was he doing here talking to <em>Pisces</em> of all people? Ceria stared down the busy corridor full of students hurrying about. He and Pisces were talking while they stood next to an intersection. About what?</p>
+<p>About her?</p>
+<p>She didn’t want Pisces to see her. Ceria pressed her back against a wall and then realized that was stupid. Instead, she mingled with a group of students going one way, watching Pisces out of the corner of her eye as she walked.</p>
+<p>“…happen to agree with you on that point, Havrington. However…”</p>
+<p>That was all she heard as she passed by. Ceria desperately wanted to turn and look back, but she was afraid of being spotted. And afraid, perhaps, of what she might hear. She slowly made her way back to her room and only saw Pisces again during lunch.</p>
+<p>&nbsp;</p>
+<p>&#8212;-</p>
+<p>&nbsp;</p>
+<p>“Well, well. If it isn’t my favorite half-Elf! Where’ve you been Ceria? We missed you at breakfast! Wait—don’t tell me. I already know.”</p>
+<p>Calvaron’s cheerful greeting made Ceria want to pull his tail. She scowled at him and ducked as a flash of magic flew overhead. He and Beatrice didn’t seem to notice, but then, they’d erected a shield spell around their table.</p>
+<p>“Hi Calvaron. Hi, Beatrice. What in the name of tree fungus is going on?”</p>
+<p>She pointed across the hall at the circle of students watching two mages exchange blasts of magic, but Calvaron began laughing instead.</p>
+<p>“What in the name of—did you hear that Beatrice? Did you hear what she said? Do all half-Elves swear by plants?”</p>
+<p>“I did. Be polite.”</p>
+<p>Beatrice slapped Calvaron on the shoulder and pointed towards the two fighting mages.</p>
+<p>“It’s a duel. Seric and Zepheral are quarrelling over a wand one of them found in an unexplored room. The winner gets to keep it.”</p>
+<p>Calvaron nodded.</p>
+<p>“Want to place a bet? The smart money’s on Seric, but Zepheral could pull it off. I’ve got three-to-one odds on Seric.”</p>
+<p>Pisces, eying the battle warily, ducked as a stray arrow of light splashed across the top of their shield.</p>
+<p>“I’m ah, more worried about our safety. Do such duels occur often?”</p>
+<p>“Worried? Hey, this shield spell won’t break from a stray shot! And yes, duels are fairly common. I’m surprised you haven’t seen any before, but then, the Council likes to ease you new students into life here. Can’t have fights breaking out on the first day.”</p>
+<p>“And students duel for money, pride, what?”</p>
+<p>“Anything and everything, Ceria! It’s like secrets; just another way for a mage to get ahead if they so choose. And you don’t have to fight with spells—there are spoken debates too.”</p>
+<p>“Really?”</p>
+<p>Pisces’ eyes lit up at that. Calvaron wagged a finger.</p>
+<p>“Ah, ah. They’re usually decided by collective vote, so don’t go thinking the student who knows the most words wins, Pisces. It’s actually quite tricky, since you can’t rely on personal magnetism to win the debate. Those who vote have to answer under truth spell who made the more convincing argument.”</p>
+<p>“All the more reason for me to attempt this. You say you can win money with this?”</p>
+<p>Pisces grinned at Ceria, who had to force herself to smile back. Calvaron nodded, wincing good-naturedly as a cry went up from the crowd watching the duel.</p>
+<p>“Students duel with magic and words in the halls of Wistram. Well, I say students, but all the [Mages] here do it. The older ones just do it with a lot more pomp and ceremony. Ooh! Looks like Seric’s going to win this one. Did you see that, Beatrice? [Air Volt]. Right to the chest! Zepheral’s not walking away from that one.”</p>
+<p>“Looks like I win my bet. Good.”</p>
+<p>Pisces and Ceria watched as the crowd began to disperse. Apparently Seric had won, and some students were helping to magically carry Zepheral—the unconscious Drake—away.</p>
+<p>“Never a quiet moment in Wistram, huh?”</p>
+<p>“You know it. But Ceria, I hear you had an interesting encounter this morning.”</p>
+<p>Pisces turned, eyebrows raised and Ceria scowled at the Centaur.</p>
+<p>“Dead gods, Calvaron! Do you keep your ear pinned to the ground or something?”</p>
+<p>“Only when it involves my friends. And quite a few people saw you practicing outside. And how you ran into all the other mages too.”</p>
+<p>Ceria covered her face as Pisces demanded and received an explanation.</p>
+<p>“Why were they out there? I thought I’d be alone that early in the morning.”</p>
+<p>Beatrice blinked slowly at Ceria as she scratched an itch on the back of her head.</p>
+<p>“Don’t you know? All the mages inclined towards combat get up early to train. They probably wondered whether you wanted to join them.”</p>
+<p>“Oh bark mold.”</p>
+<p>Ceria put her head in her hands and groaned as Pisces and Calvaron laughed.</p>
+<p>“Shut up! I didn’t know, okay?”</p>
+<p>“Don’t fret, Springwalker. Look at it this way; attracting their attention can’t hurt you, especially if they think you might be an asset to the academy.”</p>
+<p>“It can if they saw how badly I did! I was trying to get back my aim in <em>secret!</em>”</p>
+<p>“Well, you should have practiced elsewhere. The rocks around the academy are a favorite spot for all mages to practice. Less bodies to hit if their aim’s off, you see.”</p>
+<p>“I didn’t know you were practicing. Was it for the exam?”</p>
+<p>Pisces looked at Ceria with a frown. She nodded, not meeting his eyes.</p>
+<p>“Ceria’s got the right idea, Pisces. She’s rated high for passing the combat portion ahead of most of the students. You should just try and get top marks in other areas. Mind you, you might have a shot at doing well in the combat portion too, given that no one’s taken classes in combat magic so far.”</p>
+<p>“Thanks to Illphres.”</p>
+<p>“I hate her so much.”</p>
+<p>Ceria mumbled to herself as she stuffed her mouth full of cottage cheese. Calvaron shrugged.</p>
+<p>“It’s not good for anyone, but hey, after the exams I’m sure the Council will find someone else to teach you lot. They can’t have you not being taught for an entire year.”</p>
+<p>“Too late if we fail.”</p>
+<p>“You’re so pessimistic! But hey, speaking of Illphres, did you know that Charles de Trevalier got into her classroom?”</p>
+<p>“<em>No.</em>”</p>
+<p>Pisces and Ceria both stared at Calvaron in shock. He nodded.</p>
+<p>“Apparently, your good friend Charles was seen in the classroom. He caused a big commotion, calling for Illphres to come and teach him.”</p>
+<p>“So she taught him, then? How’d he manage to get past the ice?”</p>
+<p>“That’s the thing.”</p>
+<p>Calvaron’s eyes twinkled in amusement.</p>
+<p>“He got in, but apparently he got someone else to melt the ice for him. Anyways, it was obvious he hadn’t done it himself, so Illphres said it didn’t count. I heard she and Rievan were arguing about it and she nearly froze his face off. He’s probably the one who did it, although it must have been a struggle.”</p>
+<p>“Rievan and Charles are working together?”</p>
+<p>Ceria exchanged a horrified glance with Pisces. She’d noticed Rievan didn’t pick on Charles nearly as much for his failures, but she hadn’t expected the two people who hated her most to join forces. Calvaron nodded seriously.</p>
+<p>“Oh yes, Charles is heavily in Rievan’s camp now. He’s part of the Libertarian faction for sure. They’ll love having someone with his family’s deep pockets and influence, that’s certain. And if they throw a bit of help back towards his family when they’re having their own political battles, well, everyone wins.”</p>
+<p>“Great. Just great.”</p>
+<p>Ceria put her head down on the table. Pisces patted her gingerly on the back while Calvaron and Beatrice discussed what they’d do with their winnings.</p>
+<p>“I think this is a great time to break out that drink I just bought. Beatrice, can you get some more quiches? Or maybe some of those eggrolls—or just cold cuts of meat? I’m told this goes well with spicy food, but I hate spices.”</p>
+<p>“On it.”</p>
+<p>The Dullahan left the table as Ceria raised her head in time to see Calvaron producing two glasses and a bottle and placing them on the table. He had a very limited bag of holding that let him carry objects around.</p>
+<p>“What’s this? Are you drinking at lunch?”</p>
+<p>“Just a bit, just a bit. I made a good bundle betting on that duel. And this is a treat. Here—Pisces will you hold this bottle? I need to get this out…”</p>
+<p>“What’s that? Salt?”</p>
+<p>Ceria watched disbelievingly as Calvaron took out a small pouch of salt and began to add it to the rims of the glasses. He lined one and then poured some of the pale lime-colored liquid into the glass.</p>
+<p>“There we are. Mm. This smells good. This, my dear Ceria, is called a Sand Tumbler—it’s an alcohol made with limes and lemons, I think. Don’t ask me why it’s called that. It’s a tasty drink—an alcohol I just bought from a ship captain who had a cargo full of drinks.”</p>
+<p>“But salt?”</p>
+<p>“It’s part of how you drink it. Again, don’t ask me why. But it—ooh, it does taste good! Here, Beatrice, you have to have one of these!”</p>
+<p>Calvaron sipped from his glass with appreciation and delight. Beatrice, returned with a platter of food, reached for her own glass to prepare it like he had. Calvaron drank his, but objected when he saw Beatrice sprinkling the salt.</p>
+<p>“Aw, Beatrice! Don’t put salt <em>in</em> the glass! A Sand Tumbler is supposed to have it on the rim. It adds to the taste!”</p>
+<p>“I like salt. What about on the ice?”</p>
+<p>“No, no! It’ll melt the ice and—look, let me do it, alright?”</p>
+<p>Huffily, he showed Beatrice how to prepare the glass properly. When she was sipping it with apparent appreciation he turned back to Ceria and Pisces.</p>
+<p>“I like to treat myself to the latest delicacy when I can afford it. Did you know this comes from Chandrar? It’s very refreshing—do either of you want to try one?”</p>
+<p>Pisces declined. Ceria was sorely tempted, but she knew she had better spend all her time studying, not drinking.</p>
+<p>“We’ve got to cram as much as we can right now, Calvaron. I’d love to stay, but unless you want to show us how to decipher complex enchantments—”</p>
+<p>He groaned and Beatrice rolled her eyes.</p>
+<p>“Dead gods, I’d rather let Illphres use me as a target than study that again. You two go study. Good luck!”</p>
+<p>The two students left Calvaron and Beatrice to share their drink with a few students who’d drifted over, lured by the call of alcohol and snacks. Pisces was excited about the duel and Ceria was quiet, conflicted by her doubts.</p>
+<p>“I do believe I might actually participate in a duel. Not a physical one—I’d rather not get hurt—but a verbal duel sounds promising! I might make some spending coin off of it. What do you think, do I have a chance?”</p>
+<p>“If your opponent gets half as confused as I do, you’ll win for certain.”</p>
+<p>Ceria smiled weakly at Pisces as they walked into his room. It had become their place to study, mainly because it was so convenient. And it had a balcony. He eagerly began spreading his notes over his bed and table as Ceria took a chair.</p>
+<p>“What shall we focus on today? I thought we might work on our spell composition. I know that Rievan’s focused on it a lot already, but I think there’s room to improve.”</p>
+<p>“Um, Pisces.”</p>
+<p>He looked up as Ceria spoke quietly. Her heart was pounding, but she had to know.</p>
+<p>“What is it?”</p>
+<p>“Earlier this morning, I saw you talking with Timor. What was that about?”</p>
+<p>She watched his face anxiously. Pisces wasn’t a good liar, Ceria knew. Or she thought she knew. He paused, and scratched at his hair as if trying to remember.</p>
+<p>“Him? Oh that—nothing of consequence. I was just on my way to breakfast and he stopped me—”</p>
+<p>“Pisces, please. I have to know.”</p>
+<p>He paused, and then turned to look Ceria in the eye. Pisces sighed, and took a seat on his bed.</p>
+<p>“Timor did, in fact approach me this morning to extend an invitation to me. To join him and Charles in their…faction. The Libertarians. They offered me quite a few incentives.”</p>
+<p>Ceria felt a hand squeezing at her heart. It wasn’t what she’d feared, but it still made her worried.</p>
+<p>“And? What did you say?”</p>
+<p>“I refused him outright, of course!”</p>
+<p>Pisces looked indignant and hurt that Ceria had to ask. He stood up, smoothing his robes.</p>
+<p>“I told him no, but he kept pestering me. He wanted me to abandon my friendship with you so I could add my abilities to Charles and support him. I’ve apparently got good odds to pass the exam and the Libertarians want every new student they can get.”</p>
+<p>“Why’d you say no? They can offer you a lot more than you’d get by being independent.”</p>
+<p>“Hardly. You know what Calvaron said about factions.”</p>
+<p>“Yeah, but…”</p>
+<p>Ceria trailed off miserably. She didn’t want to suspect her friend, but she did. Pisces looked at her, and his tone softened.</p>
+<p>“Ceria, I turned him down. I would never join with him. You are my…friend.”</p>
+<p>He said the word cautiously. Ceria blinked up at him and Pisces colored. He turned and spoke rapidly.</p>
+<p>“Besides, Timor’s offer was quite disingenuous, I felt. I am completely disinclined to subsume myself into a close-minded group that bows to the most influential member without discourse or free thought. Your company—and that of the other myriad members of each species—is far more pleasant for me.”</p>
+<p>That was what he said, but his real meaning was far easier to understand. Ceria surprised herself by standing up and giving Pisces a quick hug.</p>
+<p>“You’re a good friend Pisces, but you talk too much.”</p>
+<p>He grinned at her, embarrassed, but pleased.</p>
+<p>“So I’ve been told. Were you really that worried?”</p>
+<p>“Not really—well, okay, a bit. Charles has it out for me.”</p>
+<p>“I know he doesn’t like you, but do you really think he would try to get to you through me?”</p>
+<p>Pisces frowned, but Ceria nodded with conviction.</p>
+<p>“Positive. He doesn’t do anything openly, but you heard Calvaron. Charles is allied with Rievan and I think he’s been doing other stuff in secret. I’ve been finding trap spells and hexes around my room every few days when I wake up. I think he and his friends are planting them there each night.”</p>
+<p>“I didn’t know about this! Why didn’t you tell me?”</p>
+<p>Pisces looked outraged. He eyed Ceria and then turned red.</p>
+<p>“You thought <em>I </em>was the one doing it?”</p>
+<p>“I was wrong, okay? Look, Pisces. I know you’re a good friend. I do. But you’re Human and there’s a history between my people and yours.”</p>
+<p>“So I’ve been given to understand, but this much? Charles didn’t like you on sight, but why? Is there really that much animosity?”</p>
+<p>Ceria nodded tiredly. She wasn’t surprised Pisces didn’t know; if he’d grown up away from half-Elves or in a different nation he wouldn’t have the same perspective.</p>
+<p>“I’m a half-Elf. He’s a Human noble. At one time my people ruled over most of Terandria and enslaved Humans.  It’s a longstanding grudge and it’s not as if Humans and half-Elves have gotten along splendidly since then. I’ll just bet Charles is from one of the Human families my people used to enslave.”</p>
+<p>“Ah.”</p>
+<p>“Yeah.”</p>
+<p>“Or it could just be he hates half-Elves. Some Humans just hate other species. Stitch-people are widely accepted although some people get freaked out by them, but half-Elves are much more disliked. Lots of Humans hate us just for being, well, half Elf.”</p>
+<p>“I don’t.”</p>
+<p>“Yeah, but you’re a bit strange.”</p>
+<p>“Thank you.”</p>
+<p>Pisces grinned. Ceria smiled at him and felt better. He cleared his throat, looking at his scattered notes.</p>
+<p>“Not to change the topic, but regardless of whether Charles is planning something, if we don’t study we’ll fail the exams anyways. Should we get to work?”</p>
+<p>“Absolutely. Come on, let’s practice. Show me how you get your lightning to go straight, will you?”</p>
+<p>&nbsp;</p>
+<p>&#8212;-</p>
+<p>&nbsp;</p>
+<p>That night, Ceria slept more soundly than she had for a few days. But she was woken up just past midnight by a loud scream just outside her door. She sat up, heart pounding as she heard panicked voices outside.</p>
+<p>“<em>Aah!</em>”</p>
+<p>“What <em>are </em>they?”</p>
+<p>Ceria heard shouting as she ran to wrench her door open. When she raced out into the corridor, hands ablaze with fire, ready to throw it at whoever was outside, she saw retreating shapes running down the corridor. They were being followed by a stream of…</p>
+<p>“Ceria?”</p>
+<p>Pisces yanked open his door, looking bleary-eyed and confused. He stared around, but now the corridor was deserted. A few other students were opening their doors as well, wondering what was going on.</p>
+<p>“I think they were trying to put a trap on my door again. But something chased them off.”</p>
+<p>“How strange.”</p>
+<p>Pisces looked innocent. Too innocent. Ceria squinted at him suspiciously.</p>
+<p>“You did something, didn’t you? What chased them off?”</p>
+<p>“Mice, I believe. I ah, cast a spell to attract a few of them.”</p>
+<p>Pisces grinned at Ceria and closed the door. She stared at it and smiled before going to sleep. If the next day Calvaron pointed out a few Human students with small bites all over their arms and legs, neither Pisces nor Ceria commented on it. Some secrets were just that: secret.</p>
+<p>&nbsp;</p>
+<p>&#8212;-</p>
+<p>&nbsp;</p>
+<p>In the last few panicked days of studying, one last important thing happened as Ceria and Pisces were studying. Both mages poured over the spellbook they’d taken from the library each night before they went to sleep. Ceria had given up on learning [Stone Fist] in time—she thought with a week or two she might do it, but not when she had to devote her time to memorizing all her lessons.</p>
+<p>But Pisces doggedly worked at decoding the spell he’d focused on. And as Ceria was sitting with her back to a wall in his room, trying to create the perfect [Stone Dart] to use as a model for her spells, he suddenly exclaimed and shot to his feet.</p>
+<p>“I’ve figured it out!”</p>
+<p>She looked up. Pisces was waving his arms about. He took a step—and suddenly blurred, appearing several feet forwards in an instant. She gaped. He turned to her triumphantly ecstatic.</p>
+<p>“Look, look! Ceria, look! I can do the spell!”</p>
+<p>He took another step and vanished. Ceria heard a yelp and saw him reappear and knock over the desk. Pisces jumped about and cradled his shin. She was dumbstruck.</p>
+<p>“What? But how?”</p>
+<p>“[Flash Step]! I told you I could learn it! It’s so useful! See—look at this!”</p>
+<p>He took another step and appeared right in front of Ceria. She recoiled, but Pisces just grabbed her hands.</p>
+<p>“I did it, Ceria! It’s so wonderful.”</p>
+<p>He stepped away from her, disappearing and reappearing again. Ceria watched, open-mouthed. Pisces took a deep breath.</p>
+<p>“It works. And I can use it. If I…”</p>
+<p>He broke off, and began to mumble to himself. Ceria just stared at him. He’d really done it. And so quickly! It had been what, less than three weeks? She couldn’t imagine any other new student learning a Tier 3 spell so quickly.</p>
+<p>But he’d done it. And now Pisces did something that made Ceria go speechless. He took another step and disappeared. Reappeared. He wasn’t teleporting, but rather moving so quickly around the room that he generated his own gusts of wind. But Pisces wasn’t doing it randomly.</p>
+<p>He moved about the room, slower now. Ceria watched, mouth slightly open as she saw Pisces’ energetic leaping about turn into something else.</p>
+<p>Was it a dance? Ceria had seen a waltz before, and what Pisces did now looked similar. His feet moved slowly, but with each step he flicked a few feet away. And yet, not once did he crash into a wall. Slowly, Pisces circled the room, stepping, turning, one arm on his hip, the other held outwards.</p>
+<p>Turn, step, pivot, step. Pisces snatched up his rapier and then it was in his hands. He circled the small room, vanishing from sight and reappearing, facing off against some imaginary opponent. Just…circling.</p>
+<p>If he hadn’t been using [Flashstep], Pisces would have just been moving about in a complicated dance of steps with rapier in hand, to better maneuver around his opponent. But with the spell he was suddenly impossible to predict. He moved about Ceria and she was sure that if she had a sword she’d be hard pressed to strike at him.</p>
+<p>Still, that wasn’t what kept her eyes on Pisces. It was that he never hit anything. His room was large, yes, but even so, one careless step or moving a bit too far with the [Flashstep] spell would send him face-first into one of the stone walls. Yet Pisces never hit anything. He moved around gracefully, exerting perfect control over a spell he’d learned just moments ago.</p>
+<p>Pisces walked for a long time, rapier held at the ready, doing a dance that made it appear like there were ten versions of him in the room at once, all flicking in and out of sight. Ceria watched silently, spellbook in hand. She stared at the young man, eyes closed, face upturned. She wondered who he was, who he had been before he had come here.</p>
+<p>He was a genius. Pure and simple. And she envied him and delighted in the fact that he was her friend. A Human. A Human she could call friend.</p>
+<p>She wanted to keep studying with him. She wanted to pass the exam. But when Ceria looked at Pisces, dancing about with flawless perfection, she knew she’d never be able to copy what he did. So Ceria bent down over her spellbook and got back to studying. She had to pass.</p>
+<p>She had to.</p>
+<p>&nbsp;</p>
+<p>&#8212;-</p>
+<p>&nbsp;</p>
+<p>The day of the exam, all the prospective students gathered in front of the double doors where their exam would take place. Ceria supposed finding the spot was an exam in itself; any student who couldn’t navigate Wistram’s halls by now deserved to fail.</p>
+<p>All of the students stood talking or practicing spells by themselves or in small groups. Ceria was with Pisces. Neither student had had the stomach to eat much this morning. They’d already been wished well by Calvaron, Beatrice, and a few other students who were rooting for them.</p>
+<p>Now Ceria stared at the two marble doors, wondering why anyone would bother making doors out of marble so she didn’t worry about how she was going to perform. There could be no mistakes, she knew. If she failed, or if she took more than one try to do something, it would be noted by the mages who’d gathered to watch.</p>
+<p>There weren’t a dedicated group of examiners for the test. Some mages like the teachers had to attend, but all the mages had a voice in choosing who would pass and who would fail. That made Ceria worried.</p>
+<p>Very worried, especially when she saw Rievan talking with Charles and a group of his friends off to one side. The young man looked too relaxed, and so did Timor and a few other of his friends.</p>
+<p>“I bet they’ll pass one way or another. If Rievan can’t get them through, Charles and Timor can just pay their way in.”</p>
+<p>Pisces muttered that to Ceria. She nodded, glaring at Charles. He looked over and saw her. Before Ceria could debate whether to look away he was approaching.</p>
+<p>“Don’t fight, Ceria.”</p>
+<p>“I won’t.”</p>
+<p>She murmured it and then looked up to glare at Charles.</p>
+<p>“Something you want, Charles?”</p>
+<p>“That’s Charles de Trevalier to you, half-Elf. And this hallway is free for anyone to use, as is Wistram. Not that your people would know what being free meant.”</p>
+<p>Timor sniggered behind Charles. Ceria saw some heads turn, but she was in no mood to spar with Charles. She shot back at the young man.</p>
+<p>“Go boil yourself. You smell like rotted fish.”</p>
+<p>Charles’ nose turned white with outrage, but before he could retort, Ceria walked away from him. Pisces followed, grinning happily.</p>
+<p>“I do believe that was the most civil conversation you’ve had with him.”</p>
+<p>“If I fail the exam, it’ll be the last. That would be the one silver lining.”</p>
+<p>“It won’t come to that. We’ve studied.”</p>
+<p>He squeezed her arm, and Ceria smiled at him. And then, before both students were ready, the doors opened. A mage stepped out, making the students go instantly quiet as if he’d cast a [Silence] spell.</p>
+<p>“Come in groups of eight! Order has no meaning.”</p>
+<p>The exams were beginning. Caught off-guard, some students fearfully retreated, not wanting to be the first ones in. Others decided that boldness might earn them points and headed in. Ceria and Pisces held back until the third group, and then took the exam.</p>
+<p>&nbsp;</p>
+<p>&#8212;-</p>
+<p>&nbsp;</p>
+<p>“A large number of applicants this year.”</p>
+<p>The mages who’d gathered to watch the new students take the tests were a diverse group, both in race and faction. Of course, every group in Wistram wanted to evaluate promising students, but some had come to support their candidate, or just to mingle and talk amongst themselves.</p>
+<p>Some were here against their will, too. Illphres stood with a group of influential mages, both in power and status, scowling as she stared at the students casting magic under the instruction of a mage performing the test. A few feet away from her, Rievan hovered, not quite in the group which consisted of mages from every major faction, but unwilling to mingle with other mages. He kept interjecting comments or agreeing with a comment from one of the mages which several found quite annoying.</p>
+<p>“Too many students is what I think. This is taking too long.”</p>
+<p>Illphres folded her arms. The scowl on her face didn’t change until she passed a hand over her face and it returned to its expressionless stare. The mage standing next to Illphres, a tall Dullahan with his head held up to stare at the students, chuckled. He was unusually talkative and good-natured for a Dullahan, which meant he was about normal when compared to how much Humans acted out.</p>
+<p>“You’d say that if we had one applicant, Illphres. But some of these candidates are genuinely talented. Look at those two. The half-Elf and the young Human on the left side. See?”</p>
+<p>“I see. So what?”</p>
+<p>A pale Selphid, hair dyed dark blue, stroked his beard thoughtfully as he studied Pisces and Ceria showing off their control of magic with the other students.</p>
+<p>“A half-Elf? She’s not bad and they do have more talent than most. But the Human next to her—”</p>
+<p>“Gifted.”</p>
+<p>One of the Lizardfolk said that. She was a tall, sinuous woman with a head that resembled a cobra’s. Her arms and legs were longer than a Drake’s and she was distinctly reptilian, whereas the Drakes more closely resembled Humans and their draconic ancestors. She nodded at Pisces approvingly as he demonstrated his perfect control over the [Electric Jolt] spell.</p>
+<p>“Ooh yes. I like him. He’s very good. We should accept him.”</p>
+<p>Rievan raised his voice hurriedly as the others agreed.</p>
+<p>“We haven’t finished the tests, Quexia. I think there’s still more considerations to be made. I told you, we’ve already seen some good candidates. Charles de Trevalier for instance is quite talented for being so new to the craft—”</p>
+<p>“Shut up, Rievan. No one’s interested in a lordling with money. He can buy his way in if he wants, but he’s as talented as my left toe. Less.”</p>
+<p>Illphres interrupted without looking at the mage. Rievan flushed angrily, but dared not reply. He glared instead at Pisces and Ceria, fervently wishing bad luck on them.</p>
+<p>&nbsp;</p>
+<p>&#8212;-</p>
+<p>&nbsp;</p>
+<p>Ceria felt like she was making a mistake every time she cast a spell. She was so nervous her hands shook. It didn’t help matters that she’d spotted Rievan among the watching mages, and he seemed like he was trying to cast a spell on her with his eyes alone. Ceria was pretty sure that was impossible, but it added to the pressure she felt.</p>
+<p>She felt herself getting tired and worried—and a bit lightheaded because she’d forgotten to eat enough! And always, she could feel Rievan’s gaze on her. It made Ceria make simple, stupid mistakes a few times and she berated herself for slipping up.</p>
+<p>The exams were exhaustive. Even with eight or more students being tested at a time, they took a while. Ceria had to do everything from repeat lessons on magical theory to demonstrate spells they’d learned, or pick out dangerous artifacts from a lineup presented to her. Some of the tests were easy, just to make sure she knew what she was doing, but others were fiendishly hard, so that the best students could distinguish themselves.</p>
+<p>Ceria did passably well at everything. She was proud of herself for picking out an artifact that would have caused horrible itching out of a lineup when everyone but Pisces had missed it, and mortified when her [Stone Dart] spell was found to have an imperfection in its composition. But she thought she hadn’t done anything <em>too </em>badly wrong, so Ceria kept going.</p>
+<p>Soon, she and the other students were done with all but one of the tests and she had to lean exhaustedly against a wall as Pisces nervously paced back and forth around here. There was only one test left, and Ceria tried to gather all of her wits about her for it.</p>
+<p>“Alright, the combat test is next. You, students. Twenty of you come with me. The rest of you will have to wait.”</p>
+<p>Ceria’s stomach twisted into a knot as she heard those words. This was it. Time to prove she could fight as well as cast magic. She didn’t join the second group, but told Pisces she was going in the next one.</p>
+<p>“I’ll go with you. Just don’t hit me with a spell, please.”</p>
+<p>“You’ll just dodge it if I do. Are you going to [Flash Step] your way to the end? And why’d you bring your rapier? You won’t need it!”</p>
+<p>He grinned at her nervously, hands shaking. He had buckled the rapier to a belt over his robes which made him look slightly ridiculous, but Ceria hadn’t told him that.</p>
+<p>“I might. I have no idea what’s going to be on the test. Did you know, last year Calvaron said the examinees had to fight a Troll?”</p>
+<p>“They did not! Who’d be stupid enough to pit new mages against a Troll? They’d be dead in a heartbeat!”</p>
+<p>“I’m just saying—”</p>
+<p>The doors opened. Ceria jumped, and walked towards the mage before he announced they were ready for the next group. She heard a groan as Pisces joined her.</p>
+<p>“What,<em> what?</em>”</p>
+<p>“Look to your right. See who’s joining us?”</p>
+<p>Ceria turned and saw Charles and Timor and two of their friends standing with the mages. Her heart sank as they smirked at her.</p>
+<p>“What are they doing?”</p>
+<p>“I don’t know. They can’t interfere during the exam. Not with all the mages watching—”</p>
+<p>“I guess.”</p>
+<p>Ceria wasn’t so sure, but there was no time to do anything. The mage took them down a corridor, and then Ceria entered into a strange corridor.</p>
+<p>The walls, the ceiling, the floor seemed…vaguely transparent. Ceria gasped as she saw the stones were actually ghostly replicas of the real thing. And yet, the mage assured them the corridor was solid.</p>
+<p>“Mages will be watching from the outside. Ignore them. Your only job is to prove you can navigate your way down the corridor and pass the other obstacles with your own magic. If you fail, just say so and you will be removed. Your speed, ability to handle each obstacle, and resourcefulness will all be taken into consideration. You will begin when I say so.”</p>
+<p>Ceria eyed the empty stone corridor with trepidation. She had no idea what was ahead of her, but she was busting with nervous energy. Beside her, she felt Pisces tensing.</p>
+<p>“<em>Now!</em>”</p>
+<p>At the mage’s words the students started. Ceria took two steps forward and <em>ducked</em> as a fireball came hurtling down the corridor towards the group of students. Half of them screamed, one fainted, and Pisces vanished.</p>
+<p>“Ceria!”</p>
+<p>&nbsp;</p>
+<p>&#8212;-</p>
+<p>&nbsp;</p>
+<p>Standing together watching the students make their way through the first part of the combat test, the mages chortled as the fake [Fireball] spell burst harmlessly among the group, showering them with fire.</p>
+<p>“I never stop enjoying that.”</p>
+<p>“One of the students has fainted? Well, I think he’s out.”</p>
+<p>“Did you see that, though? The half-Elf dodged most of the blast, but that young man avoided it completely!”</p>
+<p>“[Flash Step]. At his age? Impressive.”</p>
+<p>“Now, how will they do with the traps? Oh? Looks like that half-Elf is quite daring. Isn’t she the one I saw practicing in the morning?”</p>
+<p>Illphres watched Ceria navigating the traps ahead of the others. She was doing well, avoiding or disarming the ones in front of her.</p>
+<p>“She’s nothing special.”</p>
+<p>“Well, she’s doing well enough. Oh, look. That Trevalier boy’s set off three traps. Hah!”</p>
+<p>Rievan ground his teeth as he watched the students move through the hallways of traps. But he comforted himself, knowing what came next.</p>
+<p>&nbsp;</p>
+<p>&#8212;-</p>
+<p>&nbsp;</p>
+<p>“Monsters!”</p>
+<p>Someone screamed that, which made Ceria want to kick them. She dove out of the way as a shimmering bird that seemed to be made of light dove at her. Of course it was a monster! If you had the time to shout it, you might as well cast a spell!</p>
+<p>“[Stone Dart]!”</p>
+<p>She shot the bird through the head and it dissipated into fragments of light. All around her, students were fighting a swarm of magical creatures, the next part of the gauntlet that was their combat test. Ceria had gotten into the room first, but she’d been hard-pressed to progress. Some of the illusions were the circling birds who dove at you from overhead, but there was a huge Troll guarding the exit and she was wary of getting close.</p>
+<p>“A damn <em>Troll?</em> Someone’s got a sick sense of humor!”</p>
+<p>She growled as she shot down a huge wolf that was running at her, mouth open. All the illusions seemed so <em>real!</em> She’d already been hit twice, but instead of being injured, the apparitions had left bright, shining marks where they’d struck her.</p>
+<p>Ceria was determined not to get hit again. She saw some students scream as a flock of the shimmering birds dove at them. Pisces was blinking around the room, dodging desperately and she saw most of the other students were huddled near the entrance of the trap corridor, throwing spells desperately.</p>
+<p>This was her chance. Ceria called all the mana she could into her fingers and aimed at the swarm.</p>
+<p>“<em>[Stone Dart]!</em>”</p>
+<p>This time not one dart flew, but a score of them. Ceria fired the spell repeatedly, shooting jagged shards of rocks into the swarm, trying to hit as many birds as possible.</p>
+<p>A score of the shimmering birds fell, the light-flesh of their bodies shattering and fading as they struck the floor. Ceria grinned as she ran forwards at the head of the group. There were still monsters left, but she had a clear shot to the Troll.</p>
+<p><em>This</em> was what she’d been practicing for! Ceria raised her finger, aiming for the Troll’s vulnerable eyes—</p>
+<p>And felt something crash into the back of her head. She stumbled, and the world went dark. Something had hit her. But this was a test. What—?</p>
+<p>&nbsp;</p>
+<p>&#8212;-</p>
+<p>&nbsp;</p>
+<p>“That damn brat! He hit the half-Elf on purpose!”</p>
+<p>Some of the mages were calling out in outrage. Rievan was raising his voice, trying to placate them.</p>
+<p>“It was an accident. A slip of the finger!”</p>
+<p>“Was this your plan? If this is what the Libertarians call fair, I won’t have it! I demand a retrial!”</p>
+<p>“Now? You’ve got to be joking. We saw the half-Elf go down by accident.”</p>
+<p>“My tail it was an accident!”</p>
+<p>“It’s too late to retry. We’ll just have to judge her by what we’ve seen. That’s fair. And as for that boy, I doubt he’s passing.”</p>
+<p>“He’ll just buy his way in! This is outrageous—”</p>
+<p>Rievan let the debate rage hotly among the other mages, sometimes shouting in support, but no longer trying to shift the argument. It was done. Ceria was lying on the ground. She couldn’t distinguish herself further in this trial. A redo of the test was unlikely, he knew. Some mages might shout, but no one wanted to give one student special treatment.</p>
+<p>He stared at the examinees, smiling, but his smile faded when he saw what was going on. Illphres shifted her cold stare from Rievan to the students still battling the illusions. She passed a hand over her mouth, and then she was smiling.</p>
+<p>&nbsp;</p>
+<p>&#8212;-</p>
+<p>&nbsp;</p>
+<p>Pain. Dark. Ceria felt herself falling—</p>
+<p>And someone caught her halfway down. Ceria felt two arms encircling her, and felt herself being lifted upwards. She felt…safe.  Someone was calling her name. Ceria smiled. So dark.</p>
+<p>The world faded. When Ceria opened her eyes again, the exam was over. But in the time between then, someone carried her.</p>
+<p>&nbsp;</p>
+<p>&#8212;-</p>
+<p>&nbsp;</p>
+<p>“That boy. What’s he doing?”</p>
+<p>“He can’t be intending to carry the half-Elf to the end?”</p>
+<p>The mages stared as Pisces lifted Ceria, dodging out of the way of the Troll’s illusory club. The Lizardwoman angrily turned towards a group of mages Rievan was standing with.</p>
+<p>“See what’s happened? Now we’ll have to adjust for his performance as well. He can’t be expected to do as well carrying her!”</p>
+<p>“What if we send a mage in to retrieve her? That’s simple.”</p>
+<p>“Yes, but—wait a second. What’s that in his hands?”</p>
+<p>The mages stared. After a moment one exclaimed.</p>
+<p>“A rapier? Why’s he carrying <em>that?</em>”</p>
+<p>“We <em>told</em> them it was a combat test. And I suppose some of them heard the rumor about the Troll—”</p>
+<p>“If he wants to try and take it out with a rapier, that’s fine. But that’s not a display of mage combat—”</p>
+<p>“Hold on!”</p>
+<p>Some of the mages gasped as they saw Pisces blur with Ceria’s body in his hands. He stabbed backwards as the Troll lunged at him, and then ran the hulking beast through with his rapier. On one shoulder he carried Ceria’s unconscious body, in the other hand he held the rapier, thrusting it into the Troll’s eye.</p>
+<p>“Good strike!”</p>
+<p>“Look at that footwork! The Troll can’t touch him! He’ll take it down without a scratch!”</p>
+<p>“That [Flash Step] spell is being used superbly! Does he have any [Warrior] classes?”</p>
+<p>“He doesn’t need any. Look at his rapier.”</p>
+<p>That comment came from Illphres. The mages stared, and after a second one exclaimed.</p>
+<p>“A silver bell! Well, that explains that. If we’re looking at a [Swordmage] here, I say we accept him on the spot.”</p>
+<p>“Even if he doesn’t want to be one, this is a splendid example of mixing magic with conventional proficiencies. I agree!”</p>
+<p>Rievan stared helplessly as he watched Pisces run past the disintegrating Troll. Weapon in hand, the young man was speeding through the rest of the test almost too fast for the mages in charge to trigger the spells.</p>
+<p>“Silver bell? What’s so important about a silver bell?”</p>
+<p>“It means he is recognized as a true expert. It’s a Terandrian symbol of expertise.”</p>
+<p>Rievan jumped. He turned and stepped backwards from Illphres. She was smiling at him and he didn’t like it.</p>
+<p>“Indeed, Miss Illphres?”</p>
+<p>“Yes.”</p>
+<p>She nodded at Pisces.</p>
+<p>“He doesn’t have to have a [Fencer] class. A silver bell is given to those who reach a certain level in [Fencer], true, but it’s also given to those who have proven themselves by dueling a master. It’s worth a lot of money to some.”</p>
+<p>She turned back to watch Pisces. Rievan clenched his fists, but he comforted himself with the thought that even if Pisces passed, his performance would only serve to eclipse Ceria’s. Regardless of whether she finished the test, she had done nothing.</p>
+<p>And then the exams ended. Ceria woke up in her rooms two hours after it had finished, and cried a bit before Pisces and the others checked on her.</p>
+<p>&nbsp;</p>
+<p>&#8212;-</p>
+<p>&nbsp;</p>
+<p>“It really wasn’t your fault, Ceria.”</p>
+<p>Beatrice said that as they sat together in Ceria’s room. It was hard to fit everyone in. Besides Pisces, Beatrice, and Calvaron, some of their friends and people they’d gotten to know had come, like Cessic, to cheer Ceria up.</p>
+<p>The room was crowded, especially with Calvaron in it. He kept turning and finding nowhere to go. Now he stomped one hoof angrily.</p>
+<p>“It was that bastard Charles! I wouldn’t have believed he would try anything—the Libertarians have really done it now! There’s a row happening and I’ll protest what he did to the Council.”</p>
+<p>“I will too. But the mages won’t redo the test, Calvaron.”</p>
+<p>The Centaur deflated slightly.</p>
+<p>“No. They won’t. I’m sorry, Ceria. But they saw you during the first part, and you did really well.”</p>
+<p>“Yes, you did. And I’m sure they’ll take note.”</p>
+<p>Ceria tried to smile, and failed. She looked at Pisces. He was avoiding her gaze, toying awkwardly with the rapier in his hands.</p>
+<p>“I hear you carried me all the way to the end. Thank you, Pisces.”</p>
+<p>“And he set a record doing it! Dead gods, I heard about it! Some mages are using a [Mind Scene] spell to show others—Pisces was dodging traps left and right! He barely got touched by any! He’ll be sure to pass—”</p>
+<p>Calvaron broke off, awkwardly. All the other students in the room fell silent, but Ceria already knew the truth. She looked at Pisces.</p>
+<p>“Thank you. I’m glad you did it. And I’m glad you’ll pass. You deserve—you deserve to be here.”</p>
+<p>Ceria choked on the words. She felt like someone was tearing out her guts. Beatrice patted her softly on the shoulder.</p>
+<p>“You don’t know you failed. You did as well as anyone else. Better, in many parts.”</p>
+<p>But Ceria knew it was over. She knew it in her heart. She bore with the words of comfort and vows against Charles and the Libertarian party as long as she could, and then excused herself. Beatrice and Pisces offered to go with her, but Calvaron managed to get them to leave Ceria alone, which she was grateful for.</p>
+<p>All she wanted to be was alone. She’d failed. Her big chance had been right in front of her—</p>
+<p>And she’d failed.</p>
+<p>Ceria stumbled down the corridors of Wistram, deserted except for the occasional golem or older mage. All the students were celebrating or commiserating with one another. She used one cold stone wall for support as she wandering aimlessly.</p>
+<p>It wasn’t fair. Part of Ceria was raging. She wanted to kill Charles for attacking her. But why hadn’t she been ready? Why hadn’t she guessed he’d do something like this and taken precautions? She could have learned a barrier spell, or watched her back—</p>
+<p>“Stupid!”</p>
+<p>Ceria pounded her fist into a wall. She hit it again and again until her knuckles bled, but it didn’t help. Ceria walked on, full of despair. She wiped at her eyes and saw her tears mix with the blood.</p>
+<p>She wondered if she could ask Pisces for the spellbook when she left. Maybe he’d let her take it. That way, at least she wouldn’t have done all this for nothing.</p>
+<p>It was cold. Ceria shivered, and then looked up. She looked at a wall of ice, uncomprehending, until she stared about and realized where she was. Her path had taken her to the classrooms where they normally studied.</p>
+<p>This was the classroom Illphres had blocked off.</p>
+<p>“Get through if you’re a real mage and I’ll teach you, huh?”</p>
+<p>Ceria spat bitterly and raised her fist to punch the icy wall. But it would just freeze her skin and probably tear it off. She glared at the icy wall.</p>
+<p>It wasn’t that cold. It was just ice, but Illphres had made it impossible to break or melt. It was an unfair test, just like the rest of Wistram.</p>
+<p>Unfair. But what could she do about it? By now, Ceria knew Calvaron would have talked everyone into doing a bit of celebrating. She dreaded going to his room, where the party would be going on. He’d probably be pouring everyone a drink and showing them how to put salt on their stupid glasses—</p>
+<p>Wait a second. Ceria stopped as she had a thought. It was crazy, but…her eyes widened and Ceria dashed off through the halls.</p>
+<p>&nbsp;</p>
+<p>&#8212;-</p>
+<p>&nbsp;</p>
+<p>“You need <em>what?</em>”</p>
+<p>Calvaron stared at Ceria as she panted and tried to explain. He and Beatrice were standing outside of the large room they’d chosen to party in. Ceria could hear loud voices through the stone walls, but she had no time for drinking.</p>
+<p>“Please, Calvaron. I need to take some stuff out of the kitchens, but the [Cook] there said I needed to get permission from the head [Chef] or pay. And I don’t have the coin! Please—I’ll pay you back.”</p>
+<p>“Can it wait? We’re celebrating, Ceria! You should too!”</p>
+<p>Calvaron stared back towards the party. He pointed into the room.</p>
+<p>“Pisces is already drunk. I had to practically pour a bottle of wine down his throat so he wouldn’t go looking for you. Come on, whatever it is, it can wait!”</p>
+<p>“No, it can’t. Please, Calvaron. I know I don’t have anything I can trade you, but—”</p>
+<p>Beatrice looked at Ceria’s pleading face, and then nudged Calvaron. He blew out his cheeks, but nodded.</p>
+<p>“Oh—fine! Tell the [Cook] that you can take whatever you need. Put it on my account.”</p>
+<p>“Thank you! Thank you! Tell Pisces I’m fine! I’ve just got to go!”</p>
+<p>Ceria raced off. Calvaron watched her go and turned to Beatrice.</p>
+<p>“What in the name of the Great Companies was that, do you think?”</p>
+<p>Beatrice shrugged. She stared at the place where Ceria had been.</p>
+<p>“Should we go after her? She’s very upset.”</p>
+<p>“I don’t know. No—she’s got a plan. We’d better let her do what she needs to do and not draw attention. But see if the bookies will take another bet, will you? I’m thinking our dear Springwalker might have better odds than we think.”</p>
+<p>&nbsp;</p>
+<p>&#8212;-</p>
+<p>&nbsp;</p>
+<p>Wistram was quiet the day after the exams. Most students and mages were too hungover to do anything, and the ones who weren’t suffering were disinclined to do anything when making loud noises could get half a dozen spells cast at your face. Thus, it was only a few mages who gathered outside to practice their spells by the ocean.</p>
+<p>Illphres was raising pillars of ice and shattering them with the [Glacial Spear] spell when Ceria found her. The half-Elf panted as she raised a hand to touch Illphres.</p>
+<p>“Miss Illphres—”</p>
+<p>The woman turned faster than Ceria had ever seen her and stopped Ceria.</p>
+<p>“Do not touch me. What is it?”</p>
+<p>“Please, come with me.”</p>
+<p>“Why?”</p>
+<p>Illphres stared expressionlessly at Ceria. The half-Elf knew she was disheveled, hair mussed, and she knew she was grimy and still damp to boot. She tried to explain.</p>
+<p>“I did it. I did it. I got rid of the ice just like you said so can you come and see? So I can show you? The ice?”</p>
+<p>For a second Illphres just stared at Ceria, but then she nodded.</p>
+<p>“Very well. Show me.”</p>
+<p>&nbsp;</p>
+<p>&#8212;-</p>
+<p>&nbsp;</p>
+<p>No one was using the classrooms when Ceria led Illphres there. She had to slow her pace so Illphres could follow, although Ceria was bursting with impatience. Illphres didn’t move faster than a walk. The ice mage stopped though, when she saw the dripping hole in her ice wall.</p>
+<p>“Hm.”</p>
+<p>“I did it, you see?”</p>
+<p>Ceria practically danced in front of the melted ice, half-hysterical from exhaustion. She waved her arms and nearly cried out. Her muscles were beyond burning—they felt torn, and her fingers and hands were raw and practically numb.</p>
+<p>Illphres gazed at Ceria and then at the wall. She stared hard at the puddle on the stone ground, and noted the white stains on the floor. She looked at Ceria calmly and said one word.</p>
+<p>“Salt.”</p>
+<p>“Yes, salt!”</p>
+<p>Ceria pointed triumphantly to the nearly empty bag of salt, a huge sack she’d practically depleted after she’d taking it from Wistram’s kitchens. It was so simple. Salt.</p>
+<p>Salt melted ice. Ceria had used it to melt the ice, rubbing it on the frozen spell over and over and raising the heat with her own spells. She’d thought it was hopeless, but slowly, oh so slowly, the salt had helped dissolve the enchanted ice.</p>
+<p>“I created this ice wall to be impervious to any spells below Tier 4. But I didn’t expect anyone to actually use something like salt.”</p>
+<p>Illphres mused as she stared at the gap in her ice wall. Ceria stared at her, hopefully, desperately.</p>
+<p>“But I thought of it. It’s not magic, but you didn’t say I couldn’t use salt. So I pass, don’t I? You’ll teach me spells?”</p>
+<p>“There’s only three days before your probationary period ends.”</p>
+<p>Illphres turned to Ceria, expressionless. Ceria’s heart sank, and then the anger in her bubbled forth.</p>
+<p>“So? You said anyone who could get into your classroom you’ll teach magic! I’ll go in right now if you want!”</p>
+<p>“Spare me. But what kind of a mage uses <em>salt?</em>”</p>
+<p>“Me! I did it! I’ll do anything to learn magic.”</p>
+<p>“So I see.”</p>
+<p>“Please, teach me magic. I might not stay here, but I want to learn <em>something </em>powerful. Please, you promised!”</p>
+<p>Ceria found herself begging to Illphres and hated herself for it, but she was at the end of her rope. This was the only thing she could think of, the last straw she had to grasp at. If Illphres would teach her something, maybe Ceria could earn money as an adventurer and try again next year. Or if she didn’t, she’d at least have something from Wistram.</p>
+<p>For a long time the ice mage was silent. Her face was cold, like a mask, and Ceria could read nothing in her expression. For her part, Illphres looked the half-Elf in front of her up and down.</p>
+<p>Ceria was as old or older than Illphres was but still a young woman by her people’s standards. Her hands were red, the knuckles and skin on her palms crackled and bleeding from the intense cold and friction. She was desperate, begging.</p>
+<p>Illphres looked at the ice wall, the wall she’d created, sure that no student could break it on their own. Melted, not with a spell, but with salt and effort.</p>
+<p>“Tell me, girl. What makes you think a real mage would stoop to this? A real mage would strive towards the height of magic on her own, not rely on anyone else.”</p>
+<p>In front of her, Ceria took a deep shuddering breath. She looked up at Illphres, and there was a spark in her eyes of something more than determination.</p>
+<p>“I know that. But I can’t become a real mage on my own. You told me that real mages don’t need help. To forge my own path. Well, I found a way to melt your damn ice, but I still need help. I want to <em>become</em> a real mage, but I’m not going to be able to stay here. So teach me something now. Please.”</p>
+<p>Silence. Illphres stared at Ceria, and then nodded.</p>
+<p>“Interesting.”</p>
+<p>That was all. She turned away and began to walk from her classroom. Ceria jumped as the ice blocking it reformed in an instant. She called out to Illphres in despair.</p>
+<p>“Wait! Where are you going?”</p>
+<p>The ice mage made no reply. She walked away, and Ceria sunk to her knees in the cold corridor.</p>
+<p>That was it. It was over.</p>
+<p>Slowly, Ceria made her way back to her room. She crawled into bed and slept, too full of sadness to cry. She slept as she heard students stumbling out of her door, slept and willed herself never to wake.</p>
+<p>But someone did wake her. Someone hammered at her door and shouted when Ceria didn’t respond.</p>
+<p>“Ceria! <em>Ceria!</em> Are you in there? Get up! You passed! You did it! You <em>passed!</em>”</p>
+<p>“<em>What?</em>”</p>
+<p>Ceria leapt out of bed. She shoved open the door and nearly ran Pisces over. He gabbled at her and then gave up and both of them ran down the corridors, past students celebrating and crying and hugging each other. They came to the entrance hall and stared up at the floating words that danced and spun about in the massive room.</p>
+<p>It was a list. A list of names. Each one was a student. Ceria saw Pisces’ name on there, no last name given, and Charles de Trevalier’s, and Timon’s too. But she had no time for that. She looked up and down the list desperately, and then saw her name. It was right on the end, hovering in the air, slightly out of place, as if tacked on at the last minute.</p>
+<p><em>Ceria Springwalker.</em></p>
+<p>&nbsp;</p>
+<p>&#8212;-</p>
+<p>&nbsp;</p>
+<p>Ceria didn’t know what happened after that. She had a brief image of herself kissing Pisces on the cheek, hugging him, and then running to find Calvaron and Beatrice and hugging and crying some more. She only knew that at some point after the banquet and speeches and eating she found Illphres. Or rather, the mage found her.</p>
+<p>The bathrooms in Wistram were magical as with everything else, but Ceria was far too drunk to appreciate them at the moment. She staggered out of one and nearly ran into Illphres. The ice mage was waiting for her, and scaring away all the other students who wanted to use the bathroom.</p>
+<p>“I keep my promises.”</p>
+<p>That was all she said. Ceria stared at her, and burst into tears. Illphres looked slightly surprised. That was to say, her eyes widened, although the lower half of her face didn’t change.</p>
+<p>“Stop that.”</p>
+<p>“Thank you!”</p>
+<p>“Don’t thank me. You broke my enchantment.”</p>
+<p>“But you—you—”</p>
+<p>Ceria sniveled and Illphres rolled her eyes.</p>
+<p>“Tomorrow, class will be held in my quarters. Find your way there. Do not be drunk or late. If any of your friends manage to melt the ice I will teach them too.”</p>
+<p>“Pisces will come.”</p>
+<p>Ceria said that instantly. Illphres paused.</p>
+<p>“I see. Will all the other students come? It is a valuable…secret you have. It might be worth much. What will you do with it, let everyone pass my test?”</p>
+<p>“I don’t know. I don’t know what I’ll do with it. I owe someone—but Pisces will come.”</p>
+<p>“So you will help your friend, to pass my test? I wonder, will you drag yourself down by pulling other people up?”</p>
+<p>It was a question that wasn’t really a question, but Ceria had an answer ready. She smiled through watery eyes at Illphres.</p>
+<p>“Real mages help each other. We don’t abandon each other.”</p>
+<p>The ice mage stared at Ceria for a long time. Then she passed a hand over the lower half of her face, obscuring her mouth. When she lowered her hand, Ceria saw she was smiling ever so slightly.</p>
+<p>“So I’ve noticed.”</p>
+<p>She turned and walked away. Ceria smiled at her back, and bowed ever so slightly. Then she ran to find Pisces. She had to drink more, and tell him—and maybe Calvaron—everything. After all, she didn’t want to be in Illphres’ class alone tomorrow. She wanted to learn everything with Pisces. At last, they had time.</p>
+<p>At last, they were true mages of Wistram.</p>
+<p>&nbsp;</p>
+<hr />
+<p><a href="https://wanderinginn.wordpress.com/2017/11/11/wistram-days-pt-3/">Previous Chapter</a> <a href="https://wanderinginn.wordpress.com/2017/11/14/wistram-days-pt-5/"><span style="float:right;">Next Chapter</span></a></p>
+<p>&nbsp;</p>
+			</div><!-- .entry-content -->
+
+	<footer class="entry-meta">
+		This entry was posted in <a href="https://wanderinginn.com/tag/writing/" rel="category tag">Writing</a> and tagged <a href="https://wanderinginn.com/tag/fantasy/" rel="tag">fantasy</a>, <a href="https://wanderinginn.com/tag/inn/" rel="tag">inn</a>, <a href="https://wanderinginn.com/tag/web-novel/" rel="tag">web novel</a>, <a href="https://wanderinginn.com/tag/web-serial/" rel="tag">web serial</a>, <a href="https://wanderinginn.com/tag/writing/" rel="tag">Writing</a> by <a href="https://wanderinginn.com/author/pirateaba/">pirateaba</a>. Bookmark the <a href="https://wanderinginn.com/2017/11/12/wistram-days-pt-4/" title="Permalink to Wistram Days (Pt.&nbsp;4)" rel="bookmark">permalink</a>.
+		
+			</footer><!-- .entry-meta -->
+</article><!-- #post-3716 -->
+
+						<div id="comments">
+	
+	
+			<h2 id="comments-title">
+			34 thoughts on &ldquo;<span>Wistram Days (Pt.&nbsp;4)</span>&rdquo;		</h2>
+
+		
+		<ol class="commentlist">
+					<li class="comment byuser comment-author-pirateaba bypostauthor even thread-even depth-1 highlander-comment" id="li-comment-8386">
+		<article id="comment-8386" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/2f8ac70cd17f11c419846c441769523b?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn"><a href='http://pirateaba.wordpress.com' rel='external nofollow ugc' class='url'>pirateaba</a></span> on <a href="https://wanderinginn.com/2017/11/12/wistram-days-pt-4/#comment-8386"><time datetime="2017-11-12T04:38:13+00:00">November 12, 2017 at 4:38 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Don&#8217;t worry, I&#8217;m not planning on writing out their entire first year. After this the plot should move faster, which will delight some and disappoint people who liked Wistram Days as a story.</p>
+<p>I&#8217;ve gotten a few comments from people who tell me they just don&#8217;t like histories like the Antinium Wars. That&#8217;s totally fine; I never read any of Tolkein&#8217;s additional books like the Silmarillion, and I can appreciate it&#8217;s not for everyone. For now I&#8217;m afraid you&#8217;ll have to live with at least two more chapters of Wistram Days so I can finish the plot.</p>
+<p>I personally like mages, and magic, but I&#8217;d really hate living in Wistram. Sneaky mages doing secret things and playing power games is a bit too close to reality for my taste. Hogwarts or bust! I&#8217;d love to be in Ravenclaw. Hope you enjoy this chapter and as always, thanks for reading!</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/11/12/wistram-days-pt-4/?replytocom=8386#respond' data-commentid="8386" data-postid="3716" data-belowelement="comment-8386" data-respondelement="respond" data-replyto="Reply to pirateaba" aria-label='Reply to pirateaba'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment byuser comment-author-ftaku odd alt depth-2 highlander-comment" id="li-comment-8396">
+		<article id="comment-8396" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/1d3da3e06cd42a10e8f7f8197415158c?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn"><a href='http://ftaku.wordpress.com' rel='external nofollow ugc' class='url'>ftaku</a></span> on <a href="https://wanderinginn.com/2017/11/12/wistram-days-pt-4/#comment-8396"><time datetime="2017-11-12T08:36:16+00:00">November 12, 2017 at 8:36 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>I personally like the antinium wars especially because i believe that the info we learn will be relevant to the main story and let us understand many things. I like the wistram chapters too and am overjoyed by this chapter</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/11/12/wistram-days-pt-4/?replytocom=8396#respond' data-commentid="8396" data-postid="3716" data-belowelement="comment-8396" data-respondelement="respond" data-replyto="Reply to ftaku" aria-label='Reply to ftaku'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment even depth-2 highlander-comment" id="li-comment-8409">
+		<article id="comment-8409" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/c9b91237e3decf186175d2f5eca9b0cb?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">Jonnnney</span> on <a href="https://wanderinginn.com/2017/11/12/wistram-days-pt-4/#comment-8409"><time datetime="2017-11-12T18:09:32+00:00">November 12, 2017 at 6:09 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>I enjoy most everything you write. Wistram it is a key player in  the world.  How Ceria and Pisces got kicked out is important to their character arcs and will likely give more insight into Toren&#8217;s creation. My main concern with Wistram is that it would take 15 chapters away from the main storyline to finish, but 2 chapters is certainly a fair trade for the collusion of the story.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/11/12/wistram-days-pt-4/?replytocom=8409#respond' data-commentid="8409" data-postid="3716" data-belowelement="comment-8409" data-respondelement="respond" data-replyto="Reply to Jonnnney" aria-label='Reply to Jonnnney'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-1024dp odd alt depth-2 highlander-comment" id="li-comment-8420">
+		<article id="comment-8420" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/cb474ea3c637db7230457c2b941c8fc2?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn"><a href='http://thoughtsideaswords.wordpress.com' rel='external nofollow ugc' class='url'>1024dp</a></span> on <a href="https://wanderinginn.com/2017/11/12/wistram-days-pt-4/#comment-8420"><time datetime="2017-11-13T12:11:49+00:00">November 13, 2017 at 12:11 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Technically, the Silmarillion is not an &#8220;additional book&#8221;. The great history, starting with Illuvatar and the creation, actually came first. When Tolkien wrote The Hobbit, and later The Lord of the Rings, he was essentially extracting and expanding on parts of an already existing work.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/11/12/wistram-days-pt-4/?replytocom=8420#respond' data-commentid="8420" data-postid="3716" data-belowelement="comment-8420" data-respondelement="respond" data-replyto="Reply to 1024dp" aria-label='Reply to 1024dp'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-1024dp even depth-2 highlander-comment" id="li-comment-8421">
+		<article id="comment-8421" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/cb474ea3c637db7230457c2b941c8fc2?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn"><a href='http://thoughtsideaswords.wordpress.com' rel='external nofollow ugc' class='url'>1024dp</a></span> on <a href="https://wanderinginn.com/2017/11/12/wistram-days-pt-4/#comment-8421"><time datetime="2017-11-13T12:18:46+00:00">November 13, 2017 at 12:18 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>As for Wistram, well you&#8217;ve got your own Silmarillion. You&#8217;ve obviously got an inkling (heh) of how things got the way they are, and i&#8217;m greedy to find out as much of it as possible. So go on, write about Wistram. And the Emperor. And the fairies and their travels between worlds. And the hatching of Teriarch and how he got his first coin. And the passing of the elves. And and and&#8230;</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/11/12/wistram-days-pt-4/?replytocom=8421#respond' data-commentid="8421" data-postid="3716" data-belowelement="comment-8421" data-respondelement="respond" data-replyto="Reply to 1024dp" aria-label='Reply to 1024dp'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment odd alt depth-2 highlander-comment" id="li-comment-88578">
+		<article id="comment-88578" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/0444cc2d15feb3c4da0b51b077cb9a34?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">Some Jerk</span> on <a href="https://wanderinginn.com/2017/11/12/wistram-days-pt-4/#comment-88578"><time datetime="2020-08-15T08:46:41+00:00">August 15, 2020 at 8:46 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>At least the chapter title is a warning.  I typically just skim what I can in like 1 minute and click to next page.  I think it would be better though if they were in a separate book, perhaps you could put all of your side stories into an anthology.  I would read it&#8230; but would prefer to finish one story at a time.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/11/12/wistram-days-pt-4/?replytocom=88578#respond' data-commentid="88578" data-postid="3716" data-belowelement="comment-88578" data-respondelement="respond" data-replyto="Reply to Some Jerk" aria-label='Reply to Some Jerk'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-pirateaba bypostauthor even thread-odd thread-alt depth-1 highlander-comment" id="li-comment-8387">
+		<article id="comment-8387" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/2f8ac70cd17f11c419846c441769523b?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn"><a href='http://pirateaba.wordpress.com' rel='external nofollow ugc' class='url'>pirateaba</a></span> on <a href="https://wanderinginn.com/2017/11/12/wistram-days-pt-4/#comment-8387"><time datetime="2017-11-12T04:39:19+00:00">November 12, 2017 at 4:39 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Pass the [Grammarmancer] exam by leaving a comment with a typo!</p>
+<p>(Grammarmancer readers: Waytfmfm, HiddenFire, ftaku, ReaverOf, Dertyer, 1024dp, Zelemir, Ocean23, i, SkrmnMrgsm, flabort, Pisces, Louis Glick, tyriantybalt)</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/11/12/wistram-days-pt-4/?replytocom=8387#respond' data-commentid="8387" data-postid="3716" data-belowelement="comment-8387" data-respondelement="respond" data-replyto="Reply to pirateaba" aria-label='Reply to pirateaba'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment odd alt depth-2 highlander-comment" id="li-comment-9172">
+		<article id="comment-9172" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/bbf7e13e161354fb4a13b494fad4b51d?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">Pisces</span> on <a href="https://wanderinginn.com/2017/11/12/wistram-days-pt-4/#comment-9172"><time datetime="2017-12-13T21:30:42+00:00">December 13, 2017 at 9:30 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>I just googled wether &#8220;hungover&#8221; should be written together or separately and the sites I visited indicate that both are viable options.</p>
+<p>dailywritingtips has written :<em>The adjective is hyphenated as hung-over in the OED. Merriam-Webster prefers the closed compound hungover, but allows hung over as an alternative. The Oxford Australian dictionary gives hung-over, and the Oxford Canadian dictionary gives hungover. The spelling and grammar feature in Microsoft Word recommends either hung-over or hung over.</em></p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/11/12/wistram-days-pt-4/?replytocom=9172#respond' data-commentid="9172" data-postid="3716" data-belowelement="comment-9172" data-respondelement="respond" data-replyto="Reply to Pisces" aria-label='Reply to Pisces'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment even depth-2 highlander-comment" id="li-comment-106842">
+		<article id="comment-106842" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/59c565b9837b0d95b7f987ad6e95fec4?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">infiniplex</span> on <a href="https://wanderinginn.com/2017/11/12/wistram-days-pt-4/#comment-106842"><time datetime="2021-06-16T00:23:04+00:00">June 16, 2021 at 12:23 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>&#8220;Ceria had to do everything from repeat lessons on magical theory to demonstrate spells they’d learned&#8221;<br />
+Possible subject/verb number agreement here.  Unless Ceria is deliberately getting a singular &#8220;they&#8221; (which she usually doesn&#8217;t).</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/11/12/wistram-days-pt-4/?replytocom=106842#respond' data-commentid="106842" data-postid="3716" data-belowelement="comment-106842" data-respondelement="respond" data-replyto="Reply to infiniplex" aria-label='Reply to infiniplex'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment odd alt depth-2 highlander-comment" id="li-comment-107675">
+		<article id="comment-107675" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/c57e4db7f4ebb5bf88645041e20009ec?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">YellowTM</span> on <a href="https://wanderinginn.com/2017/11/12/wistram-days-pt-4/#comment-107675"><time datetime="2021-06-29T19:48:12+00:00">June 29, 2021 at 7:48 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Ceria saw Pisces’ name on there, no last name given, and Charles de Trevalier’s, and Timon’s too.</p>
+<p>Timon =&gt; Timor</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/11/12/wistram-days-pt-4/?replytocom=107675#respond' data-commentid="107675" data-postid="3716" data-belowelement="comment-107675" data-respondelement="respond" data-replyto="Reply to YellowTM" aria-label='Reply to YellowTM'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment even depth-2 highlander-comment" id="li-comment-124672">
+		<article id="comment-124672" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/152a5c3bbfa47be1d3dcb446150b9362?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">Aerilee</span> on <a href="https://wanderinginn.com/2017/11/12/wistram-days-pt-4/#comment-124672"><time datetime="2022-03-31T20:35:34+00:00">March 31, 2022 at 8:35 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Both mages poured over the spellbook they’d taken from the library<br />
+Poured -&gt; pored</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/11/12/wistram-days-pt-4/?replytocom=124672#respond' data-commentid="124672" data-postid="3716" data-belowelement="comment-124672" data-respondelement="respond" data-replyto="Reply to Aerilee" aria-label='Reply to Aerilee'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-even depth-1 highlander-comment" id="li-comment-8444">
+		<article id="comment-8444" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/f17e70effc51965ea2bf3b731b415321?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Russell</span> on <a href="https://wanderinginn.com/2017/11/12/wistram-days-pt-4/#comment-8444"><time datetime="2017-11-14T14:42:08+00:00">November 14, 2017 at 2:42 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>I&#8217;m pretty sure that after reading all of this I totally ship Pisces and Ceria.  The only question is, how did they go from almost best friends to mere acquaintances with an inclination towards each other?</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/11/12/wistram-days-pt-4/?replytocom=8444#respond' data-commentid="8444" data-postid="3716" data-belowelement="comment-8444" data-respondelement="respond" data-replyto="Reply to Russell" aria-label='Reply to Russell'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment even depth-2 highlander-comment" id="li-comment-8506">
+		<article id="comment-8506" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/6157cf9d7e8c68f1f7785f6e3e176a32?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">Sparsebeard</span> on <a href="https://wanderinginn.com/2017/11/12/wistram-days-pt-4/#comment-8506"><time datetime="2017-11-17T19:57:42+00:00">November 17, 2017 at 7:57 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Well, one of them is a [Necromancer] and the other has shown herself to be pretty jugemental and somewhat petty&#8230;</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/11/12/wistram-days-pt-4/?replytocom=8506#respond' data-commentid="8506" data-postid="3716" data-belowelement="comment-8506" data-respondelement="respond" data-replyto="Reply to Sparsebeard" aria-label='Reply to Sparsebeard'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-8450">
+		<article id="comment-8450" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/afcb8f5ff250303160e6f803bf83acef?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Fanon</span> on <a href="https://wanderinginn.com/2017/11/12/wistram-days-pt-4/#comment-8450"><time datetime="2017-11-14T17:20:49+00:00">November 14, 2017 at 5:20 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>I&#8217;m really enjoying Wistram Days, but I can&#8217;t let myself truly enjoy it all the way, because I just /know/ something terrible will happen that leads to them leaving the Academy. </p>
+<p>I keep dreading terrible things will happen to them, and I&#8217;m not sure why. </p>
+<p>Maybe because Wandering Inn as a whole seems to have characters only ever grow stronger after nearly dying/losing everything/horrific tragedy</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/11/12/wistram-days-pt-4/?replytocom=8450#respond' data-commentid="8450" data-postid="3716" data-belowelement="comment-8450" data-respondelement="respond" data-replyto="Reply to Fanon" aria-label='Reply to Fanon'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-euodiachloris even thread-even depth-1 highlander-comment" id="li-comment-8456">
+		<article id="comment-8456" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/d1b85f0e3558b890559682f91dc13615?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn"><a href='http://euodiachloris.wordpress.com' rel='external nofollow ugc' class='url'>Euodiachloris</a></span> on <a href="https://wanderinginn.com/2017/11/12/wistram-days-pt-4/#comment-8456"><time datetime="2017-11-14T18:47:26+00:00">November 14, 2017 at 6:47 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Well, a lot about how standards have fallen has been explained without writing a full history of the place.</p>
+<p>Also about how no new [Archmages] have turned up in years: the factions practically guarantee nobody learns enough about key areas, even without the upper levels being blocked off.</p>
+<p>Let me guess: nobody has thought to ask the golems for lessons? :P</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/11/12/wistram-days-pt-4/?replytocom=8456#respond' data-commentid="8456" data-postid="3716" data-belowelement="comment-8456" data-respondelement="respond" data-replyto="Reply to Euodiachloris" aria-label='Reply to Euodiachloris'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment byuser comment-author-sengachi odd alt depth-2 highlander-comment" id="li-comment-8471">
+		<article id="comment-8471" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/f6e9c7daf766807f1ae658ecdccd2330?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn"><a href='http://sengachiwrites.wordpress.com' rel='external nofollow ugc' class='url'>sengachi</a></span> on <a href="https://wanderinginn.com/2017/11/12/wistram-days-pt-4/#comment-8471"><time datetime="2017-11-15T05:52:05+00:00">November 15, 2017 at 5:52 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Someone should really ask the golems &#8220;how would I go about joining Archmage Zelkyr&#8217;s group?&#8221;.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/11/12/wistram-days-pt-4/?replytocom=8471#respond' data-commentid="8471" data-postid="3716" data-belowelement="comment-8471" data-respondelement="respond" data-replyto="Reply to sengachi" aria-label='Reply to sengachi'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment even depth-2 highlander-comment" id="li-comment-8507">
+		<article id="comment-8507" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/6157cf9d7e8c68f1f7785f6e3e176a32?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">Sparsebeard</span> on <a href="https://wanderinginn.com/2017/11/12/wistram-days-pt-4/#comment-8507"><time datetime="2017-11-17T20:02:04+00:00">November 17, 2017 at 8:02 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Cognita must be truly frightning, to be fair.</p>
+<p>I mean, she the most powerful being in wistram and wistram is one of the major power&#8230;</p>
+<p>Wouldn&#8217;t be surprised if she&#8217;s one of the top ten most powerful beings known to the masses (you never know how many hidden experts there are : gods, dragons, elementals, old freaks, etc.)</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/11/12/wistram-days-pt-4/?replytocom=8507#respond' data-commentid="8507" data-postid="3716" data-belowelement="comment-8507" data-respondelement="respond" data-replyto="Reply to Sparsebeard" aria-label='Reply to Sparsebeard'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment odd alt depth-3 highlander-comment" id="li-comment-8534">
+		<article id="comment-8534" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/bbf7e13e161354fb4a13b494fad4b51d?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">Pisces</span> on <a href="https://wanderinginn.com/2017/11/12/wistram-days-pt-4/#comment-8534"><time datetime="2017-11-18T20:10:52+00:00">November 18, 2017 at 8:10 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Yeah, the wistram mages should stand no chance at all.<br />
+Together with her fellow Golems she managed to beat/kill a group of [Archmages]. What threat could those who haven&#8217;t even reached that class pose .</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/11/12/wistram-days-pt-4/?replytocom=8534#respond' data-commentid="8534" data-postid="3716" data-belowelement="comment-8534" data-respondelement="respond" data-replyto="Reply to Pisces" aria-label='Reply to Pisces'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		<li class="comment even thread-odd thread-alt depth-1 highlander-comment" id="li-comment-8461">
+		<article id="comment-8461" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/23e93d6717e64004cdbd23d2efd40b05?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">pato</span> on <a href="https://wanderinginn.com/2017/11/12/wistram-days-pt-4/#comment-8461"><time datetime="2017-11-14T21:31:14+00:00">November 14, 2017 at 9:31 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Hell yeah. I was looking forward to this chapter all day.</p>
+<p>3 days until the next update&#8230;</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/11/12/wistram-days-pt-4/?replytocom=8461#respond' data-commentid="8461" data-postid="3716" data-belowelement="comment-8461" data-respondelement="respond" data-replyto="Reply to pato" aria-label='Reply to pato'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment odd alt thread-even depth-1 highlander-comment" id="li-comment-8480">
+		<article id="comment-8480" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/02d3ec2e3ffe8165bedcbf4ef761c478?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">The Sandman</span> on <a href="https://wanderinginn.com/2017/11/12/wistram-days-pt-4/#comment-8480"><time datetime="2017-11-15T15:45:55+00:00">November 15, 2017 at 3:45 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>On its own, necromancy doesn&#8217;t seem like it would be sufficient to get a person expelled from Wistram, especially when they&#8217;re as generally talented as Pisces.</p>
+<p>Best guess, he did something with it related to Archmage Zelkyr in order to get access to the upper floors of Wistram.</p>
+<p>As for Ceria, was it ever explicitly stated that she was also expelled from Wistram?  As far as I can recall, that was only the case with Pisces.  If she left to stand by her friend (or more than friend), only to find that he values his necromantic research over even her friendship and what she sacrificed to keep it, that would pretty thoroughly poison that relationship.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/11/12/wistram-days-pt-4/?replytocom=8480#respond' data-commentid="8480" data-postid="3716" data-belowelement="comment-8480" data-respondelement="respond" data-replyto="Reply to The Sandman" aria-label='Reply to The Sandman'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment even depth-2 highlander-comment" id="li-comment-8535">
+		<article id="comment-8535" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/bbf7e13e161354fb4a13b494fad4b51d?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">Pisces</span> on <a href="https://wanderinginn.com/2017/11/12/wistram-days-pt-4/#comment-8535"><time datetime="2017-11-18T20:12:33+00:00">November 18, 2017 at 8:12 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>She wasn&#8217;t expelled. She had to drop out, because she lacked the necessary funds.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/11/12/wistram-days-pt-4/?replytocom=8535#respond' data-commentid="8535" data-postid="3716" data-belowelement="comment-8535" data-respondelement="respond" data-replyto="Reply to Pisces" aria-label='Reply to Pisces'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-8483">
+		<article id="comment-8483" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/5762168f3afd473738f660434a205601?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn"><a href='http://www.theapprenticelibrarian.jimdo.com' rel='external nofollow ugc' class='url'>Algernon Crane</a></span> on <a href="https://wanderinginn.com/2017/11/12/wistram-days-pt-4/#comment-8483"><time datetime="2017-11-15T18:27:40+00:00">November 15, 2017 at 6:27 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Did anyone catch the Harry Potter easter egg?</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/11/12/wistram-days-pt-4/?replytocom=8483#respond' data-commentid="8483" data-postid="3716" data-belowelement="comment-8483" data-respondelement="respond" data-replyto="Reply to Algernon Crane" aria-label='Reply to Algernon Crane'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment byuser comment-author-springmage even depth-2 highlander-comment" id="li-comment-8488">
+		<article id="comment-8488" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/626e754c4de8be273574b7cea16b11e4?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn"><a href='http://arcsns.wordpress.com' rel='external nofollow ugc' class='url'>springmage</a></span> on <a href="https://wanderinginn.com/2017/11/12/wistram-days-pt-4/#comment-8488"><time datetime="2017-11-16T02:02:06+00:00">November 16, 2017 at 2:02 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>I think i did. Is it about a certain body of water?</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/11/12/wistram-days-pt-4/?replytocom=8488#respond' data-commentid="8488" data-postid="3716" data-belowelement="comment-8488" data-respondelement="respond" data-replyto="Reply to springmage" aria-label='Reply to springmage'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment odd alt depth-3 highlander-comment" id="li-comment-8491">
+		<article id="comment-8491" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/5762168f3afd473738f660434a205601?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn"><a href='http://www.theapprenticelibrarian.jimdo.com' rel='external nofollow ugc' class='url'>Algernon Crane</a></span> on <a href="https://wanderinginn.com/2017/11/12/wistram-days-pt-4/#comment-8491"><time datetime="2017-11-16T10:02:49+00:00">November 16, 2017 at 10:02 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Nope. Try again.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/11/12/wistram-days-pt-4/?replytocom=8491#respond' data-commentid="8491" data-postid="3716" data-belowelement="comment-8491" data-respondelement="respond" data-replyto="Reply to Algernon Crane" aria-label='Reply to Algernon Crane'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment even depth-3 highlander-comment" id="li-comment-8492">
+		<article id="comment-8492" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/5762168f3afd473738f660434a205601?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn"><a href='http://www.theapprenticelibrarian.jimdo.com' rel='external nofollow ugc' class='url'>Algernon Crane</a></span> on <a href="https://wanderinginn.com/2017/11/12/wistram-days-pt-4/#comment-8492"><time datetime="2017-11-16T10:03:14+00:00">November 16, 2017 at 10:03 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>I mean, maybe there&#8217;s another one I didn&#8217;t catch concerning a body of water, for all I know, but it&#8217;s not what I&#8217;m talking about.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/11/12/wistram-days-pt-4/?replytocom=8492#respond' data-commentid="8492" data-postid="3716" data-belowelement="comment-8492" data-respondelement="respond" data-replyto="Reply to Algernon Crane" aria-label='Reply to Algernon Crane'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		<li class="comment odd alt thread-even depth-1 highlander-comment" id="li-comment-8484">
+		<article id="comment-8484" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/dd0145004ae58fd55215a2d66763af82?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Sablonus</span> on <a href="https://wanderinginn.com/2017/11/12/wistram-days-pt-4/#comment-8484"><time datetime="2017-11-15T19:06:01+00:00">November 15, 2017 at 7:06 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Going to be honest here, Imlooking forward more to that Engineer that was mentioned to be in Wistram in the Chat Room chapter.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/11/12/wistram-days-pt-4/?replytocom=8484#respond' data-commentid="8484" data-postid="3716" data-belowelement="comment-8484" data-respondelement="respond" data-replyto="Reply to Sablonus" aria-label='Reply to Sablonus'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment even depth-2 highlander-comment" id="li-comment-8485">
+		<article id="comment-8485" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/02d3ec2e3ffe8165bedcbf4ef761c478?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">The Sandman</span> on <a href="https://wanderinginn.com/2017/11/12/wistram-days-pt-4/#comment-8485"><time datetime="2017-11-15T19:48:47+00:00">November 15, 2017 at 7:48 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>He couldn&#8217;t come, a Spy was sapping his sentry.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/11/12/wistram-days-pt-4/?replytocom=8485#respond' data-commentid="8485" data-postid="3716" data-belowelement="comment-8485" data-respondelement="respond" data-replyto="Reply to The Sandman" aria-label='Reply to The Sandman'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-dickinsd68 odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-8496">
+		<article id="comment-8496" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/6a2ca2aca3a9df1587ad7e8956f69899?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn"><a href='http://dickinsd68.wordpress.com' rel='external nofollow ugc' class='url'>dickinsd68</a></span> on <a href="https://wanderinginn.com/2017/11/12/wistram-days-pt-4/#comment-8496"><time datetime="2017-11-16T20:39:17+00:00">November 16, 2017 at 8:39 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Thanks again for the fun.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/11/12/wistram-days-pt-4/?replytocom=8496#respond' data-commentid="8496" data-postid="3716" data-belowelement="comment-8496" data-respondelement="respond" data-replyto="Reply to dickinsd68" aria-label='Reply to dickinsd68'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-lordoflogic even thread-even depth-1 highlander-comment" id="li-comment-8505">
+		<article id="comment-8505" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/c1d29221e08461d43c28ddb8245280ab?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn"><a href='http://magicadventurefantasyscifi.wordpress.com' rel='external nofollow ugc' class='url'>lordoflogic</a></span> on <a href="https://wanderinginn.com/2017/11/12/wistram-days-pt-4/#comment-8505"><time datetime="2017-11-17T17:34:38+00:00">November 17, 2017 at 5:34 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Random misplaced comment: Will Teriarch go to Earth to find this &#8216;Internet&#8217;?</p>
+<p>That would be fun.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/11/12/wistram-days-pt-4/?replytocom=8505#respond' data-commentid="8505" data-postid="3716" data-belowelement="comment-8505" data-respondelement="respond" data-replyto="Reply to lordoflogic" aria-label='Reply to lordoflogic'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-8537">
+		<article id="comment-8537" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/405501a8ea46240df54a1bfc035a0e6d?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Procentius</span> on <a href="https://wanderinginn.com/2017/11/12/wistram-days-pt-4/#comment-8537"><time datetime="2017-11-18T21:25:21+00:00">November 18, 2017 at 9:25 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>I really can&#8217;t make myself read the wistram day`s side stories. To me there annoying, I wanna learn more about the actual stories.</p>
+<p>But its weird the other side stories I all liked! Must be that this happend in the past and doesn&#8217;t feel like its needed in the main stories as much.</p>
+<p>No offence its prob. good!</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/11/12/wistram-days-pt-4/?replytocom=8537#respond' data-commentid="8537" data-postid="3716" data-belowelement="comment-8537" data-respondelement="respond" data-replyto="Reply to Procentius" aria-label='Reply to Procentius'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="li-comment-8632">
+		<article id="comment-8632" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/bdd8cbf5e1c5cc29e232636415753927?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">tlhonmey</span> on <a href="https://wanderinginn.com/2017/11/12/wistram-days-pt-4/#comment-8632"><time datetime="2017-11-22T21:47:38+00:00">November 22, 2017 at 9:47 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Given that the original challenge was merely to gain entry to the classroom, not specifically to melt the ice, I was rather expecting her to punch a hole in the wall.</p>
+<p>Everybody makes the doors big and tough but then forgets to reinforce the standard wall next to it&#8230;</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/11/12/wistram-days-pt-4/?replytocom=8632#respond' data-commentid="8632" data-postid="3716" data-belowelement="comment-8632" data-respondelement="respond" data-replyto="Reply to tlhonmey" aria-label='Reply to tlhonmey'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-gregormcmac odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-13348">
+		<article id="comment-13348" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/50d15b71e4aaf86d59ad978e7719bc60?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn"><a href='http://gregormcmac.wordpress.com' rel='external nofollow ugc' class='url'>gregormcmac</a></span> on <a href="https://wanderinginn.com/2017/11/12/wistram-days-pt-4/#comment-13348"><time datetime="2018-05-03T21:09:59+00:00">May 3, 2018 at 9:09 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Typo:<br />
+kissing Pisces on the check,  [cheek]</p>
+<p>I like the backstories.  There&#8217;s so many threads and we haven&#8217;t gotten back to a few of them in a while.</p>
+<p>Keep up the good work and thanks for the chapter!  ^_^</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/11/12/wistram-days-pt-4/?replytocom=13348#respond' data-commentid="13348" data-postid="3716" data-belowelement="comment-13348" data-respondelement="respond" data-replyto="Reply to gregormcmac" aria-label='Reply to gregormcmac'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="li-comment-59988">
+		<article id="comment-59988" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/b4615c0f066b3049dcb04379549e4d58?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Onyavar</span> on <a href="https://wanderinginn.com/2017/11/12/wistram-days-pt-4/#comment-59988"><time datetime="2019-05-28T21:28:03+00:00">May 28, 2019 at 9:28 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Wistram days pt. 1:<br />
+&#8220;Ceria found her room was wide and spacious, filled with an old four-poster bed and a mirror and dresser in her room. Pisces had a much smaller room, but for some reason his came with a balcony that extended outside.&#8221;</p>
+<p>This chapter has at least two mentions that Pisces&#8217; room is both BIGGER and has a balcony. And more logic is put into that as well with his Flashstep. So to solve this inconsistency, maybe make Pisces&#8217; room bigger in pt.1, but Ceria&#8217;s more luxurious?</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/11/12/wistram-days-pt-4/?replytocom=59988#respond' data-commentid="59988" data-postid="3716" data-belowelement="comment-59988" data-respondelement="respond" data-replyto="Reply to Onyavar" aria-label='Reply to Onyavar'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-ricoanthony16 odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-93927">
+		<article id="comment-93927" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/5c0e3677d73e1d4778c6fc4bc6ccc3a7?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn"><a href='http://ricoanthony16.wordpress.com' rel='external nofollow ugc' class='url'>ricoanthony16</a></span> on <a href="https://wanderinginn.com/2017/11/12/wistram-days-pt-4/#comment-93927"><time datetime="2020-11-20T08:08:01+00:00">November 20, 2020 at 8:08 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Pisces was talking with another Human—a young man Ceria recognized with a sinking feeling in her stomach. He had a pointy noise and far too gangly legs in her opinion, but he was attired in rich, colorful clothing like a [Lord].<br />
+Pointy nose?</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/11/12/wistram-days-pt-4/?replytocom=93927#respond' data-commentid="93927" data-postid="3716" data-belowelement="comment-93927" data-respondelement="respond" data-replyto="Reply to ricoanthony16" aria-label='Reply to ricoanthony16'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		</ol>
+
+		
+		
+	
+		<div id="respond" class="comment-respond">
+		<h3 id="reply-title" class="comment-reply-title">Leave a Reply <small><a rel="nofollow" id="cancel-comment-reply-link" href="/2017/11/12/wistram-days-pt-4/#respond" style="display:none;">Cancel reply</a></small></h3><form action="https://wanderinginn.com/wp-comments-post.php" method="post" id="commentform" class="comment-form"><input type="hidden" id="highlander_comment_nonce" name="highlander_comment_nonce" value="bd33e1bdd8" /><input type="hidden" name="_wp_http_referer" value="/2017/11/12/wistram-days-pt-4/" />
+<input type="hidden" name="hc_post_as" id="hc_post_as" value="guest" />
+
+<div class="comment-form-field comment-textarea">
+	<label for="comment">Enter your comment here...</label>
+	<div id="comment-form-comment"><textarea id="comment" name="comment" title="Enter your comment here..."></textarea></div>
+</div>
+
+<div id="comment-form-identity">
+	<div id="comment-form-nascar">
+		<p>Fill in your details below or click an icon to log in:</p>
+		<ul>
+			<li class="selected" style="display:none;">
+				<a href="#comment-form-guest" id="postas-guest" class="nascar-signin-link"
+				 title="Login via Guest" 				>
+									</a>
+			</li>
+			<li>
+				<a href="#comment-form-load-service:WordPress.com" id="postas-wordpress" class="nascar-signin-link"
+				 title="Login via WordPress.com" 				>
+					<svg xmlns="http://www.w3.org/2000/svg" role="presentation" viewBox="0 0 24 24" ><rect x="0" fill="none" width="24" height="24"/><g><path fill="#FFF" d="M12.158 12.786l-2.698 7.84c.806.236 1.657.365 2.54.365 1.047 0 2.05-.18 2.986-.51-.024-.037-.046-.078-.065-.123l-2.762-7.57zM3.008 12c0 3.56 2.07 6.634 5.068 8.092L3.788 8.342c-.5 1.117-.78 2.354-.78 3.658zm15.06-.454c0-1.112-.398-1.88-.74-2.48-.456-.74-.883-1.368-.883-2.11 0-.825.627-1.595 1.51-1.595.04 0 .078.006.116.008-1.598-1.464-3.73-2.36-6.07-2.36-3.14 0-5.904 1.613-7.512 4.053.21.008.41.012.58.012.94 0 2.395-.114 2.395-.114.484-.028.54.684.057.74 0 0-.487.058-1.03.086l3.275 9.74 1.968-5.902-1.4-3.838c-.485-.028-.944-.085-.944-.085-.486-.03-.43-.77.056-.742 0 0 1.484.114 2.368.114.94 0 2.397-.114 2.397-.114.486-.028.543.684.058.74 0 0-.488.058-1.03.086l3.25 9.665.897-2.997c.456-1.17.684-2.137.684-2.907zm1.82-3.86c.04.286.06.593.06.924 0 .912-.17 1.938-.683 3.22l-2.746 7.94c2.672-1.558 4.47-4.454 4.47-7.77 0-1.564-.4-3.033-1.1-4.314zM12 22C6.486 22 2 17.514 2 12S6.486 2 12 2s10 4.486 10 10-4.486 10-10 10z"/></g></svg>				</a>
+			</li>
+			<li>
+				<a href="#comment-form-load-service:Twitter" id="postas-twitter" class="nascar-signin-link"
+				 title="Login via Twitter" 				>
+					<svg xmlns="http://www.w3.org/2000/svg" role="presentation" viewBox="0 0 24 24" ><rect x="0" fill="none" width="24" height="24"/><g><path fill="#FFF" d="M22.23 5.924c-.736.326-1.527.547-2.357.646.847-.508 1.498-1.312 1.804-2.27-.793.47-1.67.812-2.606.996C18.325 4.498 17.258 4 16.078 4c-2.266 0-4.103 1.837-4.103 4.103 0 .322.036.635.106.935-3.41-.17-6.433-1.804-8.457-4.287-.353.607-.556 1.312-.556 2.064 0 1.424.724 2.68 1.825 3.415-.673-.022-1.305-.207-1.86-.514v.052c0 1.988 1.415 3.647 3.293 4.023-.344.095-.707.145-1.08.145-.265 0-.522-.026-.773-.074.522 1.63 2.038 2.817 3.833 2.85-1.404 1.1-3.174 1.757-5.096 1.757-.332 0-.66-.02-.98-.057 1.816 1.164 3.973 1.843 6.29 1.843 7.547 0 11.675-6.252 11.675-11.675 0-.178-.004-.355-.012-.53.802-.578 1.497-1.3 2.047-2.124z"/></g></svg>				</a>
+			</li>
+			<li>
+				<a href="#comment-form-load-service:Facebook" id="postas-facebook" class="nascar-signin-link"
+				 title="Login via Facebook" 				>
+					<svg xmlns="http://www.w3.org/2000/svg" role="presentation" viewBox="0 0 24 24" ><rect x="0" fill="none" width="24" height="24"/><g><path fill="#FFF" d="M20.007 3H3.993C3.445 3 3 3.445 3 3.993v16.013c0 .55.445.994.993.994h8.62v-6.97H10.27V11.31h2.346V9.31c0-2.325 1.42-3.59 3.494-3.59.993 0 1.847.073 2.096.106v2.43h-1.438c-1.128 0-1.346.537-1.346 1.324v1.734h2.69l-.35 2.717h-2.34V21h4.587c.548 0 .993-.445.993-.993V3.993c0-.548-.445-.993-.993-.993z"/></g></svg>				</a>
+			</li>
+		</ul>
+	</div>
+
+	<div id="comment-form-guest" class="comment-form-service selected">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+<a href="https://gravatar.com/site/signup/" target="_blank">				<img src="https://1.gravatar.com/avatar/ad516503a11cd5ca435acc9bb6523536?s=25&amp;d=identicon&amp;forcedefault=y&amp;r=PG" alt="Gravatar" width="25" class="no-grav" />
+</a>			</div>
+
+				<div class="comment-form-fields">
+				<div class="comment-form-field comment-form-email">
+					<label for="email">Email <span class="required">(required)</span> <span class="nopublish">(Address never made public)</span></label>
+					<div class="comment-form-input"><input id="email" name="email" type="email" value="" /></div>
+				</div>
+				<div class="comment-form-field comment-form-author">
+					<label for="author">Name <span class="required">(required)</span></label>
+					<div class="comment-form-input"><input id="author" name="author" type="text" value="" /></div>
+				</div>
+				<div class="comment-form-field comment-form-url">
+					<label for="url">Website</label>
+					<div class="comment-form-input"><input id="url" name="url" type="url" value="" /></div>
+				</div>
+			</div>
+			
+		</div>
+	</div>
+
+	<div id="comment-form-wordpress" class="comment-form-service">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+				<img src="https://1.gravatar.com/avatar/ad516503a11cd5ca435acc9bb6523536?s=25&amp;d=identicon&amp;forcedefault=y&amp;r=PG" alt="WordPress.com Logo" width="25" class="no-grav" />
+			</div>
+
+				<div class="comment-form-fields">
+				<input type="hidden" name="wp_avatar" id="wordpress-avatar" class="comment-meta-wordpress" value="" />
+				<input type="hidden" name="wp_user_id" id="wordpress-user_id" class="comment-meta-wordpress" value="" />
+				<input type="hidden" name="wp_access_token" id="wordpress-access_token" class="comment-meta-wordpress" value="" />
+						<p class="comment-form-posting-as pa-wordpress">
+			<strong></strong>
+			You are commenting using your WordPress.com account.			<span class="comment-form-log-out">
+				(&nbsp;<a href="javascript:HighlanderComments.doExternalLogout( 'wordpress' );">Log&nbsp;Out</a>&nbsp;/&nbsp;
+				<a href="#" onclick="javascript:HighlanderComments.switchAccount();return false;">Change</a>&nbsp;)
+			</span>
+			<span class="pa-icon"><svg xmlns="http://www.w3.org/2000/svg" role="presentation" viewBox="0 0 24 24" ><rect x="0" fill="none" width="24" height="24"/><g><path fill="#FFF" d="M12.158 12.786l-2.698 7.84c.806.236 1.657.365 2.54.365 1.047 0 2.05-.18 2.986-.51-.024-.037-.046-.078-.065-.123l-2.762-7.57zM3.008 12c0 3.56 2.07 6.634 5.068 8.092L3.788 8.342c-.5 1.117-.78 2.354-.78 3.658zm15.06-.454c0-1.112-.398-1.88-.74-2.48-.456-.74-.883-1.368-.883-2.11 0-.825.627-1.595 1.51-1.595.04 0 .078.006.116.008-1.598-1.464-3.73-2.36-6.07-2.36-3.14 0-5.904 1.613-7.512 4.053.21.008.41.012.58.012.94 0 2.395-.114 2.395-.114.484-.028.54.684.057.74 0 0-.487.058-1.03.086l3.275 9.74 1.968-5.902-1.4-3.838c-.485-.028-.944-.085-.944-.085-.486-.03-.43-.77.056-.742 0 0 1.484.114 2.368.114.94 0 2.397-.114 2.397-.114.486-.028.543.684.058.74 0 0-.488.058-1.03.086l3.25 9.665.897-2.997c.456-1.17.684-2.137.684-2.907zm1.82-3.86c.04.286.06.593.06.924 0 .912-.17 1.938-.683 3.22l-2.746 7.94c2.672-1.558 4.47-4.454 4.47-7.77 0-1.564-.4-3.033-1.1-4.314zM12 22C6.486 22 2 17.514 2 12S6.486 2 12 2s10 4.486 10 10-4.486 10-10 10z"/></g></svg></span>
+		</p>
+					</div>
+	
+		</div>
+	</div>
+
+	<div id="comment-form-twitter" class="comment-form-service">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+				<img src="https://1.gravatar.com/avatar/ad516503a11cd5ca435acc9bb6523536?s=25&amp;d=identicon&amp;forcedefault=y&amp;r=PG" alt="Twitter picture" width="25" class="no-grav" />
+			</div>
+
+				<div class="comment-form-fields">
+				<input type="hidden" name="twitter_avatar" id="twitter-avatar" class="comment-meta-twitter" value="" />
+				<input type="hidden" name="twitter_user_id" id="twitter-user_id" class="comment-meta-twitter" value="" />
+				<input type="hidden" name="twitter_access_token" id="twitter-access_token" class="comment-meta-twitter" value="" />
+						<p class="comment-form-posting-as pa-twitter">
+			<strong></strong>
+			You are commenting using your Twitter account.			<span class="comment-form-log-out">
+				(&nbsp;<a href="javascript:HighlanderComments.doExternalLogout( 'twitter' );">Log&nbsp;Out</a>&nbsp;/&nbsp;
+				<a href="#" onclick="javascript:HighlanderComments.switchAccount();return false;">Change</a>&nbsp;)
+			</span>
+			<span class="pa-icon"><svg xmlns="http://www.w3.org/2000/svg" role="presentation" viewBox="0 0 24 24" ><rect x="0" fill="none" width="24" height="24"/><g><path fill="#FFF" d="M22.23 5.924c-.736.326-1.527.547-2.357.646.847-.508 1.498-1.312 1.804-2.27-.793.47-1.67.812-2.606.996C18.325 4.498 17.258 4 16.078 4c-2.266 0-4.103 1.837-4.103 4.103 0 .322.036.635.106.935-3.41-.17-6.433-1.804-8.457-4.287-.353.607-.556 1.312-.556 2.064 0 1.424.724 2.68 1.825 3.415-.673-.022-1.305-.207-1.86-.514v.052c0 1.988 1.415 3.647 3.293 4.023-.344.095-.707.145-1.08.145-.265 0-.522-.026-.773-.074.522 1.63 2.038 2.817 3.833 2.85-1.404 1.1-3.174 1.757-5.096 1.757-.332 0-.66-.02-.98-.057 1.816 1.164 3.973 1.843 6.29 1.843 7.547 0 11.675-6.252 11.675-11.675 0-.178-.004-.355-.012-.53.802-.578 1.497-1.3 2.047-2.124z"/></g></svg></span>
+		</p>
+					</div>
+	
+		</div>
+	</div>
+
+	<div id="comment-form-facebook" class="comment-form-service">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+				<img src="" alt="Facebook photo" width="25" class="no-grav" />
+			</div>
+
+				<div class="comment-form-fields">
+				<input type="hidden" name="fb_avatar" id="facebook-avatar" class="comment-meta-facebook" value="" />
+				<input type="hidden" name="fb_user_id" id="facebook-user_id" class="comment-meta-facebook" value="" />
+				<input type="hidden" name="fb_access_token" id="facebook-access_token" class="comment-meta-facebook" value="" />
+						<p class="comment-form-posting-as pa-facebook">
+			<strong></strong>
+			You are commenting using your Facebook account.			<span class="comment-form-log-out">
+				(&nbsp;<a href="javascript:HighlanderComments.doExternalLogout( 'facebook' );">Log&nbsp;Out</a>&nbsp;/&nbsp;
+				<a href="#" onclick="javascript:HighlanderComments.switchAccount();return false;">Change</a>&nbsp;)
+			</span>
+			<span class="pa-icon"><svg xmlns="http://www.w3.org/2000/svg" role="presentation" viewBox="0 0 24 24" ><rect x="0" fill="none" width="24" height="24"/><g><path fill="#FFF" d="M20.007 3H3.993C3.445 3 3 3.445 3 3.993v16.013c0 .55.445.994.993.994h8.62v-6.97H10.27V11.31h2.346V9.31c0-2.325 1.42-3.59 3.494-3.59.993 0 1.847.073 2.096.106v2.43h-1.438c-1.128 0-1.346.537-1.346 1.324v1.734h2.69l-.35 2.717h-2.34V21h4.587c.548 0 .993-.445.993-.993V3.993c0-.548-.445-.993-.993-.993z"/></g></svg></span>
+		</p>
+					</div>
+	
+		</div>
+	</div>
+
+
+	<div id="comment-form-load-service" class="comment-form-service">
+		<div class="comment-form-posting-as-cancel"><a href="javascript:HighlanderComments.cancelExternalWindow();">Cancel</a></div>
+		<p>Connecting to %s</p>
+	</div>
+
+</div>
+
+<script type="text/javascript">
+var highlander_expando_javascript = function () {
+
+	function hide( sel ) {
+		var el = document.querySelector( sel );
+		if ( el ) {
+			el.style.setProperty( 'display', 'none' );
+		}
+	}
+
+	function show( sel ) {
+		var el = document.querySelector( sel );
+		if ( el ) {
+			el.style.removeProperty( 'display' );
+		}
+	}
+
+	var input = document.createElement( 'input' );
+	var comment = document.querySelector( '#comment' );
+
+	if ( input && comment && 'placeholder' in input ) {
+		var label = document.querySelector( '.comment-textarea label' );
+		if ( label ) {
+			var text = label.textContent;
+			label.parentNode.removeChild( label );
+			comment.setAttribute( 'placeholder', text );
+		}
+	}
+
+	// Expando Mode: start small, then auto-resize on first click + text length
+	hide( '#comment-form-identity' );
+	hide( '#comment-form-subscribe' );
+	hide( '#commentform .form-submit' );
+
+	if ( comment ) {
+		comment.style.height = '10px';
+
+		var handler = function () {
+			comment.style.height = HighlanderComments.initialHeight + 'px';
+			show( '#comment-form-identity' );
+			show( '#comment-form-subscribe' );
+			show( '#commentform .form-submit' );
+			HighlanderComments.resizeCallback();
+
+			comment.removeEventListener( 'focus', handler );
+		};
+
+		comment.addEventListener( 'focus', handler );
+	}
+}
+
+if ( document.readyState !== 'loading' ) {
+	highlander_expando_javascript();
+} else {
+	document.addEventListener( 'DOMContentLoaded', highlander_expando_javascript );
+}
+
+</script>
+
+<div id="comment-form-subscribe">
+	<p class="comment-subscription-form"><input type="checkbox" name="subscribe" id="subscribe" value="subscribe" style="width: auto;"/> <label class="subscribe-label" id="subscribe-label" for="subscribe" style="display: inline;">Notify me of new comments via email.</label></p><p class="post-subscription-form"><input type="checkbox" name="subscribe_blog" id="subscribe_blog" value="subscribe" style="width: auto;"/> <label class="subscribe-label" id="subscribe-blog-label" for="subscribe_blog"  style="display: inline;">Notify me of new posts via email.</label></p></div>
+
+
+
+
+<p class="form-submit"><input name="submit" type="submit" id="comment-submit" class="submit button" value="Post Comment" /> <input type='hidden' name='comment_post_ID' value='3716' id='comment_post_ID' />
+<input type='hidden' name='comment_parent' id='comment_parent' value='0' />
+</p><p style="display: none;"><input type="hidden" id="akismet_comment_nonce" name="akismet_comment_nonce" value="7cf3fa6ab7" /></p>
+<input type="hidden" name="genseq" value="1664899931" />
+<p style="display: none !important;"><label>&#916;<textarea name="ak_hp_textarea" cols="45" rows="8" maxlength="100"></textarea></label><input type="hidden" id="ak_js_1" name="ak_js" value="188"/><script>document.getElementById( "ak_js_1" ).setAttribute( "value", ( new Date() ).getTime() );</script></p></form>	</div><!-- #respond -->
+	<div style="clear: both"></div>
+</div><!-- #comments -->
+
+				
+			</div><!-- #content -->
+		</div><!-- #primary -->
+
+
+	</div><!-- #main -->
+
+	<footer id="colophon">
+
+			
+
+			<div id="site-generator">
+				 								<a href="https://wordpress.com/?ref=footer_blog" rel="nofollow">Blog at WordPress.com.</a>
+			</div>
+	</footer><!-- #colophon -->
+</div><!-- #page -->
+
+<!--  -->
+<script type="text/javascript">
+	window._tkq = window._tkq || [];
+	if ( Math.random() < 0.01 ) {
+		window._tkq.push( [
+			'recordEvent',
+			'wpcom_wordads_noad',
+			{"theme":"pub\/twentyeleven","blog_id":113840984,"post_id":3716,"reason_noadverts_plugin":1,"reason_upgrade":1,"reason_blog_null":1,"reason_post_null":1}
+		] );
+	}
+</script><script src='//0.gravatar.com/js/gprofiles.js?ver=202240z' id='grofiles-cards-js'></script>
+<script id='wpgroho-js-extra'>
+var WPGroHo = {"my_hash":""};
+</script>
+<script crossorigin='anonymous' type='text/javascript' src='https://s1.wp.com/wp-content/mu-plugins/gravatar-hovercards/wpgroho.js?m=1610363240h'></script>
+
+	<script>
+		// Initialize and attach hovercards to all gravatars
+		( function() {
+			function init() {
+				if ( typeof Gravatar === 'undefined' ) {
+					return;
+				}
+
+				if ( typeof Gravatar.init !== 'function' ) {
+					return;
+				}
+
+				Gravatar.profile_cb = function ( hash, id ) {
+					WPGroHo.syncProfileData( hash, id );
+				};
+
+				Gravatar.my_hash = WPGroHo.my_hash;
+				Gravatar.init( 'body', '#wp-admin-bar-my-account' );
+			}
+
+			if ( document.readyState !== 'loading' ) {
+				init();
+			} else {
+				document.addEventListener( 'DOMContentLoaded', init );
+			}
+		} )();
+	</script>
+
+		<div style="display:none">
+	<div class="grofile-hash-map-2f8ac70cd17f11c419846c441769523b">
+	</div>
+	<div class="grofile-hash-map-1d3da3e06cd42a10e8f7f8197415158c">
+	</div>
+	<div class="grofile-hash-map-c9b91237e3decf186175d2f5eca9b0cb">
+	</div>
+	<div class="grofile-hash-map-cb474ea3c637db7230457c2b941c8fc2">
+	</div>
+	<div class="grofile-hash-map-0444cc2d15feb3c4da0b51b077cb9a34">
+	</div>
+	<div class="grofile-hash-map-bbf7e13e161354fb4a13b494fad4b51d">
+	</div>
+	<div class="grofile-hash-map-59c565b9837b0d95b7f987ad6e95fec4">
+	</div>
+	<div class="grofile-hash-map-c57e4db7f4ebb5bf88645041e20009ec">
+	</div>
+	<div class="grofile-hash-map-152a5c3bbfa47be1d3dcb446150b9362">
+	</div>
+	<div class="grofile-hash-map-f17e70effc51965ea2bf3b731b415321">
+	</div>
+	<div class="grofile-hash-map-6157cf9d7e8c68f1f7785f6e3e176a32">
+	</div>
+	<div class="grofile-hash-map-afcb8f5ff250303160e6f803bf83acef">
+	</div>
+	<div class="grofile-hash-map-d1b85f0e3558b890559682f91dc13615">
+	</div>
+	<div class="grofile-hash-map-f6e9c7daf766807f1ae658ecdccd2330">
+	</div>
+	<div class="grofile-hash-map-23e93d6717e64004cdbd23d2efd40b05">
+	</div>
+	<div class="grofile-hash-map-02d3ec2e3ffe8165bedcbf4ef761c478">
+	</div>
+	<div class="grofile-hash-map-5762168f3afd473738f660434a205601">
+	</div>
+	<div class="grofile-hash-map-626e754c4de8be273574b7cea16b11e4">
+	</div>
+	<div class="grofile-hash-map-dd0145004ae58fd55215a2d66763af82">
+	</div>
+	<div class="grofile-hash-map-6a2ca2aca3a9df1587ad7e8956f69899">
+	</div>
+	<div class="grofile-hash-map-c1d29221e08461d43c28ddb8245280ab">
+	</div>
+	<div class="grofile-hash-map-405501a8ea46240df54a1bfc035a0e6d">
+	</div>
+	<div class="grofile-hash-map-bdd8cbf5e1c5cc29e232636415753927">
+	</div>
+	<div class="grofile-hash-map-50d15b71e4aaf86d59ad978e7719bc60">
+	</div>
+	<div class="grofile-hash-map-b4615c0f066b3049dcb04379549e4d58">
+	</div>
+	<div class="grofile-hash-map-5c0e3677d73e1d4778c6fc4bc6ccc3a7">
+	</div>
+	</div>
+<script id='highlander-comments-js-extra'>
+var HighlanderComments = {"loggingInText":"Logging In\u2026","submittingText":"Posting Comment\u2026","postCommentText":"Post Comment","connectingToText":"Connecting to %s","commentingAsText":"%1$s: You are commenting using your %2$s account.","logoutText":"Log Out","loginText":"Log In","connectURL":"https:\/\/wanderinginn.wordpress.com\/public.api\/connect\/?action=request&domain=wanderinginn.com","logoutURL":"https:\/\/wanderinginn.wordpress.com\/wp-login.php?action=logout&_wpnonce=027032d4fa","homeURL":"https:\/\/wanderinginn.com\/","postID":"3716","gravDefault":"identicon","enterACommentError":"Please enter a comment","enterEmailError":"Please enter your email address here","invalidEmailError":"Invalid email address","enterAuthorError":"Please enter your name here","gravatarFromEmail":"This picture will show whenever you leave a comment. Click to customize it.","logInToExternalAccount":"Log in to use details from one of these accounts.","change":"Change","changeAccount":"Change Account","comment_registration":"","userIsLoggedIn":"","isJetpack":"","text_direction":"ltr"};
+</script>
+<script crossorigin='anonymous' type='text/javascript' src='https://s0.wp.com/_static/??/wp-content/js/textarea-autosize.min.js,/wp-content/mu-plugins/highlander-comments/script.js?m=1663141412j'></script>
+	<div id="actionbar" style="display: none;"
+			class="actnbr-pub-twentyeleven actnbr-has-follow">
+		<ul>
+								<li class="actnbr-btn actnbr-hidden">
+								<a class="actnbr-action actnbr-actn-follow " href="">
+			<svg class="gridicon gridicons-reader-follow" height="24" width="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g><path d="M23 16v2h-3v3h-2v-3h-3v-2h3v-3h2v3h3zM20 2v9h-4v3h-3v4H4c-1.1 0-2-.9-2-2V2h18zM8 13v-1H4v1h4zm3-3H4v1h7v-1zm0-2H4v1h7V8zm7-4H4v2h14V4z"/></g></svg><span>Follow</span>
+		</a>
+		<a class="actnbr-action actnbr-actn-following  no-display" href="">
+			<svg class="gridicon gridicons-reader-following" height="24" width="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g><path d="M23 13.482L15.508 21 12 17.4l1.412-1.388 2.106 2.188 6.094-6.094L23 13.482zm-7.455 1.862L20 10.89V2H2v14c0 1.1.9 2 2 2h4.538l4.913-4.832 2.095 2.176zM8 13H4v-1h4v1zm3-2H4v-1h7v1zm0-2H4V8h7v1zm7-3H4V4h14v2z"/></g></svg><span>Following</span>
+		</a>
+							<div class="actnbr-popover tip tip-top-left actnbr-notice" id="follow-bubble">
+							<div class="tip-arrow"></div>
+							<div class="tip-inner actnbr-follow-bubble">
+															<ul>
+											<li class="actnbr-sitename">
+			<a href="https://wanderinginn.com">
+				<img alt='' src='https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=50' class='avatar avatar-50' height='50' width='50' />				The Wandering Inn			</a>
+		</li>
+										<form method="post" action="https://subscribe.wordpress.com" accept-charset="utf-8" style="display: none;">
+																						<div class="actnbr-follow-count">Join 2,697 other followers</div>
+																					<div>
+										<input type="email" name="email" placeholder="Enter your email address" class="actnbr-email-field" aria-label="Enter your email address" />
+										</div>
+										<input type="hidden" name="action" value="subscribe" />
+										<input type="hidden" name="blog_id" value="113840984" />
+										<input type="hidden" name="source" value="https://wanderinginn.com/2017/11/12/wistram-days-pt-4/" />
+										<input type="hidden" name="sub-type" value="actionbar-follow" />
+										<input type="hidden" id="_wpnonce" name="_wpnonce" value="9bb017f338" />										<div class="actnbr-button-wrap">
+											<button type="submit" value="Sign me up">
+												Sign me up											</button>
+										</div>
+									</form>
+									<li class="actnbr-login-nudge">
+										<div>
+											Already have a WordPress.com account? <a href="https://wordpress.com/log-in?redirect_to=https%3A%2F%2Fr-login.wordpress.com%2Fremote-login.php%3Faction%3Dlink%26back%3Dhttps%253A%252F%252Fwanderinginn.com%252F2017%252F11%252F12%252Fwistram-days-pt-4%252F">Log in now.</a>										</div>
+									</li>
+								</ul>
+															</div>
+						</div>
+					</li>
+							<li class="actnbr-ellipsis actnbr-hidden">
+				<svg class="gridicon gridicons-ellipsis" height="24" width="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g><path d="M7 12c0 1.104-.896 2-2 2s-2-.896-2-2 .896-2 2-2 2 .896 2 2zm12-2c-1.104 0-2 .896-2 2s.896 2 2 2 2-.896 2-2-.896-2-2-2zm-7 0c-1.104 0-2 .896-2 2s.896 2 2 2 2-.896 2-2-.896-2-2-2z"/></g></svg>				<div class="actnbr-popover tip tip-top-left actnbr-more">
+					<div class="tip-arrow"></div>
+					<div class="tip-inner">
+						<ul>
+									<li class="actnbr-sitename">
+			<a href="https://wanderinginn.com">
+				<img alt='' src='https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=50' class='avatar avatar-50' height='50' width='50' />				The Wandering Inn			</a>
+		</li>
+								<li class="actnbr-folded-customize">
+								<a href="https://wanderinginn.wordpress.com/wp-admin/customize.php?url=https%3A%2F%2Fwanderinginn.wordpress.com%2F2017%2F11%2F12%2Fwistram-days-pt-4%2F">
+									<svg class="gridicon gridicons-customize" height="20" width="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g><path d="M2 6c0-1.505.78-3.08 2-4 0 .845.69 2 2 2 1.657 0 3 1.343 3 3 0 .386-.08.752-.212 1.09.74.594 1.476 1.19 2.19 1.81L8.9 11.98c-.62-.716-1.214-1.454-1.807-2.192C6.753 9.92 6.387 10 6 10c-2.21 0-4-1.79-4-4zm12.152 6.848l1.34-1.34c.607.304 1.283.492 2.008.492 2.485 0 4.5-2.015 4.5-4.5 0-.725-.188-1.4-.493-2.007L18 9l-2-2 3.507-3.507C18.9 3.188 18.225 3 17.5 3 15.015 3 13 5.015 13 7.5c0 .725.188 1.4.493 2.007L3 20l2 2 6.848-6.848c1.885 1.928 3.874 3.753 5.977 5.45l1.425 1.148 1.5-1.5-1.15-1.425c-1.695-2.103-3.52-4.092-5.448-5.977z"/></g></svg>									<span>Customize</span>
+								</a>
+							</li>
+																<li class="actnbr-folded-follow">
+												<a class="actnbr-action actnbr-actn-follow " href="">
+			<svg class="gridicon gridicons-reader-follow" height="24" width="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g><path d="M23 16v2h-3v3h-2v-3h-3v-2h3v-3h2v3h3zM20 2v9h-4v3h-3v4H4c-1.1 0-2-.9-2-2V2h18zM8 13v-1H4v1h4zm3-3H4v1h7v-1zm0-2H4v1h7V8zm7-4H4v2h14V4z"/></g></svg><span>Follow</span>
+		</a>
+		<a class="actnbr-action actnbr-actn-following  no-display" href="">
+			<svg class="gridicon gridicons-reader-following" height="24" width="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g><path d="M23 13.482L15.508 21 12 17.4l1.412-1.388 2.106 2.188 6.094-6.094L23 13.482zm-7.455 1.862L20 10.89V2H2v14c0 1.1.9 2 2 2h4.538l4.913-4.832 2.095 2.176zM8 13H4v-1h4v1zm3-2H4v-1h7v1zm0-2H4V8h7v1zm7-3H4V4h14v2z"/></g></svg><span>Following</span>
+		</a>
+										</li>
+																	<li class="actnbr-signup"><a href="https://wordpress.com/start/">Sign up</a></li>
+									<li class="actnbr-login"><a href="https://wordpress.com/log-in?redirect_to=https%3A%2F%2Fr-login.wordpress.com%2Fremote-login.php%3Faction%3Dlink%26back%3Dhttps%253A%252F%252Fwanderinginn.com%252F2017%252F11%252F12%252Fwistram-days-pt-4%252F">Log in</a></li>
+																	<li class="actnbr-shortlink"><a href="https://wp.me/p7HFeU-XW">Copy shortlink</a></li>
+																	<li class="flb-report"><a href="http://en.wordpress.com/abuse/">Report this content</a></li>
+																	<li class="actnbr-reader">
+										<a href="https://wordpress.com/read/blogs/113840984/posts/3716">
+											View post in Reader										</a>
+									</li>
+																	<li class="actnbr-subs">
+										<a href="https://subscribe.wordpress.com/">Manage subscriptions</a>
+									</li>
+																		<li class="actnbr-fold"><a href="">Collapse this bar</a></li>
+															</ul>
+					</div>
+				</div>
+			</li>
+		</ul>
+	</div>
+	
+<script>
+window.addEventListener( "load", function( event ) {
+	var link = document.createElement( "link" );
+	link.href = "https://s0.wp.com/wp-content/mu-plugins/actionbar/actionbar.css?v=20210915";
+	link.type = "text/css";
+	link.rel = "stylesheet";
+	document.head.appendChild( link );
+
+	var script = document.createElement( "script" );
+	script.src = "https://s0.wp.com/wp-content/mu-plugins/actionbar/actionbar.js?v=20220329";
+	script.defer = true;
+	document.body.appendChild( script );
+} );
+</script>
+
+	<script crossorigin='anonymous' type='text/javascript' src='https://s2.wp.com/_static/??-eJx9jd0OwiAMRl9I6AxmixfGRzEMqoFRRij48/ZWk3npXfOdc1J4FOXW3DA3iAwe78FheerIOxAUskvdI3+YW4lEUxVLemkKeZO2nroqqd9CZrBeuJptBbLcsMqlWrVu4X/REpiwKaMHuMjn33CtX9lLe6bTfhwPZpqOg4lvZ0RE/g=='></script>
+<script type="text/javascript">
+// <![CDATA[
+(function() {
+try{
+  if ( window.external &&'msIsSiteMode' in window.external) {
+    if (window.external.msIsSiteMode()) {
+      var jl = document.createElement('script');
+      jl.type='text/javascript';
+      jl.async=true;
+      jl.src='/wp-content/plugins/ie-sitemode/custom-jumplist.php';
+      var s = document.getElementsByTagName('script')[0];
+      s.parentNode.insertBefore(jl, s);
+    }
+  }
+}catch(e){}
+})();
+// ]]>
+</script><script src="//stats.wp.com/w.js?63" defer></script> <script type="text/javascript">
+_tkq = window._tkq || [];
+_stq = window._stq || [];
+_tkq.push(['storeContext', {'blog_id':'113840984','blog_tz':'0','user_lang':'en','blog_lang':'en','user_id':'0'}]);
+_stq.push(['view', {'blog':'113840984','v':'wpcom','tz':'0','user_id':'0','post':'3716','subd':'wanderinginn'}]);
+_stq.push(['extra', {'crypt':'UE40eW5QN0p8M2Y/RE1mNzc2NTVTamdsd0xoLz9RQkM2K298TXY9bERQMXc2MjhEaVZfb2wwakRoSj0mUkp1THptM1NdbkV1WjZIcU9mVWQmPUIvMlN6Jk8wW3NYVEJ3dWZOWExuWD9VNTEucGVTRmZwYTB2ZD82MHd0Y1Y0RlltYWdKeC9TU05lUzUxV1pzZWh8UlVlalotK3A/NWVna2ZGUkZscE02fFl0N1dCMDRMMX5FQW50QV9BMncvW042YWVCK2pRaGJYLkNtMVQyMFg2OWNEVi9oSHYmXyVPaUc2dEk9K21JMnx0clpibFNFNlBCNWRjdXJDWnZsejV1NFpfdytZZ1Z3bEtnMmpXaUl5ZDJweFFxUWV5YWV2aGZmaE1oM2VpN3c5WnBFLC5kWndPJmY2UD0zPzFnW2Jva1Q='}]);
+_stq.push([ 'clickTrackerInit', '113840984', '3716' ]);
+	</script>
+<noscript><img src="https://pixel.wp.com/b.gif?v=noscript" style="height:1px;width:1px;overflow:hidden;position:absolute;bottom:1px;" alt="" /></noscript>
+<script>
+if ( 'object' === typeof wpcom_mobile_user_agent_info ) {
+
+	wpcom_mobile_user_agent_info.init();
+	var mobileStatsQueryString = "";
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedPlatformName )
+		mobileStatsQueryString += "&x_" + 'mobile_platforms' + '=' + wpcom_mobile_user_agent_info.matchedPlatformName;
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedUserAgentName )
+		mobileStatsQueryString += "&x_" + 'mobile_devices' + '=' + wpcom_mobile_user_agent_info.matchedUserAgentName;
+	
+	if( wpcom_mobile_user_agent_info.isIPad() )
+		mobileStatsQueryString += "&x_" + 'ipad_views' + '=' + 'views';
+
+	if( "" != mobileStatsQueryString ) {
+		new Image().src = document.location.protocol + '//pixel.wp.com/g.gif?v=wpcom-no-pv' + mobileStatsQueryString + '&baba=' + Math.random();
+	}
+	
+}
+</script>
+</body>
+</html>

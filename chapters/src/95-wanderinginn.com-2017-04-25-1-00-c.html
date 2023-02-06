@@ -1,0 +1,2008 @@
+<!DOCTYPE html>
+<!--[if IE 6]>
+<html id="ie6" lang="en">
+<![endif]-->
+<!--[if IE 7]>
+<html id="ie7" lang="en">
+<![endif]-->
+<!--[if IE 8]>
+<html id="ie8" lang="en">
+<![endif]-->
+<!--[if !(IE 6) & !(IE 7) & !(IE 8)]><!-->
+<html lang="en">
+<!--<![endif]-->
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width" />
+<title>
+1.00 C | The Wandering Inn	</title>
+<link rel="profile" href="https://gmpg.org/xfn/11" />
+<link rel="stylesheet" type="text/css" media="all" href="https://s2.wp.com/wp-content/themes/pub/twentyeleven/style.css?ver=20190507" />
+<link rel="pingback" href="https://wanderinginn.com/xmlrpc.php">
+<!--[if lt IE 9]>
+<script src="https://s2.wp.com/wp-content/themes/pub/twentyeleven/js/html5.js?ver=3.7.0" type="text/javascript"></script>
+<![endif]-->
+<meta name='robots' content='max-image-preview:large' />
+
+<!-- Async WordPress.com Remote Login -->
+<script id="wpcom_remote_login_js">
+var wpcom_remote_login_extra_auth = '';
+function wpcom_remote_login_remove_dom_node_id( element_id ) {
+	var dom_node = document.getElementById( element_id );
+	if ( dom_node ) { dom_node.parentNode.removeChild( dom_node ); }
+}
+function wpcom_remote_login_remove_dom_node_classes( class_name ) {
+	var dom_nodes = document.querySelectorAll( '.' + class_name );
+	for ( var i = 0; i < dom_nodes.length; i++ ) {
+		dom_nodes[ i ].parentNode.removeChild( dom_nodes[ i ] );
+	}
+}
+function wpcom_remote_login_final_cleanup() {
+	wpcom_remote_login_remove_dom_node_classes( "wpcom_remote_login_msg" );
+	wpcom_remote_login_remove_dom_node_id( "wpcom_remote_login_key" );
+	wpcom_remote_login_remove_dom_node_id( "wpcom_remote_login_validate" );
+	wpcom_remote_login_remove_dom_node_id( "wpcom_remote_login_js" );
+	wpcom_remote_login_remove_dom_node_id( "wpcom_request_access_iframe" );
+	wpcom_remote_login_remove_dom_node_id( "wpcom_request_access_styles" );
+}
+
+// Watch for messages back from the remote login
+window.addEventListener( "message", function( e ) {
+	if ( e.origin === "https://r-login.wordpress.com" ) {
+		var data = {};
+		try {
+			data = JSON.parse( e.data );
+		} catch( e ) {
+			wpcom_remote_login_final_cleanup();
+			return;
+		}
+
+		if ( data.msg === 'LOGIN' ) {
+			// Clean up the login check iframe
+			wpcom_remote_login_remove_dom_node_id( "wpcom_remote_login_key" );
+
+			var id_regex = new RegExp( /^[0-9]+$/ );
+			var token_regex = new RegExp( /^.*|.*|.*$/ );
+			if (
+				token_regex.test( data.token )
+				&& id_regex.test( data.wpcomid )
+			) {
+				// We have everything we need to ask for a login
+				var script = document.createElement( "script" );
+				script.setAttribute( "id", "wpcom_remote_login_validate" );
+				script.src = '/remote-login.php?wpcom_remote_login=validate'
+					+ '&wpcomid=' + data.wpcomid
+					+ '&token=' + encodeURIComponent( data.token )
+					+ '&host=' + window.location.protocol
+					+ '//' + window.location.hostname
+					+ '&postid=1725'
+					+ '&is_singular=1';
+				document.body.appendChild( script );
+			}
+
+			return;
+		}
+
+		// Safari ITP, not logged in, so redirect
+		if ( data.msg === 'LOGIN-REDIRECT' ) {
+			window.location = 'https://wordpress.com/log-in?redirect_to=' + window.location.href;
+			return;
+		}
+
+		// Safari ITP, storage access failed, remove the request
+		if ( data.msg === 'LOGIN-REMOVE' ) {
+			var css_zap = 'html { -webkit-transition: margin-top 1s; transition: margin-top 1s; } /* 9001 */ html { margin-top: 0 !important; } * html body { margin-top: 0 !important; } @media screen and ( max-width: 782px ) { html { margin-top: 0 !important; } * html body { margin-top: 0 !important; } }';
+			var style_zap = document.createElement( 'style' );
+			style_zap.type = 'text/css';
+			style_zap.appendChild( document.createTextNode( css_zap ) );
+			document.body.appendChild( style_zap );
+
+			var e = document.getElementById( 'wpcom_request_access_iframe' );
+			e.parentNode.removeChild( e );
+
+			document.cookie = 'wordpress_com_login_access=denied; path=/; max-age=31536000';
+
+			return;
+		}
+
+		// Safari ITP
+		if ( data.msg === 'REQUEST_ACCESS' ) {
+			console.log( 'request access: safari' );
+
+			// Check ITP iframe enable/disable knob
+			if ( wpcom_remote_login_extra_auth !== 'safari_itp_iframe' ) {
+				return;
+			}
+
+			// If we are in a "private window" there is no ITP.
+			var private_window = false;
+			try {
+				var opendb = window.openDatabase( null, null, null, null );
+			} catch( e ) {
+				private_window = true;
+			}
+
+			if ( private_window ) {
+				console.log( 'private window' );
+				return;
+			}
+
+			var iframe = document.createElement( 'iframe' );
+			iframe.id = 'wpcom_request_access_iframe';
+			iframe.setAttribute( 'scrolling', 'no' );
+			iframe.setAttribute( 'sandbox', 'allow-storage-access-by-user-activation allow-scripts allow-same-origin allow-top-navigation-by-user-activation' );
+			iframe.src = 'https://r-login.wordpress.com/remote-login.php?wpcom_remote_login=request_access&origin=' + encodeURIComponent( data.origin ) + '&wpcomid=' + encodeURIComponent( data.wpcomid );
+
+			var css = 'html { -webkit-transition: margin-top 1s; transition: margin-top 1s; } /* 9001 */ html { margin-top: 46px !important; } * html body { margin-top: 46px !important; } @media screen and ( max-width: 660px ) { html { margin-top: 71px !important; } * html body { margin-top: 71px !important; } #wpcom_request_access_iframe { display: block; height: 71px !important; } } #wpcom_request_access_iframe { border: 0px; height: 46px; position: fixed; top: 0; left: 0; width: 100%; min-width: 100%; z-index: 99999; background: #23282d; } ';
+
+			var style = document.createElement( 'style' );
+			style.type = 'text/css';
+			style.id = 'wpcom_request_access_styles';
+			style.appendChild( document.createTextNode( css ) );
+			document.body.appendChild( style );
+
+			document.body.appendChild( iframe );
+		}
+
+		if ( data.msg === 'DONE' ) {
+			wpcom_remote_login_final_cleanup();
+		}
+	}
+}, false );
+
+// Inject the remote login iframe after the page has had a chance to load
+// more critical resources
+window.addEventListener( "DOMContentLoaded", function( e ) {
+	var iframe = document.createElement( "iframe" );
+	iframe.style.display = "none";
+	iframe.setAttribute( "scrolling", "no" );
+	iframe.setAttribute( "id", "wpcom_remote_login_key" );
+	iframe.src = "https://r-login.wordpress.com/remote-login.php"
+		+ "?wpcom_remote_login=key"
+		+ "&origin=aHR0cHM6Ly93YW5kZXJpbmdpbm4uY29t"
+		+ "&wpcomid=113840984"
+		+ "&time=1664899884";
+	document.body.appendChild( iframe );
+}, false );
+</script>
+<link rel='dns-prefetch' href='//s1.wp.com' />
+<link rel='dns-prefetch' href='//wanderinginn.wordpress.com' />
+<link rel='dns-prefetch' href='//s0.wp.com' />
+<link rel='dns-prefetch' href='//s2.wp.com' />
+<link href='https://fonts.gstatic.com' crossorigin rel='preconnect' />
+<link rel="alternate" type="application/rss+xml" title="The Wandering Inn &raquo; Feed" href="https://wanderinginn.com/feed/" />
+<link rel="alternate" type="application/rss+xml" title="The Wandering Inn &raquo; Comments Feed" href="https://wanderinginn.com/comments/feed/" />
+<link rel="alternate" type="application/rss+xml" title="The Wandering Inn &raquo; 1.00 C Comments Feed" href="https://wanderinginn.com/2017/04/25/1-00-c/feed/" />
+	<script type="text/javascript">
+		/* <![CDATA[ */
+		function addLoadEvent(func) {
+			var oldonload = window.onload;
+			if (typeof window.onload != 'function') {
+				window.onload = func;
+			} else {
+				window.onload = function () {
+					oldonload();
+					func();
+				}
+			}
+		}
+		/* ]]> */
+	</script>
+	<script type="text/javascript">
+window._wpemojiSettings = {"baseUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/72x72\/","ext":".png","svgUrl":"https:\/\/s0.wp.com\/wp-content\/mu-plugins\/wpcom-smileys\/twemoji\/2\/svg\/","svgExt":".svg","source":{"concatemoji":"https:\/\/s0.wp.com\/wp-includes\/js\/wp-emoji-release.min.js?m=1652185836h&ver=6.0.2"}};
+/*! This file is auto-generated */
+!function(e,a,t){var n,r,o,i=a.createElement("canvas"),p=i.getContext&&i.getContext("2d");function s(e,t){var a=String.fromCharCode,e=(p.clearRect(0,0,i.width,i.height),p.fillText(a.apply(this,e),0,0),i.toDataURL());return p.clearRect(0,0,i.width,i.height),p.fillText(a.apply(this,t),0,0),e===i.toDataURL()}function c(e){var t=a.createElement("script");t.src=e,t.defer=t.type="text/javascript",a.getElementsByTagName("head")[0].appendChild(t)}for(o=Array("flag","emoji"),t.supports={everything:!0,everythingExceptFlag:!0},r=0;r<o.length;r++)t.supports[o[r]]=function(e){if(!p||!p.fillText)return!1;switch(p.textBaseline="top",p.font="600 32px Arial",e){case"flag":return s([127987,65039,8205,9895,65039],[127987,65039,8203,9895,65039])?!1:!s([55356,56826,55356,56819],[55356,56826,8203,55356,56819])&&!s([55356,57332,56128,56423,56128,56418,56128,56421,56128,56430,56128,56423,56128,56447],[55356,57332,8203,56128,56423,8203,56128,56418,8203,56128,56421,8203,56128,56430,8203,56128,56423,8203,56128,56447]);case"emoji":return!s([129777,127995,8205,129778,127999],[129777,127995,8203,129778,127999])}return!1}(o[r]),t.supports.everything=t.supports.everything&&t.supports[o[r]],"flag"!==o[r]&&(t.supports.everythingExceptFlag=t.supports.everythingExceptFlag&&t.supports[o[r]]);t.supports.everythingExceptFlag=t.supports.everythingExceptFlag&&!t.supports.flag,t.DOMReady=!1,t.readyCallback=function(){t.DOMReady=!0},t.supports.everything||(n=function(){t.readyCallback()},a.addEventListener?(a.addEventListener("DOMContentLoaded",n,!1),e.addEventListener("load",n,!1)):(e.attachEvent("onload",n),a.attachEvent("onreadystatechange",function(){"complete"===a.readyState&&t.readyCallback()})),(e=t.source||{}).concatemoji?c(e.concatemoji):e.wpemoji&&e.twemoji&&(c(e.twemoji),c(e.wpemoji)))}(window,document,window._wpemojiSettings);
+</script>
+<style type="text/css">
+img.wp-smiley,
+img.emoji {
+	display: inline !important;
+	border: none !important;
+	box-shadow: none !important;
+	height: 1em !important;
+	width: 1em !important;
+	margin: 0 0.07em !important;
+	vertical-align: -0.1em !important;
+	background: none !important;
+	padding: 0 !important;
+}
+</style>
+	<link crossorigin='anonymous' rel='stylesheet' id='all-css-0-1' href='https://s0.wp.com/_static/??-eJylkd1OAyEQhV9IdlyzaeOF8Vn4meBUYAkzWHl7Z5s0Vk2riTeEw8l35gBwrMavRbAI1NQjFYbYVTpsUZ2G8DYv08N0D65TCuDS6l9NItdsG8AyEk6e+Q7+FyQvmD+DqPjUAzIcGDIGspjU1uRLUZMd2EzCaP2YMpXfcfUu9RfoevlTUw1DqXarbMfaxcRG4c/3/xbRrFCJfAXP3ZwTtnfT81ztz/I3sCOFiKI4n/dG8P02UnWMca42ZDa6ZurZnL6FN+45P8273bLsH5d5f/gAOyLUIw==?cssminify=yes' type='text/css' media='all' />
+<style id='wp-block-library-inline-css'>
+.has-text-align-justify {
+	text-align:justify;
+}
+.wp-block-cover__image-background.has-parallax {
+	background-size: cover;
+}
+</style>
+<style id='global-styles-inline-css'>
+body{--wp--preset--color--black: #000;--wp--preset--color--cyan-bluish-gray: #abb8c3;--wp--preset--color--white: #fff;--wp--preset--color--pale-pink: #f78da7;--wp--preset--color--vivid-red: #cf2e2e;--wp--preset--color--luminous-vivid-orange: #ff6900;--wp--preset--color--luminous-vivid-amber: #fcb900;--wp--preset--color--light-green-cyan: #7bdcb5;--wp--preset--color--vivid-green-cyan: #00d084;--wp--preset--color--pale-cyan-blue: #8ed1fc;--wp--preset--color--vivid-cyan-blue: #0693e3;--wp--preset--color--vivid-purple: #9b51e0;--wp--preset--color--blue: #1982d1;--wp--preset--color--dark-gray: #373737;--wp--preset--color--medium-gray: #666;--wp--preset--color--light-gray: #e2e2e2;--wp--preset--gradient--vivid-cyan-blue-to-vivid-purple: linear-gradient(135deg,rgba(6,147,227,1) 0%,rgb(155,81,224) 100%);--wp--preset--gradient--light-green-cyan-to-vivid-green-cyan: linear-gradient(135deg,rgb(122,220,180) 0%,rgb(0,208,130) 100%);--wp--preset--gradient--luminous-vivid-amber-to-luminous-vivid-orange: linear-gradient(135deg,rgba(252,185,0,1) 0%,rgba(255,105,0,1) 100%);--wp--preset--gradient--luminous-vivid-orange-to-vivid-red: linear-gradient(135deg,rgba(255,105,0,1) 0%,rgb(207,46,46) 100%);--wp--preset--gradient--very-light-gray-to-cyan-bluish-gray: linear-gradient(135deg,rgb(238,238,238) 0%,rgb(169,184,195) 100%);--wp--preset--gradient--cool-to-warm-spectrum: linear-gradient(135deg,rgb(74,234,220) 0%,rgb(151,120,209) 20%,rgb(207,42,186) 40%,rgb(238,44,130) 60%,rgb(251,105,98) 80%,rgb(254,248,76) 100%);--wp--preset--gradient--blush-light-purple: linear-gradient(135deg,rgb(255,206,236) 0%,rgb(152,150,240) 100%);--wp--preset--gradient--blush-bordeaux: linear-gradient(135deg,rgb(254,205,165) 0%,rgb(254,45,45) 50%,rgb(107,0,62) 100%);--wp--preset--gradient--luminous-dusk: linear-gradient(135deg,rgb(255,203,112) 0%,rgb(199,81,192) 50%,rgb(65,88,208) 100%);--wp--preset--gradient--pale-ocean: linear-gradient(135deg,rgb(255,245,203) 0%,rgb(182,227,212) 50%,rgb(51,167,181) 100%);--wp--preset--gradient--electric-grass: linear-gradient(135deg,rgb(202,248,128) 0%,rgb(113,206,126) 100%);--wp--preset--gradient--midnight: linear-gradient(135deg,rgb(2,3,129) 0%,rgb(40,116,252) 100%);--wp--preset--duotone--dark-grayscale: url('#wp-duotone-dark-grayscale');--wp--preset--duotone--grayscale: url('#wp-duotone-grayscale');--wp--preset--duotone--purple-yellow: url('#wp-duotone-purple-yellow');--wp--preset--duotone--blue-red: url('#wp-duotone-blue-red');--wp--preset--duotone--midnight: url('#wp-duotone-midnight');--wp--preset--duotone--magenta-yellow: url('#wp-duotone-magenta-yellow');--wp--preset--duotone--purple-green: url('#wp-duotone-purple-green');--wp--preset--duotone--blue-orange: url('#wp-duotone-blue-orange');--wp--preset--font-size--small: 13px;--wp--preset--font-size--medium: 20px;--wp--preset--font-size--large: 36px;--wp--preset--font-size--x-large: 42px;--wp--preset--spacing--20: 0.44rem;--wp--preset--spacing--30: 0.67rem;--wp--preset--spacing--40: 1rem;--wp--preset--spacing--50: 1.5rem;--wp--preset--spacing--60: 2.25rem;--wp--preset--spacing--70: 3.38rem;--wp--preset--spacing--80: 5.06rem;}:where(.is-layout-flex){gap: 0.5em;}body .is-layout-flow > .alignleft{float: left;}body .is-layout-flow > .alignright{float: right;}body .is-layout-flow > .aligncenter{margin-left: auto !important;margin-right: auto !important;}body .is-layout-constrained > .alignleft{float: left;}body .is-layout-constrained > .alignright{float: right;}body .is-layout-constrained > .aligncenter{margin-left: auto !important;margin-right: auto !important;}body .is-layout-constrained > :where(:not(.alignleft):not(.alignright):not(.alignfull)){max-width: var(--wp--style--global--content-size);margin-left: auto !important;margin-right: auto !important;}body .is-layout-constrained > .alignwide{max-width: var(--wp--style--global--wide-size);}body .is-layout-flex{display: flex;}body .is-layout-flex{flex-wrap: wrap;align-items: center;}body .is-layout-flex > *{margin: 0;}:where(.wp-block-columns.is-layout-flex){gap: 2em;}.has-black-color{color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-color{color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-color{color: var(--wp--preset--color--white) !important;}.has-pale-pink-color{color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-color{color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-color{color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-color{color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-color{color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-color{color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-color{color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-color{color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-color{color: var(--wp--preset--color--vivid-purple) !important;}.has-black-background-color{background-color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-background-color{background-color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-background-color{background-color: var(--wp--preset--color--white) !important;}.has-pale-pink-background-color{background-color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-background-color{background-color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-background-color{background-color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-background-color{background-color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-background-color{background-color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-background-color{background-color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-background-color{background-color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-background-color{background-color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-background-color{background-color: var(--wp--preset--color--vivid-purple) !important;}.has-black-border-color{border-color: var(--wp--preset--color--black) !important;}.has-cyan-bluish-gray-border-color{border-color: var(--wp--preset--color--cyan-bluish-gray) !important;}.has-white-border-color{border-color: var(--wp--preset--color--white) !important;}.has-pale-pink-border-color{border-color: var(--wp--preset--color--pale-pink) !important;}.has-vivid-red-border-color{border-color: var(--wp--preset--color--vivid-red) !important;}.has-luminous-vivid-orange-border-color{border-color: var(--wp--preset--color--luminous-vivid-orange) !important;}.has-luminous-vivid-amber-border-color{border-color: var(--wp--preset--color--luminous-vivid-amber) !important;}.has-light-green-cyan-border-color{border-color: var(--wp--preset--color--light-green-cyan) !important;}.has-vivid-green-cyan-border-color{border-color: var(--wp--preset--color--vivid-green-cyan) !important;}.has-pale-cyan-blue-border-color{border-color: var(--wp--preset--color--pale-cyan-blue) !important;}.has-vivid-cyan-blue-border-color{border-color: var(--wp--preset--color--vivid-cyan-blue) !important;}.has-vivid-purple-border-color{border-color: var(--wp--preset--color--vivid-purple) !important;}.has-vivid-cyan-blue-to-vivid-purple-gradient-background{background: var(--wp--preset--gradient--vivid-cyan-blue-to-vivid-purple) !important;}.has-light-green-cyan-to-vivid-green-cyan-gradient-background{background: var(--wp--preset--gradient--light-green-cyan-to-vivid-green-cyan) !important;}.has-luminous-vivid-amber-to-luminous-vivid-orange-gradient-background{background: var(--wp--preset--gradient--luminous-vivid-amber-to-luminous-vivid-orange) !important;}.has-luminous-vivid-orange-to-vivid-red-gradient-background{background: var(--wp--preset--gradient--luminous-vivid-orange-to-vivid-red) !important;}.has-very-light-gray-to-cyan-bluish-gray-gradient-background{background: var(--wp--preset--gradient--very-light-gray-to-cyan-bluish-gray) !important;}.has-cool-to-warm-spectrum-gradient-background{background: var(--wp--preset--gradient--cool-to-warm-spectrum) !important;}.has-blush-light-purple-gradient-background{background: var(--wp--preset--gradient--blush-light-purple) !important;}.has-blush-bordeaux-gradient-background{background: var(--wp--preset--gradient--blush-bordeaux) !important;}.has-luminous-dusk-gradient-background{background: var(--wp--preset--gradient--luminous-dusk) !important;}.has-pale-ocean-gradient-background{background: var(--wp--preset--gradient--pale-ocean) !important;}.has-electric-grass-gradient-background{background: var(--wp--preset--gradient--electric-grass) !important;}.has-midnight-gradient-background{background: var(--wp--preset--gradient--midnight) !important;}.has-small-font-size{font-size: var(--wp--preset--font-size--small) !important;}.has-medium-font-size{font-size: var(--wp--preset--font-size--medium) !important;}.has-large-font-size{font-size: var(--wp--preset--font-size--large) !important;}.has-x-large-font-size{font-size: var(--wp--preset--font-size--x-large) !important;}
+:where(.wp-block-columns.is-layout-flex){gap: 2em;}
+.wp-block-pullquote{font-size: 1.5em;line-height: 1.6;}
+.wp-block-navigation a:where(:not(.wp-element-button)){color: inherit;}
+</style>
+<link crossorigin='anonymous' rel='stylesheet' id='all-css-2-1' href='https://s1.wp.com/_static/??-eJyNj8EOwjAMQ3+IEjYBggPiW7YSSlnaVE26an9PuYGQ0G625SfZUJOxHBWjgj4woEAqI2htwYKEM0YYie0kWyuygRV10YXQ1GQ5rGYsE2eB25CnHyYUk6g4HwUcsmljBvUcv4y50+DzPzRju+GadNBaH/YNXcOlO/b9aX/edYfnC0ReZ8I=?cssminify=yes' type='text/css' media='all' />
+<style id='jetpack-global-styles-frontend-style-inline-css'>
+:root { --font-headings: unset; --font-base: unset; --font-headings-default: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif; --font-base-default: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif;}
+</style>
+<link crossorigin='anonymous' rel='stylesheet' id='all-css-4-1' href='https://s0.wp.com/wp-content/themes/h4/global.css?m=1420737423h&cssminify=yes' type='text/css' media='all' />
+<script id='wpcom-actionbar-placeholder-js-extra'>
+var actionbardata = {"siteID":"113840984","siteURL":"https:\/\/wanderinginn.com","xhrURL":"https:\/\/wanderinginn.com\/wp-admin\/admin-ajax.php","nonce":"1ba14e6909","isLoggedIn":"","statusMessage":"","subsEmailDefault":"instantly","proxyScriptUrl":"https:\/\/s0.wp.com\/wp-content\/js\/wpcom-proxy-request.js?ver=20211021","shortlink":"https:\/\/wp.me\/p7HFeU-rP","i18n":{"followedText":"New posts from this site will now appear in your <a href=\"https:\/\/wordpress.com\/read\">Reader<\/a>","foldBar":"Collapse this bar","unfoldBar":"Expand this bar"}};
+</script>
+<script crossorigin='anonymous' type='text/javascript' src='https://s1.wp.com/_static/??/wp-content/js/mobile-useragent-info.js,/wp-content/js/rlt-proxy.js?m=1637704497j'></script>
+<script type='text/javascript'>
+	window.addEventListener( 'DOMContentLoaded', function() {
+		rltInitialize( {"token":null,"iframeOrigins":["https:\/\/widgets.wp.com"]} );
+	} );
+</script>
+<link crossorigin='anonymous' rel='stylesheet' id='all-css-0-2' href='https://s0.wp.com/wp-content/mu-plugins/highlander-comments/style.css?m=1663315160h&cssminify=yes' type='text/css' media='all' />
+<link rel="EditURI" type="application/rsd+xml" title="RSD" href="https://wanderinginn.wordpress.com/xmlrpc.php?rsd" />
+<link rel="wlwmanifest" type="application/wlwmanifest+xml" href="https://s1.wp.com/wp-includes/wlwmanifest.xml" /> 
+<meta name="generator" content="WordPress.com" />
+<link rel="canonical" href="https://wanderinginn.com/2017/04/25/1-00-c/" />
+<link rel='shortlink' href='https://wp.me/p7HFeU-rP' />
+<link rel="alternate" type="application/json+oembed" href="https://public-api.wordpress.com/oembed/?format=json&amp;url=https%3A%2F%2Fwanderinginn.com%2F2017%2F04%2F25%2F1-00-c%2F&amp;for=wpcom-auto-discovery" /><link rel="alternate" type="application/xml+oembed" href="https://public-api.wordpress.com/oembed/?format=xml&amp;url=https%3A%2F%2Fwanderinginn.com%2F2017%2F04%2F25%2F1-00-c%2F&amp;for=wpcom-auto-discovery" />
+<!-- Jetpack Open Graph Tags -->
+<meta property="og:type" content="article" />
+<meta property="og:title" content="1.00 C" />
+<meta property="og:url" content="https://wanderinginn.com/2017/04/25/1-00-c/" />
+<meta property="og:description" content="Do you wanna hear a funny joke? Okay. Here it is. ‘A fat guy appears in a fantasy world and decides to become a [Clown].’ …I’m still working on the punch line. It’s the only joke I’ve got, though. …" />
+<meta property="article:published_time" content="2017-04-25T01:59:43+00:00" />
+<meta property="article:modified_time" content="2019-06-06T02:18:34+00:00" />
+<meta property="og:site_name" content="The Wandering Inn" />
+<meta property="og:image" content="https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=200" />
+<meta property="og:image:width" content="200" />
+<meta property="og:image:height" content="200" />
+<meta property="og:image:alt" content="" />
+<meta property="og:locale" content="en_US" />
+<meta property="article:publisher" content="https://www.facebook.com/WordPresscom" />
+<meta name="twitter:text:title" content="1.00 C" />
+<meta name="twitter:image" content="https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=240" />
+<meta name="twitter:card" content="summary" />
+
+<!-- End Jetpack Open Graph Tags -->
+<link rel="search" type="application/opensearchdescription+xml" href="https://wanderinginn.com/osd.xml" title="The Wandering Inn" />
+<link rel="search" type="application/opensearchdescription+xml" href="https://s1.wp.com/opensearch.xml" title="WordPress.com" />
+	<style>
+		/* Link color */
+		a,
+		#site-title a:focus,
+		#site-title a:hover,
+		#site-title a:active,
+		.entry-title a:hover,
+		.entry-title a:focus,
+		.entry-title a:active,
+		.widget_twentyeleven_ephemera .comments-link a:hover,
+		section.recent-posts .other-recent-posts a[rel="bookmark"]:hover,
+		section.recent-posts .other-recent-posts .comments-link a:hover,
+		.format-image footer.entry-meta a:hover,
+		#site-generator a:hover {
+			color: #1583af;
+		}
+		section.recent-posts .other-recent-posts .comments-link a:hover {
+			border-color: #1583af;
+		}
+		article.feature-image.small .entry-summary p a:hover,
+		.entry-header .comments-link a:hover,
+		.entry-header .comments-link a:focus,
+		.entry-header .comments-link a:active,
+		.feature-slider a.active {
+			background-color: #1583af;
+		}
+	</style>
+	<meta name="application-name" content="The Wandering Inn" /><meta name="msapplication-window" content="width=device-width;height=device-height" /><meta name="msapplication-tooltip" content="A tale of a girl, an inn, and a world full of levels." /><meta name="msapplication-task" content="name=Subscribe;action-uri=https://wanderinginn.com/feed/;icon-uri=https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=16" /><meta name="msapplication-task" content="name=Sign up for a free blog;action-uri=http://wordpress.com/signup/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Support;action-uri=http://support.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="msapplication-task" content="name=WordPress.com Forums;action-uri=http://forums.wordpress.com/;icon-uri=https://s1.wp.com/i/favicon.ico" /><meta name="description" content="Do you wanna hear a funny joke? Okay. Here it is. ‘A fat guy appears in a fantasy world and decides to become a [Clown].’ …I’m still working on the punch line. It’s the only joke I’ve got, though. I try to be funny, but really, I’m a [Clown]. I’m not actually sure we’re meant&hellip;" />
+<link rel="icon" href="https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=32" sizes="32x32" />
+<link rel="icon" href="https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=192" sizes="192x192" />
+<link rel="apple-touch-icon" href="https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=180" />
+<meta name="msapplication-TileImage" content="https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=270" />
+		<link rel="stylesheet" id="custom-css-css" type="text/css" href="https://s0.wp.com/?custom-css=1&#038;csblog=7HFeU&#038;cscache=6&#038;csrev=3" />
+		<!-- Your Google Analytics Plugin is missing the tracking ID -->
+</head>
+
+<body class="post-template-default single single-post postid-1725 single-format-standard wp-embed-responsive customizer-styles-applied single-author singular two-column right-sidebar highlander-enabled highlander-dark">
+<div class="skip-link"><a class="assistive-text" href="#content">Skip to primary content</a></div><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-dark-grayscale"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0 0.49803921568627" /><feFuncG type="table" tableValues="0 0.49803921568627" /><feFuncB type="table" tableValues="0 0.49803921568627" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-grayscale"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0 1" /><feFuncG type="table" tableValues="0 1" /><feFuncB type="table" tableValues="0 1" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-purple-yellow"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0.54901960784314 0.98823529411765" /><feFuncG type="table" tableValues="0 1" /><feFuncB type="table" tableValues="0.71764705882353 0.25490196078431" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-blue-red"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0 1" /><feFuncG type="table" tableValues="0 0.27843137254902" /><feFuncB type="table" tableValues="0.5921568627451 0.27843137254902" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-midnight"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0 0" /><feFuncG type="table" tableValues="0 0.64705882352941" /><feFuncB type="table" tableValues="0 1" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-magenta-yellow"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0.78039215686275 1" /><feFuncG type="table" tableValues="0 0.94901960784314" /><feFuncB type="table" tableValues="0.35294117647059 0.47058823529412" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-purple-green"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0.65098039215686 0.40392156862745" /><feFuncG type="table" tableValues="0 1" /><feFuncB type="table" tableValues="0.44705882352941 0.4" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 0 0" width="0" height="0" focusable="false" role="none" style="visibility: hidden; position: absolute; left: -9999px; overflow: hidden;" ><defs><filter id="wp-duotone-blue-orange"><feColorMatrix color-interpolation-filters="sRGB" type="matrix" values=" .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 .299 .587 .114 0 0 " /><feComponentTransfer color-interpolation-filters="sRGB" ><feFuncR type="table" tableValues="0.098039215686275 1" /><feFuncG type="table" tableValues="0 0.66274509803922" /><feFuncB type="table" tableValues="0.84705882352941 0.41960784313725" /><feFuncA type="table" tableValues="1 1" /></feComponentTransfer><feComposite in2="SourceGraphic" operator="in" /></filter></defs></svg><div id="page" class="hfeed">
+	<header id="branding">
+			<hgroup>
+				<h1 id="site-title"><span><a href="https://wanderinginn.com/" rel="home">The Wandering Inn</a></span></h1>
+				<h2 id="site-description">A tale of a girl, an inn, and a world full of levels.</h2>
+			</hgroup>
+
+						<a href="https://wanderinginn.com/">
+									<img src="https://wanderinginn.files.wordpress.com/2022/07/cropped-220725_merch_banner_launch-1.png" width="1000" height="296" alt="The Wandering Inn" />
+								</a>
+			
+									<form method="get" id="searchform" action="https://wanderinginn.com/">
+		<label for="s" class="assistive-text">Search</label>
+		<input type="text" class="field" name="s" id="s" placeholder="Search" />
+		<input type="submit" class="submit" name="submit" id="searchsubmit" value="Search" />
+	</form>
+			
+			<nav id="access">
+				<h3 class="assistive-text">Main menu</h3>
+				<div class="menu-menu-1-container"><ul id="menu-menu-1" class="menu"><li id="menu-item-1422" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-home menu-item-1422"><a href="https://wanderinginn.com/">Overview</a></li>
+<li id="menu-item-1912" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1912"><a href="https://wanderinginn.com/table-of-contents/">Table of Contents</a></li>
+<li id="menu-item-1998" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-1998"><a href="https://www.patreon.com/user?u=4240617">Patreon</a></li>
+<li id="menu-item-10438" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-10438"><a href="https://wanderinginn.com/social/">Social</a>
+<ul class="sub-menu">
+	<li id="menu-item-4811" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-4811"><a href="https://discord.gg/abwsa3y">Discord</a></li>
+	<li id="menu-item-4810" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-4810"><a href="https://www.reddit.com/r/WanderingInn/">Reddit</a></li>
+	<li id="menu-item-8944" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-8944"><a href="https://twitter.com/WanderingInn">Twitter</a></li>
+	<li id="menu-item-10440" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-10440"><a href="https://www.facebook.com/thewanderinginn/">Facebook</a></li>
+</ul>
+</li>
+<li id="menu-item-10446" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-10446"><a href="https://wanderinginn.com/publishing-3/">Publishing</a>
+<ul class="sub-menu">
+	<li id="menu-item-10448" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-10448"><a href="https://www.amazon.com/kindle-dbs/entity/author/B07XCYVYMW">E-books</a></li>
+	<li id="menu-item-10447" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-10447"><a href="https://www.audible.com/author/pirate-aba/B07XCYVYMW">Audiobooks</a></li>
+	<li id="menu-item-8761" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-8761"><a href="https://www.cloudscapecomics.com/last-tide/">The Last Tide (Comicbook)</a></li>
+</ul>
+</li>
+<li id="menu-item-1424" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1424"><a href="https://wanderinginn.com/guestbook/">Guestbook</a></li>
+<li id="menu-item-2935" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-has-children menu-item-2935"><a href="https://wanderinginn.com/fanworks/">Fanworks</a>
+<ul class="sub-menu">
+	<li id="menu-item-8557" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-8557"><a href="https://wanderinginn.com/fanworks-permissions/">Fanworks Permissions</a></li>
+</ul>
+</li>
+<li id="menu-item-1426" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-1426"><a href="https://wanderinginn.com/reader-reviews/">Reader Reviews</a></li>
+<li id="menu-item-5002" class="menu-item menu-item-type-post_type menu-item-object-post menu-item-has-children menu-item-5002"><a href="https://wanderinginn.com/2018/10/19/glossary/">Glossary</a>
+<ul class="sub-menu">
+	<li id="menu-item-7035" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-7035"><a href="https://wanderinginn.com/fanworks/#B">Maps</a></li>
+</ul>
+</li>
+<li id="menu-item-5684" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-5684"><a href="https://wanderinginn.com/writing-faqs/">Writing FAQs</a></li>
+<li id="menu-item-11759" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-11759"><a href="https://aubergevagabonde.wordpress.com/">L&#8217;Auberge Vagabonde</a></li>
+<li id="menu-item-11765" class="menu-item menu-item-type-post_type menu-item-object-page menu-item-11765"><a href="https://wanderinginn.com/contacts/">Contacts</a></li>
+<li id="menu-item-12493" class="menu-item menu-item-type-custom menu-item-object-custom menu-item-12493"><a href="https://www.store.wanderinginn.com/">Merch Store</a></li>
+<li id="menu-item-12667" class="menu-item menu-item-type-post_type menu-item-object-post menu-item-12667"><a href="https://wanderinginn.com/2022/09/28/interlude-the-great-race/">Interlude – The Great Race</a></li>
+</ul></div>			</nav><!-- #access -->
+	</header><!-- #branding -->
+
+
+	<div id="main">
+
+		<div id="primary">
+			<div id="content" role="main">
+
+				
+					<nav id="nav-single">
+						<h3 class="assistive-text">Post navigation</h3>
+						<span class="nav-previous"><a href="https://wanderinginn.com/2017/04/22/2-16/" rel="prev"><span class="meta-nav">&larr;</span> Previous</a></span>
+						<span class="nav-next"><a href="https://wanderinginn.com/2017/04/25/2-17/" rel="next">Next <span class="meta-nav">&rarr;</span></a></span>
+					</nav><!-- #nav-single -->
+
+					
+<article id="post-1725" class="post-1725 post type-post status-publish format-standard hentry category-writing tag-fantasy tag-inn tag-web-novel tag-web-serial tag-writing">
+	<header class="entry-header">
+		<h1 class="entry-title">1.00 C</h1>
+
+				<div class="entry-meta">
+						<span class="sep">Posted on </span><a href="https://wanderinginn.com/2017/04/25/1-00-c/" title="1:59 am" rel="bookmark"><time class="entry-date" datetime="2017-04-25T01:59:43+00:00">April 25, 2017</time></a><span class="by-author"> <span class="sep"> by </span> <span class="author vcard"><a class="url fn n" href="https://wanderinginn.com/author/pirateaba/" title="View all posts by pirateaba" rel="author">pirateaba</a></span></span>		</div><!-- .entry-meta -->
+			</header><!-- .entry-header -->
+
+	<div class="entry-content">
+		<p>Do you wanna hear a funny joke? Okay. Here it is.</p>
+<p>‘A fat guy appears in a fantasy world and decides to become a [Clown].’</p>
+<p>…I’m still working on the punch line. It’s the only joke I’ve got, though. I try to be funny, but really, I’m a [Clown]. I’m not actually sure we’re meant to make people laugh.</p>
+<p>Curious about the parenthesis? It means I have a Class. [Clown], to be exact. Yeah. It’s this entire thing which I don’t want to go into.</p>
+<p>Suffice it to say that I’m in a world where everyone gains levels and classes. Make sense? It doesn’t to me either. But let’s just call it a videogame where if you get stabbed in the stomach, you still bleed and die horribly.</p>
+<p>I’m going to die that way, I just know it. I’m a fat idiot who chose/got the wrong class. Clown. In a world with monsters and magic, who wants to be a clown?</p>
+<p>Me, apparently.</p>
+<p>According to Edward or Eddy as he likes to be called, I shouldn’t even have this class. He keeps telling me I’m like a Bard or a Troubadour from one of the Final Fantasy series games. Number XXIV or something like that.</p>
+<p>I never played those games as a kid. I wasn’t a gamer, and I sort of regret it now. Maybe if I was, I’d be able to deal with this.</p>
+<p>Probably not. How could anything prepare you to actually fight and die against creatures twice as terrifying as anything from our world? Nothing could.</p>
+<p>So it’s no wonder I don’t want to fight. Maybe that’s why I got the [Clown] class. Those first few days when we were all summoned to this world, I was just trying to cope by telling jokes and get people to laugh. I’m <em>good</em> at being the funny guy, normally. But then I became a [Clown] and everything got a lot less funny when we realized we were here to stay.</p>
+<p>Oh yeah? Did I mention that? Okay, let me go back and explain. We—and by we, I mean me and around fifty people around my age of 20—appeared in this world thanks to a summoning spell. We appeared in front of this old guy on a throne, and suddenly everyone was screaming that we were the ‘prophesied heroes’.</p>
+<p>Cut to now. Just over twenty of us are left, and instead of being the heroes of the Blighted Lands, we’re disgraces sent to garrison a village on the outskirts, barely acknowledged by the throne or the people.</p>
+<p>Because we suck. You know how the main hero in a movie gets teleported to another world and instantly has some kind of special skill or talent? That’s us, just without anything special.</p>
+<p>The King—the Blighted King, he’s called, Othius the Fourth – greeted us, and told us we would be the heroes who drove the demons out of his kingdom. He gave us weapons, sent us out into battle—</p>
+<p>And we got slaughtered. The survivors couldn’t do anything, and so he gave up on us. He essentially exiled us from the capital city, and sent us out where we couldn’t cause any trouble.</p>
+<p>Some of the others, the people from my world, learned to fight. Some even got good enough to hunt monsters and keep the surrounding area safe. But most of us couldn’t deal with what was happening.</p>
+<p>Richard’s a [Knight], Level 26 and the strongest person in our group by far. He leads us and keeps us safe.</p>
+<p>Emily’s a Level 21 [Hydromancer]. She’s the idol of our group if you can call anyone that. She’s popular.</p>
+<p>The others – six or so guys and one girl who fight – all have some kind of fighting or magical class. The others either have barely one or two levels, or have chosen different jobs, like [Cook] or [Tailor] or [Gatherer].</p>
+<p>The majority help fight and keep people safe, and the others help out or just…exist. But that’s the group. You can divide it neatly up into combat and non-combat classes, except for one oddball.</p>
+<p>That would be me. The fat guy. A [Clown]. Funny man without anything funny to say about what’s happening.</p>
+<p>Tom’s my name. It’s actually Thomas, but Tom is what I prefer to be called. And yeah, I’m the class clown of the group in more ways than one. But the truth is, I’m not actually that funny. If you couldn’t tell, no one ever laughs at my jokes.</p>
+<p>I always wanted to do stand up, not slapstick. But it turns out I’m not good at either. Yeah, I’m an unfunny fat guy walking around with white makeup on trying to entertain people. Which is pretty funny when you think about it, and just sad when you actually see it.</p>
+<p>I know, I know, I should have better self-esteem. And I’m actually just chubby, not fat. Pleasingly plump. Slightly hefty. I’ve got girth to go with my big bones, but I can still get around.</p>
+<p>It’s just that I feel like a <em>whale</em> compared to all the people in this village. They all look like they escaped from some horrible refugee camp—or prison. They’ve got gaunt faces, skeletal frames, but they still keep going.</p>
+<p>It makes me sick. But not too sick to stuff my face every day. I hate myself, sometimes.</p>
+<p>Most of the time.</p>
+<p>I’ve got depression. Clinically proven, not self-diagnosed, thanks. And normally I have a good hold on it—well, I used to. But I’m in a place where the only drugs we’ve got are different kinds of alcohol. Good luck finding a bottle of antidepressants here, much less a drug store.</p>
+<p>It makes me feel worthless. It doesn’t help that other people share that opinion.</p>
+<p>A [Clown]. I’m actually Level 19, which might surprise you. But when I got that class I took it as a sign. I mixed some white face paint, added a bit of red for my mouth and learned how to do things like juggle. I ran around, tried to tumble for people, told bad jokes, and generally made a fool of myself.</p>
+<p>Really, I should have gained two levels from that, at most. But it turns out that me and everyone who was summoned to this world gained the [Hero] class when we arrived. We’re all Level 1 [Heroes], and no one’s raised it any higher, but it makes us level in every other class a lot faster.</p>
+<p>So I’m Level 19 right now, and trying to get to Level 20. According to common knowledge, you generally get a better-than-average skill at Level 20 and a better array of skills after that.</p>
+<p>Yeah. It <em>is</em> like a game, when all’s said and done. But it’s too real for me. Too real, and too terrible.</p>
+<p>I can’t be a warrior, like the others. I don’t want to kill things, even horrific things with tons of eyes and claws. Actually, especially not them.</p>
+<p>I just want to level up this class. I think…yes, I think it might be worth doing.</p>
+<p>Right now? Right now, I’m trying to make people laugh.</p>
+<p>Picture the scene, if you will. There’s a grassy spot in the center of the small village, a place where the dirt road turns to soil. It’s a small village they’ve put us in. But there are kids here, and people even this far out in the wilderness.</p>
+<p>They can’t stray far from the village. There are several [Hunters] and more than one low-level [Warrior] or [Hedgemage] in the village, but the real protection comes from patrols and the small garrison of [Soldiers] stationed a few miles down the road.</p>
+<p>Thanks to us, that garrison is tripled in size, and the villagers feel it in the increased levies on their goods and supplies. We’re even occupying the townhouse, a big building large enough to hold all of us together. We’ve got beds, daily meals, and even basic amenities courtesy of the crown.</p>
+<p>The village people don’t have any of that. So they hate us.</p>
+<p>But the kids—ah, the kids still enjoy our presence. Unlike the adults, we don’t have set jobs so we can interact with them. We used to more, but now most of the others won’t even play with the kids.</p>
+<p>So it falls to me.</p>
+<p>Look, look at the clown! See how he waddles around in the grass? I smile, feeling the dried paint crackling on my face. I toss three carved wooden pins up in the air, and juggle them around for the audience of eight or so children who stop playing tag to watch me.</p>
+<p>It’s not the first time I’ve put on a performance, and so the tired housewife across the street just looks once at me and then shakes her head and keeps walking. But the kids are more willing to give me another shot, so they watch as I juggle the pins.</p>
+<p>They’re horribly rough and awkward in my hands, but I did manage to color them bright red, blue, and yellow. Some of the paint wore off, but it still looks impressive as they flash over my head.</p>
+<p>Okay, not impressive. But good. And it’s a miracle I can juggle at all, you know. It wasn’t a skill I had back home, but I learned it as I leveled up in the [Clown] class.</p>
+<p>I’ve got several skills that allow me to do clownish things – juggle, do prat falls, etc. I’ve got one horribly annoying skill that isn’t active right now, thank god, and one weird skill.</p>
+<p>[Loud Voice]. It does exactly what it sounds like. But it’s odd. It’s not a skill that a [Clown] would really need, right?</p>
+<p>Normally, clowns aren’t even supposed to talk. I’ve seen a few in circuses, and they’re like mimes. They might make funny sounds, but they don’t <em>speak.</em></p>
+<p>But if I understand how this class works, then maybe…</p>
+<p>Oops. I’m so caught up in thought that I drop one of the pins. The other two thump on the ground, and I search for a recovery as the kids mutter and scratch themselves, bored.</p>
+<p>Right, how about this?</p>
+<p>I pause, and raise my hands and pucker my lips. Then I point to my empty hand. The children watch my pantomime, knowing the punch line but still interested enough to watch.</p>
+<p>I close my fist, and then do the trick where I pretend to pull something out. The only difference is that I <em>do</em> pull something out. I flip the bright blue pin up into the air, and then pull another one out from behind my back. The yellow pin joins it, and I’m juggling again, despite the fact that I never reached down to pick the pins back up off the ground.</p>
+<p>The children laugh and point, and I smile for real behind the paint. That wasn’t half bad. And it’s all thanks to my Skill.</p>
+<p>My only cool trick is that I <em>can</em> pull objects seemingly out of nowhere. I have to have them on me of course, but within a 5 ft radius of me I can pretty much grab anything and make it appear out of thin air.</p>
+<p>But soon enough, even my juggling and hat trick gets boring. Especially since I don’t have any more props besides the pins. A real clown would have balloons, confetti, plates to balance on sticks…</p>
+<p>I’ve got nothing else. So I stop juggling as the kids start to stand up and clear my voice.</p>
+<p>“Does anyone want to hear a joke?”</p>
+<p>They look back at me. One of the older kids groans and shakes his head, but they stick around. Kids are gullible that way.</p>
+<p>“Okay.”</p>
+<p>I’ve got this. I cough into my gloved hand.</p>
+<p>“Um. Knock knock.”</p>
+<p>They blink at me. At last, Wilen gives me a hand.</p>
+<p>“Who’s there?”</p>
+<p>“Goblin.”</p>
+<p>“Goblin who?”</p>
+<p>“Me. I’m gobblin’ up your food.”</p>
+<p>They stare at me, and then at each other. Then the older boy shakes his head.</p>
+<p>“I <em>told </em>you that he isn’t funny.”</p>
+<p>I <em>can’t tell jokes.</em> I’m not wired that way in my head. I can only…be funny in a group. You know, say something funny when people are having a good time. I can’t make stuff up.</p>
+<p>It took me ten minutes to come up with that one. All I get are silent stares.</p>
+<p>One of the younger girls still sitting on the ground stares at me. Or more accurately, my flab. It’s covered by my colorful clothes, but the contrast between me and them makes me feel even worse than I already do.</p>
+<p>“Are you going to help build another Wall? Or fight monsters?”</p>
+<p>What a question out of such a young face. I falter.</p>
+<p>“I’m—not a fighter. I’m a [Clown]. I do tricks. See?”</p>
+<p>I reach towards her ear and pull out a flower. Lucky there was one nearby. She giggles, takes it, and runs off, and I’m saved. I straighten, and feel sweat running down my back. That was more intense than the juggling.</p>
+<p>The Wall. It’s one of the features of this continent, not that I know much about this world in general. But this kingdom—this place—I’ve learned enough to survive.</p>
+<p>We’re at the very edge of what people call the Blighted Lands. Here, the Kingdom holds back the Demons. It’s a basic story, because there’s not much more than that.</p>
+<p>Go twenty miles north, and the ground will start to change. The grass will turn black; the wildlife will change. Monsters roam the landscape, fighting each other, moving west to snack on humans. The only thing that stops them are patrolling groups of [Soldiers], adventurers constantly hired to eradicate as many monsters as possible, and the few towns and villages of people brave enough to build out this far.</p>
+<p>And of course, the Wall. The Fourth Wall if you want to get specific.</p>
+<p>It’s a giant stone wall. Yeah. The only thing that’s special about it is that it’s stone, it’s a wall, and it’s about twice as high as the Great Wall of China.</p>
+<p>That’s 50 feet, by the way. I know that because one of the people with us – Marian – visited the Great Wall in China, once. She died the first time we went past it.</p>
+<p>The four walls are the ultimate defense for the Kingdom. They’re not just walls; there’s magical traps and artillery built into the wall, and they’re always manned by the best soldiers in the army. All monster attacks end at the wall, and the Kingdom behind it is relatively stable.</p>
+<p>Sometimes things get through. In times of war, the Fourth, Third, and Second walls have been breached. But the First Wall has never fallen. Even the Demon King’s army never got past it.</p>
+<p>Monsters. Demons. There’s a difference, apparently. Monsters are just…monsters. They’re anything from Goblins to Trolls to Manticores and Dragons. They’re mindless, vicious killers. But Demons are different. They’re mutated humans and other species that have their own civilization, their own army. They’re one of three powers in the Blighted Lands, and they’re trying to eradicate the Kingdom once and for all.</p>
+<p>Three powers. The Kingdom; the place where sentient species (mainly humans) band together to fight against monsters and Demons. The Demon lands, the other half of the continent where another King rules, and then the place where no one goes.</p>
+<p>The origin – or perhaps the center of the curse on this continent. The place where monsters keep spewing from.</p>
+<p>Unlike other continents, monsters here don’t just breed to survive. New species keep popping up over here. Something keeps producing different kinds of monsters. People say it’s an ancient monster from the time of Gods, or some terrible spell that went wrong. Whatever it is, it’s too powerful to kill. The Kingdom’s sent countless armies to destroy it over the centuries, and not one has come back.</p>
+<p>The Demon King as people call him is just as much of a mystery. Let’s just say that a group of monsters is organized. They raid the Kingdom, and the Kingdom fights back. Each side gives ground and harries the other, sending raiding parties at times, massive armies at others.</p>
+<p>I’ve never seen a Demon. Some of the others have; Eddy says he saw one that looked like a Quanari from Dragon Age, it just looked like a person with goat horns. Which is what Eddy says Quanari look like.</p>
+<p>That’s the thing. Demons are just mutated versions of whatever species they were. Humans who got exposed to…whatever lives in the Blighted Lands, affected by the magic or whatever. Some Demons have wings and talons and beaks; others look almost normal except for a few differences. The main thing you’d really want to know though is that although they have humanoid forms they have no compunctions against killing humans, even kids.</p>
+<p>And the same applies for humans. The war between Humans and Demons has been going on for a thousand years or more, and even if now isn’t a particularly active moment in the conflict, small skirmishes and raids take place every week at least.</p>
+<p>But here’s peaceful. Despite it being in front of the Wall, this village hasn’t seen conflict yet. Aside from monster attacks, it’s practically safe here, aside from the poverty and everything. You can live in a village like this quite peacefully for years, given the right circumstances. The nearby outpost keeps away the worst of monsters and enemy attacks, and there’s far more space here than in the cramped confines of the Kingdom behind the Walls.</p>
+<p>The Kingdom keeps growing; that’s why humans move out past the Walls. But it’s not safe out here, where you can be attacked by monsters and Demons. That’s why the King wants to build another wall. A Fifth Wall. For that, he summoned us.</p>
+<p>With a bunch of powerful [Heroes], the Kingdom would have enough power to build another Wall and seriously constrict the enemy’s land. The Kingdom would, in a single masterstroke, nearly double their available land and cripple the tide of monsters that harassed their exposed settlements.</p>
+<p>And it was all going to work until it turned out that his magicians didn’t summon legendary heroes from another time, but a bunch of kids. Us. He still had hopes though; we were all summoned with a class no one had ever heard of – [Hero]. No one in living memory has ever gained that class, and people were treating us like legends.</p>
+<p>So the king gave us armor, weapons, and a bunch of soldiers and sent us out to fight on the frontlines. He thought we’d level up quickly, so he arranged an expedition to a lightly-contested area so we’d gain experience.</p>
+<p>We went out on one of those forays. Just once.</p>
+<p>&#8212;-</p>
+<p><em>I trudge through the marshes, trying not to slip and fall in the muck. My legs are burning, but I don’t want to complain. The men and women around me have swords and armor, and they keep telling us to be quiet in case the enemy is near.</em></p>
+<p><em>I stare around at the dark landscape. It’s just past evening, and we’re trying to make it to the outpost built near here. The only problem is that since we summoned people are moving so slow, we’re still miles away from our destination.</em></p>
+<p><em>Wet soil squelches underfoot. I push away a dark blue plant worming its way out of the ground and shudder. Flies and other insects buzz around our heads, trying to bite us or lay eggs in our ears or something. It’s miserable, but this spot is apparently important enough to fight a war over.</em></p>
+<p><em>This is where the next Wall is supposed to be built. But the ground is black and twisted, and magic and fighting has created a swamp where solid ground should be. It’s not like this all the way down the continent; the ground changes after a few miles, the [Soldiers] tell us. </em></p>
+<p><em>The problem with this “Fifth Wall” is that it has to be long enough to stretch across the entire continent. It’s insanely hard to build one, and it takes decades. The king’s made a good start though—he’s build fortresses and castles along where the Wall needs to be built, and they’re trying to fight off attacks while building the wall.</em></p>
+<p><em>And we’re being sent to help. I might not have any real idea what’s happening, but I’m not sure I can fight.</em></p>
+<p><em>“We should have argued more.”</em></p>
+<p><em>Ahead of me, Richard turns back and shrugs. He blends into the night a lot better than I do, which makes me worried I’m going to be a target if we’re attacked. He grins, and holds up his sword.</em></p>
+<p><em>“We’ve got weapons, and this rare class, right? And a ton of soldiers protecting us. We’ll be fine!”</em></p>
+<p><em>Next to me, Katie slaps at a bug on her skin and catches it. She cries out in disgust, and the armed man walking ahead of us turns back, raising his spear. He sees nothing wrong and shakes his head.</em></p>
+<p><em>“Oh my god! I can’t handle this. Why do we have to do this?”</em></p>
+<p><em>“We’re [Heroes]. This is a gaming world. It’s our job.”</em></p>
+<p><em>Eddy says that. He’s trying to lug a massive greatsword behind him, and he’s sweating horribly. But he wanted to be that kind of warrior. I think he regrets it now; it was easy enough to carry on the wagon ride this far, but we’ve barely gone two miles and he looks ready to stop.</em></p>
+<p><em>Katie shudders, but she doesn’t protest. She still thinks we’re in a virtual reality world, or dreaming. Over half of us have that opinion, but I don’t. This all feels way too real. And being told that we’ll be fighting—</em></p>
+<p><em>Most of the guys seem really into it. They chose weapons and talked about what class they want. But—I’m not a fighter. I don’t think I could stab anyone. I have a sword I barely know how to use. I’ve kept it sheathed because I’m afraid I’ll hurt myself if I try to pull it out. How are we supposed to fight? Will it be automatic?</em></p>
+<p><em>“It’s so dark. And wet.”</em></p>
+<p><em>Katie’s still complaining, even though she knows we should be quiet. She tries to step higher to keep her feet out of the mud.</em></p>
+<p><em>Marian nods. She shudders as she steps in something that </em>bursts <em>underfoot</em>.</p>
+<p><em>“Dank.”</em></p>
+<p><em>Ron turns and grins.</em></p>
+<p><em>“Dank memes.”</em></p>
+<p><em>Half of us chuckles or groan. Katie giggles uncontrollably. That’s when the first arrow shrieks through the air and takes Ron in the chest. A giant, scaled monster with more teeth than face rises out of the muck. He raises a spear and—</em></p>
+<p>&#8212;-</p>
+<p>I <em>twitch</em>, and my skin breaks out in a cold sweat. I wipe at my forehead before it can ruin the paint on my face, but it just smears the colors.</p>
+<p>God. I still remember the sound the Demons made as they attacked. They were waiting for us, hiding with some monsters in the swampy waters. When they attacked, they caught everyone off guard.</p>
+<p>Over a third of us died on that first bad night. The only thing that saved us were the soldiers; the king had given us a huge escort, and they died trying to protect us.</p>
+<p>We got to safety, but no one was ready to fight after that. Half of us had some kind of breakdown, and when we returned to the capital, we didn’t look at all like heroes. I think that was when the King realized he’d made a mistake.</p>
+<p>He had a few of his knights capture some monsters so we could learn to fight. I can still remember standing in the throne room as we were given a sword and told to cut a Goblin’s head off.</p>
+<p>I didn’t have to even try. They gave up before they reached me. Only three people managed to behead a Goblin, and the rest of us were throwing up or crying.</p>
+<p>So, after a few days of sitting in the capital doing nothing, the King sent us out to the village. Since then some of us have actually leveled up like he hoped—lightning fast according to the locals—but most of us still aren’t ready to fight.</p>
+<p>After I’m done clowning around I walk back home, or rather, the place where we all sleep in the village. It’s the townhouse, and the only building big enough to hold all of us. Even so, as I push open one of the side doors I’m still struck by how cramped it is.</p>
+<p>Beds fill the entire room. Small rolls of cloth, actual beds with wood frames, and in one spot a hammock—the villagers gave everything they had to give us enough places to sleep.</p>
+<p>Over ten people are still inside, some sleeping, others talking quietly or trying to play card games. It’s like this at pretty much any time of the day. True, some people like Richard and Eddy go out on patrols and hunt monsters, but the rest just sit around. There’s not much to do in the village.</p>
+<p>Awkwardly, I slip through the room and find my bed. Some of the guys and girls glance up, but they don’t say anything to me. I’m not exactly really popular, and I’m also dressed like a clown. Sort of weird, right?</p>
+<p>I sink into the rough fabric sheets of my bed and look around. The only person nearby is Vincent—on the other side of the room I can see most people hanging out. That’s the girl’s side. We don’t have any walls, but we made a cloth curtain for privacy’s sake.</p>
+<p>I sigh and lean back against the wall of the townhouse. Well, I did something. Not much, but I’m already tired. I feel despondent; depressed. Like I can’t do anything. I need my medication, but…</p>
+<p>“<em>♪Doo doo doodle do do doo doo doot~♫</em>”</p>
+<p><em>Oh god.</em> Not now. A few beds over Vincent sits up. He’d been dozing, but he looks at me as I cover my face in my hands. It’s happening again.</p>
+<p>It’s a cheerful little carnival tune, the kind you’d imagine hearing at any circus you visit. It’s clown music, it’s loud, and it’s coming from me. I don’t <em>want</em> to make the sound, but it’s a Skill.</p>
+<p>Everyone in the room pauses as they hear the sound. They glare at me and I shrug helplessly. Most try to ignore it, but after a few minutes the tune gets on people’s nerves. For some people, it’s the last straw.</p>
+<p>“<em>Stop it!</em>”</p>
+<p>I hear the voice, and then Cynthia’s in front of me. She screams at me, face red as she points at my face with a shaking finger.</p>
+<p>“Stop it! Stop making that <em>sound!</em>”</p>
+<p>“I’m sorry! I can’t control it!”</p>
+<p>I raise my hands, but she doesn’t care. She hurls something—a pillow at my head.</p>
+<p>“<em>Stop it! Just stop!</em>”</p>
+<p>She doesn’t like clowns. She was afraid of them as a child, I think.  And she’s stressed out. Like the rest of us, but she’s been crying more than most. And she just can’t stand the tone.</p>
+<p>“God <em>damn it, </em>Tom! Can’t you turn that off?”</p>
+<p>Someone else shouts at me across the room. I think it’s Kevin. He stands up, fists clenched.</p>
+<p>“I’m sorry!”</p>
+<p>Cynthia screams at me—more wordless than anything coherent. Chole comes over and pulls Cynthia away while giving me the stink-eye. Cynthia goes with her, crying now.</p>
+<p>“I want to go <em>home!</em>”</p>
+<p>Vincent follows Cynthia with his gaze and looks at me. The stupid little clown music is still playing in the background.</p>
+<p>“Tom—”</p>
+<p>“I got it. I’ll go. Sorry.”</p>
+<p>I raise my hands and retreat. So much for a rest. Whenever the music starts playing, I annoy everyone around me. I can’t switch it off.</p>
+<p>I go outside until the music stops. It only takes five minutes. It’s never long. But it always seems to happen at the wrong time—whenever there’s a group around, which I suppose is the trigger. Thank god it never happens when I sleep.</p>
+<p>When it’s finally quiet again, I hear voices arguing. In the time I’ve been gone, it looks like an argument’s started. My fault.</p>
+<p>“Well call them <em>back.</em> Why can’t you?”</p>
+<p>Chole is arguing as she points to Vincent’s phone. He’s one of the only people in the group who had anything useful with them when they were caught by the spell. It was running out of batteries, but we found out that a [Mage] can cast [Repair] to recharge it.</p>
+<p>“It doesn’t work like that! It was a <em>spell</em> that did the call, not the phone itself!”</p>
+<p>Vincent holds his iPhone protectively as he argues with her. It’s been nearly two weeks since we got the call where we realized we weren’t the only people in this world, and we haven’t heard anything since. All the euphoria we got from realizing we might be saved is long gone, and we’re even more worried since it seems someone’s gunning for us.</p>
+<p>Faces turn red, and they begin an old argument again. I listen as I go back to my bed, trying not to attract attention.</p>
+<p>“Why <em>can’t</em> we use a spell? What’s wrong?”</p>
+<p>“The guy who made the call – BlackDragon – he said it took a lot of magic! I’m not a [Mage], and I don’t think even Emily can cast the right spells.”</p>
+<p>“Well then what do we <em>do?</em>”</p>
+<p>Vincent shrugs. He gestures helplessly at the dagger on his belt. He’s got a [Thief] class—although it was from learning to set and disable traps and sneaking around, not from stealing things.</p>
+<p>“We just need to keep leveling up. It’s how the games work. We grind and then we get stronger. Once we all get to a higher level and buy enchanted gear—”</p>
+<p>“Bullshit. You think that’s gonna help? We’re going to <em>die</em> out here. Everyone’s abandoned us.”</p>
+<p>Kevin gets right up in Vincent’s face as he says that. I try to hide as Vincent gets mad.</p>
+<p>“Well what do you think we should do? At least I go out and fight. All you do is sit around all day and complain!”</p>
+<p>That’s true. Vincent’s normally with the hunting party and Kevin’s not. But that just makes Kevin angrier. His face goes really red and he shoves Vincent.</p>
+<p>“Fuck you!”</p>
+<p>“Fuck <em>you</em>, asshole!”</p>
+<p>“Stop it! Stop fighting!”</p>
+<p>Chole and one of the other girls gets between the two of them before it can come to fists again. Behind them, Cynthia raises her voice as Vincent and Kevin let themselves be dragged back by the others.</p>
+<p>“Someone’s going to save us. Someone’s going to come any day now…”</p>
+<p>She rocks back and forth, mumbling to herself. She says it loud enough that the rest of us can hear—but not so loud that we can really tell her to shut up.</p>
+<p>When she’s not upset, Cynthia keeps telling us that we’ll be rescued. She claims that the army will find a way to save us, or someone will open a portal to this world or—we’ll wake up or something. She wants to believe. And some of the others do, but I think the rest are starting to think like I do.</p>
+<p>Even if people notice we’re gone, how would they get here? We can barely get to other planets, let alone to other dimensions. And even if by some miracle people build a…a Stargate or something, how would they know to look for us <em>here?</em> In a remote village in probably the worst part of the entire world?</p>
+<p>Cynthia keeps repeating the words as she rocks back and forth. Stacy puts a hand on her knee, but the rocking doesn’t stop.</p>
+<p>At least it’s only muttering and crying and shouting at me. It could be a lot worse.</p>
+<p>The last time Cynthia freaked, she broke half of the plates and cups the villagers gave us, and the only glass window in the townhouse and the village itself for that matter.</p>
+<p>Is it any wonder why the people here hate us? I’m not surprised at all. All this time, they were hoping desperately for someone to save them. Their King told them heroes were coming, and they believed.</p>
+<p>They prayed for heroes.</p>
+<p>Instead, they got us.</p>
+<p>The argument isn’t over. Vincent and Kevin are giving each other the evil-eye, and Chole still wants the iPhone, which Vincent doesn’t want to hand over. He only gave it to Richard because everyone agreed he should be the one to talk, but aside from that Vincent won’t let anyone touch it.</p>
+<p>That came after a few bad incidents where people kept the iPhone and pretended they didn’t have it…as voices raise again I decide I’m not going to get any sleep after all.</p>
+<p>I leave the townhouse and wander around. I’ve eaten enough. Well—not enough since I’m hungry, but enough to survive. I can handle the hunger. And I still have one of the fruity buns in my pocket from breakfast.</p>
+<p>One good thing about dressing like a [Clown] is that you get baggy pockets. Add that to my Skill to pull objects seemingly out of nowhere, and I can do one good trick. And eat food when no one’s watching.</p>
+<p>Good thing Vincent didn’t get into a fight with Kevin. Because if they had, he would have won. It’s the thing about Classes and this world.</p>
+<p>The thing is, Kevin’s a big guy. Also African American, which I know is really racist, but he looks scarier than Vincent, who looks…like an overfed white guy, if I’m honest. Sort of like me, although he’s in a bit better shape.</p>
+<p>But Kevin has <em>muscles</em>. Vincent has muscles, but not nearly as many. But if it came to a fight, Vincent would win hands down.</p>
+<p>He’s a Level 14 [Thief] with several skills that let him set traps, move around stealthily, and so on, but the levels have also made him stronger. We actually tested it; despite him not having any skills, he’s a bit stronger than another guy who’s as fit as he is. But he’s faster too; a lot faster. It seems there’s some passive benefit to leveling, but maybe it’s just the Level 1 [Hero] class he has.</p>
+<p>Because that would be the big difference between Kevin and Vincent. A lot of the people in our group—all of the people who sit around in the townhouse all day but me, really—they’ve lost their [Hero] class.</p>
+<p>It started happening a few days after we got to the village. One day Cynthia woke up and told us that she heard a voice saying she’d <em>lost </em>her [Hero] class. No one could explain it, and we didn’t dare tell the villagers or the soldiers.</p>
+<p>Slowly, it happened to the others. Everyone who wasn’t fighting monsters.</p>
+<p>Not me, though. And that’s the thing. I think I get why it’s happening, but I haven’t told anyone what I think but Richard. And even he doesn’t know the whole of my theory.</p>
+<p>We’re all Level 1 [Heroes], the people who still have the class. But none of us have leveled, even though Richard’s a Level 26 [Knight] and Emily’s a Level 21 [Hydromancer]. But none of us have leveled the [Hero] class.</p>
+<p>Some of us think that’s because there’s only one level for that class. Eddy thinks it’s a special class, and most people agree with that. After all, why wouldn’t Richard level up? He’s the leader and the best fighter out of all of us. If anyone’s a hero, it’s him.</p>
+<p>Because that’s what they don’t get, the others. A hero isn’t someone who’s brave or courageous. A hero doesn’t slay monsters or rescue princesses (or princes). If you look up the word ‘hero’ in a dictionary, you get a different answer.</p>
+<p>A hero is someone admired or idealized. A hero is a person others look up to.</p>
+<p>A [Hero] is only a hero if other people think he’s a hero. Which explains how we got the class when we were summoned.</p>
+<p>Trouble is, I’m no hero. And I don’t think anyone else in our group is, either. And the more these villagers and the rest of the kingdom gets a look at us, the less they think we’re heroes as well.</p>
+<p>So we start losing the class. The villagers might have some hopes for Richard and the other fighters, but when you look at a bunch of whining, crying teenagers and young adults who argue all the time and do nothing…</p>
+<p>We’re useless. I’m the most useless, but we’re just a drain on the village. God. I just want to not be here. But if I’m not in the townhouse, I’d better try to level up again. I just need one more level.</p>
+<p>This time the kids ignore me just like the adults as I start my juggling act. They ignore me as they play, except as an obstacle. Tomorrow they probably won’t even stop to watch, and how will I level then?</p>
+<p>Don’t think of that. Keep smiling. Keep waddling around. I spin the three pins higher in the air.</p>
+<p>“A [Tumbler] can juggle six balls.”</p>
+<p>I drop a pin and glare at the boy who addresses me. It’s the same one who commented on my joke.</p>
+<p>Wilen. He’s too young to have a job besides help his parents, but he’s a bit too old to play with the other kids. He scratches at his uncombed hair as he stares at my fat belly covered by ill-fitting clown clothes.</p>
+<p>“Are you going to leave?”</p>
+<p>“No. I don’t think so, I mean. Not unless the king—I mean, your King sends for us.”</p>
+<p>“Okay.”</p>
+<p>Should I keep juggling? I really don’t want to. I’m sweaty, my arms are tired, and I’m not feeling funny. Wilen stands with me as I look around awkwardly.</p>
+<p>“Are you trying to level up?”</p>
+<p>“Yep.”</p>
+<p>It’s weird to have a conversation like this, but Wilen is native to this world, and he seems perfectly at ease.</p>
+<p>“How do [Clowns] level up? Is it from how long you juggle pins? [Tumblers] level up if they get a large crowd.”</p>
+<p>“I think it works the same way with [Clowns]. I don’t know.”</p>
+<p>“Don’t they have more [Clowns] where you come from, then?”</p>
+<p>“They do but…I don’t know. Sorry.”</p>
+<p>I shrug awkwardly, just as unsatisfied as Wilen with my explanation. I frown and bend to pick up one of my pins.</p>
+<p>“It’s about making people laugh. I think.”</p>
+<p>“But no one ever laughs at you. Your jokes are <em>terrible.</em>”</p>
+<p>“Yeah.”</p>
+<p>Wilen’s one of my regulars, so he’d know. I’ve tried nearly a hundred jokes in the time I’ve been here, but I’m really just not that funny.</p>
+<p>“Well, I’m Level 19, so I should be doing something right.”</p>
+<p>How much of that is due to the [Hero] class?</p>
+<p>“If no one’s laughing at you, that can’t be the way [Clowns] level up.”</p>
+<p>Wilen says this as if it’s obvious and I’m an idiot for not realizing it. I nod, and he scratches at his head.</p>
+<p>“Is it about attracting attention?”</p>
+<p>“No…[Clowns] are meant to be funny.”</p>
+<p>“Really? But—”</p>
+<p>“I <em>know</em>. But not really funny. It’s…”</p>
+<p>How can I explain clowns to someone who’s never seen one? I mean, how do you even explain the funny guys who scare just as many people as you entertain? In the first place, clowns aren’t nearly the funniest bit of the circus act. They’re—we’re the sideshows at best.</p>
+<p>“Clowns…are more like the jokers. They’re like the butt of the joke.”</p>
+<p>“Joke? You mean, telling jokes?”</p>
+<p>Wilen looks at me skeptically, and I shake my head. Then I have it.</p>
+<p>“No—it’s about distracting people. Being a clown is about setting up the <em>joke.</em>”</p>
+<p>“What joke?”</p>
+<p>“I’m not sure.”</p>
+<p>But it was right, what I said. Wilen frowns and opens his mouth to ask me another question. Gah.</p>
+<p>I fish at my pocket, and then remember I’m a [Clown] and pull the fruit bun out of Wilen’s ear instead. He doesn’t look impressed, but he <em>does</em> look hungry. I hold the slightly-squished bun out to him.</p>
+<p>“Here. It’s not very funny, but it’s edible.”</p>
+<p>He looks at me suspiciously, but I keep my face straight. Wilen hesitates as he stares at the baked fruit bun in my hands.  Then he takes it, awkwardly.</p>
+<p>“Thanks.”</p>
+<p>He shouldn’t be thanking me. I should be thanking him. We’re the village’s responsibility; even if we occasionally get supplies from the capital, the villagers are forced to feed us from their stores.</p>
+<p>“So. Um, how’s it going?”</p>
+<p>Wilen shrugs as he devours the bun.</p>
+<p>“Good. I’m trying to learn how to use a sword so I can get a [Warrior] class. My mom wants me to be a [Merchant] instead.”</p>
+<p>He makes a face. I guess it’s sort of like wanting to be a policeman and being told to study economics instead. But after seeing monsters up close myself, I can’t argue with his mother’s opinion.</p>
+<p>“You know, being a [Warrior] isn’t all it’s cracked up to be. A [Merchant] probably makes more money.”</p>
+<p>Wilen looks at me scornfully.</p>
+<p>“And how would I protect myself when the Demons attack? They’re gonna come again someday. The Demon King’s going to attack the Wall soon, everyone knows.”</p>
+<p>I’ve got nothing to say to that. He’s right. This isn’t a safe place like America. Hell, America’s not even that safe, but at least only a few people get shot every day. But here you could get eaten by a giant…snail or something.</p>
+<p>“Well, good luck. I’m going to uh, well, I guess I’ll see you later.”</p>
+<p>“Okay.”</p>
+<p>Wilen runs off to play with his friends. I waddle off to visit the horses.</p>
+<p>The village has a large stable and about sixteen horses inside it. It’s very barnyard in terms of smell and appearance, but at least the horses don’t judge me like people. They just sniff at me and blow air.</p>
+<p>I don’t like horses, and I doubt they like carrying me. But no one bothers me there, and I don’t bother anyone else.</p>
+<p>It might be odd to have so many horses in a village, but they’re there in case a message needs to be sent to an outpost or a [Soldier] needs one. Besides, keeping the stable earns the villagers some badly needed coin.</p>
+<p>I sit in some straw, praying the squishy thing underneath my butt isn’t something that came out of a horse’s rear end and take a nap until I hear a voice and sense someone standing over me.</p>
+<p>“Tom.”</p>
+<p>I look up at the sound of the voice, and try to smile. It’s Richard. The leader of our wonderful little group.</p>
+<p>He’s returned with the others. They came in on horseback, eight people – three girls and five guys. Before, they’d have an escort of soldiers, but Richard is considered to be enough protection to lead the group on his own.</p>
+<p>Around me, people dismount, most still awkwardly. There’s not a lot of natural riders in the group. I see one tall, pretty girl dismounting and brushing at her robes.</p>
+<p>Emily. You could say she’s the second leader of the group aside from Richard. Most of the guys like her, and she’s got the highest level besides Richard. She sniffs at me, but doesn’t say anything.</p>
+<p>Richard dismounts and tends to his horse while the others leave theirs still saddled and walk out. He’s a considerate guy, and he actually knows how to ride a horse. He grew up down south, in Mississippi, on a ranch of all things.</p>
+<p>“Tom. How’s it been down here?”</p>
+<p>I shrug as I stand up and dust straw off my pants.</p>
+<p>“Quiet. I uh, I made Cynthia cry when the music started playing. Kevin and Vince nearly got into a fight.”</p>
+<p>Richard sighs as he hangs up the saddle and rubs at his shoulders. He’s wearing chainmail, a shield, and sword, but carries it all as if it weighs nothing.</p>
+<p>“Can’t you stop it?”</p>
+<p>I hunch my shoulders, and my voice gets defensive.</p>
+<p>“I can’t <em>help</em> it.”</p>
+<p>He pats my shoulder.</p>
+<p>“I know. Sorry. Cynthia’s barking up the wrong tree when she gets mad at you, anyways. She needs to get out some, or she’ll go crazy.”</p>
+<p>“We’ll <em>all</em> go crazy soon if we can’t go somewhere else.”</p>
+<p>“You still doing your juggling act for the kids?”</p>
+<p>“A bit.”</p>
+<p>People have no idea what I am. They stare at the white paint on my face and ask me what kind of class a [Clown] is. They don’t laugh, and they just watch me until they have something to do. I can’t make them laugh and take away their worries.</p>
+<p>Richard picks at his fingernails as he leans against a stall. The horse he rode in on blinks at me.</p>
+<p>“You know, Tom, you could come with us next time we go out. You—could fight. We’re going to go out hunting again tomorrow. You could join us.”</p>
+<p>“I…don’t think  I can. I’m not a fighter.”</p>
+<p>I get sick at the sight of blood. When I thought I’d have to behead that screaming Goblin…I still have nightmares about Ron and Marian.</p>
+<p>“But why a [Clown]? Clowns aren’t…”</p>
+<p>He trails off before he can say the rest, but I get it. Clowns aren’t funny. Yeah, that’s true. But there’s a reason I decided to keep pursuing this class. It’s just a hunch. Just a gamble, but maybe…</p>
+<p>I’m saved from having to answer by a familiar sound.</p>
+<p>“<em>♪Doo doo doodle do do doo doo doot~♫</em>”</p>
+<p>We both listen to the obnoxious music in silence. Richard clears his throat.</p>
+<p>“Can you at least change the music?”</p>
+<p>“If I could man, believe me, I would. Anything but this.”</p>
+<p>“Well, I guess it’s good you’re not coming with us when we’re patrolling. Imagine <em>that</em> going off when we’re sneaking up on a monster.”</p>
+<p>Both of us laugh. Now why can’t I be funny like that?</p>
+<p>“Chole wants to use Vincent’s phone to call the others again.”</p>
+<p>“That’s probably not a good idea. Remember what happened?”</p>
+<p>“Yeah. But she said…”</p>
+<p>“I’ll talk with her. But we’ve got bigger news. I just talked with an officer on the road, and he says we might be getting reinforcements.”</p>
+<p>I perk up.</p>
+<p>“You mean, more soldiers?”</p>
+<p>Richard shakes his head. He looks grim.</p>
+<p>“No. I mean more people like us.”</p>
+<p>That takes a moment to sink in.</p>
+<p>“<em>What?</em>”</p>
+<p>“The King thinks we were a mistake. He wants to perform the summoning ritual again and call more heroes to this world.”</p>
+<p>“How can they do that again? Isn’t there a huge cost or something?”</p>
+<p>“I think they can keep doing it so long as they’ve got enough [Mages]. They were saying that it took a <em>lot</em> of mana—and something else—but they want to give it another shot.”</p>
+<p>“I can’t really blame them. Can you?”</p>
+<p>Richard laughs, and looks at the hay on the stable floor.</p>
+<p>“No. I can’t either. But it’s a mistake.”</p>
+<p>It is. More people. I try to imagine that. I don’t want to see more people our age dying. Richard grasps the hilt of his sword reflexively and stares towards the doors.</p>
+<p>“I’ll try talking to the soldiers again; try to get an audience with him.”</p>
+<p>“He doesn’t listen to us. He never did.”</p>
+<p>“But I’ve got to try. It’s the right thing to do.”</p>
+<p>The right thing to do. No wonder Richard got the [Knight] class. He’s always looking out for the rest of us, and he’s got that famous Southern courtesy. He ponders as I watch him out of the corner of my eye.</p>
+<p>“If I could convince him that some of us can be the heroes he wants, then maybe he’d listen.”</p>
+<p>“You think you can?”</p>
+<p>“Well, Emily’s over Level 20 and Red’s nearly there as well. That’s a lot faster than anyone in this world levels. If I can hit Level 30, I’d be the equivalent of a Gold-rank adventurer.”</p>
+<p>“Maybe you should be adventurers. Vincent was saying that’s what we need. Magical items.”</p>
+<p>“Eddy says the same thing. Maybe. If we could get an escort back behind the wall and into the capital, we could try one of the dungeons. It would be a lot safer behind the wall.”</p>
+<p>“Yeah.”</p>
+<p>Richard falls silent, and I can’t add anything. We stand together for a while, until Richard clears his throat.</p>
+<p>“Let’s get some sleep.”</p>
+<p>Funny. I mean, not really funny, but it’s odd. When did we all start taking orders so easily? I mean, I haven’t had anyone tell me when to go to sleep since I was a kid. But Richard says it and so we get back to the townhouse.</p>
+<p>Cynthia’s done crying, and with the others, the minor squabbles of the morning are forgotten. For a while we eat some bland stew with bits of meat soaking in the gravy, and then we all blow out the lanterns and roll into the hard mattresses.</p>
+<p>I sit in the darkness for a while, listening to people talking quietly as more and more drop off to sleep. Someone begins snoring, and I put my head back in the pillow.</p>
+<p>My eyes close, and I begin drifting off. But I don’t hear any voice in my head</p>
+<p>…No level up again. Darn.</p>
+<p>Something’s going to happen at Level 20, I just know. If what I think is going to happen can happen, maybe—</p>
+<p>Got to make people laugh. Do clown things. I need a red nose. A tomato? Do they have those in the market?</p>
+<p>Can’t think. Got to sleep. I try to make the pillow slightly more comfortable as my breathing eases. Another day down. My thoughts dwindle as I close my eyes.</p>
+<p>I really…need…better jokes…</p>
+<p>&#8212;-</p>
+<p>“Tom. <em>Tom!</em>”</p>
+<p>Someone shakes me back into wakefulness. I look around, and see Richard’s face. There’s no light in the townhouse, but I can still see his face, lit by the orange light. He looks as close to panic as I’ve ever seen him—just like the first time we went past the wall.</p>
+<p>He hauls me to my feet.</p>
+<p>“Get up. And stay quiet.”</p>
+<p>“W-what’s happening?”</p>
+<p>“We’re under attack. It’s a Demon raiding party.”</p>
+<p>Around me, I hear others waking up and spreading the news. I hear someone moaning loudly – Cynthia – and then she’s instantly silenced. Only now do I hear the crackling flames, the screams, and in the distance, the ringing of metal on metal.</p>
+<p>War has come to the village. And it’s about to come to us.</p>
+<p>Once everyone’s on their feet, awake and scared, Richard stands up on a chair in the center of the building. He raises his voice loud enough to be heard.</p>
+<p>“A group of Demon archers is killing anything that moves in the square. If we go out on horseback they’ll shoot us down. We have to sneak out.”</p>
+<p>“What about the soldiers? Where <em>are</em> they?”</p>
+<p>Emily answers for Richard.</p>
+<p>“They’re fighting at the outpost. They’ll send help, but we have to <em>leave.</em> Grab anything valuable and wait for my signal.”</p>
+<p>She casts a spell, and I see some kind of magical shield forming around her. She pushes a side door open cautiously, and a few of our fighters follow her out. After a second, the door opens and Emily pokes her head back in.</p>
+<p>“No one’s around. Follow me. Stay low and move fast!”</p>
+<p>Guys and girls start to funnel out the doors. No one else is speaking, but I look around and the words pop out of my mouth before I can stop them.</p>
+<p>“What about the villagers?”</p>
+<p>Everyone pauses. Emily scowls at me, and points out the window in the direction the fighting sounds are coming from.</p>
+<p>“They’re fighting with the soldiers. We can’t risk going to help them. There’s a group of <em>Demons</em> out there, not just monsters!</p>
+<p>“But—”</p>
+<p>“Tom. There’s nothing we can do.”</p>
+<p>Richard looks tired as he unsheathes his sword. He’s going to bring up the rear. He motions me towards the door, but I hesitate.</p>
+<p>“There are kids out there. Can’t we—?”</p>
+<p>No one else meets my eyes. Richard hesitates, but Emily stares at him and something silent passes between them.</p>
+<p>“There’s nothing we can do. We have to leave <em>now.</em>”</p>
+<p>“Then I’ll go.”</p>
+<p>“What?”</p>
+<p>I’m shaking. But I can’t stop myself. I think of Wilen and the girl I gave a flower to this morning. I can’t <em>not</em> go.</p>
+<p>“I’ll go. I’ll find you later if—I’ll go.”</p>
+<p>Richard stares at me. To my great relief, he doesn’t try to stop me; he just pulls a flask out of his belt.</p>
+<p>“Take this.”</p>
+<p>He presses the yellow healing potion into my hands. Its high-quality stuff and I know it’s saved his life more than once when fighting. I take it and nod at him. What can I say?</p>
+<p>The others look at me, but no one says anything. After a few seconds, Emily pulls someone towards the door and they start moving again.</p>
+<p>You’d think one of them would try to stop me, try to tell me not to do anything stupid. But they’re already leaving. This isn’t a time for stupid heroic lines like a movie.</p>
+<p>So why am I doing the stupid, heroic thing?</p>
+<p>I don’t know. I certainly don’t feel like a hero as I scuttle down the street, trying to stay in the shadows. But maybe it’s just because I can’t stand us running away. Not now. Not—without trying to do something.</p>
+<p>I’m just a [Clown]. I thought it would be a good idea, that there was something in there. But right now I don’t think of classes or skills or anything else. I’m just a frightened guy. Trying to do something right.</p>
+<p>I hear someone screaming ahead of me and my heart <em>stops</em> in my chest. But it’s not a human sound. Ahead of me, the stable is sitting right next to a burning house. The flames haven’t touched the stable yet, but the horses are inside and they can smell the smoke.</p>
+<p>I don’t have time to free them. If I rode a horse—but I can’t.</p>
+<p>“I’m sorry.”</p>
+<p>I say it quietly and move on. I can’t stop. Every instinct in me is telling me I’m in danger. I just need to find Wilen and the kids. They know to make for the outpost if they’re in danger, but if the soldiers there are under attack, where would they go?</p>
+<p>If I can bring them to the others, Richard and Emily could protect them. If—</p>
+<p>Something darts out of an alley ahead of me. I freeze, but it’s no Goblin. A small form runs through the street. I shout out, forgetting caution.</p>
+<p>“<em>Wilen!</em>”</p>
+<p>He turns towards me, face written with desperation. He starts towards me, but then I hear a <em>crash</em>, and <em>something</em> bursts through a wall of a house behind Wilen.</p>
+<p>A huge hand punches through the stone, and a club that’s just a beam of wood sends burning wood flying through the air as it <em>roars</em> and charges towards me. I freeze.</p>
+<p>A Troll. A massive, gray-green hulk of a monster, squat face grinning as he lumbers down the street after Wilen. The boy runs towards me, and I freeze up again. What should I—?</p>
+<p>“Run! I’ll stop it!”</p>
+<p>Wilen stares at me, but I shove him behind me. The Troll pauses as I run towards his left side, trying to draw him away. He turns towards me—the bigger target by far, and grins as he raises the broken piece of timber.</p>
+<p>I’ve got to buy Wilen some time. I shout and wave my arms as I run left. I can get into an alleyway, lose him that way.</p>
+<p>But the Troll lumbers to cut me off, and I realize he’s moving faster than I am. He cuts me off and raises his club. I slow and try to backpedal, but too late.</p>
+<p>He swings the broken piece of timber. So fast! Too quick to dodge. I raise my arm—</p>
+<p>—And wake up on the ground. I raise my head and puke as my everything spins. I have to turn over to empty my stomach, but I’m on my feet even before I fully think.</p>
+<p>Wilen. Got to find him. The Troll must have thought I was dead. Where is…?</p>
+<p>Something’s lying in the street twenty feet further down. I stare at it.</p>
+<p><em>No.</em></p>
+<p>It’s still moving. I stumble forwards, feeling my body screaming in agony. But it’s a distant scream; no louder than the one in my head. I run, and then the small shape comes into view.</p>
+<p>Wilen. He turns his head towards me as I halt in the street. Despite the flames around me, my skin is cold. And my heart—</p>
+<p>“Is that you, Mister [Clown]?”</p>
+<p>He’s in one piece. Mostly. But his spine is twisted the wrong way, and his skin—</p>
+<p>The young boy gasps up at me, face pale. He’s just a kid. Just a kid. Tears streaks down his face as I lurch towards him and fall to my knees.</p>
+<p>“I tried to run like you said, but he was too fast. He caught me.”</p>
+<p>“Wilen—”</p>
+<p>I reach for him, but stop. What can I do? There’s nothing to do. Wilen gasps, his face pale.</p>
+<p>“I think he hurt me. Am I okay?”</p>
+<p>“I—”</p>
+<p>My head is spinning. Wilen doesn’t need an answer. He bites his lip so hard it bleeds. He’s trying not to scream.</p>
+<p>“Mister [Clown]—he’s coming back.”</p>
+<p>I look over my shoulder. Maybe the Troll found something else to kill. Maybe he thought we were dead. Maybe he just got bored.</p>
+<p>He lumbers back down the street, dragging his club along the ground. He squints at me and Wilen, and then grins again.</p>
+<p>He takes a few step forwards and I feel the <em>thumping</em> in my bones. Wilen whimpers on the ground as the Troll’s grin widens. His chest heaves as the massive creature opens his mouth. He’s <em>laughing.</em></p>
+<p>I don’t get the joke.</p>
+<p>&nbsp;</p>
+<hr />
+<p><a href="https://wanderinginn.wordpress.com/2017/05/17/2-22/">Previous Chapter </a><span style="float:right;"><a href="https://wanderinginn.wordpress.com/2017/04/26/1-01-c/">Next Chapter</a></span></p>
+			</div><!-- .entry-content -->
+
+	<footer class="entry-meta">
+		This entry was posted in <a href="https://wanderinginn.com/tag/writing/" rel="category tag">Writing</a> and tagged <a href="https://wanderinginn.com/tag/fantasy/" rel="tag">fantasy</a>, <a href="https://wanderinginn.com/tag/inn/" rel="tag">inn</a>, <a href="https://wanderinginn.com/tag/web-novel/" rel="tag">web novel</a>, <a href="https://wanderinginn.com/tag/web-serial/" rel="tag">web serial</a>, <a href="https://wanderinginn.com/tag/writing/" rel="tag">Writing</a> by <a href="https://wanderinginn.com/author/pirateaba/">pirateaba</a>. Bookmark the <a href="https://wanderinginn.com/2017/04/25/1-00-c/" title="Permalink to 1.00 C" rel="bookmark">permalink</a>.
+		
+			</footer><!-- .entry-meta -->
+</article><!-- #post-1725 -->
+
+						<div id="comments">
+	
+	
+			<h2 id="comments-title">
+			35 thoughts on &ldquo;<span>1.00 C</span>&rdquo;		</h2>
+
+		
+		<ol class="commentlist">
+					<li class="comment byuser comment-author-pirateaba bypostauthor even thread-even depth-1 highlander-comment" id="li-comment-2114">
+		<article id="comment-2114" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/2f8ac70cd17f11c419846c441769523b?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn"><a href='http://pirateaba.wordpress.com' rel='external nofollow ugc' class='url'>pirateaba</a></span> on <a href="https://wanderinginn.com/2017/04/25/1-00-c/#comment-2114"><time datetime="2017-04-25T02:03:21+00:00">April 25, 2017 at 2:03 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>This is Part 1 of 2 of the Patreon story about a [Clown]. And yes&#8230;it&#8217;s odd. I found that my biggest challenge here was setting up an entirely different area of the world in less than 10,000 words while covering the entire chapter.</p>
+<p>And I failed. By the way. Just should I mention that. This chapter is only the first&#8230;two thirds of the story, and the other half I intend to publish on Wednesday. But creating new characters is hard, especially in such a short time. There&#8217;s a good reason why people say the short story is the hardest fiction to write.</p>
+<p>This might be my worst chapter yet, or maybe it has enough to redeem itself. I don&#8217;t know. All I know is that I&#8217;ll finish the chapter and&#8230;</p>
+<p>Yeah. Did you think this was going to be like the Mating Rituals chapter? Clowns. Their stories aren&#8217;t so funny after all.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/04/25/1-00-c/?replytocom=2114#respond' data-commentid="2114" data-postid="1725" data-belowelement="comment-2114" data-respondelement="respond" data-replyto="Reply to pirateaba" aria-label='Reply to pirateaba'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment odd alt depth-2 highlander-comment" id="li-comment-2406">
+		<article id="comment-2406" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/04be4dfd7fd5ad85cad3cd6fbff15d93?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">Aaron Martinez</span> on <a href="https://wanderinginn.com/2017/04/25/1-00-c/#comment-2406"><time datetime="2017-04-30T19:09:51+00:00">April 30, 2017 at 7:09 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Look, look at the clown! See <a href="http://topwebfiction.com/vote.php?for=the-wandering-inn" rel="nofollow">how he votes?</a></p>
+<p>Vote for The Wandering Inn on topwebfiction! <a href="http://topwebfiction.com/vote.php?for=the-wandering-inn" rel="nofollow ugc">http://topwebfiction.com/vote.php?for=the-wandering-inn</a></p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/04/25/1-00-c/?replytocom=2406#respond' data-commentid="2406" data-postid="1725" data-belowelement="comment-2406" data-respondelement="respond" data-replyto="Reply to Aaron Martinez" aria-label='Reply to Aaron Martinez'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-reisku even thread-odd thread-alt depth-1 highlander-comment" id="li-comment-2129">
+		<article id="comment-2129" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/f9fc3ed89162111729d701434327f6d2?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">reisku</span> on <a href="https://wanderinginn.com/2017/04/25/1-00-c/#comment-2129"><time datetime="2017-04-25T04:35:33+00:00">April 25, 2017 at 4:35 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>I&#8217;m kinda liking this more than the Mating Rituals chapter so far.  Here&#8217;s to hoping that he doesn&#8217;t die a gruesome, unfunny death and somehow gets to meet Erin at some point.  They could have a talk about how unconventional their respective classes are.</p>
+<p>Also, if I&#8217;m reading this right, it seems that you changed Cynthia&#8217;s name over to Sarah on accident starting at Tom and Richard&#8217;s chat in the stables.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/04/25/1-00-c/?replytocom=2129#respond' data-commentid="2129" data-postid="1725" data-belowelement="comment-2129" data-respondelement="respond" data-replyto="Reply to reisku" aria-label='Reply to reisku'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-mundanename odd alt thread-even depth-1 highlander-comment" id="li-comment-2131">
+		<article id="comment-2131" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/b15204648202c1c2165ad0155cf8fe25?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">mundanename</span> on <a href="https://wanderinginn.com/2017/04/25/1-00-c/#comment-2131"><time datetime="2017-04-25T04:39:18+00:00">April 25, 2017 at 4:39 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>This is not even close to what I was expecting going into this side story. The main story has had it&#8217;s dark moments but this is on a whole other level of tragedy. The contrast of reading this right after the epic party scene in the main story was amazing, very well done!</p>
+<p>You did a great job expanding the world and introducing new characters. I am definitely looking forward to learning more about them.</p>
+<p>Tom needs to stop thinking about the circus and start thinking about cowboys.</p>
+<p>I also think Tom is wrong that people lost the hero class due to the lack of faith from others. Everything we have seen about how the class system works so far points to it being driven by your own personal expectations. Otherwise a certain innkeeper would have become a [tactiction] long ago.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/04/25/1-00-c/?replytocom=2131#respond' data-commentid="2131" data-postid="1725" data-belowelement="comment-2131" data-respondelement="respond" data-replyto="Reply to mundanename" aria-label='Reply to mundanename'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment even depth-2 highlander-comment" id="li-comment-2158">
+		<article id="comment-2158" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/6ad98d9c6a1c658640f187fb66ef399f?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">Parker</span> on <a href="https://wanderinginn.com/2017/04/25/1-00-c/#comment-2158"><time datetime="2017-04-25T14:06:28+00:00">April 25, 2017 at 2:06 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>He&#8217;s just saying that for the [hero] class. That&#8217;s why no one else in living memory has gotten the class, because no one thought they were [hero]s. Other classes don&#8217;t work like that, just this one.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/04/25/1-00-c/?replytocom=2158#respond' data-commentid="2158" data-postid="1725" data-belowelement="comment-2158" data-respondelement="respond" data-replyto="Reply to Parker" aria-label='Reply to Parker'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment byuser comment-author-mundanename odd alt depth-3 highlander-comment" id="li-comment-2161">
+		<article id="comment-2161" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/b15204648202c1c2165ad0155cf8fe25?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">mundanename</span> on <a href="https://wanderinginn.com/2017/04/25/1-00-c/#comment-2161"><time datetime="2017-04-25T15:08:18+00:00">April 25, 2017 at 3:08 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>I don&#8217;t think it is a special class. I think everyone summoned in that room thought they were a [hero] due to the circumstances.</p>
+<p>This is why no one else who was brought into the world at the same time in a different location has the class.</p>
+<p>Only time will tell I suppose :)</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/04/25/1-00-c/?replytocom=2161#respond' data-commentid="2161" data-postid="1725" data-belowelement="comment-2161" data-respondelement="respond" data-replyto="Reply to mundanename" aria-label='Reply to mundanename'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment even depth-4 highlander-comment" id="li-comment-2162">
+		<article id="comment-2162" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/8940e32ec3576edec6f7832ca437abab?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">Excited Reader</span> on <a href="https://wanderinginn.com/2017/04/25/1-00-c/#comment-2162"><time datetime="2017-04-25T15:44:12+00:00">April 25, 2017 at 3:44 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>I agree; and I think your chess/Erin not being a tactician is a great example.  They even say that early on, don&#8217;t they, that she doesn&#8217;t consider chess to be &#8220;people&#8221; at all, so it doesn&#8217;t give her the levels?</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/04/25/1-00-c/?replytocom=2162#respond' data-commentid="2162" data-postid="1725" data-belowelement="comment-2162" data-respondelement="respond" data-replyto="Reply to Excited Reader" aria-label='Reply to Excited Reader'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		<li class="comment odd alt depth-2 highlander-comment" id="li-comment-3099">
+		<article id="comment-3099" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/c79931c3a7afa853f02feb78a117eea1?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">tildor</span> on <a href="https://wanderinginn.com/2017/04/25/1-00-c/#comment-3099"><time datetime="2017-05-21T18:29:36+00:00">May 21, 2017 at 6:29 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>&#8220;Tom needs to stop thinking about the circus and start thinking about cowboys.&#8221;</p>
+<p>I&#8217;m not so sure about that. The fact he has a skill that automatically plays steteotypical circus music makes me think he&#8217;s on the right track. </p>
+<p>If anything, he should try to lean more towards being a [Jester], or better yet [Gleeman].</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/04/25/1-00-c/?replytocom=3099#respond' data-commentid="3099" data-postid="1725" data-belowelement="comment-3099" data-respondelement="respond" data-replyto="Reply to tildor" aria-label='Reply to tildor'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment even depth-3 highlander-comment" id="li-comment-3103">
+		<article id="comment-3103" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/938c2fcb3429fa3327f8cff752d0c2cd?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn"><a href='https://plus.google.com/115287995431283190901' rel='external nofollow ugc' class='url'>Herb Powell</a></span> on <a href="https://wanderinginn.com/2017/04/25/1-00-c/#comment-3103"><time datetime="2017-05-21T21:32:44+00:00">May 21, 2017 at 9:32 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Maybe, but a rodeo clown would be FAR more useful against that troll, especially in terms of distracting it from endangered bystanders.  Gleeman&#8217;s probably not an option regardless:  He is a fool, not a bard (there is a difference (in principle. :P ))</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/04/25/1-00-c/?replytocom=3103#respond' data-commentid="3103" data-postid="1725" data-belowelement="comment-3103" data-respondelement="respond" data-replyto="Reply to Herb Powell" aria-label='Reply to Herb Powell'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment byuser comment-author-euodiachloris odd alt depth-4 highlander-comment" id="li-comment-3169">
+		<article id="comment-3169" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/d1b85f0e3558b890559682f91dc13615?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn"><a href='http://euodiachloris.wordpress.com' rel='external nofollow ugc' class='url'>Euodiachloris</a></span> on <a href="https://wanderinginn.com/2017/04/25/1-00-c/#comment-3169"><time datetime="2017-05-23T14:28:18+00:00">May 23, 2017 at 2:28 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Cirque du Soleil takes on Harelquin would give him more athletic tricks to the bag.  Also, a booming slapstick he could learn to do alsorts with.</p>
+<p>Part of his problem is not knowing enough about the zani characters of the comedia dell&#8217;arte, panto and North American trickster traditions to expand his clowning on.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/04/25/1-00-c/?replytocom=3169#respond' data-commentid="3169" data-postid="1725" data-belowelement="comment-3169" data-respondelement="respond" data-replyto="Reply to Euodiachloris" aria-label='Reply to Euodiachloris'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-sunflowerofice even depth-4 highlander-comment" id="li-comment-64521">
+		<article id="comment-64521" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/d50de38f7a7127218c97f516b623ac45?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">sunflowerofice</span> on <a href="https://wanderinginn.com/2017/04/25/1-00-c/#comment-64521"><time datetime="2019-08-21T16:38:27+00:00">August 21, 2019 at 4:38 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>I was thinking rodeo clown as well. He could dodge, use things for cover, draw away attention and with his pull things out easier skill he could be the pack mule and more quickly then others pull out replacement weapons and potions for people as needed without fumbling in the pouches.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/04/25/1-00-c/?replytocom=64521#respond' data-commentid="64521" data-postid="1725" data-belowelement="comment-64521" data-respondelement="respond" data-replyto="Reply to sunflowerofice" aria-label='Reply to sunflowerofice'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		<li class="comment odd alt depth-3 highlander-comment" id="li-comment-97138">
+		<article id="comment-97138" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/a0b31c0ea11975b6b82d234f1996b49a?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">Abrakadabra</span> on <a href="https://wanderinginn.com/2017/04/25/1-00-c/#comment-97138"><time datetime="2020-12-22T23:21:06+00:00">December 22, 2020 at 11:21 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>But clowns are kind of scary too. Maybe he is meant to be scary.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/04/25/1-00-c/?replytocom=97138#respond' data-commentid="97138" data-postid="1725" data-belowelement="comment-97138" data-respondelement="respond" data-replyto="Reply to Abrakadabra" aria-label='Reply to Abrakadabra'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-melsahvarei even thread-odd thread-alt depth-1 highlander-comment" id="li-comment-2201">
+		<article id="comment-2201" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/ff525ba6cb6817d75fdd5f8d1c0d7426?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Melsa Hvarei</span> on <a href="https://wanderinginn.com/2017/04/25/1-00-c/#comment-2201"><time datetime="2017-04-25T23:17:57+00:00">April 25, 2017 at 11:17 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Jesus, that was indeed a lot darker than I had expected it to be. Still really enjoyed it though, so I&#8217;m looking forward to the next part. poor Wilen :(</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/04/25/1-00-c/?replytocom=2201#respond' data-commentid="2201" data-postid="1725" data-belowelement="comment-2201" data-respondelement="respond" data-replyto="Reply to Melsa Hvarei" aria-label='Reply to Melsa Hvarei'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-beeschan odd alt thread-even depth-1 highlander-comment" id="li-comment-2215">
+		<article id="comment-2215" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/fce6f64f963012e987c85c70c1c1e2e1?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn"><a href='http://beeschan.wordpress.com' rel='external nofollow ugc' class='url'>Beeschan</a></span> on <a href="https://wanderinginn.com/2017/04/25/1-00-c/#comment-2215"><time datetime="2017-04-26T07:31:06+00:00">April 26, 2017 at 7:31 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Have you ever played Dropsy, the point and click hugventure?</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/04/25/1-00-c/?replytocom=2215#respond' data-commentid="2215" data-postid="1725" data-belowelement="comment-2215" data-respondelement="respond" data-replyto="Reply to Beeschan" aria-label='Reply to Beeschan'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment byuser comment-author-pirateaba bypostauthor even depth-2 highlander-comment" id="li-comment-2216">
+		<article id="comment-2216" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/2f8ac70cd17f11c419846c441769523b?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn"><a href='http://pirateaba.wordpress.com' rel='external nofollow ugc' class='url'>pirateaba</a></span> on <a href="https://wanderinginn.com/2017/04/25/1-00-c/#comment-2216"><time datetime="2017-04-26T08:19:33+00:00">April 26, 2017 at 8:19 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>I&#8217;ve seen someone (Jackscepticeye) play through it, but never myself. I didn&#8217;t actually think of him when writing this &#8212; Tom&#8217;s a bit less&#8230;of whatever than Dropsy is, but then again, all clowns sort of blur together in a horrific ball of nightmares in my head when I&#8217;m not actually thinking of one.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/04/25/1-00-c/?replytocom=2216#respond' data-commentid="2216" data-postid="1725" data-belowelement="comment-2216" data-respondelement="respond" data-replyto="Reply to pirateaba" aria-label='Reply to pirateaba'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-andrewkrowe odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-2294">
+		<article id="comment-2294" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/462bb7b6008ada51669ac72bb776f3ef?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn"><a href='http://andrewkrowe.wordpress.com' rel='external nofollow ugc' class='url'>andrewkrowe</a></span> on <a href="https://wanderinginn.com/2017/04/25/1-00-c/#comment-2294"><time datetime="2017-04-27T22:32:23+00:00">April 27, 2017 at 10:32 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Very interesting chapter. The Fourth Wall mention is especially interesting, and potentially illuminating about the setting as a whole. </p>
+<p>It&#8217;s also very interesting to see that people can lose classes; I&#8217;m curious if that&#8217;s unique to the Hero class or if it can occur with other classes as well.</p>
+<p>Found a typo: &#8220;When I thought I’d have to behead that screaming Gobnlin&#8221; </p>
+<p>Gobnlin should be Goblin.</p>
+<p>Thanks for the chapter, keep up the great work!</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/04/25/1-00-c/?replytocom=2294#respond' data-commentid="2294" data-postid="1725" data-belowelement="comment-2294" data-respondelement="respond" data-replyto="Reply to andrewkrowe" aria-label='Reply to andrewkrowe'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="li-comment-2407">
+		<article id="comment-2407" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/04be4dfd7fd5ad85cad3cd6fbff15d93?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Aaron Martinez</span> on <a href="https://wanderinginn.com/2017/04/25/1-00-c/#comment-2407"><time datetime="2017-04-30T19:10:53+00:00">April 30, 2017 at 7:10 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Sounded like it was incredibly painful to the point where it should have been debilitating.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/04/25/1-00-c/?replytocom=2407#respond' data-commentid="2407" data-postid="1725" data-belowelement="comment-2407" data-respondelement="respond" data-replyto="Reply to Aaron Martinez" aria-label='Reply to Aaron Martinez'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-pirateaba bypostauthor odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-3096">
+		<article id="comment-3096" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/2f8ac70cd17f11c419846c441769523b?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn"><a href='http://pirateaba.wordpress.com' rel='external nofollow ugc' class='url'>pirateaba</a></span> on <a href="https://wanderinginn.com/2017/04/25/1-00-c/#comment-3096"><time datetime="2017-05-21T14:40:41+00:00">May 21, 2017 at 2:40 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Just had to delete comment that was posted here instead of 1.01 C&#8230;sorry about that! It was about healing potions by Richard Davis &#8212; feel free to repost it, but I didn&#8217;t want to give anything away for other readers.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/04/25/1-00-c/?replytocom=3096#respond' data-commentid="3096" data-postid="1725" data-belowelement="comment-3096" data-respondelement="respond" data-replyto="Reply to pirateaba" aria-label='Reply to pirateaba'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="li-comment-3097">
+		<article id="comment-3097" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/7303fae35346e8532a4f6ea806e1332e?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Tim</span> on <a href="https://wanderinginn.com/2017/04/25/1-00-c/#comment-3097"><time datetime="2017-05-21T14:42:49+00:00">May 21, 2017 at 2:42 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>What is the next Side Story going to be about?</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/04/25/1-00-c/?replytocom=3097#respond' data-commentid="3097" data-postid="1725" data-belowelement="comment-3097" data-respondelement="respond" data-replyto="Reply to Tim" aria-label='Reply to Tim'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment byuser comment-author-pirateaba bypostauthor odd alt depth-2 highlander-comment" id="li-comment-3101">
+		<article id="comment-3101" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/2f8ac70cd17f11c419846c441769523b?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn"><a href='http://pirateaba.wordpress.com' rel='external nofollow ugc' class='url'>pirateaba</a></span> on <a href="https://wanderinginn.com/2017/04/25/1-00-c/#comment-3101"><time datetime="2017-05-21T20:39:58+00:00">May 21, 2017 at 8:39 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>THE EPIC ANTINIUM WARS.<br />
+&#8230;A history!</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/04/25/1-00-c/?replytocom=3101#respond' data-commentid="3101" data-postid="1725" data-belowelement="comment-3101" data-respondelement="respond" data-replyto="Reply to pirateaba" aria-label='Reply to pirateaba'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment even depth-3 highlander-comment" id="li-comment-3112">
+		<article id="comment-3112" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/7303fae35346e8532a4f6ea806e1332e?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">Tim</span> on <a href="https://wanderinginn.com/2017/04/25/1-00-c/#comment-3112"><time datetime="2017-05-22T07:48:11+00:00">May 22, 2017 at 7:48 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>YEA&#8230;wait what.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/04/25/1-00-c/?replytocom=3112#respond' data-commentid="3112" data-postid="1725" data-belowelement="comment-3112" data-respondelement="respond" data-replyto="Reply to Tim" aria-label='Reply to Tim'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment odd alt depth-4 highlander-comment" id="li-comment-3115">
+		<article id="comment-3115" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/7303fae35346e8532a4f6ea806e1332e?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">Tim</span> on <a href="https://wanderinginn.com/2017/04/25/1-00-c/#comment-3115"><time datetime="2017-05-22T08:28:13+00:00">May 22, 2017 at 8:28 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>What are the other two side stories, you offered to write, about?</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/04/25/1-00-c/?replytocom=3115#respond' data-commentid="3115" data-postid="1725" data-belowelement="comment-3115" data-respondelement="respond" data-replyto="Reply to Tim" aria-label='Reply to Tim'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		<li class="comment even thread-odd thread-alt depth-1 highlander-comment" id="li-comment-3104">
+		<article id="comment-3104" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/23e8dc3ec179f2f7882b35209cafa3f0?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">SpaceSkeleton</span> on <a href="https://wanderinginn.com/2017/04/25/1-00-c/#comment-3104"><time datetime="2017-05-21T22:06:47+00:00">May 21, 2017 at 10:06 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>I know Tom said he doesn&#8217;t have the stomach for blood, but it would be really interesting if he gained a new class like  [[Killer Clown]]. Honestly it would  be hilarious, even though I don&#8217;t think this little side story is going in that direction. Interested to see what happens next though!</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/04/25/1-00-c/?replytocom=3104#respond' data-commentid="3104" data-postid="1725" data-belowelement="comment-3104" data-respondelement="respond" data-replyto="Reply to SpaceSkeleton" aria-label='Reply to SpaceSkeleton'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment odd alt thread-even depth-1 highlander-comment" id="li-comment-3106">
+		<article id="comment-3106" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/463e52e0816dbe25bc51a4ae45f8358e?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">SomethingWitty</span> on <a href="https://wanderinginn.com/2017/04/25/1-00-c/#comment-3106"><time datetime="2017-05-22T03:39:48+00:00">May 22, 2017 at 3:39 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>The part where Rags was aghast as she learned what led to getting pregnant in the other side-chapter made me laugh until I cried, and it&#8217;s not easy to make me laugh at all. I like this side-story, too. The only criticism is that I&#8217;m not sure it&#8217;s the best way or has the gravitas to show why everyone was transported to this world.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/04/25/1-00-c/?replytocom=3106#respond' data-commentid="3106" data-postid="1725" data-belowelement="comment-3106" data-respondelement="respond" data-replyto="Reply to SomethingWitty" aria-label='Reply to SomethingWitty'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment even thread-odd thread-alt depth-1 highlander-comment" id="li-comment-3125">
+		<article id="comment-3125" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/7303fae35346e8532a4f6ea806e1332e?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Tim</span> on <a href="https://wanderinginn.com/2017/04/25/1-00-c/#comment-3125"><time datetime="2017-05-22T15:01:26+00:00">May 22, 2017 at 3:01 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Pirateaba, were you inspired by Attack of the Titan, when you wrote this chapter?<br />
+Only 1 of the 4 Walls(3 in Attack of the Titan) that once were built to protect the human kingdom from the demons(titans) is still standing.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/04/25/1-00-c/?replytocom=3125#respond' data-commentid="3125" data-postid="1725" data-belowelement="comment-3125" data-respondelement="respond" data-replyto="Reply to Tim" aria-label='Reply to Tim'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment odd alt depth-2 highlander-comment" id="li-comment-3186">
+		<article id="comment-3186" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/c9b91237e3decf186175d2f5eca9b0cb?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">jonnnney</span> on <a href="https://wanderinginn.com/2017/04/25/1-00-c/#comment-3186"><time datetime="2017-05-23T19:44:25+00:00">May 23, 2017 at 7:44 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>All 4 are still standing, walls 2-4 were only breached during a previous war.</p>
+<p>Personally I&#8217;m hoping Tom addresses the audience and that ends up breaking the 4th Wall.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/04/25/1-00-c/?replytocom=3186#respond' data-commentid="3186" data-postid="1725" data-belowelement="comment-3186" data-respondelement="respond" data-replyto="Reply to jonnnney" aria-label='Reply to jonnnney'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="li-comment-3127">
+		<article id="comment-3127" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/7303fae35346e8532a4f6ea806e1332e?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Tim</span> on <a href="https://wanderinginn.com/2017/04/25/1-00-c/#comment-3127"><time datetime="2017-05-22T15:26:54+00:00">May 22, 2017 at 3:26 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>When Richard was in the chatroom in the Interlude of Vol.2, though used the alias [America Group], he listed a few classes of his group— one of them was [Pyromancer]. Did you decide to change the class to [Hydromancer], or are both of them in the group to be found.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/04/25/1-00-c/?replytocom=3127#respond' data-commentid="3127" data-postid="1725" data-belowelement="comment-3127" data-respondelement="respond" data-replyto="Reply to Tim" aria-label='Reply to Tim'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-3135">
+		<article id="comment-3135" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/a4c844493bb97a26f9489c4ea1660fe2?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Dan</span> on <a href="https://wanderinginn.com/2017/04/25/1-00-c/#comment-3135"><time datetime="2017-05-22T18:43:55+00:00">May 22, 2017 at 6:43 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Heroes level fast, was wondering about that.</p>
+<p>And the hero summoning ritual with crazy results!<br />
+The 2nd try is even crazier.</p>
+<p>This might be the 1st Clown story I&#8217;ve ever read.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/04/25/1-00-c/?replytocom=3135#respond' data-commentid="3135" data-postid="1725" data-belowelement="comment-3135" data-respondelement="respond" data-replyto="Reply to Dan" aria-label='Reply to Dan'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="li-comment-3150">
+		<article id="comment-3150" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/ba58abd47946f0c08774bb737c1fbb53?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Kunama</span> on <a href="https://wanderinginn.com/2017/04/25/1-00-c/#comment-3150"><time datetime="2017-05-23T01:51:15+00:00">May 23, 2017 at 1:51 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Mmm&#8230; yeah I think you could have done better with setting. Maybe visual description of the actual village? But Tom&#8217;s characterisation is fine. As is Richard&#8217;s and the rest, given how little we know of the (admittedly large) group so far.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/04/25/1-00-c/?replytocom=3150#respond' data-commentid="3150" data-postid="1725" data-belowelement="comment-3150" data-respondelement="respond" data-replyto="Reply to Kunama" aria-label='Reply to Kunama'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment byuser comment-author-singlewordedpoem odd alt thread-odd thread-alt depth-1 highlander-comment" id="li-comment-3190">
+		<article id="comment-3190" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/ea988acd9cb9a672225977affa976742?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">singlewordedpoem</span> on <a href="https://wanderinginn.com/2017/04/25/1-00-c/#comment-3190"><time datetime="2017-05-23T22:00:14+00:00">May 23, 2017 at 10:00 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>I like this chapter, Tom is an interesting character, and you do manage to establish this part of the world pretty quickly. </p>
+<p>It&#8217;s strange to me that none of the 50 people summoned here would have any knowledge or ideas about using technology from our world to help with warfare against demons (crossbows, gunpowder, transport infrastructure aka steam engines and trains, communication infrastructure using electricity and telegraph/telephone) once they realize they can&#8217;t/don&#8217;t want to fight themselves. Then again, maybe the people that were summoned here specifically are selected to be the ones not inclined to think in such terms, but rather to think in terms of stories with [Heroes], while people like Ryoka ended up elsewhere.</p>
+<p>Small typo: &#8220;Curious about the parenthesis?&#8221;<br />
+Plural of parenthesis is parentheses, though that only refers to round brackets<br />
+AFAIK. [] would typically be called brackets or square brackets.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/04/25/1-00-c/?replytocom=3190#respond' data-commentid="3190" data-postid="1725" data-belowelement="comment-3190" data-respondelement="respond" data-replyto="Reply to singlewordedpoem" aria-label='Reply to singlewordedpoem'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment even thread-even depth-1 highlander-comment" id="li-comment-4040">
+		<article id="comment-4040" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/382bd8e4189bf3943d0dfd43be015f4d?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Zweivoss</span> on <a href="https://wanderinginn.com/2017/04/25/1-00-c/#comment-4040"><time datetime="2017-06-22T02:27:47+00:00">June 22, 2017 at 2:27 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>A clown eh? Is he gonna turn into a Sage when he levels up?</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/04/25/1-00-c/?replytocom=4040#respond' data-commentid="4040" data-postid="1725" data-belowelement="comment-4040" data-respondelement="respond" data-replyto="Reply to Zweivoss" aria-label='Reply to Zweivoss'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				<ul class="children">
+		<li class="comment odd alt depth-2 highlander-comment" id="li-comment-31481">
+		<article id="comment-31481" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/ddabbb084a8d51d185e92b2b5c84db24?s=39&#038;d=identicon&#038;r=PG' class='avatar avatar-39' height='39' width='39' /><span class="fn">Bramble_Thorn</span> on <a href="https://wanderinginn.com/2017/04/25/1-00-c/#comment-31481"><time datetime="2018-07-16T23:48:19+00:00">July 16, 2018 at 11:48 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Another Dragon Quest III player, eh? (in that game at level 20 the useless jester can become the mighty sage (which is basically two main classes combined into one)<br />
+That was my first thought. Clown as Lethal joke character, where leveling the class enough triggers a qualitative change. Or, if he could use that &#8220;Make anything within 5 feet appear in your hands&#8221; trick to do something like &#8220;Guess what I&#8217;ve got in my pocket? It&#8217;s the heart from inside your chest!&#8221; or even just disarming or disarmoring the equipment from opponents.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/04/25/1-00-c/?replytocom=31481#respond' data-commentid="31481" data-postid="1725" data-belowelement="comment-31481" data-respondelement="respond" data-replyto="Reply to Bramble_Thorn" aria-label='Reply to Bramble_Thorn'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+</ul><!-- .children -->
+</li><!-- #comment-## -->
+		<li class="comment even thread-odd thread-alt depth-1 highlander-comment" id="li-comment-4335">
+		<article id="comment-4335" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://0.gravatar.com/avatar/90ab657a45632bf0b04c7ebe8b8d894f?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Prince Pondincherry</span> on <a href="https://wanderinginn.com/2017/04/25/1-00-c/#comment-4335"><time datetime="2017-06-27T22:16:03+00:00">June 27, 2017 at 10:16 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>I like Wilen, and how he&#8217;s sort of casually mean to Tom, but it doesn&#8217;t seem he means to be mean. He&#8217;s just a kid with no compunctions about telling Tom he isn&#8217;t funny.<br />
+(Wow, that made the end of the chapter a lot more painful.)</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/04/25/1-00-c/?replytocom=4335#respond' data-commentid="4335" data-postid="1725" data-belowelement="comment-4335" data-respondelement="respond" data-replyto="Reply to Prince Pondincherry" aria-label='Reply to Prince Pondincherry'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment odd alt thread-even depth-1 highlander-comment" id="li-comment-59024">
+		<article id="comment-59024" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://2.gravatar.com/avatar/b4615c0f066b3049dcb04379549e4d58?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Onyavar</span> on <a href="https://wanderinginn.com/2017/04/25/1-00-c/#comment-59024"><time datetime="2019-05-11T04:35:35+00:00">May 11, 2019 at 4:35 am</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Pirateaba, thank you SO much for releasing side stories that were supposed to be patreon-only. I noticed only now because read your comment about this supposedly being your wirst chapter yet.</p>
+<p>I like this one more than mating rituals, but when I think pretty hard about it&#8230; yeah. The chapter is less inspired than the ones with Erin and Ryoka, and the plot is horrible. Not horribly written, just tragic. And it&#8217;s good to know that the ones who are doing well on Innworld are the rare exception. That keeps is readers grounded. I&#8217;m itching to get up to speed with your writing, and I am also dreading what happens when there is no &#8220;next chapter&#8221; right away.</p>
+<p>Also, being a clown sucks. Being a [clown] sucks a great real more. I didn&#8217;t expect a bona fide circus clown, actually. More a fool, or a jester, or whatever.<br />
+But really, Richard is the fool in this side story. He is a hero and runs away&#8230; I can already guess how he&#8217;s faring in the second part of the side story.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/04/25/1-00-c/?replytocom=59024#respond' data-commentid="59024" data-postid="1725" data-belowelement="comment-59024" data-respondelement="respond" data-replyto="Reply to Onyavar" aria-label='Reply to Onyavar'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		<li class="comment even thread-odd thread-alt depth-1 highlander-comment" id="li-comment-97137">
+		<article id="comment-97137" class="comment">
+			<footer class="comment-meta">
+				<div class="comment-author vcard">
+					<img alt='' src='https://1.gravatar.com/avatar/a0b31c0ea11975b6b82d234f1996b49a?s=68&#038;d=identicon&#038;r=PG' class='avatar avatar-68' height='68' width='68' /><span class="fn">Abrakadabra</span> on <a href="https://wanderinginn.com/2017/04/25/1-00-c/#comment-97137"><time datetime="2020-12-22T23:17:51+00:00">December 22, 2020 at 11:17 pm</time></a> <span class="says">said:</span>
+										</div><!-- .comment-author .vcard -->
+
+					
+					
+				</footer>
+
+				<div class="comment-content"><p>Now, this is how you properly write a desperate situation. Good job.</p>
+</div>
+
+				<div class="reply">
+					<a rel='nofollow' class='comment-reply-link' href='https://wanderinginn.com/2017/04/25/1-00-c/?replytocom=97137#respond' data-commentid="97137" data-postid="1725" data-belowelement="comment-97137" data-respondelement="respond" data-replyto="Reply to Abrakadabra" aria-label='Reply to Abrakadabra'>Reply <span>&darr;</span></a>				</div><!-- .reply -->
+			</article><!-- #comment-## -->
+
+				</li><!-- #comment-## -->
+		</ol>
+
+		
+		
+	
+		<div id="respond" class="comment-respond">
+		<h3 id="reply-title" class="comment-reply-title">Leave a Reply <small><a rel="nofollow" id="cancel-comment-reply-link" href="/2017/04/25/1-00-c/#respond" style="display:none;">Cancel reply</a></small></h3><form action="https://wanderinginn.com/wp-comments-post.php" method="post" id="commentform" class="comment-form"><input type="hidden" id="highlander_comment_nonce" name="highlander_comment_nonce" value="bd33e1bdd8" /><input type="hidden" name="_wp_http_referer" value="/2017/04/25/1-00-c/" />
+<input type="hidden" name="hc_post_as" id="hc_post_as" value="guest" />
+
+<div class="comment-form-field comment-textarea">
+	<label for="comment">Enter your comment here...</label>
+	<div id="comment-form-comment"><textarea id="comment" name="comment" title="Enter your comment here..."></textarea></div>
+</div>
+
+<div id="comment-form-identity">
+	<div id="comment-form-nascar">
+		<p>Fill in your details below or click an icon to log in:</p>
+		<ul>
+			<li class="selected" style="display:none;">
+				<a href="#comment-form-guest" id="postas-guest" class="nascar-signin-link"
+				 title="Login via Guest" 				>
+									</a>
+			</li>
+			<li>
+				<a href="#comment-form-load-service:WordPress.com" id="postas-wordpress" class="nascar-signin-link"
+				 title="Login via WordPress.com" 				>
+					<svg xmlns="http://www.w3.org/2000/svg" role="presentation" viewBox="0 0 24 24" ><rect x="0" fill="none" width="24" height="24"/><g><path fill="#FFF" d="M12.158 12.786l-2.698 7.84c.806.236 1.657.365 2.54.365 1.047 0 2.05-.18 2.986-.51-.024-.037-.046-.078-.065-.123l-2.762-7.57zM3.008 12c0 3.56 2.07 6.634 5.068 8.092L3.788 8.342c-.5 1.117-.78 2.354-.78 3.658zm15.06-.454c0-1.112-.398-1.88-.74-2.48-.456-.74-.883-1.368-.883-2.11 0-.825.627-1.595 1.51-1.595.04 0 .078.006.116.008-1.598-1.464-3.73-2.36-6.07-2.36-3.14 0-5.904 1.613-7.512 4.053.21.008.41.012.58.012.94 0 2.395-.114 2.395-.114.484-.028.54.684.057.74 0 0-.487.058-1.03.086l3.275 9.74 1.968-5.902-1.4-3.838c-.485-.028-.944-.085-.944-.085-.486-.03-.43-.77.056-.742 0 0 1.484.114 2.368.114.94 0 2.397-.114 2.397-.114.486-.028.543.684.058.74 0 0-.488.058-1.03.086l3.25 9.665.897-2.997c.456-1.17.684-2.137.684-2.907zm1.82-3.86c.04.286.06.593.06.924 0 .912-.17 1.938-.683 3.22l-2.746 7.94c2.672-1.558 4.47-4.454 4.47-7.77 0-1.564-.4-3.033-1.1-4.314zM12 22C6.486 22 2 17.514 2 12S6.486 2 12 2s10 4.486 10 10-4.486 10-10 10z"/></g></svg>				</a>
+			</li>
+			<li>
+				<a href="#comment-form-load-service:Twitter" id="postas-twitter" class="nascar-signin-link"
+				 title="Login via Twitter" 				>
+					<svg xmlns="http://www.w3.org/2000/svg" role="presentation" viewBox="0 0 24 24" ><rect x="0" fill="none" width="24" height="24"/><g><path fill="#FFF" d="M22.23 5.924c-.736.326-1.527.547-2.357.646.847-.508 1.498-1.312 1.804-2.27-.793.47-1.67.812-2.606.996C18.325 4.498 17.258 4 16.078 4c-2.266 0-4.103 1.837-4.103 4.103 0 .322.036.635.106.935-3.41-.17-6.433-1.804-8.457-4.287-.353.607-.556 1.312-.556 2.064 0 1.424.724 2.68 1.825 3.415-.673-.022-1.305-.207-1.86-.514v.052c0 1.988 1.415 3.647 3.293 4.023-.344.095-.707.145-1.08.145-.265 0-.522-.026-.773-.074.522 1.63 2.038 2.817 3.833 2.85-1.404 1.1-3.174 1.757-5.096 1.757-.332 0-.66-.02-.98-.057 1.816 1.164 3.973 1.843 6.29 1.843 7.547 0 11.675-6.252 11.675-11.675 0-.178-.004-.355-.012-.53.802-.578 1.497-1.3 2.047-2.124z"/></g></svg>				</a>
+			</li>
+			<li>
+				<a href="#comment-form-load-service:Facebook" id="postas-facebook" class="nascar-signin-link"
+				 title="Login via Facebook" 				>
+					<svg xmlns="http://www.w3.org/2000/svg" role="presentation" viewBox="0 0 24 24" ><rect x="0" fill="none" width="24" height="24"/><g><path fill="#FFF" d="M20.007 3H3.993C3.445 3 3 3.445 3 3.993v16.013c0 .55.445.994.993.994h8.62v-6.97H10.27V11.31h2.346V9.31c0-2.325 1.42-3.59 3.494-3.59.993 0 1.847.073 2.096.106v2.43h-1.438c-1.128 0-1.346.537-1.346 1.324v1.734h2.69l-.35 2.717h-2.34V21h4.587c.548 0 .993-.445.993-.993V3.993c0-.548-.445-.993-.993-.993z"/></g></svg>				</a>
+			</li>
+		</ul>
+	</div>
+
+	<div id="comment-form-guest" class="comment-form-service selected">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+<a href="https://gravatar.com/site/signup/" target="_blank">				<img src="https://1.gravatar.com/avatar/ad516503a11cd5ca435acc9bb6523536?s=25&amp;d=identicon&amp;forcedefault=y&amp;r=PG" alt="Gravatar" width="25" class="no-grav" />
+</a>			</div>
+
+				<div class="comment-form-fields">
+				<div class="comment-form-field comment-form-email">
+					<label for="email">Email <span class="required">(required)</span> <span class="nopublish">(Address never made public)</span></label>
+					<div class="comment-form-input"><input id="email" name="email" type="email" value="" /></div>
+				</div>
+				<div class="comment-form-field comment-form-author">
+					<label for="author">Name <span class="required">(required)</span></label>
+					<div class="comment-form-input"><input id="author" name="author" type="text" value="" /></div>
+				</div>
+				<div class="comment-form-field comment-form-url">
+					<label for="url">Website</label>
+					<div class="comment-form-input"><input id="url" name="url" type="url" value="" /></div>
+				</div>
+			</div>
+			
+		</div>
+	</div>
+
+	<div id="comment-form-wordpress" class="comment-form-service">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+				<img src="https://1.gravatar.com/avatar/ad516503a11cd5ca435acc9bb6523536?s=25&amp;d=identicon&amp;forcedefault=y&amp;r=PG" alt="WordPress.com Logo" width="25" class="no-grav" />
+			</div>
+
+				<div class="comment-form-fields">
+				<input type="hidden" name="wp_avatar" id="wordpress-avatar" class="comment-meta-wordpress" value="" />
+				<input type="hidden" name="wp_user_id" id="wordpress-user_id" class="comment-meta-wordpress" value="" />
+				<input type="hidden" name="wp_access_token" id="wordpress-access_token" class="comment-meta-wordpress" value="" />
+						<p class="comment-form-posting-as pa-wordpress">
+			<strong></strong>
+			You are commenting using your WordPress.com account.			<span class="comment-form-log-out">
+				(&nbsp;<a href="javascript:HighlanderComments.doExternalLogout( 'wordpress' );">Log&nbsp;Out</a>&nbsp;/&nbsp;
+				<a href="#" onclick="javascript:HighlanderComments.switchAccount();return false;">Change</a>&nbsp;)
+			</span>
+			<span class="pa-icon"><svg xmlns="http://www.w3.org/2000/svg" role="presentation" viewBox="0 0 24 24" ><rect x="0" fill="none" width="24" height="24"/><g><path fill="#FFF" d="M12.158 12.786l-2.698 7.84c.806.236 1.657.365 2.54.365 1.047 0 2.05-.18 2.986-.51-.024-.037-.046-.078-.065-.123l-2.762-7.57zM3.008 12c0 3.56 2.07 6.634 5.068 8.092L3.788 8.342c-.5 1.117-.78 2.354-.78 3.658zm15.06-.454c0-1.112-.398-1.88-.74-2.48-.456-.74-.883-1.368-.883-2.11 0-.825.627-1.595 1.51-1.595.04 0 .078.006.116.008-1.598-1.464-3.73-2.36-6.07-2.36-3.14 0-5.904 1.613-7.512 4.053.21.008.41.012.58.012.94 0 2.395-.114 2.395-.114.484-.028.54.684.057.74 0 0-.487.058-1.03.086l3.275 9.74 1.968-5.902-1.4-3.838c-.485-.028-.944-.085-.944-.085-.486-.03-.43-.77.056-.742 0 0 1.484.114 2.368.114.94 0 2.397-.114 2.397-.114.486-.028.543.684.058.74 0 0-.488.058-1.03.086l3.25 9.665.897-2.997c.456-1.17.684-2.137.684-2.907zm1.82-3.86c.04.286.06.593.06.924 0 .912-.17 1.938-.683 3.22l-2.746 7.94c2.672-1.558 4.47-4.454 4.47-7.77 0-1.564-.4-3.033-1.1-4.314zM12 22C6.486 22 2 17.514 2 12S6.486 2 12 2s10 4.486 10 10-4.486 10-10 10z"/></g></svg></span>
+		</p>
+					</div>
+	
+		</div>
+	</div>
+
+	<div id="comment-form-twitter" class="comment-form-service">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+				<img src="https://1.gravatar.com/avatar/ad516503a11cd5ca435acc9bb6523536?s=25&amp;d=identicon&amp;forcedefault=y&amp;r=PG" alt="Twitter picture" width="25" class="no-grav" />
+			</div>
+
+				<div class="comment-form-fields">
+				<input type="hidden" name="twitter_avatar" id="twitter-avatar" class="comment-meta-twitter" value="" />
+				<input type="hidden" name="twitter_user_id" id="twitter-user_id" class="comment-meta-twitter" value="" />
+				<input type="hidden" name="twitter_access_token" id="twitter-access_token" class="comment-meta-twitter" value="" />
+						<p class="comment-form-posting-as pa-twitter">
+			<strong></strong>
+			You are commenting using your Twitter account.			<span class="comment-form-log-out">
+				(&nbsp;<a href="javascript:HighlanderComments.doExternalLogout( 'twitter' );">Log&nbsp;Out</a>&nbsp;/&nbsp;
+				<a href="#" onclick="javascript:HighlanderComments.switchAccount();return false;">Change</a>&nbsp;)
+			</span>
+			<span class="pa-icon"><svg xmlns="http://www.w3.org/2000/svg" role="presentation" viewBox="0 0 24 24" ><rect x="0" fill="none" width="24" height="24"/><g><path fill="#FFF" d="M22.23 5.924c-.736.326-1.527.547-2.357.646.847-.508 1.498-1.312 1.804-2.27-.793.47-1.67.812-2.606.996C18.325 4.498 17.258 4 16.078 4c-2.266 0-4.103 1.837-4.103 4.103 0 .322.036.635.106.935-3.41-.17-6.433-1.804-8.457-4.287-.353.607-.556 1.312-.556 2.064 0 1.424.724 2.68 1.825 3.415-.673-.022-1.305-.207-1.86-.514v.052c0 1.988 1.415 3.647 3.293 4.023-.344.095-.707.145-1.08.145-.265 0-.522-.026-.773-.074.522 1.63 2.038 2.817 3.833 2.85-1.404 1.1-3.174 1.757-5.096 1.757-.332 0-.66-.02-.98-.057 1.816 1.164 3.973 1.843 6.29 1.843 7.547 0 11.675-6.252 11.675-11.675 0-.178-.004-.355-.012-.53.802-.578 1.497-1.3 2.047-2.124z"/></g></svg></span>
+		</p>
+					</div>
+	
+		</div>
+	</div>
+
+	<div id="comment-form-facebook" class="comment-form-service">
+		<div class="comment-form-padder">
+			<div class="comment-form-avatar">
+				<img src="" alt="Facebook photo" width="25" class="no-grav" />
+			</div>
+
+				<div class="comment-form-fields">
+				<input type="hidden" name="fb_avatar" id="facebook-avatar" class="comment-meta-facebook" value="" />
+				<input type="hidden" name="fb_user_id" id="facebook-user_id" class="comment-meta-facebook" value="" />
+				<input type="hidden" name="fb_access_token" id="facebook-access_token" class="comment-meta-facebook" value="" />
+						<p class="comment-form-posting-as pa-facebook">
+			<strong></strong>
+			You are commenting using your Facebook account.			<span class="comment-form-log-out">
+				(&nbsp;<a href="javascript:HighlanderComments.doExternalLogout( 'facebook' );">Log&nbsp;Out</a>&nbsp;/&nbsp;
+				<a href="#" onclick="javascript:HighlanderComments.switchAccount();return false;">Change</a>&nbsp;)
+			</span>
+			<span class="pa-icon"><svg xmlns="http://www.w3.org/2000/svg" role="presentation" viewBox="0 0 24 24" ><rect x="0" fill="none" width="24" height="24"/><g><path fill="#FFF" d="M20.007 3H3.993C3.445 3 3 3.445 3 3.993v16.013c0 .55.445.994.993.994h8.62v-6.97H10.27V11.31h2.346V9.31c0-2.325 1.42-3.59 3.494-3.59.993 0 1.847.073 2.096.106v2.43h-1.438c-1.128 0-1.346.537-1.346 1.324v1.734h2.69l-.35 2.717h-2.34V21h4.587c.548 0 .993-.445.993-.993V3.993c0-.548-.445-.993-.993-.993z"/></g></svg></span>
+		</p>
+					</div>
+	
+		</div>
+	</div>
+
+
+	<div id="comment-form-load-service" class="comment-form-service">
+		<div class="comment-form-posting-as-cancel"><a href="javascript:HighlanderComments.cancelExternalWindow();">Cancel</a></div>
+		<p>Connecting to %s</p>
+	</div>
+
+</div>
+
+<script type="text/javascript">
+var highlander_expando_javascript = function () {
+
+	function hide( sel ) {
+		var el = document.querySelector( sel );
+		if ( el ) {
+			el.style.setProperty( 'display', 'none' );
+		}
+	}
+
+	function show( sel ) {
+		var el = document.querySelector( sel );
+		if ( el ) {
+			el.style.removeProperty( 'display' );
+		}
+	}
+
+	var input = document.createElement( 'input' );
+	var comment = document.querySelector( '#comment' );
+
+	if ( input && comment && 'placeholder' in input ) {
+		var label = document.querySelector( '.comment-textarea label' );
+		if ( label ) {
+			var text = label.textContent;
+			label.parentNode.removeChild( label );
+			comment.setAttribute( 'placeholder', text );
+		}
+	}
+
+	// Expando Mode: start small, then auto-resize on first click + text length
+	hide( '#comment-form-identity' );
+	hide( '#comment-form-subscribe' );
+	hide( '#commentform .form-submit' );
+
+	if ( comment ) {
+		comment.style.height = '10px';
+
+		var handler = function () {
+			comment.style.height = HighlanderComments.initialHeight + 'px';
+			show( '#comment-form-identity' );
+			show( '#comment-form-subscribe' );
+			show( '#commentform .form-submit' );
+			HighlanderComments.resizeCallback();
+
+			comment.removeEventListener( 'focus', handler );
+		};
+
+		comment.addEventListener( 'focus', handler );
+	}
+}
+
+if ( document.readyState !== 'loading' ) {
+	highlander_expando_javascript();
+} else {
+	document.addEventListener( 'DOMContentLoaded', highlander_expando_javascript );
+}
+
+</script>
+
+<div id="comment-form-subscribe">
+	<p class="comment-subscription-form"><input type="checkbox" name="subscribe" id="subscribe" value="subscribe" style="width: auto;"/> <label class="subscribe-label" id="subscribe-label" for="subscribe" style="display: inline;">Notify me of new comments via email.</label></p><p class="post-subscription-form"><input type="checkbox" name="subscribe_blog" id="subscribe_blog" value="subscribe" style="width: auto;"/> <label class="subscribe-label" id="subscribe-blog-label" for="subscribe_blog"  style="display: inline;">Notify me of new posts via email.</label></p></div>
+
+
+
+
+<p class="form-submit"><input name="submit" type="submit" id="comment-submit" class="submit button" value="Post Comment" /> <input type='hidden' name='comment_post_ID' value='1725' id='comment_post_ID' />
+<input type='hidden' name='comment_parent' id='comment_parent' value='0' />
+</p><p style="display: none;"><input type="hidden" id="akismet_comment_nonce" name="akismet_comment_nonce" value="b5bce572b4" /></p>
+<input type="hidden" name="genseq" value="1664899885" />
+<p style="display: none !important;"><label>&#916;<textarea name="ak_hp_textarea" cols="45" rows="8" maxlength="100"></textarea></label><input type="hidden" id="ak_js_1" name="ak_js" value="24"/><script>document.getElementById( "ak_js_1" ).setAttribute( "value", ( new Date() ).getTime() );</script></p></form>	</div><!-- #respond -->
+	<div style="clear: both"></div>
+</div><!-- #comments -->
+
+				
+			</div><!-- #content -->
+		</div><!-- #primary -->
+
+
+	</div><!-- #main -->
+
+	<footer id="colophon">
+
+			
+
+			<div id="site-generator">
+				 								<a href="https://wordpress.com/?ref=footer_blog" rel="nofollow">Blog at WordPress.com.</a>
+			</div>
+	</footer><!-- #colophon -->
+</div><!-- #page -->
+
+<!--  -->
+<script type="text/javascript">
+	window._tkq = window._tkq || [];
+	if ( Math.random() < 0.01 ) {
+		window._tkq.push( [
+			'recordEvent',
+			'wpcom_wordads_noad',
+			{"theme":"pub\/twentyeleven","blog_id":113840984,"post_id":1725,"reason_noadverts_plugin":1,"reason_upgrade":1,"reason_blog_null":1,"reason_post_null":1}
+		] );
+	}
+</script><script src='//0.gravatar.com/js/gprofiles.js?ver=202240z' id='grofiles-cards-js'></script>
+<script id='wpgroho-js-extra'>
+var WPGroHo = {"my_hash":""};
+</script>
+<script crossorigin='anonymous' type='text/javascript' src='https://s1.wp.com/wp-content/mu-plugins/gravatar-hovercards/wpgroho.js?m=1610363240h'></script>
+
+	<script>
+		// Initialize and attach hovercards to all gravatars
+		( function() {
+			function init() {
+				if ( typeof Gravatar === 'undefined' ) {
+					return;
+				}
+
+				if ( typeof Gravatar.init !== 'function' ) {
+					return;
+				}
+
+				Gravatar.profile_cb = function ( hash, id ) {
+					WPGroHo.syncProfileData( hash, id );
+				};
+
+				Gravatar.my_hash = WPGroHo.my_hash;
+				Gravatar.init( 'body', '#wp-admin-bar-my-account' );
+			}
+
+			if ( document.readyState !== 'loading' ) {
+				init();
+			} else {
+				document.addEventListener( 'DOMContentLoaded', init );
+			}
+		} )();
+	</script>
+
+		<div style="display:none">
+	<div class="grofile-hash-map-2f8ac70cd17f11c419846c441769523b">
+	</div>
+	<div class="grofile-hash-map-04be4dfd7fd5ad85cad3cd6fbff15d93">
+	</div>
+	<div class="grofile-hash-map-f9fc3ed89162111729d701434327f6d2">
+	</div>
+	<div class="grofile-hash-map-b15204648202c1c2165ad0155cf8fe25">
+	</div>
+	<div class="grofile-hash-map-6ad98d9c6a1c658640f187fb66ef399f">
+	</div>
+	<div class="grofile-hash-map-8940e32ec3576edec6f7832ca437abab">
+	</div>
+	<div class="grofile-hash-map-c79931c3a7afa853f02feb78a117eea1">
+	</div>
+	<div class="grofile-hash-map-938c2fcb3429fa3327f8cff752d0c2cd">
+	</div>
+	<div class="grofile-hash-map-d1b85f0e3558b890559682f91dc13615">
+	</div>
+	<div class="grofile-hash-map-d50de38f7a7127218c97f516b623ac45">
+	</div>
+	<div class="grofile-hash-map-a0b31c0ea11975b6b82d234f1996b49a">
+	</div>
+	<div class="grofile-hash-map-ff525ba6cb6817d75fdd5f8d1c0d7426">
+	</div>
+	<div class="grofile-hash-map-fce6f64f963012e987c85c70c1c1e2e1">
+	</div>
+	<div class="grofile-hash-map-462bb7b6008ada51669ac72bb776f3ef">
+	</div>
+	<div class="grofile-hash-map-7303fae35346e8532a4f6ea806e1332e">
+	</div>
+	<div class="grofile-hash-map-23e8dc3ec179f2f7882b35209cafa3f0">
+	</div>
+	<div class="grofile-hash-map-463e52e0816dbe25bc51a4ae45f8358e">
+	</div>
+	<div class="grofile-hash-map-c9b91237e3decf186175d2f5eca9b0cb">
+	</div>
+	<div class="grofile-hash-map-a4c844493bb97a26f9489c4ea1660fe2">
+	</div>
+	<div class="grofile-hash-map-ba58abd47946f0c08774bb737c1fbb53">
+	</div>
+	<div class="grofile-hash-map-ea988acd9cb9a672225977affa976742">
+	</div>
+	<div class="grofile-hash-map-382bd8e4189bf3943d0dfd43be015f4d">
+	</div>
+	<div class="grofile-hash-map-ddabbb084a8d51d185e92b2b5c84db24">
+	</div>
+	<div class="grofile-hash-map-90ab657a45632bf0b04c7ebe8b8d894f">
+	</div>
+	<div class="grofile-hash-map-b4615c0f066b3049dcb04379549e4d58">
+	</div>
+	</div>
+<script id='highlander-comments-js-extra'>
+var HighlanderComments = {"loggingInText":"Logging In\u2026","submittingText":"Posting Comment\u2026","postCommentText":"Post Comment","connectingToText":"Connecting to %s","commentingAsText":"%1$s: You are commenting using your %2$s account.","logoutText":"Log Out","loginText":"Log In","connectURL":"https:\/\/wanderinginn.wordpress.com\/public.api\/connect\/?action=request&domain=wanderinginn.com","logoutURL":"https:\/\/wanderinginn.wordpress.com\/wp-login.php?action=logout&_wpnonce=027032d4fa","homeURL":"https:\/\/wanderinginn.com\/","postID":"1725","gravDefault":"identicon","enterACommentError":"Please enter a comment","enterEmailError":"Please enter your email address here","invalidEmailError":"Invalid email address","enterAuthorError":"Please enter your name here","gravatarFromEmail":"This picture will show whenever you leave a comment. Click to customize it.","logInToExternalAccount":"Log in to use details from one of these accounts.","change":"Change","changeAccount":"Change Account","comment_registration":"","userIsLoggedIn":"","isJetpack":"","text_direction":"ltr"};
+</script>
+<script crossorigin='anonymous' type='text/javascript' src='https://s0.wp.com/_static/??/wp-content/js/textarea-autosize.min.js,/wp-content/mu-plugins/highlander-comments/script.js?m=1663141412j'></script>
+	<div id="actionbar" style="display: none;"
+			class="actnbr-pub-twentyeleven actnbr-has-follow">
+		<ul>
+								<li class="actnbr-btn actnbr-hidden">
+								<a class="actnbr-action actnbr-actn-follow " href="">
+			<svg class="gridicon gridicons-reader-follow" height="24" width="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g><path d="M23 16v2h-3v3h-2v-3h-3v-2h3v-3h2v3h3zM20 2v9h-4v3h-3v4H4c-1.1 0-2-.9-2-2V2h18zM8 13v-1H4v1h4zm3-3H4v1h7v-1zm0-2H4v1h7V8zm7-4H4v2h14V4z"/></g></svg><span>Follow</span>
+		</a>
+		<a class="actnbr-action actnbr-actn-following  no-display" href="">
+			<svg class="gridicon gridicons-reader-following" height="24" width="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g><path d="M23 13.482L15.508 21 12 17.4l1.412-1.388 2.106 2.188 6.094-6.094L23 13.482zm-7.455 1.862L20 10.89V2H2v14c0 1.1.9 2 2 2h4.538l4.913-4.832 2.095 2.176zM8 13H4v-1h4v1zm3-2H4v-1h7v1zm0-2H4V8h7v1zm7-3H4V4h14v2z"/></g></svg><span>Following</span>
+		</a>
+							<div class="actnbr-popover tip tip-top-left actnbr-notice" id="follow-bubble">
+							<div class="tip-arrow"></div>
+							<div class="tip-inner actnbr-follow-bubble">
+															<ul>
+											<li class="actnbr-sitename">
+			<a href="https://wanderinginn.com">
+				<img alt='' src='https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=50' class='avatar avatar-50' height='50' width='50' />				The Wandering Inn			</a>
+		</li>
+										<form method="post" action="https://subscribe.wordpress.com" accept-charset="utf-8" style="display: none;">
+																						<div class="actnbr-follow-count">Join 2,697 other followers</div>
+																					<div>
+										<input type="email" name="email" placeholder="Enter your email address" class="actnbr-email-field" aria-label="Enter your email address" />
+										</div>
+										<input type="hidden" name="action" value="subscribe" />
+										<input type="hidden" name="blog_id" value="113840984" />
+										<input type="hidden" name="source" value="https://wanderinginn.com/2017/04/25/1-00-c/" />
+										<input type="hidden" name="sub-type" value="actionbar-follow" />
+										<input type="hidden" id="_wpnonce" name="_wpnonce" value="9bb017f338" />										<div class="actnbr-button-wrap">
+											<button type="submit" value="Sign me up">
+												Sign me up											</button>
+										</div>
+									</form>
+									<li class="actnbr-login-nudge">
+										<div>
+											Already have a WordPress.com account? <a href="https://wordpress.com/log-in?redirect_to=https%3A%2F%2Fr-login.wordpress.com%2Fremote-login.php%3Faction%3Dlink%26back%3Dhttps%253A%252F%252Fwanderinginn.com%252F2017%252F04%252F25%252F1-00-c%252F">Log in now.</a>										</div>
+									</li>
+								</ul>
+															</div>
+						</div>
+					</li>
+							<li class="actnbr-ellipsis actnbr-hidden">
+				<svg class="gridicon gridicons-ellipsis" height="24" width="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g><path d="M7 12c0 1.104-.896 2-2 2s-2-.896-2-2 .896-2 2-2 2 .896 2 2zm12-2c-1.104 0-2 .896-2 2s.896 2 2 2 2-.896 2-2-.896-2-2-2zm-7 0c-1.104 0-2 .896-2 2s.896 2 2 2 2-.896 2-2-.896-2-2-2z"/></g></svg>				<div class="actnbr-popover tip tip-top-left actnbr-more">
+					<div class="tip-arrow"></div>
+					<div class="tip-inner">
+						<ul>
+									<li class="actnbr-sitename">
+			<a href="https://wanderinginn.com">
+				<img alt='' src='https://wanderinginn.files.wordpress.com/2016/11/erin.png?w=50' class='avatar avatar-50' height='50' width='50' />				The Wandering Inn			</a>
+		</li>
+								<li class="actnbr-folded-customize">
+								<a href="https://wanderinginn.wordpress.com/wp-admin/customize.php?url=https%3A%2F%2Fwanderinginn.wordpress.com%2F2017%2F04%2F25%2F1-00-c%2F">
+									<svg class="gridicon gridicons-customize" height="20" width="20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g><path d="M2 6c0-1.505.78-3.08 2-4 0 .845.69 2 2 2 1.657 0 3 1.343 3 3 0 .386-.08.752-.212 1.09.74.594 1.476 1.19 2.19 1.81L8.9 11.98c-.62-.716-1.214-1.454-1.807-2.192C6.753 9.92 6.387 10 6 10c-2.21 0-4-1.79-4-4zm12.152 6.848l1.34-1.34c.607.304 1.283.492 2.008.492 2.485 0 4.5-2.015 4.5-4.5 0-.725-.188-1.4-.493-2.007L18 9l-2-2 3.507-3.507C18.9 3.188 18.225 3 17.5 3 15.015 3 13 5.015 13 7.5c0 .725.188 1.4.493 2.007L3 20l2 2 6.848-6.848c1.885 1.928 3.874 3.753 5.977 5.45l1.425 1.148 1.5-1.5-1.15-1.425c-1.695-2.103-3.52-4.092-5.448-5.977z"/></g></svg>									<span>Customize</span>
+								</a>
+							</li>
+																<li class="actnbr-folded-follow">
+												<a class="actnbr-action actnbr-actn-follow " href="">
+			<svg class="gridicon gridicons-reader-follow" height="24" width="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g><path d="M23 16v2h-3v3h-2v-3h-3v-2h3v-3h2v3h3zM20 2v9h-4v3h-3v4H4c-1.1 0-2-.9-2-2V2h18zM8 13v-1H4v1h4zm3-3H4v1h7v-1zm0-2H4v1h7V8zm7-4H4v2h14V4z"/></g></svg><span>Follow</span>
+		</a>
+		<a class="actnbr-action actnbr-actn-following  no-display" href="">
+			<svg class="gridicon gridicons-reader-following" height="24" width="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g><path d="M23 13.482L15.508 21 12 17.4l1.412-1.388 2.106 2.188 6.094-6.094L23 13.482zm-7.455 1.862L20 10.89V2H2v14c0 1.1.9 2 2 2h4.538l4.913-4.832 2.095 2.176zM8 13H4v-1h4v1zm3-2H4v-1h7v1zm0-2H4V8h7v1zm7-3H4V4h14v2z"/></g></svg><span>Following</span>
+		</a>
+										</li>
+																	<li class="actnbr-signup"><a href="https://wordpress.com/start/">Sign up</a></li>
+									<li class="actnbr-login"><a href="https://wordpress.com/log-in?redirect_to=https%3A%2F%2Fr-login.wordpress.com%2Fremote-login.php%3Faction%3Dlink%26back%3Dhttps%253A%252F%252Fwanderinginn.com%252F2017%252F04%252F25%252F1-00-c%252F">Log in</a></li>
+																	<li class="actnbr-shortlink"><a href="https://wp.me/p7HFeU-rP">Copy shortlink</a></li>
+																	<li class="flb-report"><a href="http://en.wordpress.com/abuse/">Report this content</a></li>
+																	<li class="actnbr-reader">
+										<a href="https://wordpress.com/read/blogs/113840984/posts/1725">
+											View post in Reader										</a>
+									</li>
+																	<li class="actnbr-subs">
+										<a href="https://subscribe.wordpress.com/">Manage subscriptions</a>
+									</li>
+																		<li class="actnbr-fold"><a href="">Collapse this bar</a></li>
+															</ul>
+					</div>
+				</div>
+			</li>
+		</ul>
+	</div>
+	
+<script>
+window.addEventListener( "load", function( event ) {
+	var link = document.createElement( "link" );
+	link.href = "https://s0.wp.com/wp-content/mu-plugins/actionbar/actionbar.css?v=20210915";
+	link.type = "text/css";
+	link.rel = "stylesheet";
+	document.head.appendChild( link );
+
+	var script = document.createElement( "script" );
+	script.src = "https://s0.wp.com/wp-content/mu-plugins/actionbar/actionbar.js?v=20220329";
+	script.defer = true;
+	document.body.appendChild( script );
+} );
+</script>
+
+	<script crossorigin='anonymous' type='text/javascript' src='https://s2.wp.com/_static/??-eJx9jd0OwiAMRl9I6AxmixfGRzEMqoFRRij48/ZWk3npXfOdc1J4FOXW3DA3iAwe78FheerIOxAUskvdI3+YW4lEUxVLemkKeZO2nroqqd9CZrBeuJptBbLcsMqlWrVu4X/REpiwKaMHuMjn33CtX9lLe6bTfhwPZpqOg4lvZ0RE/g=='></script>
+<script type="text/javascript">
+// <![CDATA[
+(function() {
+try{
+  if ( window.external &&'msIsSiteMode' in window.external) {
+    if (window.external.msIsSiteMode()) {
+      var jl = document.createElement('script');
+      jl.type='text/javascript';
+      jl.async=true;
+      jl.src='/wp-content/plugins/ie-sitemode/custom-jumplist.php';
+      var s = document.getElementsByTagName('script')[0];
+      s.parentNode.insertBefore(jl, s);
+    }
+  }
+}catch(e){}
+})();
+// ]]>
+</script><script src="//stats.wp.com/w.js?63" defer></script> <script type="text/javascript">
+_tkq = window._tkq || [];
+_stq = window._stq || [];
+_tkq.push(['storeContext', {'blog_id':'113840984','blog_tz':'0','user_lang':'en','blog_lang':'en','user_id':'0'}]);
+_stq.push(['view', {'blog':'113840984','v':'wpcom','tz':'0','user_id':'0','post':'1725','subd':'wanderinginn'}]);
+_stq.push(['extra', {'crypt':'UE40eW5QN0p8M2Y/RE1mNzc2NTVTamdsd0xoLz9RQkM2K298TXY9bERQMXc2MjhEaVZfb2wwakRoSj0mUkp1THptM1NdbkV1WjZIcU9mVWQmPUIvMlN6Jk8wW3NYVEJ3dWZOWExuWD9VNTEucGVTRmZwYTB2ZD82MHd0Y1Y0RlltYWdKeC9TU05lUzUxV1pzZWh8UlVlalotK3A/NWVna2ZGUkZsXV9rZ0Uudk8vQWtbZDh1JWVnME4yJXhaPTFbWWNWUUg3d0t6SnFUbDd3a0dbVll2b1FyZXNsWHhIUVVMdVUsQlZ8LDFjMl1xP1Zhd2NTYXlIYzZ5LS96S241ck1LPW01NUQzS05jLEhuOXl8cT1jTC95Qm5VWWNUOGhrd0Qsa2ddb3hERFdneE9LLTA1QzNBZ2tyNl8yfCxRS3Q='}]);
+_stq.push([ 'clickTrackerInit', '113840984', '1725' ]);
+	</script>
+<noscript><img src="https://pixel.wp.com/b.gif?v=noscript" style="height:1px;width:1px;overflow:hidden;position:absolute;bottom:1px;" alt="" /></noscript>
+<script>
+if ( 'object' === typeof wpcom_mobile_user_agent_info ) {
+
+	wpcom_mobile_user_agent_info.init();
+	var mobileStatsQueryString = "";
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedPlatformName )
+		mobileStatsQueryString += "&x_" + 'mobile_platforms' + '=' + wpcom_mobile_user_agent_info.matchedPlatformName;
+	
+	if( false !== wpcom_mobile_user_agent_info.matchedUserAgentName )
+		mobileStatsQueryString += "&x_" + 'mobile_devices' + '=' + wpcom_mobile_user_agent_info.matchedUserAgentName;
+	
+	if( wpcom_mobile_user_agent_info.isIPad() )
+		mobileStatsQueryString += "&x_" + 'ipad_views' + '=' + 'views';
+
+	if( "" != mobileStatsQueryString ) {
+		new Image().src = document.location.protocol + '//pixel.wp.com/g.gif?v=wpcom-no-pv' + mobileStatsQueryString + '&baba=' + Math.random();
+	}
+	
+}
+</script>
+</body>
+</html>
