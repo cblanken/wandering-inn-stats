@@ -8,12 +8,23 @@ for i in {1..9}; do
     fi
 done
 
-ln -srf ./chapters/{1..64}-* ./volumes/volume1/
-ln -srf ./chapters/{65..121}-* ./volumes/volume2/
-ln -srf ./chapters/{122..173}-* ./volumes/volume3/
-ln -srf ./chapters/{174..236}-* ./volumes/volume4/
-ln -srf ./chapters/{237..308}-* ./volumes/volume5/
-ln -srf ./chapters/{309..385}-* ./volumes/volume6/
-ln -srf ./chapters/{386..480}-* ./volumes/volume7/
-ln -srf ./chapters/{481..587}-* ./volumes/volume8/
-ln -srf ./chapters/{588..597}-* ./volumes/volume9/
+latest_chapter=$(ls ./chapters/text/ | wc -l)
+
+function link {
+    vol_name=$1
+    start=$2
+    end=$3
+    for i in $(seq $start $end); do
+        ln -srf ./chapters/text/$i-* ./volumes/$vol_name/
+    done
+}
+
+link "volume1" 1 64
+link "volume2" 65 121
+link "volume3" 122 173
+link "volume4" 174 236
+link "volume5" 237 308
+link "volume6" 309 385
+link "volume7" 386 480
+link "volume8" 481 587
+link "volume9" 588 $latest_chapter
