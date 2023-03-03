@@ -40,6 +40,8 @@ class Color(Enum):
     # Hidden text
     BLACK_INVIS = "0C0E0E"
 
+    NORMAL = "EEEEEE"
+
 class Class:
     """
     Model for [Class]es in the book
@@ -60,7 +62,7 @@ class Skill:
         name (str): name of the [Skill]
         desc (str): short description of the [Skill]
     """
-    def __init__(self, name: str, desc: str, color: Color = Color.GREY):
+    def __init__(self, name: str, desc: str, color: Color = Color.NORMAL):
         self.name = name
         self.desc = desc
         self.color = color
