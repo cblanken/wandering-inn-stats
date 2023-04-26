@@ -58,7 +58,9 @@ if __name__ == "__main__":
         except TypeError:
             print("Invalid offset argument. Enter a number between 1 and 1000.")
             exit(0)
+    
 
+    # TODO use argparse for cli args
     # TODO handle keyboard interrupt
     # TODO add pause/resume
     # TODO add type hinting
@@ -81,8 +83,8 @@ if __name__ == "__main__":
         txt_path = Path(CHAPTERS_TXT_PATH, filename + ".txt")
 
         # Skip already downloaded chapters
-        if src_path.exists() or txt_path.exists():
-            continue
+        #if src_path.exists() or txt_path.exists():
+        #    continue
 
         print(f"{i}: Downloading {link}")
         HTML = get_chapter(link)
