@@ -2,7 +2,7 @@
 import sys
 import re
 from pathlib import Path
-from processing.models import DEFAULT_CONTEXT_LEN, TextRef, TableOfContents, Volume
+from processing.models import DEFAULT_CONTEXT_LEN, TextRef, Volume
 
 MAGIC_WORD_PATTERN = r"\[(\w\,? ?)+\]"
 OBTAINED_PATTERN = r".*[Oo]btained.?\]$"
@@ -69,7 +69,7 @@ def generate_all_text_refs(chapters_dir: Path):
     """
     chapter_paths = chapters_dir.glob("*-wanderinginn.com-*")
     chapter_paths = sorted({ int(p.name[:p.name.find("-")]):p for p in chapter_paths }.items())
-    for (i, path) in chapter_paths:
+    for (_, path) in chapter_paths:
         yield (path, generate_chapter_text_refs(path, True, True, True))
 
 def print_all_text_refs(chapters_dir: Path):
@@ -86,18 +86,6 @@ def print_all_text_refs(chapters_dir: Path):
         print("=" * len(str(path)))
         for ref in generator:
             print(ref)
-
-def get_volumes():
-    """Return dictionary of Volume(s) by ID
-    """
-    toc = TableOfContents()
-
-    # TODO: replace with dictionary comprehension
-    volumes = {}
-    for key, vol in toc.volume_data.items():
-        volumes[key] = Volume(key, vol[0], vol[1])
-
-    return volumes
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:

@@ -3,11 +3,7 @@
 
 from __future__ import annotations
 from enum import Enum
-import requests
-from bs4 import BeautifulSoup
 
-
-BASE_URL = "https://wanderinginn.com"
 DEFAULT_CONTEXT_LEN = 50
 
 class Color(Enum):
@@ -148,49 +144,3 @@ class Volume:
 
     def __str__(self):
         return f"id: {self.id:<4}title: {self.title:<12}summary: {self.summary}"
-
-class TableOfContents:
-    """Object to scrape the Table of Contents and methods to query for any needed info
-    """
-    def __init__(self):
-        self.url = "https://wanderinginn.com/table-of-contents/"
-        table_of_contents = requests.get(self.url)
-        if table_of_contents.status_code != 200:
-            print(f"Cannot access {self.url}. Check your network connection.")
-            return None
-        self.soup = BeautifulSoup(table_of_contents.content, 'html.parser')
-        self.chapter_links = self.get_chapter_links()
-        self.volume_data = self.get_volume_data()
-
-    def get_chapter_links(self):
-        """Scrape table of contents for chapter links
-        """
-        chapter_link_elements = self.soup.select(
-                f'#content div > p > a[href^="{BASE_URL}"]')
-        return list(filter(None, [link.get('href') for link in chapter_link_elements]))
-
-    def get_volume_data(self):
-        """Return dictionary containing tuples (volume_title, chapter_indexes) by volume ID
-        """
-        volume_titles = self.soup.select('#content div > p:nth-of-type(2n+1) strong')
-        chapter_lists = [
-            x.find_all('a') for x in self.soup.select('#content div p:nth-of-type(2n)')
-        ]
-
-        volume_data = zip(volume_titles, chapter_lists)
-
-        volumes = {}
-        volume_id = 1
-        chapter_index = 1
-        for volume in volume_data:
-            title = volume[0].get_text().strip()
-            chapter_elements = volume[1]
-
-            start = chapter_index
-            end = start + len(chapter_elements) - 1
-
-            volumes[volume_id] = (title, (start, end))
-            chapter_index = end + 1
-            volume_id += 1
-
-        return volumes
