@@ -2,7 +2,7 @@
 import sys
 import re
 from pathlib import Path
-from models import DEFAULT_CONTEXT_LEN, TextRef, TableOfContents, Volume
+from processing.models import DEFAULT_CONTEXT_LEN, TextRef, TableOfContents, Volume
 
 MAGIC_WORD_PATTERN = r"\[(\w\,? ?)+\]"
 OBTAINED_PATTERN = r".*[Oo]btained.?\]$"

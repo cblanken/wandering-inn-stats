@@ -4,7 +4,7 @@ from pathlib import Path
 from time import sleep
 from bs4 import BeautifulSoup
 import requests
-import models
+from processing import models
 
 CHAPTERS_PATH = Path("./chapters")
 CHAPTERS_TXT_PATH = Path(CHAPTERS_PATH, "text")
