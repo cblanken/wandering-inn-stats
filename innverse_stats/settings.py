@@ -83,7 +83,7 @@ DATABASES = {
         'USER': env.get('INNVERSE_DB_USER', 'postgres'),
         'PASSWORD': env.get('INNVERSE_DB_PASS', 'password'),
         'HOST': env.get('INNVERSE_DB_HOST', '127.0.0.1'),
-        'PORT': env.get('INNVERSE_DB_PORTZ', '5432'),
+        'PORT': env.get('INNVERSE_DB_PORT', '5432'),
     }
 }
 
