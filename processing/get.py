@@ -8,8 +8,6 @@ import requests
 CHAPTERS_PATH = Path("./chapters")
 CHAPTERS_TXT_PATH = Path(CHAPTERS_PATH, "txt")
 CHAPTERS_SRC_PATH = Path(CHAPTERS_PATH, "src")
-CHAPTERS_TXT_PATH.mkdir(parents = True, exist_ok = True)
-CHAPTERS_SRC_PATH.mkdir(parents = True, exist_ok = True)
 REQUEST_THROTTLE_S = 1.0
 BASE_URL = "https://wanderinginn.com"
 
@@ -62,28 +60,23 @@ class TableOfContents:
     def get_volume_data(self):
         """Return dictionary containing tuples (volume_title, chapter_indexes) by volume ID
         """
-        volume_titles = self.soup.select('#content div > p:nth-of-type(2n+1) strong')
-        chapter_lists = [
-            x.find_all('a') for x in self.soup.select('#content div p:nth-of-type(2n)')
+        volume_titles = [x.text.strip() for x in self.soup.select('#content div > p:nth-of-type(2n)')]
+        chapter_links = [
+            x.find_all('a') for x in self.soup.select('#content div p:nth-of-type(2n+1)')
         ]
 
-        volume_data = zip(volume_titles, chapter_lists)
+        chapter_links.pop(0) # remove link to archives added to ToC after Volume 1 rewrite
 
-        volumes = {}
-        volume_id = 1
-        chapter_index = 1
-        for volume in volume_data:
-            title = volume[0].get_text().strip()
-            chapter_elements = volume[1]
+        return list(zip(volume_titles, chapter_links))
+        #for i, (title,chapter_links) in enumerate(volume_data):
+            #start = chapter_index
+            #end = start + len(chapter_links) - 1
 
-            start = chapter_index
-            end = start + len(chapter_elements) - 1
+            #volumes[i] = (title, (start, end))
+            #chapter_index = end + 1
+            #volume_id += 1
 
-            volumes[volume_id] = (title, (start, end))
-            chapter_index = end + 1
-            volume_id += 1
-
-        return volumes
+        #return volumes
 
 
 if __name__ == "__main__":
