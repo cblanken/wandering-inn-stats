@@ -1,15 +1,15 @@
 """Module to download every chapter from the links in the Wandering Inn Table of Contents"""
-from sys import argv, stderr
+from collections import OrderedDict
+from sys import stderr
 from pathlib import Path
-from time import sleep
 from bs4 import BeautifulSoup
 import requests
 import requests.exceptions
 
-REQUEST_THROTTLE_S = 1.0
-BASE_URL = "https://wanderinginn.com"
+REQUEST_THROTTLE_S: float = 1.0
+BASE_URL: str = "https://wanderinginn.com"
 
-def get_chapter(chapter_link):
+def get_chapter(chapter_link: str) -> requests.Response:
     """Get requests Response for chapter link
     """
     try:
@@ -21,55 +21,72 @@ def get_chapter(chapter_link):
         print(f"Unable to retrieve chapter from {chapter_link}", file=stderr)
         return
 
-def get_chapter_text(response):
+def get_chapter_text(response: requests.Response) -> str:
     """Scrape chapter text from Response object
     """
-    soup = BeautifulSoup(response.content, 'html.parser')
-    header_text = [element.get_text() for element in soup.select(
-        '#content > article > header.entry-header')]
-    content_text = [element.get_text() for element in soup.select(
-        '#content > article > div.entry-content > *')]
-    return "".join(header_text) + "\n\n".join(content_text)
+    soup: BeautifulSoup = BeautifulSoup(response.content, 'html.parser')
+    header_text: str = [element.get_text() for element in soup.select(
+        '#content > article .entry-title')]
+    content_text: str = [element.get_text() for element in soup.select(
+        '#content > article > div.entry-content')]
+    return "\n".join([header_text[0], content_text[0]])
 
-def save_file(filepath, content):
+def save_file(filepath: Path, text: str):
     """Write chapter text content to file
     """
     with open(filepath, "w", encoding="utf-8") as file:
-        file.write(content)
+        file.write(text)
 
 class TableOfContents:
     """Object to scrape the Table of Contents and methods to query for any needed info
     """
     def __init__(self):
-        self.url = "https://wanderinginn.com/table-of-contents/"
-        table_of_contents = requests.get(self.url, timeout=10)
-        if table_of_contents.status_code != requests.codes['ok']:
-            print(f"Cannot access {self.url}. Check your network connection.")
+        self.url: str = "https://wanderinginn.com/table-of-contents"
+        self.response = requests.get(self.url, timeout=10)
+        if self.response.status_code != requests.codes['ok']:
             self.soup = self.chapter_links = self.volume_data = None
             return
-        self.soup = BeautifulSoup(table_of_contents.content, 'html.parser')
-        self.chapter_links = self.get_chapter_links()
-        self.volume_data = self.get_volume_data()
+        self.soup = BeautifulSoup(self.response.content, 'html.parser')
+        self.chapter_links = self.__get_chapter_links()
+        self.volume_data: dict[dict[dict[str]]] = self.__get_volume_data()
 
-    def get_chapter_links(self):
-        """Scrape table of contents for an unordered list of chapter links
+    def __get_chapter_links(self) -> list[str]:
+        """Scrape table of contents for an list of chapter links
         """
         if self.soup is None:
             return []
-        chapter_link_elements = self.soup.select(
-                f'#content div > p > a[href^="{BASE_URL}"]')
-        return list(filter(None, [link.get('href') for link in chapter_link_elements]))
+        
+        return [self.url + link.get("href") for link in self.soup.select(".chapters a")]
 
-    def get_volume_data(self):
+    def __get_volume_data(self):
         """Return dictionary containing tuples (volume_title, chapter_indexes) by volume ID
         """
         if self.soup is None:
             return []
-        volume_titles = [x.text.strip() for x in self.soup.select('#content div > p:nth-of-type(2n)')]
-        chapter_link_elements = [
-            x.find_all('a') for x in self.soup.select('#content div p:nth-of-type(2n+1)')
-        ]
+        
+        contents_elements = self.soup.select(".volume, .book, .chapters")
 
-        chapter_link_elements.pop(0) # remove link to archives added to ToC after Volume 1 rewrite
+        volumes = OrderedDict()
+        volume_title = ""
+        book_title = ""
+        for ele in contents_elements:
+            match ele.name:
+                case "h2":
+                    volume_title = ele.text.strip()
+                    volumes[volume_title] = OrderedDict()
+                case "h3":
+                    book_title = ele.text.strip()
+                    volumes[volume_title][book_title] = OrderedDict()
+                case "p":
+                    for link in ele.select("a"):
+                        volumes[volume_title][book_title][link.text] = f"{self.url}{link['href']}"
 
-        return list(zip(volume_titles, chapter_link_elements))
+        return volumes
+
+    def get_book_titles(self, is_released: bool = False):
+        """Get a list of Book titles from TableOfContents
+        """
+        if is_released:
+            return [x.text.strip() for x in self.soup.select(".book:not(.unreleased)")]
+        else:
+            return [x.text.strip() for x in self.soup.select(".book")]

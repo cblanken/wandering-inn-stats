@@ -2,6 +2,7 @@ from math import inf
 from time import sleep
 from pathlib import Path
 from django.core.management.base import BaseCommand, CommandError
+from requests import codes as status_codes
 from processing import get
 
 class Command(BaseCommand):
@@ -23,55 +24,51 @@ class Command(BaseCommand):
         # only get the latest posted volumes/chapters
         try:
             toc = get.TableOfContents()
-            volumes = toc.get_volume_data()
 
+            if toc.response.status_code != status_codes["ok"]:
+                raise CommandError(f"The table of contents ({toc.url}) could not be downloaded.\nCheck your network connection and confirm the host hasn't been IP blocked.")
             start = options.get("first_volume")
-            for i, volume in enumerate(volumes[start:], start=start):
-                volume_path = Path(self.VOLUMES_PATH, volume[0])
+            end = start + options.get("range")
+
+            # Create volume / book / chapter directory structure
+            for i, (volume_title, books) in list(enumerate(toc.volume_data.items()))[start:end]:
+                if i >= options.get("first_volume") + options.get("range"):
+                    break
+                volume_path = Path(self.VOLUMES_PATH, f"{i:0>2}_{volume_title}")
                 volume_path.mkdir(exist_ok=True)
-                for j, link in enumerate(volume[1]):
+                for j, (book_title, chapters) in enumerate(books.items()):
+                    book_path = Path(volume_path, f"{j:>02}_{book_title}")
+                    book_path.mkdir(exist_ok=True)
 
-                    if i >= options.get("first_volume") + options.get("range"):
-                        break
-                    
-                    chapter_path = Path(volume_path, str(j))
-                    chapter_path.mkdir(exist_ok=True)
+                    for k, (chapter_title, chapter_href) in enumerate(chapters.items()):
+                        src_path = Path(book_path, f"{k:>03}_{chapter_title}.html")
+                        txt_path = Path(book_path, f"{k:>03}_{chapter_title}.txt")
 
-                    # remove trailing '/' from URL and replace '/' with '-'
-                    chapter_title = link.text.strip()
-                    chapter_href = link['href']
+                        # Download chapter
+                        self.stdout.write(f"Downloading {chapter_href}")
+                        chapter_response = get.get_chapter(chapter_href)
+                        if chapter_response is None:
+                            raise CommandError(f"Could not get chapter at {chapter_href}")
 
-                    filename = f"{chapter_title}"
+                        html = chapter_response.text
+                        text = get.get_chapter_text(chapter_response)
 
-                    src_path = Path(chapter_path, filename + ".html")
-                    txt_path = Path(chapter_path, filename + ".txt")
+                        get.save_file(src_path, html)
+                        self.stdout.write("> ", ending="")
+                        self.stdout.write(
+                            self.style.SUCCESS(f"\"{chapter_title}\" html saved to {src_path}")
+                        )
 
-                    # TODO: add clobber/no-clobber toggle option
-                    # Skip already downloaded chapters
-                    #if src_path.exists() or txt_path.exists():
-                    #    continue
-                    chapter_response = get.get_chapter(chapter_href)
-                    if chapter_response is None:
-                        raise CommandError(f"Could not get chapter at {chapter_href}")
-
-                    html = chapter_response.text
-                    text = get.get_chapter_text(chapter_response)
-
-                    self.stdout.write(f"{j}: Downloading {chapter_href}")
-                    get.save_file(src_path, html)
-                    self.stdout.write(
-                        self.style.SUCCESS(f" > {chapter_href} html saved to {src_path}")
-                    )
-
-                    get.save_file(txt_path, text)
-                    self.stdout.write(
-                        self.style.SUCCESS(f" > {chapter_href} text saved to {txt_path}")
-                    )
+                        get.save_file(txt_path, text)
+                        self.stdout.write("> ", ending="")
+                        self.stdout.write(
+                            self.style.SUCCESS(f"\"{chapter_title}\" text saved to {txt_path}")
+                        )
 
                     sleep(self.REQUEST_DELAY_SEC)
         except KeyboardInterrupt as exc:
             # TODO: file / partial download cleanup
-            raise CommandError("Keyboard interrupt...downloads stopped") from exc
+            raise CommandError("\nKeyboard interrupt...downloads stopped") from exc
 
         # TODO add pause/resume
         # TODO add type hinting
