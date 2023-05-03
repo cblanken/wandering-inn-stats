@@ -9,7 +9,7 @@ class Command(BaseCommand):
     help = "Download Wandering Inn chapters by volume"
     VOLUMES_PATH = Path("./volumes")
     VOLUMES_PATH.mkdir(exist_ok=True)
-    REQUEST_DELAY_SEC = 1.0
+    REQUEST_DELAY_SEC = 2.0
 
     def add_arguments(self, parser):
         parser.add_argument("first_volume", nargs="?", type=int, default=0,
@@ -50,7 +50,7 @@ class Command(BaseCommand):
                         if chapter_response is None:
                             raise CommandError(f"Could not get chapter at {chapter_href}")
 
-                        html = chapter_response.text
+                        html = get.get_chapter_html(chapter_response)
                         text = get.get_chapter_text(chapter_response)
 
                         get.save_file(src_path, html)

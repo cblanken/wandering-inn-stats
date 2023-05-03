@@ -6,7 +6,6 @@ from bs4 import BeautifulSoup
 import requests
 import requests.exceptions
 
-REQUEST_THROTTLE_S: float = 1.0
 BASE_URL: str = "https://wanderinginn.com"
 
 def get_chapter(chapter_link: str) -> requests.Response:
@@ -20,6 +19,16 @@ def get_chapter(chapter_link: str) -> requests.Response:
     except requests.Timeout:
         print(f"Unable to retrieve chapter from {chapter_link}", file=stderr)
         return
+
+def get_chapter_html(response: requests.Response) -> str:
+    """Scrape chapter html from Response object
+    """
+    soup: BeautifulSoup = BeautifulSoup(response.content, 'html.parser')
+    result = soup.select('.entry-content')
+    if len(result) == 0:
+        return None
+
+    return str(result[0])
 
 def get_chapter_text(response: requests.Response) -> str:
     """Scrape chapter text from Response object
