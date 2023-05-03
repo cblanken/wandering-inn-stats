@@ -1,8 +1,7 @@
 """Module for processing scraped chapter text"""
-import sys
 import re
 from pathlib import Path
-from processing.models import DEFAULT_CONTEXT_LEN, TextRef, Volume
+from . models import DEFAULT_CONTEXT_LEN, TextRef, Volume
 
 MAGIC_WORD_PATTERN = r"\[(\w\,? ?)+\]"
 OBTAINED_PATTERN = r".*[Oo]btained.?\]$"
@@ -18,9 +17,9 @@ def get_text_refs(pattern: re.Pattern, lines: list[str],
     """
     text_refs = []
     matches_per_line = [re.finditer(pattern, line) for line in lines]
-    for line_id, match in enumerate(matches_per_line):
-        for m in match:
-            text_ref = TextRef(m.group(), m.string, line_id, m.start(), m.end(), context_len)
+    for line_id, matches in enumerate(matches_per_line):
+        for match in matches:
+            text_ref = TextRef(match.group(), match.string, line_id, match.start(), match.end(), context_len)
             text_refs.append(text_ref)
     return text_refs
 
@@ -64,20 +63,30 @@ def generate_chapter_text_refs(
             for ref in spell_refs:
                 yield ref
 
-def generate_all_text_refs(chapters_dir: Path):
-    """Print references for all chapters in `chapters_dir`
+def print_chapter_text_refs(chapter_path: Path):
+    """Print references for single chapter at `chapters_path`
     """
-    chapter_paths = chapters_dir.glob("*-wanderinginn.com-*")
-    chapter_paths = sorted({ int(p.name[:p.name.find("-")]):p for p in chapter_paths }.items())
-    for (_, path) in chapter_paths:
+    print("")
+    print("=" * len(str(chapter_path)))
+    print(chapter_path)
+    print("=" * len(str(chapter_path)))
+    for ref in generate_chapter_text_refs(chapter_path, True, True, True):
+        print(ref)
+
+
+def generate_all_text_refs(volumes_dir: Path):
+    """Print references for all chapters
+    """
+    chapter_paths = list(Path(volumes_dir).glob("**/*.txt"))
+    chapter_paths.sort(key=lambda n: f"{''.join([x.split('_')[0] for x in n.parts[1:]]):0>7}")
+
+    for path in chapter_paths:
         yield (path, generate_chapter_text_refs(path, True, True, True))
-
-def print_all_text_refs(chapters_dir: Path):
+    
+def print_all_text_refs(volumes_dir: Path):
     """Print all text references found by `generate_all_text_refs` generator
-    Delineated by file path
     """
-
-    for ref in generate_all_text_refs(Path(sys.argv[1])):
+    for ref in generate_all_text_refs(volumes_dir):
         path = ref[0]
         generator = ref[1]
         print("")
@@ -86,15 +95,3 @@ def print_all_text_refs(chapters_dir: Path):
         print("=" * len(str(path)))
         for ref in generator:
             print(ref)
-
-if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print("Usage: python parse.py DIRECTORY")
-        sys.exit(1)
-
-    # TODO add table of contents fallback file
-    print_all_text_refs(Path(sys.argv[1]))
-    # for (i, path) in chapter_paths:
-    #     with open(path, encoding="utf-8") as fp:
-    #         soup = BeautifulSoup(fp)
-    #     id = int(path[:path.find("-")])
