@@ -33,11 +33,27 @@ class Character(models.Model):
     name = models.CharField(max_length=50)
     alt_names = models.JSONField
 
+    def __str__(self):
+        return f"{self.name}: {self.alt_names}"
+
 class Volume(models.Model):
-    "Model for book volumes"
+    "Model for volumes"
     number = models.PositiveIntegerField(unique=True)
     title = models.CharField(max_length=50, unique=True)
-    summary = models.TextField()
+    summary = models.TextField(default="")
+
+    def __str__(self):
+        return f"Number: {self.number}, Title: {self.title}, Summary: {str(self.summary)[:30]}..."
+
+class Book(models.Model):
+    "Mode for books"
+    number = models.PositiveBigIntegerField(unique=True)
+    title = models.CharField(max_length=50, unique=True)
+    summary = models.TextField(default="")
+    volume = models.ForeignKey(Volume, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"Number: {self.number}, Title: {self.title}, Summary: {str(self.summary)[:30]}"
 
 class Chapter(models.Model):
     "Model for book chapters"
@@ -46,7 +62,10 @@ class Chapter(models.Model):
     is_interlude = models.BooleanField()
     source_url = models.URLField(unique=True)
     post_date = models.DateField()
-    volume = models.ForeignKey(Volume, on_delete=models.CASCADE)
+    book = models.ForeignKey(Book, on_delete=models.CASCADE)
+
+    def __str__(self) -> str:
+        return f"Title: {self.title}, URL: {self.source_url}"
 
 class TextRef(models.Model):
     """Model for text references to keywords"""
@@ -56,3 +75,6 @@ class TextRef(models.Model):
     start_column = models.PositiveIntegerField()
     end_column = models.PositiveIntegerField()
     context_offset = models.PositiveBigIntegerField(default=50)
+
+    def __str__(self):
+        return f"{self.line_number:>5}{self.start_column:>4}{self.end_column:>4}"
