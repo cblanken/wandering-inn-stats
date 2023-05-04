@@ -1,8 +1,8 @@
 """Models for Wandering Inn volume and chapter data
 """
-
 from __future__ import annotations
-from enum import Enum
+import sys
+from enum import Enum, auto
 
 DEFAULT_CONTEXT_LEN = 50
 
@@ -38,61 +38,37 @@ class Color(Enum):
 
     NORMAL = "EEEEEE"
 
-class Class:
-    """
-    Model for [Class]es in the book
+class RefType(Enum):
+    """Text reference types"""
+    CHARACTER = "CHARACTER"
+    ITEM = auto()
+    SKILL = auto()
+    CLASS = auto()
+    SPELL = auto()
+    MIRACLE = auto()
+    OBTAINED = auto()
 
-    Attributes:
-        name (str): name of the [Class]
-        desc (str): short description of the [Class]
-    """
-    def __init__(self, name: str, desc: str):
-        self.name = name
-        self.desc = desc
-
-class Skill:
-    """
-    Model for [Skill]s in the book
-
-    Attributes:
-        name (str): name of the [Skill]
-        desc (str): short description of the [Skill]
-    """
-    def __init__(self, name: str, desc: str, color: Color = Color.NORMAL):
-        self.name = name
-        self.desc = desc
-        self.color = color
-
-class Spell:
-    """
-    Model for [Spell]s in the book
-
-    Attributes:
-        name (str): name of the [Spell]
-        desc (str): short description of the [Spell]
-    """
-    def __init__(self, name: str, desc: str):
-        self.name = name
-        self.desc = desc
 
 class TextRef:
     """
-    A Text Reference to a specified keyword in a given text
+    A Text Reference to a specified keyword in the text
 
-    Attributes:
-        phrase (str): Keyphrase found
-        line (int): Line number in the text
-        start_column (int): Column number of first letter in (phrase) found in the text
-        end_col (int): Column number of last letter in (phrase) found in the text
-        context (str): Contextual text surrounding (phrase)
+    Properties:
+    - phrase (str): Keyphrase found
+    - line (int): Line number in the text
+    - start_column (int): Column number of first letter in (phrase) found in the text
+    - end_col (int): Column number of last letter in (phrase) found in the text
+    - context (str): Contextual text surrounding (phrase)
+    - type (RefType): Type of refence such as Characer, Class, Spell etc.
     """
     def __init__(self, text: str, line_text: str, line_id: int, start_column: int,
         end_column: int, context_offset: int = DEFAULT_CONTEXT_LEN) -> TextRef:
-        self.text = text.strip()
-        self.line_id = line_id
-        self.start_column = start_column
-        self.end_column = end_column
-        self.context_offset = context_offset
+        self.text: str = text.strip()
+        self.line_number: int = line_id
+        self.start_column: int = start_column
+        self.end_column: int = end_column
+        self.context_offset: str = context_offset
+        self.type: RefType = None
 
         # Construct surrounding context string
         start = max(start_column - context_offset, 0)
@@ -100,47 +76,46 @@ class TextRef:
         self.context = line_text[start:end].strip()
 
     def __str__(self):
-        return f"line: {self.line_id:<6}start: {self.start_column:<5}end: {self.end_column:<5}text: {self.text:.<50}context: {self.context}"
+        return f"Line: {self.line_number}: {self.text:.<55}context: {self.context}"
 
-class Chapter:
-    """
-    Model for chapter objects
+    def classify_text_ref(self):
+        """Interactive classification of TextRef type"""
+        print(self)
+        try:
+            sel = input("Classify the above TextRef ([ch]aracter, [it]em, [sk]ill, [cl]ass, [sp]ell, [mi]racle, [ob]tained): ")
 
-    Attributes:
-        id (int): id indicating n for range [1, n] for all book chapters
-        volume_chapter_id (int): volume specific id number where the origin is based on the first
-            chapter of the volume
-        title (str): title of the chapter
-        is_interlude (bool): whether or not the chapter is an Interlude chapter
-            These chapters usually follow side-characters, often specified with the letters of the
-            the characters' first names
-        url (str): link to chapter web page
-    """
-    def __init__(self, id: int, title: str, is_interlude: bool, url: str,
-        post_date: str) -> Chapter:
-        self.id = id
-        self.title = title
-        self.is_interlude = is_interlude
-        self.url = url
-        self.post_date = post_date
+            while True:
+                if sel.strip() == "":
+                    print("> TextRef skipped!\n")
+                    return
+                if len(sel) < 2:
+                    print("Invalid selection.")
+                    yes_no = input("Try again (y/n)")
+                    if yes_no.lower() == "y":
+                        continue
+                    return None
+                break
 
-    def __str__(self):
-        return f"id: {self.id}\t{self.title}\t{self.url}"
+            match sel[:2].lower():
+                case "ch":
+                    self.type = RefType.CHARACTER
+                case "it":
+                    self.type = RefType.ITEM
+                case "sk":
+                    self.type = RefType.SKILL
+                case "cl":
+                    self.type = RefType.CLASS
+                case "sp":
+                    self.type = RefType.SPELL
+                case "mi":
+                    self.type = RefType.MIRACLE
+                case "ob":
+                    self.type = RefType.OBTAINED
 
-class Volume:
-    """
-    Model for Volume objects
-
-    Attributes:
-        id (int): Database ID for volume, should correspond to the sequence of volumes
-        title (str): Title of the volume, typically Volume X where X matches the ID
-        summary (str): Short summary of the volume
-    """
-    def __init__(self, id: int, title: str, chapter_range: tuple[int, int], summary: str = ""):
-        self.id = id
-        self.title = title
-        self.chapter_range = chapter_range
-        self.summary = summary
-
-    def __str__(self):
-        return f"id: {self.id:<4}title: {self.title:<12}summary: {self.summary}"
+            print(f"> classified as {self.type}\n")
+            return self
+        except KeyboardInterrupt:
+            sys.exit()
+        except EOFError:
+            sys.exit()
+        
