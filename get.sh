@@ -28,3 +28,5 @@ python manage.py get_volumes 7 1
 
 nordvpn c Austria
 python manage.py get_volumes 8 1
+
+nordvpn d
