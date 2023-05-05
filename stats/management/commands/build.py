@@ -1,9 +1,9 @@
 from pathlib import Path
+from datetime import date
 from django.core.management.base import BaseCommand, CommandError
 from django.db import models
 from stats.models import Color, LevelingToken, Character, Chapter, Book, Volume, TextRef
-from processing import Volume as SrcVolume, Color as SrcColor, RefType
-from datetime import date
+from processing import Volume as SrcVolume, RefType
 
 class Command(BaseCommand):
     help = "Update database from chapter source HTML and text files"

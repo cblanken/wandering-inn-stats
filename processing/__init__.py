@@ -9,39 +9,6 @@ from typing import Generator
 
 DEFAULT_CONTEXT_LEN = 50
 
-class Color(Enum):
-    """
-    Enum to specify colored text in the book
-    """
-
-    # Classes and Skills
-    RED_LEVELING = ["FF0000"] # red skills & classes
-    RED_SER_RAIM = ["EB0E0E"] # Ser Raim
-    RED_FIRE = ["E01D1D"] # Ivolethe fire
-    PINK_CHARM = ["FDDBFF", "FFB8FD", "FD78FF", "FB00FF"] # Magnolia Reinhart charm
-    YELLOW_DIVINE_TEMP = ["FFD700"] # Divine and temp skills
-    GREEN_UNIQUE = ["99CC00"] # Unique skills & classes
-    BLUE_CLASS_RESTORATION = ["#99CCFF"] # Class restoration
-    BLUE_COLD = ["CCFFFF", "99CCFF", "3366FF"] # Cold-based skills
-    BLUE_WATER = ["00CCFF"] # Water-based skills
-
-    # Antinium Colors
-    # TODO: add missing Antinium queen colors
-    YELLOW_GRAND_QUEEN = ["FFCC00"] # Antinium Grand Queen speech
-    GREEN_FLYING_QUEEN = ["99CC00"] # Antinium Flying Queen speech
-    PURPLE_SILENT_QUEEN = ["CC99FF"]
-    GRAY_SILENT_QUEEN = ["999999"]
-    BROWN_TWISTED_QUEEN = ["993300"]
-
-    # Fae
-    GREEN_SPRINT_FAE = ["96BE50"]
-    BLUE_WINTER_FAE = ["8AE8FF"]
-
-    # Hidden text
-    BLACK_INVIS = "0C0E0E"
-
-    NORMAL = "EEEEEE"
-
 OBTAINED_SUFFIX = r".*[Oo]btained.?\]"
 class Pattern(Enum):
     """Text matching RE patterns for processing chapter text"""
