@@ -1,52 +1,64 @@
 from pathlib import Path
-from glob import glob
 from django.core.management.base import BaseCommand, CommandError
-from stats.models import Color, LevelingToken, Character, Chapter, Volume, TextRef
-from processing import generate_chapter_text_refs
-from processing.get import TableOfContents
+from django.db import models
+from stats.models import Color, LevelingToken, Character, Chapter, Book, Volume, TextRef
+from processing import Volume as SrcVolume, Color as SrcColor, RefType
+from datetime import date
 
 class Command(BaseCommand):
-    help = "Update database per chapter sources"
+    help = "Update database from chapter source HTML and text files"
 
     def add_arguments(self, parser):
-        parser.add_argument("chapters_path", nargs="?", type=str, default="../../../processing/chapters")
+        parser.add_argument("volumes_path", type=str,
+            help="Path in file system where chapter data is saved to disk per volume")
 
     def handle(self, *args, **options):
         self.stdout.write("Updating DB...")
 
-        src_path = Path(options["chapters_path"], "src")
-        txt_path = Path(options["chapters_path"], "txt")
+        vol_root = Path(options["volumes_path"])
+        volume_paths = [x for x in Path(vol_root).iterdir() if x.is_dir() and "Volume" in x.name]
 
-        if not src_path.exists() or not txt_path.exists():
-            raise CommandError("Chapters directory does not exist.")
+        for path in volume_paths:
+            src_vol: SrcVolume = SrcVolume(path.name.split('_')[1], path)
+            print("")
+            print(f"{src_vol} found")
 
+            try:
+                volume = Volume.objects.get(title=src_vol.title)
+                self.stdout.write(
+                    self.style.WARNING(f"> {src_vol.title} already exists. Skipping creation...")
+                )
+            except Volume.DoesNotExist:
+                volume = Volume(number=int(src_vol.title.split(' ')[-1]), title=src_vol.title)
+                print(f"{volume} record created")
+                volume.save()
 
-        # Process chapter txt files
-        txt_files_by_id = [
-            {
-                'id': int(Path(x).name.split('-')[0]),
-                'path' : Path(x),
-            } for x in glob(f"{txt_path}/*.txt")
-        ]
-        txt_files_by_id.sort(key = lambda n: n['id'])
-        #for chapter in txt_files_by_id[:10]:
-        #    print(f"---- {chapter}")
-        #    for ref in generate_chapter_text_refs(chapter['path']):
-        #        self.stdout.write(ref.text)
+            for src_book in src_vol.books.values():
+                try:
+                    num = int(src_book.title.split(':')[0].split(' ')[-1])
+                    book = Book.objects.get(title=src_book.title)
+                    self.stdout.write(
+                        self.style.WARNING(f"> {src_book.title} already exists. Skipping creation...")
+                    )
+                except Book.DoesNotExist:
+                    book = Book(number=num, title=src_book.title, volume=volume)
+                    print(f"{book} record created")
+                    book.save()
 
-        toc = TableOfContents()
-        for data in toc.get_volume_data():
-            num = data[0].split(' ')[-1]
-            print(Volume(number=num, title=data[0] ))
+                num = 1
+                for src_chapter in src_book.chapters.values():
+                    try:
+                        chapter = Chapter.objects.get(title=src_chapter.title)
+                        self.stdout.write(
+                            self.style.WARNING(f"> {src_chapter.title} already exists. Skipping creation...")
+                        )
+                    except Chapter.DoesNotExist:
+                        # TODO: update source_url and date properties
+                        chapter = Chapter(
+                            number=num, title=src_chapter.title, source_url="https://www.wanderinginn.com",
+                            book=book, is_interlude="interlude" in src_chapter.title.lower(),
+                            post_date=date.today)
+                        print(f"{chapter} record created")
+                        chapter.save()
 
-            for link in data[1]:
-                print(link)
-            
-
-        breakpoint()
-
-        ## Process chapter source html files
-        #src_files_by_id = [(int(x.split('-')[0]), x) for x in os.listdir(src_path)]
-        #src_files_by_id.sort()
-        #for chapter in src_files_by_id:
-        #    self.stdout.write(chapter[1])
+                    num += 1
