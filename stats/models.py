@@ -1,13 +1,21 @@
 from django.db import models
 
-class Color(models.Model):
-    """Model for colored text"""
+class ColorCategory(models.Model):
+    """Model linking Colors to a their corresponding categories"""
     name = models.CharField(max_length=50, unique=True)
-    rgb = models.CharField()
-    #TODO: add rgb regex constraint
 
     def __str__(self):
-        return f"{self.name}: {self.rgb}"
+        return f"ColorCategory: {self.name}"
+
+class Color(models.Model):
+    """Model for colored text"""
+    #TODO: add rgb regex constraint
+    rgb = models.CharField()
+    color = models.ForeignKey(ColorCategory, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.color.name}: {self.rgb}"
+
 
 class LevelingToken(models.Model):
     """Model for all Leveling System tokens including [Classes], [Skills], [Spells],
