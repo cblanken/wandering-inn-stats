@@ -8,7 +8,6 @@ admin.site.register(Volume)
 
 # Text reference data
 admin.site.register(TextRef)
+admin.site.register(RefType)
 admin.site.register(Color)
 admin.site.register(ColorCategory)
-admin.site.register(LevelingToken)
-admin.site.register(Character)

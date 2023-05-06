@@ -45,8 +45,9 @@ class TextRef:
     A Text Reference to a specified keyword in the text
 
     Properties:
-    - phrase (str): Keyphrase found
-    - line (int): Line number in the text
+    - text (str): text found matching the given regex pattern
+    - line_text (str): full line of text given for match
+    - line_id (int): Line number in the text
     - start_column (int): Column number of first letter in (phrase) found in the text
     - end_col (int): Column number of last letter in (phrase) found in the text
     - context (str): Contextual text surrounding (phrase)
@@ -55,10 +56,11 @@ class TextRef:
     def __init__(self, text: str, line_text: str, line_id: int, start_column: int,
         end_column: int, context_offset: int = DEFAULT_CONTEXT_LEN) -> TextRef:
         self.text: str = text.strip()
+        self.line_text = line_text.strip()
         self.line_number: int = line_id
         self.start_column: int = start_column
         self.end_column: int = end_column
-        self.context_offset: str = context_offset
+        self.context_offset: int = context_offset
         self.type: RefType = None
 
         # Construct surrounding context string
@@ -68,50 +70,6 @@ class TextRef:
 
     def __str__(self):
         return f"Line: {self.line_number:>5}: {self.text:⋅<55}context: {self.context}"
-
-    def classify_text_ref(self):
-        """Interactive classification of TextRef type"""
-        print(self)
-        try:
-            sel = input(
-                "Classify the above TextRef ([ch]aracter, [it]em, [sk]ill, [cl]ass, [sp]ell, "
-                "[mi]racle, [ob]tained, leave blank to skip): "
-            )
-
-            while True:
-                if sel.strip() == "":
-                    print("> TextRef skipped!\n")
-                    return None
-                if len(sel) < 2:
-                    print("Invalid selection.")
-                    yes_no = input("Try again (y/n)")
-                    if yes_no.lower() == "y":
-                        continue
-                    return None
-                break
-
-            match sel[:2].lower():
-                case "ch":
-                    self.type = RefType.CHARACTER
-                case "it":
-                    self.type = RefType.ITEM
-                case "sk":
-                    self.type = RefType.SKILL
-                case "cl":
-                    self.type = RefType.CLASS
-                case "sp":
-                    self.type = RefType.SPELL
-                case "mi":
-                    self.type = RefType.MIRACLE
-                case "ob":
-                    self.type = RefType.OBTAINED
-
-            print(f"> classified as {self.type}\n")
-            return self
-        except KeyboardInterrupt:
-            sys.exit()
-        except EOFError:
-            sys.exit()
 
 class Chapter:
     """Model for chapter as a file
