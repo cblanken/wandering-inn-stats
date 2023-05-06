@@ -46,6 +46,7 @@ def save_file(filepath: Path, text: str):
     with open(filepath, "w", encoding="utf-8") as file:
         file.write(text)
 
+# TODO: save metadata file for each chapter to include url, postdate, etc.
 class TableOfContents:
     """Object to scrape the Table of Contents and methods to query for any needed info
     """
