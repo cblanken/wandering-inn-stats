@@ -11,10 +11,10 @@ class Color(models.Model):
     """Model for colored text"""
     #TODO: add rgb regex constraint
     rgb = models.CharField()
-    color = models.ForeignKey(ColorCategory, on_delete=models.CASCADE)
+    category = models.ForeignKey(ColorCategory, on_delete=models.CASCADE)
 
     def __str__(self):
-        return f"{self.color.name}: {self.rgb}"
+        return f"Color: {self.category.name}: {self.rgb}"
 
 class Volume(models.Model):
     "Model for volumes"
