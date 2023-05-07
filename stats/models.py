@@ -8,7 +8,7 @@ class ColorCategory(models.Model):
         verbose_name_plural = "Color Categories"
 
     def __str__(self):
-        return f"ColorCategory: {self.name}"
+        return f"(ColorCategory: {self.name})"
 
 class Color(models.Model):
     """Model for colored text"""
@@ -20,7 +20,7 @@ class Color(models.Model):
         ordering = ["rgb"]
 
     def __str__(self):
-        return f"Color: {self.category.name}: {self.rgb}"
+        return f"(Color: {self.category.name}: {self.rgb})"
 
 class Volume(models.Model):
     "Model for volumes"
@@ -32,7 +32,7 @@ class Volume(models.Model):
         ordering = ["number"]
 
     def __str__(self):
-        return f"Volume: {self.title}, Summary: {str(self.summary)[:30]}..."
+        return f"(Volume: {self.title}, Summary: {str(self.summary)[:30]}...)"
 
 class Book(models.Model):
     "Mode for books"
@@ -45,7 +45,7 @@ class Book(models.Model):
         ordering = ["volume", "number"]
 
     def __str__(self):
-        return f"Book: {self.title}, Summary: {str(self.summary)[:30]}"
+        return f"(Book: {self.title}, Summary: {str(self.summary)[:30]})"
 
 class Chapter(models.Model):
     "Model for book chapters"
@@ -60,7 +60,7 @@ class Chapter(models.Model):
         ordering = ["book", "number"]
 
     def __str__(self) -> str:
-        return f"Chapter: {self.title}, URL: {self.source_url}"
+        return f"(Chapter: {self.title}, URL: {self.source_url})"
 
 class RefType(models.Model):
     """Reference keywords / phrases"""
@@ -94,7 +94,7 @@ class RefType(models.Model):
         ordering = ["name"]
 
     def __str__(self):
-        return f"{self.name} - Type: {self.type}, is_divine: {self.is_divine}"
+        return f"(RefType: [{self.name}] - Type: {self.type}, is_divine: {self.is_divine})"
 
 class Alias(models.Model):
     """RefType aliases / alternate names"""
@@ -105,7 +105,7 @@ class Alias(models.Model):
         verbose_name_plural = "Aliases"
 
     def __str__(self) -> str:
-        return f"Alias: {self.name} - RefType: {self.ref_type}"
+        return f"(Alias: {self.name} - RefType: {self.ref_type})"
 
 class TextRef(models.Model):
     """Instances of Ref(s) found in text"""
@@ -121,4 +121,4 @@ class TextRef(models.Model):
         verbose_name_plural = "Text Refs"
 
     def __str__(self):
-        return f"{self.text} - type: {self.type}, line: {self.line_number:>5}, start: {self.start_column:>4}, end: {self.end_column:>4}"
+        return f"(TextRef: {self.text} - type: {self.type}, line: {self.line_number:>5}, start: {self.start_column:>4}, end: {self.end_column:>4})"

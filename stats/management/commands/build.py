@@ -6,7 +6,7 @@ from pprint import pprint
 from pathlib import Path
 from django.core.management.base import BaseCommand, CommandError
 from django.db import models
-from stats.models import Color, ColorCategory, Chapter, Book, Volume, TextRef, RefType
+from stats.models import Color, ColorCategory, Chapter, Book, Volume, TextRef, RefType, Alias
 from processing import Volume as SrcVolume
 
 class COLOR_CATEGORY(Enum):
@@ -75,6 +75,28 @@ def select_color_type(rgb_hex: str) -> COLOR_CATEGORY:
                 print("Invalid selection. Try again.")
                 continue
 
+def match_ref_type(type_str) -> str:
+    match type_str[:2].upper():
+        case "CL":
+            return RefType.CLASS
+        case "CO":
+            return RefType.CLASS_OBTAINED
+        case "SK":
+            return RefType.SKILL
+        case "SO":
+            return RefType.SKILL_OBTAINED
+        case "SP":
+            return RefType.SPELL
+        case "SB":
+            return RefType.SPELL_OBTAINED
+        case "CH":
+            return RefType.CHARACTER
+        case "IT":
+            return RefType.ITEM
+        case "LO":
+            return RefType.LOCATION
+        case _:
+            return None
 
 def select_ref_type() -> str:
     """Interactive classification of TextRef type"""
@@ -90,28 +112,10 @@ def select_ref_type() -> str:
                 if yes_no.lower() == "y":
                     continue
                 return None # skip with confirmation
+            
+            ref_type = match_ref_type(sel)
+            return ref_type
 
-            match sel[:2].upper():
-                case "CL":
-                    return RefType.CLASS
-                case "CO":
-                    return RefType.CLASS_OBTAINED
-                case "SK":
-                    return RefType.SKILL
-                case "SO":
-                    return RefType.SKILL_OBTAINED
-                case "SP":
-                    return RefType.SPELL
-                case "SB":
-                    return RefType.SPELL_OBTAINED
-                case "CH":
-                    return RefType.CHARACTER
-                case "IT":
-                    return RefType.ITEM
-                case "LO":
-                    return RefType.LOCATION
-                case _:
-                    return None
 
     except KeyboardInterrupt as exc:
         print("")
@@ -143,7 +147,7 @@ class Command(BaseCommand):
             except ColorCategory.DoesNotExist:
                 category = ColorCategory(name=cat.value)
                 category.save()
-                self.stdout.write(self.style.SUCCESS(f"> Record created: {category}"))
+                self.stdout.write(self.style.SUCCESS(f"> ColorCategory created: {category}"))
 
         # Populate Colors
         self.stdout.write("\nPopulating colors...")
@@ -155,7 +159,7 @@ class Command(BaseCommand):
             except Color.DoesNotExist:
                 color = Color(rgb=col[0], name=matching_category.name)
                 color.save()
-                self.stdout.write(self.style.SUCCESS(f"> Record created: {color}"))
+                self.stdout.write(self.style.SUCCESS(f"> Color created: {color}"))
 
         # Populate Volumes
         vol_root = Path(options["volumes_path"])
@@ -174,7 +178,7 @@ class Command(BaseCommand):
             except Volume.DoesNotExist:
                 volume = Volume(number=int(src_vol.title.split(' ')[-1]), title=src_vol.title)
                 volume.save()
-                self.stdout.write(self.style.SUCCESS(f"> Record created: {volume}"))
+                self.stdout.write(self.style.SUCCESS(f"> Volume created: {volume}"))
 
             # Populate Books
             for src_book in src_vol.books.values():
@@ -186,7 +190,7 @@ class Command(BaseCommand):
                     )
                 except Book.DoesNotExist:
                     book = Book(number=num, title=src_book.title, volume=volume)
-                    self.stdout.write(self.style.SUCCESS(f"> Record created: {book}"))
+                    self.stdout.write(self.style.SUCCESS(f"> Book created: {book}"))
                     book.save()
 
                 # Populate Chapters
@@ -201,7 +205,7 @@ class Command(BaseCommand):
                             number=num, title=src_chapter.title, source_url="https://www.wanderinginn.com",
                             book=book, is_interlude="interlude" in src_chapter.title.lower(),
                             post_date=date.today)
-                        self.stdout.write(self.style.SUCCESS(f"> Record created: {chapter}"))
+                        self.stdout.write(self.style.SUCCESS(f"> Chapter created: {chapter}"))
                         chapter.save()
 
                     # Populate TextRefs
@@ -210,19 +214,24 @@ class Command(BaseCommand):
 
                         selected_type = None
                         try:
+                            # Check for existing RefType
                             ref_type = RefType.objects.get(name=ref.text)
-                            self.stdout.write(
-                                self.style.WARNING(f"> RefType {ref.text} already exists. Skipping creation...")
-                            )
+                            self.stdout.write(self.style.WARNING(f"> [{ref.text}] already exists. Skipping creation..."))
                             selected_type = ref_type.type
                         except RefType.DoesNotExist:
-                            selected_type = select_ref_type()
-                            if selected_type is not None:
-                                ref_type = RefType(name=ref.text, type=selected_type)
-                                ref_type.save()
-                                self.stdout.write(self.style.SUCCESS(f"> RefType created: {ref_type}"))
-                            else:
-                                self.stdout.write(self.style.WARNING("> RefType skipped..."))
+                            # Check for existing Alias
+                            try:
+                                alias = Alias.objects.get(name=ref.text)
+                                selected_type = alias.ref_type.type
+                                self.stdout.write(self.style.WARNING(f"> {alias} already exists. Skipping creation..."))
+                            except Alias.DoesNotExist:
+                                selected_type = select_ref_type()
+                                if selected_type is not None:
+                                    ref_type = RefType(name=ref.text, type=selected_type)
+                                    ref_type.save()
+                                    self.stdout.write(self.style.SUCCESS(f"> {ref_type} created"))
+                                else:
+                                    self.stdout.write(self.style.WARNING(f"> {ref.text} skipped..."))
 
                         if selected_type is not None:
                             try:
@@ -233,7 +242,7 @@ class Command(BaseCommand):
                                     start_column=ref.start_column,
                                 )
                                 self.stdout.write(
-                                    self.style.WARNING(f"> TextRef {text_ref.text} already exists. Skipping creation...")
+                                    self.style.WARNING(f"> [{text_ref.text}] already exists. Skipping creation...")
                                 )
                             except TextRef.DoesNotExist:
                                 text_ref = TextRef(
@@ -247,7 +256,6 @@ class Command(BaseCommand):
                                 )
 
                                 text_ref.save()
-                                self.stdout.write(self.style.SUCCESS(f"> TextRef created: {text_ref}"))
+                                self.stdout.write(self.style.SUCCESS(f"> {text_ref} created"))
 
                     num += 1
-

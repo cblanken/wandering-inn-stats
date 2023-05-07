@@ -69,7 +69,8 @@ class TextRef:
         self.context = line_text[start:end].strip()
 
     def __str__(self):
-        return f"Line: {self.line_number:>5}: {self.text:⋅<55}context: {self.context}"
+        bracketed_text = f"[{self.text}]"
+        return f"Line: {self.line_number:>5}: {bracketed_text:⋅<55}context: {self.context}"
 
 class Chapter:
     """Model for chapter as a file
@@ -101,7 +102,7 @@ class Chapter:
         matches_per_line = [re.finditer(pattern, line) for line in lines]
         for line_number, matches in enumerate(matches_per_line):
             for match in matches:
-                yield TextRef(match.group(), match.string, line_number,
+                yield TextRef(match.group()[1:-1], match.string, line_number,
                             match.start(), match.end(), context_len)
 
     def print_all_text_refs(self):
