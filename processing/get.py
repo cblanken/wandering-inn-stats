@@ -21,7 +21,7 @@ def get_chapter(chapter_link: str) -> requests.Response:
         return
 
 def get_chapter_html(response: requests.Response) -> str:
-    """Scrape chapter html from Response object
+    """Parse chapter content html from Response object
     """
     soup: BeautifulSoup = BeautifulSoup(response.content, 'html.parser')
     result = soup.select('.entry-content')
@@ -31,7 +31,7 @@ def get_chapter_html(response: requests.Response) -> str:
     return str(result[0])
 
 def get_chapter_text(response: requests.Response) -> str:
-    """Scrape chapter text from Response object
+    """Parse chapter text from Response object
     """
     soup: BeautifulSoup = BeautifulSoup(response.content, 'html.parser')
     header_text: str = [element.get_text() for element in soup.select(
@@ -40,11 +40,27 @@ def get_chapter_text(response: requests.Response) -> str:
         '#content > article > div.entry-content')]
     return "\n".join([header_text[0], content_text[0]])
 
-def save_file(filepath: Path, text: str):
+def get_chapter_metadata(response: requests.Response) -> dict:
+    """Parse chapter metadata from Response object
+    """
+    soup: BeautifulSoup = BeautifulSoup(response.content, 'html.parser')
+    try:
+        pub_time: str = soup.select("meta[property='article:published_time']")[0].get("content")
+        mod_time: str = soup.select("meta[property='article:modified_time']")[0].get("content")
+        return {"pub_time": pub_time, "mod_time": mod_time, "url": response.url}
+    except IndexError:
+        print(f"Current find metadata at {response.url}")
+        return {}
+
+def save_file(filepath: Path, text: str, clobber: bool = False):
     """Write chapter text content to file
     """
+    if filepath.exists() and not clobber:
+        return False
+        
     with open(filepath, "w", encoding="utf-8") as file:
         file.write(text)
+        return True
 
 # TODO: save metadata file for each chapter to include url, postdate, etc.
 class TableOfContents:

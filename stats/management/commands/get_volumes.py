@@ -1,9 +1,17 @@
+import json
 from math import inf
 from time import sleep
 from pathlib import Path
 from django.core.management.base import BaseCommand, CommandError
 from requests import codes as status_codes
 from processing import get
+
+#def download_chapter(root: Path, volume: str, book: str, chapter: str):
+#    path = Path(root, )
+#    was_saved = get.save_file(txt_path, text, clobber=options.get("clobber"))
+#
+#def download_last_chapter():
+#    pass
 
 class Command(BaseCommand):
     help = "Download Wandering Inn chapters by volume"
@@ -43,6 +51,7 @@ class Command(BaseCommand):
                     for k, (chapter_title, chapter_href) in enumerate(chapters.items()):
                         src_path = Path(book_path, f"{k:>03}_{chapter_title}.html")
                         txt_path = Path(book_path, f"{k:>03}_{chapter_title}.txt")
+                        meta_path = Path(book_path, f"{k:>03}_{chapter_title}.json")
 
                         # Download chapter
                         self.stdout.write(f"Downloading {chapter_href}")
@@ -52,6 +61,7 @@ class Command(BaseCommand):
 
                         html = get.get_chapter_html(chapter_response)
                         text = get.get_chapter_text(chapter_response)
+                        meta = get.get_chapter_metadata(chapter_response)
 
                         # Save HTML
                         was_saved = get.save_file(src_path, html, clobber=options.get("clobber"))
@@ -71,10 +81,19 @@ class Command(BaseCommand):
                             self.stdout.write("> ", ending="")
                             self.stdout.write(self.style.WARNING(f"{txt_path} already exists. Not saving..."))
 
-                    sleep(options.get("request_delay"))
+                        # Save metadata
+                        was_saved = get.save_file(meta_path, json.dumps(meta), clobber=options.get("clobber"))
+                        if was_saved:
+                            self.stdout.write("> ", ending="")
+                            self.stdout.write(self.style.SUCCESS(f"\"{chapter_title}\" metadata saved to {meta_path}"))
+                        else:
+                            self.stdout.write("> ", ending="")
+                            self.stdout.write(self.style.WARNING(f"{meta_path} already exists. Not saving..."))
+
+                        sleep(options.get("request_delay"))
         except KeyboardInterrupt as exc:
             # TODO: file / partial download cleanup
-            raise CommandError("\nKeyboard interrupt...downloads stopped") from exc
+            raise CommandError("Keyboard interrupt...downloads stopped") from exc
 
         # TODO add pause/resume
         # TODO add type hinting
@@ -82,4 +101,3 @@ class Command(BaseCommand):
         # TODO add chapter archiving functionality
         # TODO use urllib or requests to handle URLs
         # TODO add error handling
-        # TODO add jitter to download loop
