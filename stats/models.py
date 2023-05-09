@@ -53,7 +53,10 @@ class Chapter(models.Model):
     title = models.CharField(max_length=50)
     is_interlude = models.BooleanField()
     source_url = models.URLField()
-    post_date = models.DateField(auto_now=True)
+    post_date = models.DateTimeField()
+    last_update = models.DateTimeField()
+    download_date = models.DateTimeField()
+    word_count = models.PositiveIntegerField(default=0)
     book = models.ForeignKey(Book, on_delete=models.CASCADE)
 
     class Meta:

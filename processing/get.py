@@ -1,9 +1,11 @@
 """Module to download every chapter from the links in the Wandering Inn Table of Contents"""
 from collections import OrderedDict
+from datetime import datetime
 from sys import stderr
 from pathlib import Path
 from bs4 import BeautifulSoup
 import requests
+import re
 import requests.exceptions
 
 BASE_URL: str = "https://wanderinginn.com"
@@ -34,10 +36,11 @@ def get_chapter_text(response: requests.Response) -> str:
     """Parse chapter text from Response object
     """
     soup: BeautifulSoup = BeautifulSoup(response.content, 'html.parser')
-    header_text: str = [element.get_text() for element in soup.select(
-        '#content > article .entry-title')]
-    content_text: str = [element.get_text() for element in soup.select(
-        '#content > article > div.entry-content')]
+    header_text: str = [element.get_text() for element in soup.select(".entry-title")]
+    content_text: str = [element.get_text() for element in soup.select(".entry-content")]
+    if len(header_text) == 0 or len(content_text) == 0:
+        print(f"The 'header_text' or 'content_text' is missing from \"{response.url}\"")
+        return None
     return "\n".join([header_text[0], content_text[0]])
 
 def get_chapter_metadata(response: requests.Response) -> dict:
@@ -47,7 +50,15 @@ def get_chapter_metadata(response: requests.Response) -> dict:
     try:
         pub_time: str = soup.select("meta[property='article:published_time']")[0].get("content")
         mod_time: str = soup.select("meta[property='article:modified_time']")[0].get("content")
-        return {"pub_time": pub_time, "mod_time": mod_time, "url": response.url}
+        word_count: str = len(re.split(r'\W+', soup.text))
+        dl_time: str = datetime.now().isoformat()
+        return {
+            "pub_time": pub_time,
+            "mod_time": mod_time,
+            "dl_time": dl_time,
+            "url": response.url,
+            "word_count": word_count
+        }
     except IndexError:
         print(f"Current find metadata at {response.url}")
         return {}
@@ -62,7 +73,6 @@ def save_file(filepath: Path, text: str, clobber: bool = False):
         file.write(text)
         return True
 
-# TODO: save metadata file for each chapter to include url, postdate, etc.
 class TableOfContents:
     """Object to scrape the Table of Contents and methods to query for any needed info
     """

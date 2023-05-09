@@ -38,20 +38,24 @@ class Command(BaseCommand):
             start = options.get("first_volume")
             end = start + options.get("range")
 
+            volume_root = Path(options.get("root"))
+            volume_root.mkdir(exist_ok=True)
             # Create volume / book / chapter directory structure
             for i, (volume_title, books) in list(enumerate(self.toc.volume_data.items()))[start:end]:
                 if i >= options.get("first_volume") + options.get("range"):
                     break
-                volume_path = Path(options.get("root"), f"{i:0>2}_{volume_title}")
+                volume_path = Path(volume_root, f"{i:0>2}_{volume_title}")
                 volume_path.mkdir(exist_ok=True)
                 for j, (book_title, chapters) in enumerate(books.items()):
                     book_path = Path(volume_path, f"{j:>02}_{book_title}")
                     book_path.mkdir(exist_ok=True)
 
                     for k, (chapter_title, chapter_href) in enumerate(chapters.items()):
-                        src_path = Path(book_path, f"{k:>03}_{chapter_title}.html")
-                        txt_path = Path(book_path, f"{k:>03}_{chapter_title}.txt")
-                        meta_path = Path(book_path, f"{k:>03}_{chapter_title}.json")
+                        chapter_path = Path(book_path, f"{k:>03}")
+                        chapter_path.mkdir(exist_ok=True)
+                        src_path = Path(chapter_path, f"{chapter_title}.html")
+                        txt_path = Path(chapter_path, f"{chapter_title}.txt")
+                        meta_path = Path(chapter_path, f"{chapter_title}.json")
 
                         # Download chapter
                         self.stdout.write(f"Downloading {chapter_href}")

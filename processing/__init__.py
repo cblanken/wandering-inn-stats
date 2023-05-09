@@ -4,6 +4,7 @@ import re
 import sys
 from collections import OrderedDict
 from enum import Enum, Flag, auto
+import json
 from pathlib import Path
 from typing import Generator
 
@@ -83,12 +84,25 @@ class Chapter:
     def __init__(self, title: str, path: Path):
         self.title: str = title
         self.path: Path = path
+        self.src_path: Path = Path(path, self.title, ".html")
+        self.txt_path: Path = Path(path, self.title, ".txt")
+        self.meta_path: Path = Path(path, self.title, ".json")
         self.all_text_refs: Generator = self.gen_chapter_text_refs(Pattern._or(
             Pattern.ALL_MAGIC_WORDS,
             Pattern.SKILL_OBTAINED,
             Pattern.CLASS_OBTAINED,
             Pattern.SPELL_OBTAINED
         ))
+
+    def get_meta_data(self) -> dict:
+        """Return dictionary of metadata for Chapter
+        """
+        try:
+            with open(self.meta_path, "r", encoding="utf-8") as file:
+                return json.load(file)
+        except ValueError as exc:
+            print(f"Metadata file at \"{self.meta_path}\" does not exist", exc, file=sys.stderr)
+            return None
 
     def gen_chapter_text_refs(self, pattern: re.Pattern, context_len: int = DEFAULT_CONTEXT_LEN):
         """Return  TextRef(s) that match the regex for the given regex patterns
@@ -129,7 +143,7 @@ class Book:
         self.chapter_paths.sort(
             key=lambda n: f"{''.join([x.split('_')[0] for x in n.parts[1:]]):0>7}")
 
-        self.chapters: OrderedDict[Chapter] = OrderedDict()
+        self.chapters: OrderedDict[str, Chapter] = OrderedDict()
         for chapter_path in self.chapter_paths:
             title = chapter_path.stem.split('_')[1]
             self.chapters[title] = Chapter(title, chapter_path)
@@ -143,7 +157,7 @@ class Volume:
         self.title: str = title
         self.path: Path = path
         book_paths: list[Path] = [dir for dir in Path(path).iterdir() if dir.is_dir()]
-        self.books: OrderedDict[Book] = OrderedDict()
+        self.books: OrderedDict[str, Book] = OrderedDict()
         for book_path in book_paths:
             assert "Book" in str(book_path)
             title = book_path.name.split('_')[1]
