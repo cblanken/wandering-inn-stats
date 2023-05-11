@@ -18,16 +18,16 @@ class Pattern(Enum):
     CLASS_OBTAINED = re.compile(r"\[.*[Cc]lass" + OBTAINED_SUFFIX)
     SPELL_OBTAINED = re.compile(r"\[[Ss]pell" + OBTAINED_SUFFIX)
 
-    @classmethod
-    def _or(cls, *patterns: Pattern):
+    @staticmethod
+    def _or(*patterns: Pattern):
         if len(patterns) == 1:
             return patterns[0].value
 
         new_pattern = re.compile("|".join([p.value.pattern for p in patterns]))
         return new_pattern
 
-    @classmethod
-    def _and(cls, *patterns: Pattern):
+    @staticmethod
+    def _and(*patterns: Pattern):
         # TODO: implement for combining Pattern with AND
         pass
 
@@ -73,20 +73,34 @@ class TextRef:
         bracketed_text = f"[{self.text}]"
         return f"Line: {self.line_number:>5}: {bracketed_text:⋅<55}context: {self.context}"
 
+def get_meta_data(path: Path) -> dict:
+    """Return dictionary of metadata from a JSON file
+    """
+    try:
+        with open(path, "r", encoding="utf-8") as file:
+            return json.load(file)
+    except json.JSONDecodeError as exc:
+        print(f"Metadata file at \"{path}\" could not be decoded.", file=sys.stderr)
+        print("Check for syntax errors.", exc, file=sys.stderr)
+        return None
+    except ValueError as exc:
+        print(f"Metadata file at \"{path}\" could not be found.", exc, file=sys.stderr)
+        return None
+
 class Chapter:
     """Model for chapter as a file
     
     Args:
     - title (str): Chapter title
-    - url (str): URL of chapter at wandering.com
     - path (Path): path to HTML file of downloaded chapter
     """
-    def __init__(self, title: str, path: Path):
-        self.title: str = title
+    def __init__(self, path: Path):
         self.path: Path = path
-        self.src_path: Path = Path(path, self.title, ".html")
-        self.txt_path: Path = Path(path, self.title, ".txt")
-        self.meta_path: Path = Path(path, self.title, ".json")
+        self.src_path: Path = Path(path, list(path.glob("*.html"))[0].name)
+        self.txt_path: Path = Path(path, list(path.glob("*.txt"))[0].name)
+        self.meta_path: Path = Path(path, list(path.glob("*.json"))[0].name)
+        self.get_meta_data = get_meta_data(self.path)
+        self.title: str = self.src_path.stem
         self.all_text_refs: Generator = self.gen_chapter_text_refs(Pattern._or(
             Pattern.ALL_MAGIC_WORDS,
             Pattern.SKILL_OBTAINED,
@@ -94,23 +108,13 @@ class Chapter:
             Pattern.SPELL_OBTAINED
         ))
 
-    def get_meta_data(self) -> dict:
-        """Return dictionary of metadata for Chapter
-        """
-        try:
-            with open(self.meta_path, "r", encoding="utf-8") as file:
-                return json.load(file)
-        except ValueError as exc:
-            print(f"Metadata file at \"{self.meta_path}\" does not exist", exc, file=sys.stderr)
-            return None
-
     def gen_chapter_text_refs(self, pattern: re.Pattern, context_len: int = DEFAULT_CONTEXT_LEN):
         """Return  TextRef(s) that match the regex for the given regex patterns
 
         Args:
         - patterns (Patterns): Bitwise combination of Patterns
         """
-        with open(self.path, "r", encoding="utf-8") as file:
+        with open(self.src_path, "r", encoding="utf-8") as file:
             lines = file.readlines()
 
         matches_per_line = [re.finditer(pattern, line) for line in lines]
@@ -139,14 +143,13 @@ class Book:
     def __init__(self, title: str, path: Path):
         self.title = title
         self.path = path
-        self.chapter_paths: list[Path] = list(Path(self.path).glob("*.html"))
-        self.chapter_paths.sort(
-            key=lambda n: f"{''.join([x.split('_')[0] for x in n.parts[1:]]):0>7}")
+        self.get_meta_data = get_meta_data(self.path)
+        self.chapter_paths: list[Path] = list(self.path.iterdir())
+        self.chapter_paths.sort()
 
         self.chapters: OrderedDict[str, Chapter] = OrderedDict()
         for chapter_path in self.chapter_paths:
-            title = chapter_path.stem.split('_')[1]
-            self.chapters[title] = Chapter(title, chapter_path)
+            self.chapters[title] = Chapter(chapter_path)
 
     def __str__(self):
         return f"{self.title}: {self.path}"
@@ -156,9 +159,10 @@ class Volume:
     def __init__(self, title: str, path: Path):
         self.title: str = title
         self.path: Path = path
-        book_paths: list[Path] = [dir for dir in Path(path).iterdir() if dir.is_dir()]
+        self.get_meta_data = get_meta_data(self.path)
+        self.book_paths: list[Path] = [dir for dir in Path(path).iterdir() if dir.is_dir()]
         self.books: OrderedDict[str, Book] = OrderedDict()
-        for book_path in book_paths:
+        for book_path in self.book_paths:
             assert "Book" in str(book_path)
             title = book_path.name.split('_')[1]
             self.books[title] = Book(title, book_path)

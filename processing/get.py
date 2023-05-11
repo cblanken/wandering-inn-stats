@@ -1,11 +1,11 @@
 """Module to download every chapter from the links in the Wandering Inn Table of Contents"""
 from collections import OrderedDict
 from datetime import datetime
-from sys import stderr
 from pathlib import Path
+import re
+from sys import stderr
 from bs4 import BeautifulSoup
 import requests
-import re
 import requests.exceptions
 
 BASE_URL: str = "https://wanderinginn.com"
@@ -39,7 +39,7 @@ def get_chapter_text(response: requests.Response) -> str:
     header_text: str = [element.get_text() for element in soup.select(".entry-title")]
     content_text: str = [element.get_text() for element in soup.select(".entry-content")]
     if len(header_text) == 0 or len(content_text) == 0:
-        print(f"The 'header_text' or 'content_text' is missing from \"{response.url}\"")
+        print(f"! The 'header_text' or 'content_text' is missing from \"{response.url}\"")
         return None
     return "\n".join([header_text[0], content_text[0]])
 
@@ -59,9 +59,9 @@ def get_chapter_metadata(response: requests.Response) -> dict:
             "url": response.url,
             "word_count": word_count
         }
-    except IndexError:
-        print(f"Current find metadata at {response.url}")
-        return {}
+    except IndexError as exc:
+        print(f"! Couldn't find metadata at {response.url}. Exception: {exc}")
+        return None
 
 def save_file(filepath: Path, text: str, clobber: bool = False):
     """Write chapter text content to file
