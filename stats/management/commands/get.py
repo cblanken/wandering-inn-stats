@@ -1,6 +1,5 @@
-from collections import OrderedDict
+"""Download command for wanderinginn.com"""
 import json
-from math import inf
 from pathlib import Path
 import time
 from django.core.management.base import BaseCommand, CommandError
@@ -28,9 +27,13 @@ class Command(BaseCommand):
                             help="Root path of volumes to save to")
         parser.add_argument("-c", "--clobber", action="store_true",
                             help="Overwrite chapter files if they already exist")
+        parser.add_argument("-l", "--latest", action="store_true",
+                            help="Download only the most recently released chapter")
 
     def handle(self, *args, **options):
-        toc = get.TableOfContents()
+        tor_session = get.TorSession()
+        toc = get.TableOfContents(tor_session)
+        self.last_download: int = 0
 
         def save_file(text: str, path: Path, success_msg: str = None, warn_msg: str = None):
             was_saved = get.save_file(path, text, clobber=options.get("clobber"))
@@ -69,20 +72,25 @@ class Command(BaseCommand):
             txt_path = Path(chapter_path, f"{chapter_title}.txt")
             meta_path = Path(chapter_path, f"{chapter_title}.json")
 
+            if not options.get("clobber") and src_path.exists() and txt_path.exists() and meta_path.exists():
+                self.stdout.write(self.style.NOTICE(f"> All chapter files exist for chapter: \"{chapter_title}\". Skipping..."))
+                return
+
             self.stdout.write(f"Downloading {chapter_href}")
-            chapter_response = get.get_chapter(chapter_href)
+            chapter_response = tor_session.get_chapter(chapter_href)
             if chapter_response is None:
-                raise CommandError(f"Could not get chapter at {chapter_href}")
+                self.stdout.write(self.style.WARNING("! Chapter could not be downloaded!"))
+                self.stdout.write(f"Skipping download for {chapter_title} → {chapter_href}")
+                tor_session.reset_tries()
+                return
 
             html: str = get.get_chapter_html(chapter_response)
             text: str = get.get_chapter_text(chapter_response)
             metadata: dict = get.get_chapter_metadata(chapter_response)
 
             if html is None or text is None or metadata is None:
-                self.stdout.write(self.style.WARNING("Some data could not be retrieved from:"))
-                self.stdout.write(f"{chapter_response}")
-                breakpoint()
-
+                self.stdout.write(self.style.WARNING("Some data could not be parsed from:"))
+                self.stdout.write(f"HTTP Response:\n {chapter_response}")
                 self.stdout.write(f"Skipping download for {chapter_title} → {chapter_href}")
                 return
 
@@ -106,6 +114,8 @@ class Command(BaseCommand):
                 path = meta_path,
                 success_msg = f"\"{chapter_title}\" metadata saved to {meta_path}",
                 warn_msg = f"{meta_path} already exists. Not saving...")
+
+            self.last_download = time.time()
 
         def download_book(volume_title: str, book_title: str, book_path: Path):
             book_path.mkdir(parents=True, exist_ok=True)
@@ -151,7 +161,7 @@ class Command(BaseCommand):
         # TODO: add option to diff previous table of contents to check for changes and
         # only get the latest posted volumes/chapters
         try:
-            if toc.response.status_code != status_codes["ok"]:
+            if toc.response is None:
                 raise CommandError(f"The table of contents ({toc.url}) could not be downloaded.\nCheck your network connection and confirm the host hasn't been IP blocked.")
 
             #start = options.get("first_volume")
@@ -162,22 +172,13 @@ class Command(BaseCommand):
 
             volume_root = Path(options.get("root"))
             volume_root.mkdir(exist_ok=True)
-            
-            # TODO update download --all
+          
             if options.get("all"):
                 # Download all volumes
                 for i, (volume_title, books) in list(enumerate(toc.volume_data.items())):
-                    #if i >= options.get("first_volume") + options.get("range"):
-                    #    break
                     volume_path = Path(volume_root, f"{i:0>2}_{volume_title}")
                     volume_path.mkdir(exist_ok=True)
                     download_volume(volume_title, volume_path)
-                    #for j, (book_title, chapters) in enumerate(books.items()):
-                    #    book_path = Path(volume_path, f"{j:>02}_{book_title}")
-                    #    book_path.mkdir(exist_ok=True)
-                    #    for k, (chapter_title, chapter_href) in enumerate(chapters.items()):
-                    #        chapter_path = Path(book_path, f"{k:>03}")
-                    #        download_chapter(volume_title, book_title, chapter_title, chapter_path)
             elif options.get("chapter"):
                 # Download selected chapter
                 path = Path(volume_root, v_title, b_title, c_title)

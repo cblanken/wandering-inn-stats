@@ -2,25 +2,90 @@
 from collections import OrderedDict
 from datetime import datetime
 from pathlib import Path
+import time
 import re
 from sys import stderr
 from bs4 import BeautifulSoup
 import requests
 import requests.exceptions
+from stem import Signal
+from stem.control import Controller
+from fake_useragent import UserAgent
 
 BASE_URL: str = "https://wanderinginn.com"
 
-def get_chapter(chapter_link: str) -> requests.Response:
-    """Get requests Response for chapter link
+class TorSession:
+    """Session object to download webpages via requests
+    Also handles cycling Tor connections to prevent IP bans
     """
-    try:
-        return requests.get(chapter_link, timeout=10)
-    except requests.HTTPError:
-        print(f"Unable to retrieve chapter from {chapter_link}", file=stderr)
-        return
-    except requests.Timeout:
-        print(f"Unable to retrieve chapter from {chapter_link}", file=stderr)
-        return
+    def __init__(self, proxy_ip: str = "127.0.0.1", proxy_port: int = 9050, max_tries: int = 10):
+        self.__session = requests.session()
+        self.__proxy_port = proxy_port
+        self.set_tor_proxy(proxy_ip)
+        self.__tries = 0 # resets after a sucessful chapter download
+        self.__max_tries = max_tries
+
+    def get(self, url):
+        resp = None
+        while self.__tries < self.__max_tries:
+            resp = self.__session.get(url=url, headers= { "User-Agent": UserAgent().random }, timeout=10)
+            if resp.status_code == requests.codes["ok"]:
+                self.__tries = 0
+                return resp
+            else:
+                self.__tries += 1
+                self.get_new_tor_circuit()
+
+        print("Cannot re-attempt download. Too many retries. Must reset to continue.")
+
+    def reset_tries(self):
+        self.__tries = 0
+
+    def set_tor_proxy(self, ip: str):
+        self.__session.proxies = {
+            "http": f"socks5://{ip}:{self.__proxy_port}",
+            "https": f"socks5://{ip}:{self.__proxy_port}",
+        }
+
+    def get_new_tor_circuit(self, control_port: int = 9051) -> str:
+        with Controller.from_port(port=control_port) as conn:
+            if conn.is_newnym_available():
+                conn.authenticate()
+                conn.signal(Signal.NEWNYM)
+                time.sleep(0.25)
+            else:
+                print("! New Tor circuit not available - must wait for Tor to acceppt NEWNYM signal")
+                breakpoint()
+                #while(True):
+                #    print("> Switching Tor circuit...")
+                #    start_ip: str = self.session.get("https://api.ipify.org").text.strip()
+                #    start_time: float = time.time()
+
+                #    # Wait for new IP
+                #    current_ip = start_ip
+                #    while(time.time() - start_time < 3):
+                #        current_ip = self.session.get("https://api.ipify.org").text.strip()
+                #        if current_ip != start_ip:
+                #            print(f"> Switched Tor circuit from {start_ip} to {current_ip}")
+                #            return current_ip
+                #        time.sleep(0.5)
+
+                #    reply = input("Try new Tor circuit? (y/n): ")
+                #    breakpoint()
+                #    if reply.lower() != "y":
+                #        break
+
+    def get_chapter(self, chapter_link: str) -> requests.Response:
+        """Get requests Response for chapter link
+        """
+        try:
+            return self.get(chapter_link)
+        except requests.HTTPError as exc:
+            print(f"Unable to retrieve chapter from {chapter_link}, {exc}", file=stderr)
+            return
+        except requests.Timeout as exc:
+            print(f"Unable to retrieve chapter from {chapter_link}", {exc}, file=stderr)
+            return
 
 def get_chapter_html(response: requests.Response) -> str:
     """Parse chapter content html from Response object
@@ -76,12 +141,18 @@ def save_file(filepath: Path, text: str, clobber: bool = False):
 class TableOfContents:
     """Object to scrape the Table of Contents and methods to query for any needed info
     """
-    def __init__(self):
+    def __init__(self, session: TorSession=None):
         self.url: str = "https://wanderinginn.com/table-of-contents"
-        self.response = requests.get(self.url, timeout=10)
-        if self.response.status_code != requests.codes['ok']:
+        if session:
+            assert(isinstance(session, TorSession))
+            self.response = session.get(self.url)
+        else:
+            self.response = requests.get(self.url, timeout=10)
+
+        if self.response is None:
             self.soup = self.chapter_links = self.volume_data = None
             return
+
         self.soup = BeautifulSoup(self.response.content, 'html.parser')
         self.chapter_links = self.__get_chapter_links()
         self.volume_data: dict[dict[dict[str]]] = self.__get_volume_data()
