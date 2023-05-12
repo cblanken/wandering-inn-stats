@@ -1,6 +1,7 @@
 """Download command for wanderinginn.com"""
 import json
 from pathlib import Path
+import random
 import time
 from django.core.management.base import BaseCommand, CommandError
 from requests import codes as status_codes
@@ -21,8 +22,10 @@ class Command(BaseCommand):
                             help="Download all volumes")
         parser.add_argument("-i", "--index", action="store_true",
                             help="Retrieve volume/book/chapter by indexes instead of title")
-        parser.add_argument("-d", "--request_delay", default=2.0,
+        parser.add_argument("-d", "--request_delay", default=5.0,
                             help="Time delay")
+        parser.add_argument("-j", "--jitter", action="store_true",
+                            help="Randomized delay betweeen (0.5 to 1.5) times")
         parser.add_argument("-r", "--root", default="./volumes",
                             help="Root path of volumes to save to")
         parser.add_argument("-c", "--clobber", action="store_true",
@@ -64,7 +67,10 @@ class Command(BaseCommand):
                 return
 
             # Throttle chapter downloads
-            while time.time() < self.last_download + options.get("request_delay"):
+            delay = options.get("request_delay")
+            if options.get("jitter"):
+                delay *= random.uniform(0.5, 1.5)
+            while time.time() < self.last_download + delay:
                 time.sleep(0.1)
 
             # Download chapter
