@@ -14,6 +14,10 @@ from fake_useragent import UserAgent
 
 BASE_URL: str = "https://wanderinginn.com"
 
+# TODO allow redirects 
+# This https://wanderinginn.com/table-of-contents/interlude-satar-revised redirects to
+# -> https://wanderinginn.com/2022/02/20/interlude-satar/ and doesn't get followed by a
+# default requests.get( )
 class TorSession:
     """Session object to download webpages via requests
     Also handles cycling Tor connections to prevent IP bans
@@ -28,13 +32,16 @@ class TorSession:
     def get(self, url):
         resp = None
         while self.__tries < self.__max_tries:
-            resp = self.__session.get(url=url, headers= { "User-Agent": UserAgent().random }, timeout=10)
-            if resp.status_code == requests.codes["ok"]:
-                self.__tries = 0
-                return resp
-            else:
+            resp = self.__session.get(url=url,
+                                      headers= { "User-Agent": UserAgent().random },
+                                      allow_redirects=True,
+                                      timeout=10)
+            if resp.status_code == 404:
                 self.__tries += 1
                 self.get_new_tor_circuit()
+            else:
+                self.__tries = 0
+                return resp
 
         print("Cannot re-attempt download. Too many retries. Must reset to continue.")
 
@@ -142,7 +149,8 @@ class TableOfContents:
     """Object to scrape the Table of Contents and methods to query for any needed info
     """
     def __init__(self, session: TorSession=None):
-        self.url: str = "https://wanderinginn.com/table-of-contents"
+        self.domain: str = "www.wanderinginn.com"
+        self.url: str = f"https://{self.domain}/table-of-contents"
         if session:
             assert(isinstance(session, TorSession))
             self.response = session.get(self.url)
@@ -163,7 +171,7 @@ class TableOfContents:
         if self.soup is None:
             return []
         
-        return [self.url + link.get("href") for link in self.soup.select(".chapters a")]
+        return [f"https://{self.domain}" + link.get("href") for link in self.soup.select(".chapters a")]
 
     def __get_volume_data(self):
         """Return dictionary containing tuples (volume_title, chapter_indexes) by volume ID
@@ -186,7 +194,7 @@ class TableOfContents:
                     volumes[volume_title][book_title] = OrderedDict()
                 case "p":
                     for link in ele.select("a"):
-                        volumes[volume_title][book_title][link.text] = f"{self.url}{link['href']}"
+                        volumes[volume_title][book_title][link.text] = f"https://{self.domain}{link['href']}"
 
         return volumes
 
