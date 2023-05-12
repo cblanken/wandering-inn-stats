@@ -124,7 +124,7 @@ def get_chapter_metadata(response: requests.Response) -> dict:
         pub_time: str = soup.select("meta[property='article:published_time']")[0].get("content")
         mod_time: str = soup.select("meta[property='article:modified_time']")[0].get("content")
         word_count: str = len(re.split(r'\W+', soup.text))
-        dl_time: str = datetime.now().isoformat()
+        dl_time: str = str(datetime.now().astimezone())
         return {
             "title": title,
             "pub_time": pub_time,

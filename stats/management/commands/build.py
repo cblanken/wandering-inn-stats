@@ -1,13 +1,12 @@
-from datetime import date
+from datetime import datetime as dt
 from enum import Enum
 import json
 import logging
 from pprint import pprint
 from pathlib import Path
 from django.core.management.base import BaseCommand, CommandError
-from django.db import models
 from stats.models import Color, ColorCategory, Chapter, Book, Volume, TextRef, RefType, Alias
-from processing import Volume as SrcVolume
+from processing import Volume as SrcVolume, Book as SrcBook, Chapter as SrcChapter, get_metadata
 
 class COLOR_CATEGORY(Enum):
     INVISIBLE = "Invisible skills/text"
@@ -29,7 +28,7 @@ class COLOR_CATEGORY(Enum):
     SER_RAIM = "Ser Raim skill"
     RED = "Red skills and classes"
 
-COLORS: list[tuple] = [
+COLORS: tuple[tuple] = (
     ("0C0E0E", COLOR_CATEGORY.INVISIBLE),
     ("00CCFF", COLOR_CATEGORY.SIREN_WATER),
     ("3366FF", COLOR_CATEGORY.CERIA_COLD),
@@ -53,7 +52,7 @@ COLORS: list[tuple] = [
     ("E01D1D", COLOR_CATEGORY.IVOLETHE_FIRE),
     ("EB0E0E", COLOR_CATEGORY.SER_RAIM),
     ("FF0000", COLOR_CATEGORY.RED)
-]
+)
 
 def select_color_type(rgb_hex: str) -> COLOR_CATEGORY:
     """Interactive selection of ColorCategory"""
@@ -124,7 +123,6 @@ def select_ref_type() -> str:
         print("")
         raise CommandError("Build interrupted with Ctrl-D (EOF).") from exc
 
-
 class Command(BaseCommand):
     """Database build function"""
     help = "Update database from chapter source HTML and text files"
@@ -132,8 +130,9 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument("volumes_path", type=str,
             help="Path in file system where chapter data is saved to disk per volume")
-        #parser.add_argument('-v', '--verbose', action='count', default=0,
-        #    help="Verbosity for command warnings")
+        parser.add_argument("-i", "--ignore-missing-chapter-metadata", action="store_true",
+            help="Update Chapter data with defaults if the metadata file can't be read")
+        # TODO: add (-u) option for updating existing records
 
     def handle(self, *args, **options):
         self.stdout.write("Updating DB...")
@@ -157,54 +156,59 @@ class Command(BaseCommand):
                 color = Color.objects.get(rgb=col[0], category=matching_category)
                 self.stdout.write(self.style.WARNING(f"> {color} already exists. Skipping creation..."))
             except Color.DoesNotExist:
-                color = Color(rgb=col[0], name=matching_category.name)
+                color = Color(rgb=col[0], category=matching_category)
                 color.save()
                 self.stdout.write(self.style.SUCCESS(f"> Color created: {color}"))
 
+
         # Populate Volumes
         vol_root = Path(options["volumes_path"])
-        volume_paths = [x for x in Path(vol_root).iterdir() if x.is_dir() and "Volume" in x.name]
+        meta_path = Path(vol_root)
+        volumes_metadata = get_metadata(meta_path)
+        volumes = sorted(list(volumes_metadata["volumes"].items()), key=lambda x: x[1])
 
-        for path in volume_paths:
-            src_vol: SrcVolume = SrcVolume(path.name.split('_')[1], path)
-            print("")
-            print(f"{src_vol} found")
-
+        for (vol_title, vol_num) in volumes:
+            src_vol: SrcVolume = SrcVolume(Path(vol_root, vol_title))
             try:
                 volume = Volume.objects.get(title=src_vol.title)
                 self.stdout.write(
-                    self.style.WARNING(f"> {src_vol.title} already exists. Skipping creation...")
+                    self.style.WARNING(f"> Record for {src_vol.title} already exists. Skipping creation...")
                 )
             except Volume.DoesNotExist:
-                volume = Volume(number=int(src_vol.title.split(' ')[-1]), title=src_vol.title)
+                volume = Volume(number=vol_num, title=src_vol.title)
                 volume.save()
                 self.stdout.write(self.style.SUCCESS(f"> Volume created: {volume}"))
 
             # Populate Books
-            for src_book in src_vol.books.values():
+            for (book_num, book_title) in enumerate(src_vol.books):
+                src_book: SrcBook = SrcBook(Path(src_vol.path, book_title))
                 try:
-                    num = int(src_book.title.split(':')[0].split(' ')[-1])
-                    book = Book.objects.get(title=src_book.title)
+                    book = Book.objects.get(title=book_title)
                     self.stdout.write(
-                        self.style.WARNING(f"> {src_book.title} already exists. Skipping creation...")
+                        self.style.WARNING(f"> Record for {book_title} already exists. Skipping creation...")
                     )
                 except Book.DoesNotExist:
-                    book = Book(number=num, title=src_book.title, volume=volume)
+                    book = Book(number=book_num, title=book_title, volume=volume)
                     self.stdout.write(self.style.SUCCESS(f"> Book created: {book}"))
                     book.save()
 
                 # Populate Chapters
-                num = 1
-                for src_chapter in src_book.chapters.values():
+                for (chapter_num, chapter_title) in enumerate(src_book.chapters):
+                    src_chapter: SrcChapter = SrcChapter(Path(src_book.path, chapter_title))
                     try:
+                        # Check for existing Chapter
                         chapter = Chapter.objects.get(title=src_chapter.title)
                         self.stdout.write(self.style.WARNING(f"> {src_chapter.title} already exists. Skipping creation..."))
                     except Chapter.DoesNotExist:
-                        # TODO: update source_url and date properties
                         chapter = Chapter(
-                            number=num, title=src_chapter.title, source_url="https://www.wanderinginn.com",
-                            book=book, is_interlude="interlude" in src_chapter.title.lower(),
-                            post_date=date.today)
+                            number=chapter_num, title=src_chapter.title, book=book,
+                            is_interlude="interlude" in src_chapter.title.lower(),
+                            source_url=src_chapter.metadata.get("url", ""),
+                            post_date=dt.fromisoformat(src_chapter.metadata.get("pub_time", dt.now().isoformat())),
+                            last_update=dt.fromisoformat(src_chapter.metadata.get("mod_time", dt.now().isoformat())),
+                            download_date=dt.fromisoformat(src_chapter.metadata.get("dl_time", dt.now().isoformat())),
+                            word_count=src_chapter.metadata.get("word_count", 0)
+                        )
                         self.stdout.write(self.style.SUCCESS(f"> Chapter created: {chapter}"))
                         chapter.save()
 
@@ -258,4 +262,4 @@ class Command(BaseCommand):
                                 text_ref.save()
                                 self.stdout.write(self.style.SUCCESS(f"> {text_ref} created"))
 
-                    num += 1
+                    vol_num += 1
