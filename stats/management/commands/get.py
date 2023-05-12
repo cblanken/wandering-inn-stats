@@ -138,7 +138,6 @@ class Command(BaseCommand):
                 download_chapter(volume_title, book_title, chapter_title, chapter_path)
 
         def download_volume(volume_title: str, volume_path: Path):
-            volume_path = Path(volume_root, volume_title)
             volume_path.mkdir(parents=True, exist_ok=True)
             books = toc.volume_data[volume_title]
 
@@ -176,8 +175,7 @@ class Command(BaseCommand):
             if options.get("all"):
                 # Download all volumes
                 for i, (volume_title, books) in list(enumerate(toc.volume_data.items())):
-                    volume_path = Path(volume_root, f"{i:0>2}_{volume_title}")
-                    volume_path.mkdir(exist_ok=True)
+                    volume_path = Path(volume_root, f"{volume_title}")
                     download_volume(volume_title, volume_path)
             elif options.get("chapter"):
                 # Download selected chapter
