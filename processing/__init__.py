@@ -73,11 +73,11 @@ class TextRef:
         bracketed_text = f"[{self.text}]"
         return f"Line: {self.line_number:>5}: {bracketed_text:⋅<55}context: {self.context}"
 
-def get_meta_data(path: Path) -> dict:
+def get_metadata(path: Path, filename: str = "metadata.json") -> dict:
     """Return dictionary of metadata from a JSON file
     """
     try:
-        with open(path, "r", encoding="utf-8") as file:
+        with open(Path(path, filename), "r", encoding="utf-8") as file:
             return json.load(file)
     except json.JSONDecodeError as exc:
         print(f"Metadata file at \"{path}\" could not be decoded.", file=sys.stderr)
@@ -99,7 +99,7 @@ class Chapter:
         self.src_path: Path = Path(path, list(path.glob("*.html"))[0].name)
         self.txt_path: Path = Path(path, list(path.glob("*.txt"))[0].name)
         self.meta_path: Path = Path(path, list(path.glob("*.json"))[0].name)
-        self.get_meta_data = get_meta_data(self.path)
+        self.metadata = get_metadata(self.path)
         self.title: str = self.src_path.stem
         self.all_text_refs: Generator = self.gen_chapter_text_refs(Pattern._or(
             Pattern.ALL_MAGIC_WORDS,
@@ -140,32 +140,22 @@ class Chapter:
 
 class Book:
     """Model for book as a file"""
-    def __init__(self, title: str, path: Path):
-        self.title = title
+    def __init__(self, path: Path):
         self.path = path
-        self.get_meta_data = get_meta_data(self.path)
-        self.chapter_paths: list[Path] = list(self.path.iterdir())
-        self.chapter_paths.sort()
-
-        self.chapters: OrderedDict[str, Chapter] = OrderedDict()
-        for chapter_path in self.chapter_paths:
-            self.chapters[title] = Chapter(chapter_path)
+        self.metadata = get_metadata(self.path)
+        self.title: str = self.metadata["title"]
+        self.chapters: list[str] = [x[0] for x in sorted(list(self.metadata["chapters"].items()), key=lambda x: x[1])]
 
     def __str__(self):
         return f"{self.title}: {self.path}"
 
 class Volume:
     """Model for Volume as a file"""
-    def __init__(self, title: str, path: Path):
-        self.title: str = title
+    def __init__(self, path: Path):
         self.path: Path = path
-        self.get_meta_data = get_meta_data(self.path)
-        self.book_paths: list[Path] = [dir for dir in Path(path).iterdir() if dir.is_dir()]
-        self.books: OrderedDict[str, Book] = OrderedDict()
-        for book_path in self.book_paths:
-            assert "Book" in str(book_path)
-            title = book_path.name.split('_')[1]
-            self.books[title] = Book(title, book_path)
+        self.metadata = get_metadata(self.path)
+        self.title: str = self.metadata["title"]
+        self.books: list[str] = [x[0] for x in sorted(list(self.metadata["books"].items()), key=lambda x: x[1])]
 
     def print_all_text_refs(self):
         """Print all text references found by `generate_all_text_refs` generator

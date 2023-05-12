@@ -120,11 +120,13 @@ def get_chapter_metadata(response: requests.Response) -> dict:
     """
     soup: BeautifulSoup = BeautifulSoup(response.content, 'html.parser')
     try:
+        title: str = soup.select(".entry-title")[0].get_text()
         pub_time: str = soup.select("meta[property='article:published_time']")[0].get("content")
         mod_time: str = soup.select("meta[property='article:modified_time']")[0].get("content")
         word_count: str = len(re.split(r'\W+', soup.text))
         dl_time: str = datetime.now().isoformat()
         return {
+            "title": title,
             "pub_time": pub_time,
             "mod_time": mod_time,
             "dl_time": dl_time,

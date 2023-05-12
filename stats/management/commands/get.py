@@ -32,6 +32,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         tor_session = get.TorSession()
+        self.stdout.write("Connecting to Tor session...")
         toc = get.TableOfContents(tor_session)
         self.last_download: int = 0
 
@@ -70,7 +71,7 @@ class Command(BaseCommand):
             chapter_path.mkdir(parents=True, exist_ok=True)
             src_path = Path(chapter_path, f"{chapter_title}.html")
             txt_path = Path(chapter_path, f"{chapter_title}.txt")
-            meta_path = Path(chapter_path, f"{chapter_title}.json")
+            meta_path = Path(chapter_path, f"metadata.json")
 
             if not options.get("clobber") and src_path.exists() and txt_path.exists() and meta_path.exists():
                 self.stdout.write(self.style.NOTICE(f"> All chapter files exist for chapter: \"{chapter_title}\". Skipping..."))
@@ -173,6 +174,18 @@ class Command(BaseCommand):
             volume_root.mkdir(exist_ok=True)
           
             if options.get("all"):
+                # Save metadata
+                metadata: dict = {
+                    "title": "The Wandering Inn",
+                    "volumes": { k:i for i, k in enumerate(toc.volume_data) }
+                }
+                meta_path = Path(volume_root, "metadata.json")
+                save_file(
+                    text = json.dumps(metadata, sort_keys=True, indent=4),
+                    path = meta_path,
+                    success_msg = f"Volumes metadata saved to {meta_path}",
+                    warn_msg = f"{meta_path} already exists. Not saving...")
+
                 # Download all volumes
                 for i, (volume_title, books) in list(enumerate(toc.volume_data.items())):
                     volume_path = Path(volume_root, f"{volume_title}")
