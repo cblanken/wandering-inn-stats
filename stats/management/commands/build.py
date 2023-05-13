@@ -220,14 +220,14 @@ class Command(BaseCommand):
                         try:
                             # Check for existing RefType
                             ref_type = RefType.objects.get(name=ref.text)
-                            self.stdout.write(self.style.WARNING(f"> [{ref.text}] already exists. Skipping creation..."))
+                            self.stdout.write(self.style.WARNING(f"> RefType: [{ref.text}] already exists. Skipping creation..."))
                             selected_type = ref_type.type
                         except RefType.DoesNotExist:
                             # Check for existing Alias
                             try:
                                 alias = Alias.objects.get(name=ref.text)
                                 selected_type = alias.ref_type.type
-                                self.stdout.write(self.style.WARNING(f"> {alias} already exists. Skipping creation..."))
+                                self.stdout.write(self.style.WARNING(f"> Alias: {alias} already exists. Skipping creation..."))
                             except Alias.DoesNotExist:
                                 selected_type = select_ref_type()
                                 if selected_type is not None:
@@ -246,7 +246,7 @@ class Command(BaseCommand):
                                     start_column=ref.start_column,
                                 )
                                 self.stdout.write(
-                                    self.style.WARNING(f"> [{text_ref.text}] already exists. Skipping creation...")
+                                    self.style.WARNING(f"> TextRef: [{text_ref.text}] @line: {text_ref.line_number} already exists. Skipping creation...")
                                 )
                             except TextRef.DoesNotExist:
                                 text_ref = TextRef(
