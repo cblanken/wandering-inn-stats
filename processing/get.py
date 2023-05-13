@@ -36,7 +36,7 @@ class TorSession:
                                       headers= { "User-Agent": UserAgent().random },
                                       allow_redirects=True,
                                       timeout=10)
-            if resp.status_code == 404:
+            if resp.status_code >= 400 and resp.status_code <= 499:
                 self.__tries += 1
                 self.get_new_tor_circuit()
             else:
