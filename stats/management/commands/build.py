@@ -9,6 +9,7 @@ from stats.models import Color, ColorCategory, Chapter, Book, Volume, TextRef, R
 from processing import Volume as SrcVolume, Book as SrcBook, Chapter as SrcChapter, get_metadata
 
 class COLOR_CATEGORY(Enum):
+    """Text color categories according to TWI wiki"""
     INVISIBLE = "Invisible skills/text"
     SIREN_WATER = "Siren water skill"
     CERIA_COLD = "Ceria cold skill"
@@ -111,7 +112,7 @@ def select_ref_type() -> str:
                 if yes_no.lower() == "y":
                     continue
                 return None # skip with confirmation
-            
+
             ref_type = match_ref_type(sel)
             return ref_type
 
@@ -128,8 +129,9 @@ class Command(BaseCommand):
     help = "Update database from chapter source HTML and text files"
 
     def add_arguments(self, parser):
-        parser.add_argument("volumes_path", type=str,
-            help="Path in file system where chapter data is saved to disk per volume")
+        parser.add_argument("data_path", type=str,
+            help="Path in file system where build data is saved to disk. \
+                This includes volumes, books, chapters, characters, etc.")
         parser.add_argument("-i", "--ignore-missing-chapter-metadata", action="store_true",
             help="Update Chapter data with defaults if the metadata file can't be read")
         # TODO: add (-u) option for updating existing records
@@ -160,9 +162,31 @@ class Command(BaseCommand):
                 color.save()
                 self.stdout.write(self.style.SUCCESS(f"> Color created: {color}"))
 
+        # Populate characters from wiki data
+        self.stdout.write("\nPopulating characters RefType(s)...")
+        char_data_path = Path(options["data_path"], "characters.json")
+        with open(char_data_path, encoding="utf-8") as file:
+            try:
+                data = json.load(file)
+            except json.JSONDecodeError:
+                self.stdout.write(self.style.ERROR(
+                    f"> Character data ({char_data_path}) could not be decoded"))
+            else:
+                for character in data.items():
+                    char_name = character[0]
+                    char_url = character[1]
+                    try:
+                        # Check for existing RefType
+                        ref_type = RefType.objects.get(name=char_name, type=RefType.CHARACTER)
+                        ref_type.description = char_url
+                        self.stdout.write(self.style.WARNING(f"> Character RefType: {char_name} already exists. Skipping creation..."))
+                    except RefType.DoesNotExist:
+                        ref_type = RefType(name=char_name, type=RefType.CHARACTER)
+                        ref_type.save()
+                        self.stdout.write(self.style.SUCCESS(f"> {ref_type} created"))
 
         # Populate Volumes
-        vol_root = Path(options["volumes_path"])
+        vol_root = Path(options["data_path"], "volumes")
         meta_path = Path(vol_root)
         volumes_metadata = get_metadata(meta_path)
         volumes = sorted(list(volumes_metadata["volumes"].items()), key=lambda x: x[1])
@@ -198,7 +222,7 @@ class Command(BaseCommand):
                     try:
                         # Check for existing Chapter
                         chapter = Chapter.objects.get(title=src_chapter.title)
-                        self.stdout.write(self.style.WARNING(f"> {src_chapter.title} already exists. Skipping creation..."))
+                        self.stdout.write(self.style.WARNING(f"> Chapter \"{src_chapter.title}\" already exists. Skipping creation..."))
                     except Chapter.DoesNotExist:
                         chapter = Chapter(
                             number=chapter_num, title=src_chapter.title, book=book,
@@ -216,28 +240,28 @@ class Command(BaseCommand):
                     for ref in src_chapter.all_text_refs:
                         print(ref)
 
-                        selected_type = None
+                        ref_type.type = None
                         try:
                             # Check for existing RefType
                             ref_type = RefType.objects.get(name=ref.text)
                             self.stdout.write(self.style.WARNING(f"> RefType: [{ref.text}] already exists. Skipping creation..."))
-                            selected_type = ref_type.type
+                            ref_type.type = ref_type.type
                         except RefType.DoesNotExist:
                             # Check for existing Alias
                             try:
                                 alias = Alias.objects.get(name=ref.text)
-                                selected_type = alias.ref_type.type
+                                ref_type.type = alias.ref_type.type
                                 self.stdout.write(self.style.WARNING(f"> Alias: {alias} already exists. Skipping creation..."))
                             except Alias.DoesNotExist:
-                                selected_type = select_ref_type()
-                                if selected_type is not None:
-                                    ref_type = RefType(name=ref.text, type=selected_type)
+                                ref_type.type = select_ref_type()
+                                if ref_type.type is not None:
+                                    ref_type = RefType(name=ref.text, type=ref_type.type)
                                     ref_type.save()
                                     self.stdout.write(self.style.SUCCESS(f"> {ref_type} created"))
                                 else:
                                     self.stdout.write(self.style.WARNING(f"> {ref.text} skipped..."))
 
-                        if selected_type is not None:
+                        if ref_type.type is not None:
                             try:
                                 text_ref = TextRef.objects.get(
                                     chapter=chapter,
@@ -246,7 +270,7 @@ class Command(BaseCommand):
                                     start_column=ref.start_column,
                                 )
                                 self.stdout.write(
-                                    self.style.WARNING(f"> TextRef: [{text_ref.text}] @line: {text_ref.line_number} already exists. Skipping creation...")
+                                    self.style.WARNING(f"> TextRef: [{text_ref.text}] @line {text_ref.line_number} already exists. Skipping creation...")
                                 )
                             except TextRef.DoesNotExist:
                                 text_ref = TextRef(

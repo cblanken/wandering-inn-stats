@@ -97,7 +97,7 @@ class RefType(models.Model):
         ordering = ["name"]
 
     def __str__(self):
-        return f"(RefType: [{self.name}] - Type: {self.type}, is_divine: {self.is_divine})"
+        return f"(RefType: {self.name} - Type: {self.type}, is_divine: {self.is_divine})"
 
 class Alias(models.Model):
     """RefType aliases / alternate names"""
