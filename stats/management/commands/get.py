@@ -4,7 +4,6 @@ from pathlib import Path
 import random
 import time
 from django.core.management.base import BaseCommand, CommandError
-from requests import codes as status_codes
 from processing import get
 
 class Command(BaseCommand):
@@ -26,12 +25,17 @@ class Command(BaseCommand):
                             help="Time delay")
         parser.add_argument("-j", "--jitter", action="store_true",
                             help="Randomized delay betweeen (0.5 to 1.5) times")
-        parser.add_argument("-r", "--root", default="./volumes",
-                            help="Root path of volumes to save to")
+        # TODO: udpate --jitter to use `const` argument type option
+        parser.add_argument("-r", "--root", default="./data",
+                            help="Root path downloaded data")
+        parser.add_argument("--volume_root", default="volumes",
+                            help="Path under root directory to save volumes")
         parser.add_argument("-c", "--clobber", action="store_true",
                             help="Overwrite chapter files if they already exist")
         parser.add_argument("-l", "--latest", action="store_true",
                             help="Download only the most recently released chapter")
+        parser.add_argument("--chars", action="store_true",
+                            help="Download character information from wiki")
 
     def handle(self, *args, **options):
         tor_session = get.TorSession()
@@ -77,23 +81,23 @@ class Command(BaseCommand):
             chapter_path.mkdir(parents=True, exist_ok=True)
             src_path = Path(chapter_path, f"{chapter_title}.html")
             txt_path = Path(chapter_path, f"{chapter_title}.txt")
-            meta_path = Path(chapter_path, f"metadata.json")
+            meta_path = Path(chapter_path, "metadata.json")
 
             if not options.get("clobber") and src_path.exists() and txt_path.exists() and meta_path.exists():
                 self.stdout.write(self.style.NOTICE(f"> All chapter files exist for chapter: \"{chapter_title}\". Skipping..."))
                 return
 
             self.stdout.write(f"Downloading {chapter_href}")
-            chapter_response = tor_session.get_chapter(chapter_href)
+            chapter_response = tor_session.get(chapter_href)
             if chapter_response is None:
                 self.stdout.write(self.style.WARNING("! Chapter could not be downloaded!"))
                 self.stdout.write(f"Skipping download for {chapter_title} → {chapter_href}")
                 tor_session.reset_tries()
                 return
 
-            html: str = get.get_chapter_html(chapter_response)
-            text: str = get.get_chapter_text(chapter_response)
-            metadata: dict = get.get_chapter_metadata(chapter_response)
+            html: str = get.parse_chapter_to_html(chapter_response)
+            text: str = get.parse_chapter_to_text(chapter_response)
+            metadata: dict = get.parse_chapter_to_metadata(chapter_response)
 
             if html is None or text is None or metadata is None:
                 self.stdout.write(self.style.WARNING("Some data could not be parsed from:"))
@@ -176,9 +180,10 @@ class Command(BaseCommand):
             b_title = options.get("book")
             c_title = options.get("chapter")
 
-            volume_root = Path(options.get("root"))
+            volume_root = Path(options.get("root"), options.get("volume_root"))
             volume_root.mkdir(exist_ok=True)
-          
+
+            # Get volumes/books/chapters
             if options.get("all"):
                 # Save metadata
                 metadata: dict = {
@@ -208,6 +213,15 @@ class Command(BaseCommand):
                 # Download selected volume
                 path = Path(volume_root, v_title)
                 download_volume(v_title, path)
+
+            # Get character info
+            if options.get("chars"):
+                self.stdout.write("Downloading character information...")
+                chars_by_alpha = tor_session.get_all_characters_by_alpha()
+                for chars in chars_by_alpha.values():
+                    for char in chars.items():
+                        print(f"{char[0]} → {char[1]}")
+
         except KeyboardInterrupt as exc:
             # TODO: file / partial download cleanup
             raise CommandError("Keyboard interrupt...downloads stopped") from exc

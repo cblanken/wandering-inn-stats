@@ -2,8 +2,9 @@
 from collections import OrderedDict
 from datetime import datetime
 from pathlib import Path
-import time
 import re
+import string
+import time
 from sys import stderr
 from bs4 import BeautifulSoup
 import requests
@@ -13,6 +14,7 @@ from stem.control import Controller
 from fake_useragent import UserAgent
 
 BASE_URL: str = "https://wanderinginn.com"
+WIKI_URL: str = "https://thewanderinginn.fandom.com"
 
 # TODO allow redirects 
 # This https://wanderinginn.com/table-of-contents/interlude-satar-revised redirects to
@@ -29,7 +31,7 @@ class TorSession:
         self.__tries = 0 # resets after a sucessful chapter download
         self.__max_tries = max_tries
 
-    def get(self, url):
+    def get(self, url) -> requests.Response:
         resp = None
         while self.__tries < self.__max_tries:
             resp = self.__session.get(url=url,
@@ -61,7 +63,7 @@ class TorSession:
                 conn.signal(Signal.NEWNYM)
                 time.sleep(0.25)
             else:
-                print("! New Tor circuit not available - must wait for Tor to acceppt NEWNYM signal")
+                print("! New Tor circuit not available - must wait for Tor to accept NEWNYM signal")
                 breakpoint()
                 #while(True):
                 #    print("> Switching Tor circuit...")
@@ -82,19 +84,46 @@ class TorSession:
                 #    if reply.lower() != "y":
                 #        break
 
-    def get_chapter(self, chapter_link: str) -> requests.Response:
-        """Get requests Response for chapter link
-        """
-        try:
-            return self.get(chapter_link)
-        except requests.HTTPError as exc:
-            print(f"Unable to retrieve chapter from {chapter_link}, {exc}", file=stderr)
-            return
-        except requests.Timeout as exc:
-            print(f"Unable to retrieve chapter from {chapter_link}", {exc}, file=stderr)
-            return
+    def get_character_by_alpha(self, alpha_char: str) -> dict[str:str]:
+        """Get single character name and link to the wiki
 
-def get_chapter_html(response: requests.Response) -> str:
+        Returns
+        - Dictionary of the form
+        {
+            character name : url to wiki page,
+            ...
+        }
+        """
+        alpha_char = alpha_char.upper()
+        if len(alpha_char) != 1 or alpha_char not in string.ascii_uppercase:
+            raise ValueError("Invalid alphabetic character")
+
+        char_endpoint = f"{WIKI_URL}/Category:Characters"
+        resp = requests.get(f"{char_endpoint}?from={alpha_char}", timeout=5)
+
+        soup = BeautifulSoup(resp.text, "html.parser")
+        return {
+            x["title"]:WIKI_URL + x["href"] for x in soup.select(".category-page__member-link") \
+                if "Category" not in x["title"]
+        }
+
+
+    def get_all_characters_by_alpha(self) -> dict[dict[str:str]]:
+        """Get all characters names and links to the wiki
+
+        Returns
+        - Dictionary of the form
+        {
+            alphabetic character : {
+                character name : url to wiki page,
+                ...
+            },
+            ...
+        }
+        """
+        return { c:self.get_character_by_alpha(c) for c in string.ascii_uppercase}
+
+def parse_chapter_to_html(response: requests.Response) -> str:
     """Parse chapter content html from Response object
     """
     soup: BeautifulSoup = BeautifulSoup(response.content, 'html.parser')
@@ -104,7 +133,7 @@ def get_chapter_html(response: requests.Response) -> str:
 
     return str(result[0])
 
-def get_chapter_text(response: requests.Response) -> str:
+def parse_chapter_to_text(response: requests.Response) -> str:
     """Parse chapter text from Response object
     """
     soup: BeautifulSoup = BeautifulSoup(response.content, 'html.parser')
@@ -115,7 +144,7 @@ def get_chapter_text(response: requests.Response) -> str:
         return None
     return "\n".join([header_text[0], content_text[0]])
 
-def get_chapter_metadata(response: requests.Response) -> dict:
+def parse_chapter_to_metadata(response: requests.Response) -> dict:
     """Parse chapter metadata from Response object
     """
     soup: BeautifulSoup = BeautifulSoup(response.content, 'html.parser')
