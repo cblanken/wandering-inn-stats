@@ -7,7 +7,7 @@ from django.core.management.base import BaseCommand, CommandError
 from processing import get
 
 class Command(BaseCommand):
-    help = "Download Wandering Inn chapters by volume"
+    help = "Download Wandering Inn data including volumes, books, chapters, characters etc."
     last_download: float = 0.0
 
     def add_arguments(self, parser):
@@ -25,7 +25,7 @@ class Command(BaseCommand):
                             help="Time delay")
         parser.add_argument("-j", "--jitter", action="store_true",
                             help="Randomized delay betweeen (0.5 to 1.5) times")
-        # TODO: udpate --jitter to use `const` argument type option
+        # TODO: update --jitter to use `const` argument type option
         parser.add_argument("-r", "--root", default="./data",
                             help="Root path downloaded data")
         parser.add_argument("--volume_root", default="volumes",
@@ -56,7 +56,7 @@ class Command(BaseCommand):
                     warn_msg = f"\"{path}\" could not be saved"
                 self.stdout.write("> ", ending="")
                 self.stdout.write(self.style.WARNING(warn_msg))
-            
+       
             return was_saved
 
         def download_last_chapter():
@@ -131,7 +131,7 @@ class Command(BaseCommand):
         def download_book(volume_title: str, book_title: str, book_path: Path):
             book_path.mkdir(parents=True, exist_ok=True)
             chapters = toc.volume_data[volume_title][book_title]
-            
+
             # Save metadata
             metadata: dict = {
                 "title": book_title,
@@ -174,8 +174,6 @@ class Command(BaseCommand):
             if toc.response is None:
                 raise CommandError(f"The table of contents ({toc.url}) could not be downloaded.\nCheck your network connection and confirm the host hasn't been IP blocked.")
 
-            #start = options.get("first_volume")
-            #end = start + options.get("range")
             v_title = options.get("volume")
             b_title = options.get("book")
             c_title = options.get("chapter")
@@ -218,9 +216,19 @@ class Command(BaseCommand):
             if options.get("chars"):
                 self.stdout.write("Downloading character information...")
                 chars_by_alpha = tor_session.get_all_characters_by_alpha()
+                data = {}
                 for chars in chars_by_alpha.values():
                     for char in chars.items():
-                        print(f"{char[0]} → {char[1]}")
+                        data[char[0]] = {
+                            "url": char[1]
+                        }
+                
+                char_data_path = Path(options.get("root"), "characters.json")
+                save_file(
+                    text = json.dumps(data, sort_keys=True, indent=4),
+                    path = char_data_path,
+                    success_msg=f"Character data saved to {char_data_path}",
+                    warn_msg = f"{char_data_path} already exists. Not saving...")
 
         except KeyboardInterrupt as exc:
             # TODO: file / partial download cleanup
