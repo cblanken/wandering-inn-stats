@@ -87,12 +87,12 @@ class TorSession:
     def get_character_by_alpha(self, alpha_char: str) -> dict[str:str]:
         """Get single character name and link to the wiki
 
-        Returns
-        - Dictionary of the form
-        {
-            character name : url to wiki page,
-            ...
-        }
+        Returns:
+            Dictionary of the form:
+            {
+                character name : url to wiki page,
+                ...
+            }
         """
         alpha_char = alpha_char.upper()
         if len(alpha_char) != 1 or alpha_char not in string.ascii_uppercase:
@@ -107,21 +107,58 @@ class TorSession:
                 if "Category" not in x["title"]
         }
 
-
     def get_all_characters_by_alpha(self) -> dict[dict[str:str]]:
         """Get all characters names and links to the wiki
 
-        Returns
-        - Dictionary of the form
-        {
-            alphabetic character : {
-                character name : url to wiki page,
+        Returns:
+            Dictionary of the form:
+            {
+                alphabetic character : {
+                    character name : url to wiki page,
+                    ...
+                },
                 ...
-            },
-            ...
-        }
+            }
         """
-        return { c:self.get_character_by_alpha(c) for c in string.ascii_uppercase}
+        return { c:self.get_character_by_alpha(c) for c in string.ascii_uppercase }
+
+    def get_locations_by_alpha(self, alpha_char: str) -> dict[str]:
+        """Get single location name and link to the wiki
+
+        Returns:
+            Dictionary of the form:
+            {
+                location name : url to wiki page,
+                ...
+            }
+        """
+        alpha_char = alpha_char.upper()
+        if len(alpha_char) != 1 or alpha_char not in string.ascii_uppercase:
+            raise ValueError("Invalid alphabetic character")
+
+        char_endpoint = f"{WIKI_URL}/Category:Locations"
+        resp = requests.get(f"{char_endpoint}?from={alpha_char}", timeout=5)
+        soup = BeautifulSoup(resp.text, "html.parser")
+        return {
+            x["title"]:WIKI_URL + x["href"] for x in soup.select(".category-page__member-link") \
+                if "Category" not in x["title"]
+        }
+
+
+    def get_all_locations_by_alpha(self) -> dict[dict[str:str]]:
+        """Get all location names and links to the wiki
+
+        Returns:
+            Dictionary of the form:
+            {
+                alphabetic character : {
+                    location name : url to wiki page,
+                    ...
+                },
+                ...
+            }
+        """
+        return { c:self.get_locations_by_alpha(c) for c in string.ascii_uppercase }
 
 def parse_chapter_to_html(response: requests.Response) -> str:
     """Parse chapter content html from Response object
@@ -171,7 +208,7 @@ def save_file(filepath: Path, text: str, clobber: bool = False):
     """
     if filepath.exists() and not clobber:
         return False
-        
+
     with open(filepath, "w", encoding="utf-8") as file:
         file.write(text)
         return True

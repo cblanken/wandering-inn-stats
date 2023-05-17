@@ -185,6 +185,29 @@ class Command(BaseCommand):
                         ref_type.save()
                         self.stdout.write(self.style.SUCCESS(f"> {ref_type} created"))
 
+        # Populate locations from wiki data
+        self.stdout.write("\nPopulating locations RefType(s)...")
+        loc_data_path = Path(options["data_path"], "locations.json")
+        with open(loc_data_path, encoding="utf-8") as file:
+            try:
+                data = json.load(file)
+            except json.JSONDecodeError:
+                self.stdout.write(self.style.ERROR(
+                    f"> location data ({loc_data_path}) could not be decoded"))
+            else:
+                for location in data.items():
+                    loc_name = location[0]
+                    loc_url = location[1]
+                    try:
+                        # Check for existing RefType
+                        ref_type = RefType.objects.get(name=loc_name, type=RefType.LOCATION)
+                        ref_type.description = loc_url
+                        self.stdout.write(self.style.WARNING(f"> location RefType: {loc_name} already exists. Skipping creation..."))
+                    except RefType.DoesNotExist:
+                        ref_type = RefType(name=loc_name, type=RefType.LOCATION)
+                        ref_type.save()
+                        self.stdout.write(self.style.SUCCESS(f"> {ref_type} created"))
+
         # Populate Volumes
         vol_root = Path(options["data_path"], "volumes")
         meta_path = Path(vol_root)

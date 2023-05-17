@@ -1,6 +1,7 @@
 """Download command for wanderinginn.com"""
 import json
 from pathlib import Path
+from pprint import pprint
 import random
 import time
 from django.core.management.base import BaseCommand, CommandError
@@ -36,6 +37,8 @@ class Command(BaseCommand):
                             help="Download only the most recently released chapter")
         parser.add_argument("--chars", action="store_true",
                             help="Download character information from wiki")
+        parser.add_argument("--locs", action="store_true",
+                            help="Download location information from wiki")
 
     def handle(self, *args, **options):
         tor_session = get.TorSession()
@@ -229,6 +232,24 @@ class Command(BaseCommand):
                     path = char_data_path,
                     success_msg=f"Character data saved to {char_data_path}",
                     warn_msg = f"{char_data_path} already exists. Not saving...")
+
+            # Get location info
+            if options.get("locs"):
+                self.stdout.write("Downloading location information...")
+                locs_by_alpha = tor_session.get_all_locations_by_alpha()
+                data = {}
+                for locs in locs_by_alpha.values():
+                    for loc in locs.items():
+                        data[loc[0]] = {
+                            "url": loc[1]
+                        }
+
+                loc_data_path = Path(options.get("root"), "locations.json")
+                save_file(
+                    text = json.dumps(data, sort_keys=True, indent=4),
+                    path = loc_data_path,
+                    success_msg=f"Location data saved to {loc_data_path}",
+                    warn_msg = f"{loc_data_path} already exists. Not saving...")
 
         except KeyboardInterrupt as exc:
             # TODO: file / partial download cleanup
