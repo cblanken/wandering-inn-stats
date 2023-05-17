@@ -8,8 +8,6 @@ import json
 from pathlib import Path
 from typing import Generator
 
-DEFAULT_CONTEXT_LEN = 50
-
 OBTAINED_SUFFIX = r".*[Oo]btained.?\]"
 class Pattern(Enum):
     """Text matching RE patterns for processing chapter text"""
@@ -55,18 +53,18 @@ class TextRef:
     - type (RefType): Type of refence such as Characer, Class, Spell etc.
     """
     def __init__(self, text: str, line_text: str, line_id: int, start_column: int,
-        end_column: int, context_offset: int = DEFAULT_CONTEXT_LEN) -> TextRef:
+        end_column: int, context_len) -> TextRef:
         self.text: str = text.strip()
         self.line_text = line_text.strip()
         self.line_number: int = line_id
         self.start_column: int = start_column
         self.end_column: int = end_column
-        self.context_offset: int = context_offset
+        self.context_offset: int = context_len
         self.type: RefType = None
 
         # Construct surrounding context string
-        start = max(start_column - context_offset, 0)
-        end = min(end_column + context_offset, len(line_text))
+        start = max(start_column - context_len, 0)
+        end = min(end_column + context_len, len(line_text))
         self.context = line_text[start:end].strip()
 
     def __str__(self):
@@ -107,14 +105,14 @@ class Chapter:
         self.meta_path: Path = meta_path if meta_path.exists() else None
         self.metadata = get_metadata(self.path) if meta_path.exists() else None
 
-        self.all_src_refs: Generator = self.gen_chapter_src_refs(Pattern._or(
+        self.all_src_refs: Generator[TextRef] = self.gen_chapter_src_refs(Pattern._or(
             Pattern.ALL_MAGIC_WORDS,
             Pattern.SKILL_OBTAINED,
             Pattern.CLASS_OBTAINED,
             Pattern.SPELL_OBTAINED
         ))
 
-    def gen_chapter_src_refs(self, pattern: re.Pattern, context_len: int = DEFAULT_CONTEXT_LEN):
+    def gen_chapter_src_refs(self, pattern: re.Pattern, context_len: int = 50) -> Generator[TextRef]:
         """Return  TextRef(s) that match the regex for the given regex patterns
 
         Args:

@@ -5,6 +5,7 @@ import logging
 from pprint import pprint
 from pathlib import Path
 from django.core.management.base import BaseCommand, CommandError
+from django.db.models.query import QuerySet
 from stats.models import Color, ColorCategory, Chapter, Book, Volume, TextRef, RefType, Alias
 from processing import Volume as SrcVolume, Book as SrcBook, Chapter as SrcChapter, get_metadata
 
@@ -124,6 +125,7 @@ def select_ref_type() -> str:
         print("")
         raise CommandError("Build interrupted with Ctrl-D (EOF).") from exc
 
+# TODO: refactor all build steps to use Model.get_or_create() instead of Model.get() + try/except
 class Command(BaseCommand):
     """Database build function"""
     help = "Update database from chapter source HTML and text files"
@@ -260,14 +262,14 @@ class Command(BaseCommand):
                         chapter.save()
 
                     # Populate TextRefs
-                    for ref in src_chapter.all_text_refs:
+                    for ref in src_chapter.all_src_refs:
                         print(ref)
 
                         ref_type.type = None
                         try:
                             # Check for existing RefType
                             ref_type = RefType.objects.get(name=ref.text)
-                            self.stdout.write(self.style.WARNING(f"> RefType: [{ref.text}] already exists. Skipping creation..."))
+                            self.stdout.write(self.style.WARNING(f"> RefType: {ref.text} already exists. Skipping creation..."))
                             ref_type.type = ref_type.type
                         except RefType.DoesNotExist:
                             # Check for existing Alias
@@ -276,7 +278,8 @@ class Command(BaseCommand):
                                 ref_type.type = alias.ref_type.type
                                 self.stdout.write(self.style.WARNING(f"> Alias: {alias} already exists. Skipping creation..."))
                             except Alias.DoesNotExist:
-                                ref_type.type = select_ref_type()
+                                #ref_type.type = select_ref_type()
+                                ref_type.type = RefType.CLASS
                                 if ref_type.type is not None:
                                     ref_type = RefType(name=ref.text, type=ref_type.type)
                                     ref_type.save()
@@ -285,6 +288,46 @@ class Command(BaseCommand):
                                     self.stdout.write(self.style.WARNING(f"> {ref.text} skipped..."))
 
                         if ref_type.type is not None:
+                            color = None
+                            if 'span style="color:' in ref.context:
+                                try:
+                                    print(f"Found color span in '{ref.context}'")
+                                    i: int = ref.context.index("color:")
+                                    # TODO: make this parsing more robust
+                                    rgb_hex: str = ref.context[i+7:i+13].upper()
+                                    matching_colors: QuerySet = Color.objects.filter(rgb=rgb_hex)
+                                    if len(matching_colors) == 1:
+                                        color = matching_colors[0]
+                                    else:
+                                        self.stdout.write(f"Unable to automatically select color for TextRef: {ref}")
+                                        sel: int = 0
+                                        for i, col in enumerate(matching_colors):
+                                            self.stdout.write(f"{i}: {col}")
+                                        while True:
+                                            try:
+                                                sel: int = int(input("Select color: "))
+                                            except ValueError:
+                                                self.stdout.write("Invalid selection. Please try again.")
+                                                continue
+                                            else:
+                                                if sel < len(matching_colors):
+                                                    break
+                                                self.stdout.write("Invalid selection. Please try again.")
+
+                                        color = matching_colors[i]
+                                except IndexError:
+                                    print("Can't get color. Invalid TextRef context index")
+                                    raise
+                                except Color.DoesNotExist:
+                                    print("Can't get color. There is no existing Color for rgb={rgb_hex}")
+                                    raise
+                                except KeyboardInterrupt as exc:
+                                    print("")
+                                    raise CommandError("Build interrupted with Ctrl-C (Keyboard Interrupt).") from exc
+                                except EOFError as exc:
+                                    print("")
+                                    raise CommandError("Build interrupted with Ctrl-D (EOF).") from exc
+
                             try:
                                 text_ref = TextRef.objects.get(
                                     chapter=chapter,
@@ -293,12 +336,13 @@ class Command(BaseCommand):
                                     start_column=ref.start_column,
                                 )
                                 self.stdout.write(
-                                    self.style.WARNING(f"> TextRef: [{text_ref.text}] @line {text_ref.line_number} already exists. Skipping creation...")
+                                    self.style.WARNING(f"> TextRef: {text_ref.text} @line {text_ref.line_number} already exists. Skipping creation...")
                                 )
                             except TextRef.DoesNotExist:
                                 text_ref = TextRef(
                                     text=ref.text,
                                     type=ref_type,
+                                    color=color,
                                     chapter=chapter,
                                     line_number=ref.line_number,
                                     start_column=ref.start_column,

@@ -115,6 +115,7 @@ class TextRef(models.Model):
     text = models.TextField()
     chapter = models.ForeignKey(Chapter, on_delete=models.CASCADE)
     type = models.ForeignKey(RefType, on_delete=models.CASCADE)
+    color = models.ForeignKey(Color, on_delete=models.PROTECT, null=True)
     line_number = models.PositiveIntegerField()
     start_column = models.PositiveIntegerField()
     end_column = models.PositiveIntegerField()
