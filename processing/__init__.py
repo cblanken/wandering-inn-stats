@@ -90,28 +90,35 @@ class Chapter:
     """Model for chapter as a file
     
     Args:
-    - title (str): Chapter title
-    - path (Path): path to HTML file of downloaded chapter
+        title (str): Chapter title
+        path (Path): path to HTML file of downloaded chapter
     """
     def __init__(self, path: Path):
         self.path: Path = path
-        self.src_path: Path = Path(path, list(path.glob("*.html"))[0].name)
-        self.txt_path: Path = Path(path, list(path.glob("*.txt"))[0].name)
-        self.meta_path: Path = Path(path, list(path.glob("*.json"))[0].name)
-        self.metadata = get_metadata(self.path)
-        self.title: str = self.src_path.stem
-        self.all_text_refs: Generator = self.gen_chapter_text_refs(Pattern._or(
+        self.title: str = path.name
+
+        src_path = Path(path, f"{self.title}.html")
+        self.src_path: Path = src_path if src_path.exists() else None
+
+        txt_path = Path(path, f"{self.title}.txt")
+        self.txt_path: Path = txt_path if txt_path.exists() else None
+
+        meta_path = Path(path, "metadata.json")
+        self.meta_path: Path = meta_path if meta_path.exists() else None
+        self.metadata = get_metadata(self.path) if meta_path.exists() else None
+
+        self.all_src_refs: Generator = self.gen_chapter_src_refs(Pattern._or(
             Pattern.ALL_MAGIC_WORDS,
             Pattern.SKILL_OBTAINED,
             Pattern.CLASS_OBTAINED,
             Pattern.SPELL_OBTAINED
         ))
 
-    def gen_chapter_text_refs(self, pattern: re.Pattern, context_len: int = DEFAULT_CONTEXT_LEN):
+    def gen_chapter_src_refs(self, pattern: re.Pattern, context_len: int = DEFAULT_CONTEXT_LEN):
         """Return  TextRef(s) that match the regex for the given regex patterns
 
         Args:
-        - patterns (Patterns): Bitwise combination of Patterns
+            patterns (Patterns): Bitwise combination of Patterns
         """
         with open(self.src_path, "r", encoding="utf-8") as file:
             lines = file.readlines()
@@ -122,7 +129,7 @@ class Chapter:
                 yield TextRef(match.group(), match.string, line_number,
                             match.start(), match.end(), context_len)
 
-    def print_all_text_refs(self):
+    def print_all_src_refs(self):
         """Print TextRef(s) for chapter
         """
         headline = f"{self.title} - {self.path}"
@@ -130,7 +137,7 @@ class Chapter:
         print("=" * len(headline))
         print(headline)
         print("=" * len(headline))
-        for ref in self.all_text_refs:
+        for ref in self.all_src_refs:
             print(ref)
 
     def __str__(self):
