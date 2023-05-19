@@ -2,10 +2,10 @@
 from collections import OrderedDict
 from datetime import datetime
 from pathlib import Path
+import hashlib
 import re
 import string
 import time
-from sys import stderr
 from bs4 import BeautifulSoup
 import requests
 import requests.exceptions
@@ -160,30 +160,31 @@ class TorSession:
         """
         return { c:self.get_locations_by_alpha(c) for c in string.ascii_uppercase }
 
-def parse_chapter_to_html(response: requests.Response) -> str:
-    """Parse chapter content html from Response object
+def parse_chapter(response: requests.Response) -> dict[str]:
+    """Parse data from chapter
+
+    Args:
+        response: Requests response object holding data from chapter download
+    
+    Returns:
+
     """
+    # Parse chapter content html from Response object
+    chapter = {}
+
     soup: BeautifulSoup = BeautifulSoup(response.content, 'html.parser')
     result = soup.select('.entry-content')
-    if len(result) == 0:
-        return None
+    if len(result) != 0:
+        chapter["html"] = result[0].text
 
-    return str(result[0])
-
-def parse_chapter_to_text(response: requests.Response) -> str:
-    """Parse chapter text from Response object
-    """
+    # Parse chapter text from Response object
     soup: BeautifulSoup = BeautifulSoup(response.content, 'html.parser')
     header_text: str = [element.get_text() for element in soup.select(".entry-title")]
     content_text: str = [element.get_text() for element in soup.select(".entry-content")]
-    if len(header_text) == 0 or len(content_text) == 0:
-        print(f"! The 'header_text' or 'content_text' is missing from \"{response.url}\"")
-        return None
-    return "\n".join([header_text[0], content_text[0]])
+    if len(header_text) != 0 and len(content_text) != 0:
+        chapter["text"] = "\n".join([header_text[0], content_text[0]])
 
-def parse_chapter_to_metadata(response: requests.Response) -> dict:
-    """Parse chapter metadata from Response object
-    """
+    # Parse chapter metadata from Response object
     soup: BeautifulSoup = BeautifulSoup(response.content, 'html.parser')
     try:
         title: str = soup.select(".entry-title")[0].get_text()
@@ -191,17 +192,20 @@ def parse_chapter_to_metadata(response: requests.Response) -> dict:
         mod_time: str = soup.select("meta[property='article:modified_time']")[0].get("content")
         word_count: str = len(re.split(r'\W+', soup.text))
         dl_time: str = str(datetime.now().astimezone())
-        return {
+        digest: str = hashlib.sha256(chapter["text"].encode("utf-8")).hexdigest()
+        chapter["metadata"] = {
             "title": title,
             "pub_time": pub_time,
             "mod_time": mod_time,
             "dl_time": dl_time,
             "url": response.url,
-            "word_count": word_count
+            "word_count": word_count,
+            "digest": digest,
         }
     except IndexError as exc:
         print(f"! Couldn't find metadata at {response.url}. Exception: {exc}")
-        return None
+
+    return chapter
 
 def save_file(filepath: Path, text: str, clobber: bool = False):
     """Write chapter text content to file

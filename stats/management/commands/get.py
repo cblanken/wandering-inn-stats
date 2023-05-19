@@ -98,11 +98,9 @@ class Command(BaseCommand):
                 tor_session.reset_tries()
                 return
 
-            html: str = get.parse_chapter_to_html(chapter_response)
-            text: str = get.parse_chapter_to_text(chapter_response)
-            metadata: dict = get.parse_chapter_to_metadata(chapter_response)
+            data = get.parse_chapter(chapter_response)
 
-            if html is None or text is None or metadata is None:
+            if data.get("html") is None or data.get("text") is None or data.get("metadata") is None:
                 self.stdout.write(self.style.WARNING("Some data could not be parsed from:"))
                 self.stdout.write(f"HTTP Response:\n {chapter_response}")
                 self.stdout.write(f"Skipping download for {chapter_title} → {chapter_href}")
@@ -110,21 +108,21 @@ class Command(BaseCommand):
 
             # Save source HTML
             save_file(
-                text = html,
+                text = data["html"],
                 path = src_path,
                 success_msg = f"\"{chapter_title}\" html saved to {src_path}",
                 warn_msg = f"{src_path} already exists. Not saving...")
 
             # Save text
             save_file(
-                text = text,
+                text = data["text"],
                 path = txt_path,
                 success_msg = f"\"{chapter_title}\" text saved to {txt_path}",
                 warn_msg = f"{txt_path} already exists. Not saving...")
 
             # Save metadata
             save_file(
-                text = json.dumps(metadata, sort_keys=True, indent=4),
+                text = json.dumps(data["metadata"], sort_keys=True, indent=4),
                 path = meta_path,
                 success_msg = f"\"{chapter_title}\" metadata saved to {meta_path}",
                 warn_msg = f"{meta_path} already exists. Not saving...")
