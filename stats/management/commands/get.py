@@ -44,6 +44,8 @@ class Command(BaseCommand):
         tor_session = get.TorSession()
         self.stdout.write("Connecting to Tor session...")
         toc = get.TableOfContents(tor_session)
+        if len(toc.volume_data) == 0:
+            self.stdout.write(self.style.WARNING("Volume data is empty. The Table of Contents may have changed..."))
         self.last_download: int = 0
 
         def save_file(text: str, path: Path, success_msg: str = None, warn_msg: str = None):
