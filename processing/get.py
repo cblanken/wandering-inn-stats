@@ -2,6 +2,7 @@
 from collections import OrderedDict
 from datetime import datetime
 from pathlib import Path
+from itertools import chain
 import hashlib
 import re
 import string
@@ -16,9 +17,6 @@ from fake_useragent import UserAgent
 BASE_URL: str = "https://wanderinginn.com"
 WIKI_URL: str = "https://thewanderinginn.fandom.com"
 
-# This https://wanderinginn.com/table-of-contents/interlude-satar-revised redirects to
-# -> https://wanderinginn.com/2022/02/20/interlude-satar/ and doesn't get followed by a
-# default requests.get( )
 class TorSession:
     """Session object to download webpages via requests
     Also handles cycling Tor connections to prevent IP bans
@@ -121,7 +119,7 @@ class TorSession:
         """
         return { c:self.__get_character_by_alpha(c) for c in string.ascii_uppercase }
 
-    def get_all_character_data(self):
+    def get_all_character_data(self) -> dict[str:dict]:
         print(f"> Getting links to all character wiki pages...")
         chars_by_alpha = self.__get_all_characters_by_alpha()
         data = {}
@@ -163,7 +161,6 @@ class TorSession:
             Dictionary of the form:
             {
                 location name : url to wiki page,
-                ...
             }
         """
         alpha_char = alpha_char.upper()
@@ -171,7 +168,7 @@ class TorSession:
             raise ValueError("Invalid alphabetic character")
 
         char_endpoint = f"{WIKI_URL}/Category:Locations"
-        resp = requests.get(f"{char_endpoint}?from={alpha_char}", timeout=5)
+        resp = self.get(f"{char_endpoint}?from={alpha_char}", timeout=5)
         soup = BeautifulSoup(resp.text, "html.parser")
         return {
             x["title"]:WIKI_URL + x["href"] for x in soup.select(".category-page__member-link") \
@@ -187,12 +184,53 @@ class TorSession:
             {
                 alphabetic character : {
                     location name : url to wiki page,
-                    ...
                 },
                 ...
             }
         """
         return { c:self.get_locations_by_alpha(c) for c in string.ascii_uppercase }
+
+    def get_class_list(self) -> list[str]:
+        list_hrefs = [
+            "https://thewanderinginn.fandom.com/wiki/List_of_Classes/A-L",
+            "https://thewanderinginn.fandom.com/wiki/List_of_Classes/M-Z",
+        ]
+        soups = [BeautifulSoup(self.get(href).text, "html.parser") for href in list_hrefs]
+
+        classes = [
+            [x.text.strip().replace("[", "").replace("]", "") for x in soup.select(
+                "table.article-table tr > td:first-of-type") if "..." not in x.text.strip()
+            ] for soup in soups
+        ] 
+        classes = list(chain(*classes))
+        
+        for i, c in enumerate(classes):
+            if "/" in c:
+                split = [x.strip() for x in c.split("/")]
+                classes[i] = split[0]
+                for extra in split[1:]:
+                    classes.append(extra)
+
+        return sorted(classes)
+
+    def get_spell_list(self) -> list[str]:
+        soup = BeautifulSoup(self.get("https://thewanderinginn.fandom.com/wiki/Spells").text, "html.parser")
+
+        spells = [
+            x.text.strip().replace("[", "").replace("]", "") for x in soup.select(
+                "table.article-table tr > td:first-of-type") if "..." not in x.text.strip()
+        ] 
+        
+        for i, c in enumerate(spells):
+            if "/" in c:
+                split = [x.strip() for x in c.split("/")]
+                spells[i] = split[0]
+                for extra in split[1:]:
+                    spells.append(extra)
+
+        return sorted(spells)
+
+    
 
 def parse_chapter(response: requests.Response) -> dict[str]:
     """Parse data from chapter

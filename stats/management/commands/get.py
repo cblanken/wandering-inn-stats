@@ -35,6 +35,10 @@ class Command(BaseCommand):
                             help="Overwrite chapter files if they already exist")
         parser.add_argument("-l", "--latest", action="store_true",
                             help="Download only the most recently released chapter")
+        parser.add_argument("--classes", action="store_true",
+                            help="Download class information from wiki")
+        parser.add_argument("--spells", action="store_true",
+                            help="Download spell information from wiki")
         parser.add_argument("--chars", action="store_true",
                             help="Download character information from wiki")
         parser.add_argument("--locs", action="store_true",
@@ -214,6 +218,32 @@ class Command(BaseCommand):
                 # Download selected volume
                 path = Path(volume_root, v_title)
                 download_volume(v_title, path)
+
+            # TODO: refactor common meta data download code into function
+
+            # Get class info
+            if options.get("classes"):
+                self.stdout.write("Downloading class information...")
+                classes = tor_session.get_class_list()
+
+                class_data_path = Path(options.get("root"), "classes.txt")
+                save_file(
+                    text = "\n".join(classes),
+                    path = class_data_path,
+                    success_msg=f"Character data saved to {class_data_path}",
+                    warn_msg = f"{class_data_path} already exists. Not saving...")
+
+            # Get spell info
+            if options.get("spells"):
+                self.stdout.write("Downloading spell information...")
+                spells = tor_session.get_spell_list()
+
+                spell_data_path = Path(options.get("root"), "spells.txt")
+                save_file(
+                    text = "\n".join(spells),
+                    path = spell_data_path,
+                    success_msg=f"Character data saved to {spell_data_path}",
+                    warn_msg = f"{spell_data_path} already exists. Not saving...")
 
             # Get character info
             if options.get("chars"):
