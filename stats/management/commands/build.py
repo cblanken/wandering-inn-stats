@@ -164,8 +164,36 @@ class Command(BaseCommand):
                 color.save()
                 self.stdout.write(self.style.SUCCESS(f"> Color created: {color}"))
 
+        # Populate spell types from wiki data
+        self.stdout.write("\nPopulating spell RefType(s)...")
+        spell_data_path = Path(options["data_path"], "spells.txt")
+        with open(spell_data_path, encoding="utf-8") as file:
+            for line in file.readlines():
+                spell_name = line.strip()
+                ref_type, created = RefType.objects.get_or_create(name=spell_name, type=RefType.SPELL)
+
+                if created:
+                    ref_type.save()
+                    self.stdout.write(self.style.SUCCESS(f"> {ref_type} created"))
+                else:
+                    self.stdout.write(self.style.WARNING(f"> Spell RefType: {spell_name} already exists. Skipping creation..."))
+
+        # Populate class types from wiki data
+        self.stdout.write("\nPopulating class RefType(s)...")
+        class_data_path = Path(options["data_path"], "classes.txt")
+        with open(class_data_path, encoding="utf-8") as file:
+            for line in file.readlines():
+                class_name = line.strip()
+                ref_type, created = RefType.objects.get_or_create(name=class_name, type=RefType.CLASS)
+
+                if created:
+                    ref_type.save()
+                    self.stdout.write(self.style.SUCCESS(f"> {ref_type} created"))
+                else:
+                    self.stdout.write(self.style.WARNING(f"> Class RefType: {class_name} already exists. Skipping creation..."))
+
         # Populate characters from wiki data
-        self.stdout.write("\nPopulating characters RefType(s)...")
+        self.stdout.write("\nPopulating character RefType(s)...")
         char_data_path = Path(options["data_path"], "characters.json")
         with open(char_data_path, encoding="utf-8") as file:
             try:
@@ -209,6 +237,7 @@ class Command(BaseCommand):
                         ref_type = RefType(name=loc_name, type=RefType.LOCATION)
                         ref_type.save()
                         self.stdout.write(self.style.SUCCESS(f"> {ref_type} created"))
+        breakpoint()
 
         # Populate Volumes
         vol_root = Path(options["data_path"], "volumes")
