@@ -83,7 +83,7 @@ class TorSession:
                 #    if reply.lower() != "y":
                 #        break
 
-    def get_character_by_alpha(self, alpha_char: str) -> dict[str:str]:
+    def __get_character_by_alpha(self, alpha_char: str) -> dict[str:str]:
         """Get single character name and link to the wiki
 
         Returns:
@@ -98,7 +98,7 @@ class TorSession:
             raise ValueError("Invalid alphabetic character")
 
         char_endpoint = f"{WIKI_URL}/Category:Characters"
-        resp = requests.get(f"{char_endpoint}?from={alpha_char}", timeout=5)
+        resp = self.get(f"{char_endpoint}?from={alpha_char}")
 
         soup = BeautifulSoup(resp.text, "html.parser")
         return {
@@ -106,7 +106,7 @@ class TorSession:
                 if "Category" not in x["title"]
         }
 
-    def get_all_characters_by_alpha(self) -> dict[dict[str:str]]:
+    def __get_all_characters_by_alpha(self) -> dict[dict[str:str]]:
         """Get all characters names and links to the wiki
 
         Returns:
@@ -119,7 +119,42 @@ class TorSession:
                 ...
             }
         """
-        return { c:self.get_character_by_alpha(c) for c in string.ascii_uppercase }
+        return { c:self.__get_character_by_alpha(c) for c in string.ascii_uppercase }
+
+    def get_all_character_data(self):
+        print(f"> Getting links to all character wiki pages...")
+        chars_by_alpha = self.__get_all_characters_by_alpha()
+        data = {}
+        for chars in chars_by_alpha.values():
+            for char, url in chars.items():
+                data[char] = { "wiki_href": url }
+                try:
+                    print(f"> Downloading character metadata for {char}")
+                    wiki_page = self.get(url)
+                    soup = BeautifulSoup(wiki_page.text, "html.parser")
+
+                    alias_ele = soup.select('.pi-data[data-source="aliases"]')
+                    if len(alias_ele) > 0:
+                        aliases = list(alias_ele[0].select('.pi-data-value')[0].stripped_strings)
+                        data[char]["aliases"] = aliases
+
+                    first_appearance_ele = soup.select('.pi-data[data-source="first appearance"] a')
+                    if len(first_appearance_ele) > 0:
+                        data[char]["first_href"] = first_appearance_ele[0]["href"]
+
+                    status_ele = soup.select('.pi-data[data-source="status"]')
+                    if len(status_ele) > 0:
+                        data[char]["status"] = status_ele[0].select(".pi-data-value")[0].text
+
+                    species_ele = soup.select('.pi-data[data-source="species"]')
+                    if len(species_ele) > 0:
+                        data[char]["species"] = species_ele[0].select(".pi-data-value")[0].text
+
+                except requests.Timeout:
+                    print(f"!!! - Unable to download character wiki page: {url}")
+                    continue
+        
+        return data
 
     def get_locations_by_alpha(self, alpha_char: str) -> dict[str]:
         """Get single location name and link to the wiki

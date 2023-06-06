@@ -218,13 +218,7 @@ class Command(BaseCommand):
             # Get character info
             if options.get("chars"):
                 self.stdout.write("Downloading character information...")
-                chars_by_alpha = tor_session.get_all_characters_by_alpha()
-                data = {}
-                for chars in chars_by_alpha.values():
-                    for char in chars.items():
-                        data[char[0]] = {
-                            "url": char[1]
-                        }
+                data = tor_session.get_all_character_data()
                 
                 char_data_path = Path(options.get("root"), "characters.json")
                 save_file(
