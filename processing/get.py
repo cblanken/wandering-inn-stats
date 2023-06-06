@@ -16,7 +16,6 @@ from fake_useragent import UserAgent
 BASE_URL: str = "https://wanderinginn.com"
 WIKI_URL: str = "https://thewanderinginn.fandom.com"
 
-# TODO allow redirects 
 # This https://wanderinginn.com/table-of-contents/interlude-satar-revised redirects to
 # -> https://wanderinginn.com/2022/02/20/interlude-satar/ and doesn't get followed by a
 # default requests.get( )
@@ -224,7 +223,7 @@ class TableOfContents:
         self.domain: str = "www.wanderinginn.com"
         self.url: str = f"https://{self.domain}/table-of-contents"
         if session:
-            assert(isinstance(session, TorSession))
+            assert isinstance(session, TorSession)
             self.response = session.get(self.url)
         else:
             self.response = requests.get(self.url, timeout=10)
@@ -233,6 +232,7 @@ class TableOfContents:
             self.soup = self.chapter_links = self.volume_data = None
             return
 
+        # TODO: add check to not download chapter with password prompt / protected status
         self.soup = BeautifulSoup(self.response.content, 'html.parser')
         self.chapter_links = self.__get_chapter_links()
         self.volume_data: dict[dict[dict[str]]] = self.__get_volume_data()

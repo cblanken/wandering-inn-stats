@@ -278,6 +278,8 @@ class Command(BaseCommand):
                                 ref_type.type = alias.ref_type.type
                                 self.stdout.write(self.style.WARNING(f"> Alias: {alias} already exists. Skipping creation..."))
                             except Alias.DoesNotExist:
+                                # TODO: this temporarily disables the ref type selection
+                                # and automatically fills with [CLASS] type for testing
                                 #ref_type.type = select_ref_type()
                                 ref_type.type = RefType.CLASS
                                 if ref_type.type is not None:
@@ -303,6 +305,8 @@ class Command(BaseCommand):
                                         sel: int = 0
                                         for i, col in enumerate(matching_colors):
                                             self.stdout.write(f"{i}: {col}")
+                                        # TODO: fix this select color prompt
+                                        # triggers when no valid colors avaiale, add skip option
                                         while True:
                                             try:
                                                 sel: int = int(input("Select color: "))
