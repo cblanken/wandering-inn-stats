@@ -29,16 +29,6 @@ class Pattern(Enum):
         # TODO: implement for combining Pattern with AND
         pass
 
-class RefType(Enum):
-    """Text reference types"""
-    CHARACTER = auto()
-    ITEM = auto()
-    SKILL = auto()
-    CLASS = auto()
-    SPELL = auto()
-    MIRACLE = auto()
-    OBTAINED = auto()
-
 class TextRef:
     """
     A Text Reference to a specified keyword in the text
@@ -50,17 +40,16 @@ class TextRef:
     - start_column (int): Column number of first letter in (phrase) found in the text
     - end_col (int): Column number of last letter in (phrase) found in the text
     - context (str): Contextual text surrounding (phrase)
-    - type (RefType): Type of refence such as Characer, Class, Spell etc.
     """
     def __init__(self, text: str, line_text: str, line_id: int, start_column: int,
-        end_column: int, context_len) -> TextRef:
+        end_column: int, context_len: int, is_bracketed: bool = True) -> TextRef:
         self.text: str = text.strip()
+        self.is_bracketed = is_bracketed
         self.line_text = line_text.strip()
         self.line_number: int = line_id
         self.start_column: int = start_column
         self.end_column: int = end_column
         self.context_offset: int = context_len
-        self.type: RefType = None
 
         # Construct surrounding context string
         start = max(start_column - context_len, 0)

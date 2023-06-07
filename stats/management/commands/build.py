@@ -125,7 +125,6 @@ def select_ref_type() -> str:
         print("")
         raise CommandError("Build interrupted with Ctrl-D (EOF).") from exc
 
-# TODO: refactor all build steps to use Model.get_or_create() instead of Model.get() + try/except
 class Command(BaseCommand):
     """Database build function"""
     help = "Update database from chapter source HTML and text files"
@@ -140,6 +139,86 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         self.stdout.write("Updating DB...")
+
+        def get_or_create_ref_type(text_ref: TextRef) -> RefType:
+            # Check for existing RefType
+            try:
+                ref_type = RefType.objects.get(name=text_ref.text)
+                self.stdout.write(self.style.WARNING(
+                    f"> RefType: {text_ref.text} already exists. Skipping creation..."))
+                return ref_type
+            except RefType.DoesNotExist:
+                pass
+
+            # Check for existing Alias
+            try:
+                alias = Alias.objects.get(name=text_ref.text)
+
+                if alias:
+                    self.stdout.write(self.style.WARNING(
+                        f"> Alias exists for RefType {text_ref.text} already. Skipping creation..."))
+                    return alias.ref_type
+            except Alias.DoesNotExist:
+                pass
+
+            # Check for alternate forms of RefType (pluralized, gendered, etc.)
+            ref_name = text_ref.text[1:-1] if text_ref.is_bracketed else text_ref.text
+
+            singular_ref_type_qs = None
+            singular_name_candidates = []
+            if ref_name.endswith("s"):
+                singular_name_candidates.append(f"[{ref_name[:-1]}]" if text_ref.is_bracketed else ref_name.text[:-1])
+            if ref_name.endswith("es"):
+              singular_name_candidates.append(f"[{ref_name[:-2]}]" if text_ref.is_bracketed else ref_name.text[:-2])
+            if ref_name.endswith("ies"):
+              singular_name_candidates.append(f"[{ref_name[:-3]}]" if text_ref.is_bracketed else ref_name.text[:-3])
+            if ref_name.endswith("man"):
+              singular_name_candidates.append(f"[{ref_name[:-3]}]" if text_ref.is_bracketed else ref_name.text[:-3])
+            if ref_name.endswith("woman"):
+              singular_name_candidates.append(f"[{ref_name[:-5]}]" if text_ref.is_bracketed else ref_name.text[:-5])
+            if ref_name.endswith("men"):
+              singular_name_candidates.append(f"[{ref_name[:-3]}]" if text_ref.is_bracketed else ref_name.text[:-3])
+            if ref_name.endswith("women"):
+                singular_name_candidates.append(f"[{ref_name[:-5]}]" if text_ref.is_bracketed else ref_name.text[:-5])
+
+            for c in singular_name_candidates:
+                singular_ref_type_qs = RefType.objects.filter(name=c)
+                singular_alias_qs = Alias.objects.filter(name=c)
+                if singular_ref_type_qs.exists():
+                    # The TextRef is an alternate version of an existing RefType
+                    ref_type = singular_ref_type_qs[0]
+                elif singular_alias_qs.exists():
+                    # The TextRef is an alternate version of an existing Alias
+                    ref_type = singular_alias_qs[0].ref_type
+                else:
+                    continue
+
+                # Create Alias to base RefType
+                alias, created = Alias.objects.get_or_create(name=text_ref.text, ref_type=ref_type)
+                prelude = f"> RefType: {text_ref.text} did not exist, but it is a pluralized form of {ref_name}. "
+                if created:
+                    self.stdout.write(self.style.SUCCESS(prelude +
+                        f"No existing Alias was found, so one was created."))
+                else:
+                    self.stdout.write(self.style.WARNING(prelude +
+                        f"An existing Alias was found, so none were created."))
+                return alias.ref_type
+
+
+            # Could not find existing RefType or Alias or alternate form
+            # Prompt user to select TextRef type
+            new_type = select_ref_type()
+            
+            # RefType was NOT categorized, so skip
+            if new_type is None:
+                self.stdout.write(self.style.WARNING(f"> {text_ref.text} manually skipped..."))
+                return None
+
+            # Create RefType
+            new_ref_type = RefType(name=text_ref.text, type=new_type)
+            new_ref_type.save()
+            self.stdout.write(self.style.SUCCESS(f"> {new_ref_type} created"))
+            return new_ref_type
 
         # Populate ColorsCategory
         self.stdout.write("\nPopulating color categories...")
@@ -169,12 +248,12 @@ class Command(BaseCommand):
         spell_data_path = Path(options["data_path"], "spells.txt")
         with open(spell_data_path, encoding="utf-8") as file:
             for line in file.readlines():
-                spell_name = line.strip()
-                ref_type, created = RefType.objects.get_or_create(name=spell_name, type=RefType.SPELL)
+                spell_name = "[" + line.strip() + "]"
+                new_ref_type, created = RefType.objects.get_or_create(name=spell_name, type=RefType.SPELL)
 
                 if created:
-                    ref_type.save()
-                    self.stdout.write(self.style.SUCCESS(f"> {ref_type} created"))
+                    new_ref_type.save()
+                    self.stdout.write(self.style.SUCCESS(f"> {new_ref_type} created"))
                 else:
                     self.stdout.write(self.style.WARNING(f"> Spell RefType: {spell_name} already exists. Skipping creation..."))
 
@@ -183,11 +262,11 @@ class Command(BaseCommand):
         class_data_path = Path(options["data_path"], "classes.txt")
         with open(class_data_path, encoding="utf-8") as file:
             for line in file.readlines():
-                class_name = line.strip()
-                ref_type, created = RefType.objects.get_or_create(name=class_name, type=RefType.CLASS)
+                class_name = "[" + line.strip() + "]"
+                new_ref_type, created = RefType.objects.get_or_create(name=class_name, type=RefType.CLASS)
 
                 if created:
-                    self.stdout.write(self.style.SUCCESS(f"> {ref_type} created"))
+                    self.stdout.write(self.style.SUCCESS(f"> {new_ref_type} created"))
                 else:
                     self.stdout.write(self.style.WARNING(f"> Class RefType: {class_name} already exists. Skipping creation..."))
 
@@ -202,10 +281,10 @@ class Command(BaseCommand):
                     f"> Character data ({char_data_path}) could not be decoded"))
             else:
                 for name, data in data.items():
-                    ref_type, created = RefType.objects.get_or_create(name=name, type=RefType.CHARACTER,
+                    new_ref_type, created = RefType.objects.get_or_create(name=name, type=RefType.CHARACTER,
                                                                       description=data["wiki_href"])
                     if created:
-                        self.stdout.write(self.style.SUCCESS(f"> {ref_type} created"))
+                        self.stdout.write(self.style.SUCCESS(f"> {new_ref_type} created"))
                     else:
                         self.stdout.write(self.style.WARNING(f"> Character RefType: {name} already exists. Skipping creation..."))
 
@@ -221,11 +300,13 @@ class Command(BaseCommand):
             else:
                 for loc_name, data in data.items():
                     loc_url = data["url"]
-                    ref_type, created = RefType.objects.get_or_create(name=loc_name, type=RefType.LOCATION, description=loc_url)
+                    new_ref_type, created = RefType.objects.get_or_create(name=loc_name, type=RefType.LOCATION, description=loc_url)
                     if created:
-                        self.stdout.write(self.style.SUCCESS(f"> Location RefType: {loc_name} created"))
+                        self.stdout.write(
+                            self.style.SUCCESS(f"> Location RefType: {loc_name} created"))
                     else:
-                        self.stdout.write(self.style.WARNING(f"> location RefType: {loc_name} already exists. Skipping creation..."))
+                        self.stdout.write(
+                            self.style.WARNING(f"> location RefType: {loc_name} already exists. Skipping creation..."))
 
         # Populate Volumes
         vol_root = Path(options["data_path"], "volumes")
@@ -270,93 +351,78 @@ class Command(BaseCommand):
                     if created:
                         self.stdout.write(self.style.SUCCESS(f"> Chapter created: {chapter}"))
                     else:
-                        self.stdout.write(self.style.WARNING(f"> Chapter \"{src_chapter.title}\" already exists. Skipping creation..."))
+                        self.stdout.write(self.style.WARNING(
+                            f"> Chapter \"{src_chapter.title}\" already exists. Skipping creation..."))
 
                     # Populate TextRefs
-                    for ref in src_chapter.all_src_refs:
-                        print(ref)
+                    for text_ref in src_chapter.all_src_refs:
+                        print(text_ref)
 
-                        ref_type.type = None
-                        try:
-                            # Check for existing RefType
-                            ref_type = RefType.objects.get(name=ref.text)
-                            self.stdout.write(self.style.WARNING(f"> RefType: {ref.text} already exists. Skipping creation..."))
-                            ref_type.type = ref_type.type
-                        except RefType.DoesNotExist:
-                            # Check for existing Alias
+                        ref_type = get_or_create_ref_type(text_ref)
+
+                        # RefType creation could not complete or was skipped
+                        if ref_type is None:
+                            continue
+
+                        # Detect TextRef color
+                        color = None
+                        if 'span style="color:' in text_ref.context:
                             try:
-                                alias = Alias.objects.get(name=ref.text)
-                                ref_type.type = alias.ref_type.type
-                                self.stdout.write(self.style.WARNING(f"> Alias: {alias} already exists. Skipping creation..."))
-                            except Alias.DoesNotExist:
-                                ref_type.type = select_ref_type()
-                                if ref_type.type is not None:
-                                    ref_type = RefType(name=ref.text, type=ref_type.type)
-                                    ref_type.save()
-                                    self.stdout.write(self.style.SUCCESS(f"> {ref_type} created"))
+                                print(f"Found color span in '{text_ref.context}'")
+                                i: int = text_ref.context.index("color:")
+                                # TODO: make this parsing more robust
+                                rgb_hex: str = text_ref.context[i+7:i+13].upper()
+                                matching_colors: QuerySet = Color.objects.filter(rgb=rgb_hex)
+                                if len(matching_colors) == 1:
+                                    color = matching_colors[0]
                                 else:
-                                    self.stdout.write(self.style.WARNING(f"> {ref.text} skipped..."))
+                                    self.stdout.write(f"Unable to automatically select color for TextRef: {text_ref}")
+                                    sel: int = 0
+                                    for i, col in enumerate(matching_colors):
+                                        self.stdout.write(f"{i}: {col}")
+                                    # TODO: fix this select color prompt
+                                    # triggers when no valid colors avaiale, add skip option
+                                    while True:
+                                        try:
+                                            sel: int = int(input("Select color: "))
+                                        except ValueError:
+                                            self.stdout.write("Invalid selection. Please try again.")
+                                            continue
+                                        else:
+                                            if sel < len(matching_colors):
+                                                break
+                                            self.stdout.write("Invalid selection. Please try again.")
 
-                        if ref_type.type is not None:
-                            # Detect TextRef color
-                            color = None
-                            if 'span style="color:' in ref.context:
-                                try:
-                                    print(f"Found color span in '{ref.context}'")
-                                    i: int = ref.context.index("color:")
-                                    # TODO: make this parsing more robust
-                                    rgb_hex: str = ref.context[i+7:i+13].upper()
-                                    matching_colors: QuerySet = Color.objects.filter(rgb=rgb_hex)
-                                    if len(matching_colors) == 1:
-                                        color = matching_colors[0]
-                                    else:
-                                        self.stdout.write(f"Unable to automatically select color for TextRef: {ref}")
-                                        sel: int = 0
-                                        for i, col in enumerate(matching_colors):
-                                            self.stdout.write(f"{i}: {col}")
-                                        # TODO: fix this select color prompt
-                                        # triggers when no valid colors avaiale, add skip option
-                                        while True:
-                                            try:
-                                                sel: int = int(input("Select color: "))
-                                            except ValueError:
-                                                self.stdout.write("Invalid selection. Please try again.")
-                                                continue
-                                            else:
-                                                if sel < len(matching_colors):
-                                                    break
-                                                self.stdout.write("Invalid selection. Please try again.")
+                                    color = matching_colors[i]
+                            except IndexError:
+                                print("Can't get color. Invalid TextRef context index")
+                                raise
+                            except Color.DoesNotExist:
+                                print("Can't get color. There is no existing Color for rgb={rgb_hex}")
+                                raise
+                            except KeyboardInterrupt as exc:
+                                print("")
+                                raise CommandError("Build interrupted with Ctrl-C (Keyboard Interrupt).") from exc
+                            except EOFError as exc:
+                                print("")
+                                raise CommandError("Build interrupted with Ctrl-D (EOF).") from exc
 
-                                        color = matching_colors[i]
-                                except IndexError:
-                                    print("Can't get color. Invalid TextRef context index")
-                                    raise
-                                except Color.DoesNotExist:
-                                    print("Can't get color. There is no existing Color for rgb={rgb_hex}")
-                                    raise
-                                except KeyboardInterrupt as exc:
-                                    print("")
-                                    raise CommandError("Build interrupted with Ctrl-C (Keyboard Interrupt).") from exc
-                                except EOFError as exc:
-                                    print("")
-                                    raise CommandError("Build interrupted with Ctrl-D (EOF).") from exc
-
-                            # Create TextRef
-                            text_ref, created = TextRef.objects.get_or_create(
-                                text=ref.text,
-                                type=ref_type,
-                                color=color,
-                                chapter=chapter,
-                                line_number=ref.line_number,
-                                start_column=ref.start_column,
-                                end_column = ref.end_column,
-                                context_offset = ref.context_offset,
+                        # Create TextRef
+                        text_ref, created = TextRef.objects.get_or_create(
+                            text=text_ref.text,
+                            type=ref_type,
+                            color=color,
+                            chapter=chapter,
+                            line_number=text_ref.line_number,
+                            start_column=text_ref.start_column,
+                            end_column = text_ref.end_column,
+                            context_offset = text_ref.context_offset,
+                        )
+                        if created:
+                            self.stdout.write(self.style.SUCCESS(f"> {text_ref} created"))
+                        else:
+                            self.stdout.write(
+                                self.style.WARNING(f"> TextRef: {text_ref.text} @line {text_ref.line_number} already exists. Skipping creation...")
                             )
-                            if created:
-                                self.stdout.write(self.style.SUCCESS(f"> {text_ref} created"))
-                            else:
-                                self.stdout.write(
-                                    self.style.WARNING(f"> TextRef: {text_ref.text} @line {text_ref.line_number} already exists. Skipping creation...")
-                                )
 
                     vol_num += 1
