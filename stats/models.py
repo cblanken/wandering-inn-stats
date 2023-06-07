@@ -87,14 +87,18 @@ class RefType(models.Model):
         (ITEM, "Item"),
         (LOCATION, "Location"),
     ]
-    name = models.CharField(max_length=120, unique=True)
+    name = models.CharField(max_length=120)
     type = models.CharField(max_length=2, choices=TYPES, null=True)
     description = models.CharField(max_length=120, default="")
     is_divine = models.BooleanField(default=False)
+    
 
     class Meta:
         verbose_name_plural = "Ref Types"
         ordering = ["name"]
+        constraints = [
+            models.UniqueConstraint(fields=["name", "type"], name="unique_name_and_type")
+        ]
 
     def __str__(self):
         return f"(RefType: {self.name} - Type: {self.type}, is_divine: {self.is_divine})"

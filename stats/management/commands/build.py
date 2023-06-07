@@ -187,7 +187,6 @@ class Command(BaseCommand):
                 ref_type, created = RefType.objects.get_or_create(name=class_name, type=RefType.CLASS)
 
                 if created:
-                    ref_type.save()
                     self.stdout.write(self.style.SUCCESS(f"> {ref_type} created"))
                 else:
                     self.stdout.write(self.style.WARNING(f"> Class RefType: {class_name} already exists. Skipping creation..."))
@@ -202,18 +201,13 @@ class Command(BaseCommand):
                 self.stdout.write(self.style.ERROR(
                     f"> Character data ({char_data_path}) could not be decoded"))
             else:
-                for character in data.items():
-                    char_name = character[0]
-                    char_url = character[1]
-                    try:
-                        # Check for existing RefType
-                        ref_type = RefType.objects.get(name=char_name, type=RefType.CHARACTER)
-                        ref_type.description = char_url
-                        self.stdout.write(self.style.WARNING(f"> Character RefType: {char_name} already exists. Skipping creation..."))
-                    except RefType.DoesNotExist:
-                        ref_type = RefType(name=char_name, type=RefType.CHARACTER)
-                        ref_type.save()
+                for name, data in data.items():
+                    ref_type, created = RefType.objects.get_or_create(name=name, type=RefType.CHARACTER,
+                                                                      description=data["wiki_href"])
+                    if created:
                         self.stdout.write(self.style.SUCCESS(f"> {ref_type} created"))
+                    else:
+                        self.stdout.write(self.style.WARNING(f"> Character RefType: {name} already exists. Skipping creation..."))
 
         # Populate locations from wiki data
         self.stdout.write("\nPopulating locations RefType(s)...")
@@ -225,19 +219,13 @@ class Command(BaseCommand):
                 self.stdout.write(self.style.ERROR(
                     f"> location data ({loc_data_path}) could not be decoded"))
             else:
-                for location in data.items():
-                    loc_name = location[0]
-                    loc_url = location[1]
-                    try:
-                        # Check for existing RefType
-                        ref_type = RefType.objects.get(name=loc_name, type=RefType.LOCATION)
-                        ref_type.description = loc_url
+                for loc_name, data in data.items():
+                    loc_url = data["url"]
+                    ref_type, created = RefType.objects.get_or_create(name=loc_name, type=RefType.LOCATION, description=loc_url)
+                    if created:
+                        self.stdout.write(self.style.SUCCESS(f"> Location RefType: {loc_name} created"))
+                    else:
                         self.stdout.write(self.style.WARNING(f"> location RefType: {loc_name} already exists. Skipping creation..."))
-                    except RefType.DoesNotExist:
-                        ref_type = RefType(name=loc_name, type=RefType.LOCATION)
-                        ref_type.save()
-                        self.stdout.write(self.style.SUCCESS(f"> {ref_type} created"))
-        breakpoint()
 
         # Populate Volumes
         vol_root = Path(options["data_path"], "volumes")
@@ -247,48 +235,42 @@ class Command(BaseCommand):
 
         for (vol_title, vol_num) in volumes:
             src_vol: SrcVolume = SrcVolume(Path(vol_root, vol_title))
-            try:
-                volume = Volume.objects.get(title=src_vol.title)
+            volume, created = Volume.objects.get_or_create(title=src_vol.title, number=vol_num)
+            if created:
+                self.stdout.write(self.style.SUCCESS(f"> Volume created: {volume}"))
+            else:
                 self.stdout.write(
                     self.style.WARNING(f"> Record for {src_vol.title} already exists. Skipping creation...")
                 )
-            except Volume.DoesNotExist:
-                volume = Volume(number=vol_num, title=src_vol.title)
-                volume.save()
-                self.stdout.write(self.style.SUCCESS(f"> Volume created: {volume}"))
 
             # Populate Books
             for (book_num, book_title) in enumerate(src_vol.books):
                 src_book: SrcBook = SrcBook(Path(src_vol.path, book_title))
-                try:
-                    book = Book.objects.get(title=book_title)
+                book, created = Book.objects.get_or_create(title=book_title, number=book_num, volume=volume)
+                if created:
+                    self.stdout.write(self.style.SUCCESS(f"> Book created: {book}"))
+                else:
                     self.stdout.write(
                         self.style.WARNING(f"> Record for {book_title} already exists. Skipping creation...")
                     )
-                except Book.DoesNotExist:
-                    book = Book(number=book_num, title=book_title, volume=volume)
-                    self.stdout.write(self.style.SUCCESS(f"> Book created: {book}"))
-                    book.save()
 
                 # Populate Chapters
                 for (chapter_num, chapter_title) in enumerate(src_book.chapters):
                     src_chapter: SrcChapter = SrcChapter(Path(src_book.path, chapter_title))
-                    try:
-                        # Check for existing Chapter
-                        chapter = Chapter.objects.get(title=src_chapter.title)
-                        self.stdout.write(self.style.WARNING(f"> Chapter \"{src_chapter.title}\" already exists. Skipping creation..."))
-                    except Chapter.DoesNotExist:
-                        chapter = Chapter(
-                            number=chapter_num, title=src_chapter.title, book=book,
-                            is_interlude="interlude" in src_chapter.title.lower(),
-                            source_url=src_chapter.metadata.get("url", ""),
-                            post_date=dt.fromisoformat(src_chapter.metadata.get("pub_time", dt.now().isoformat())),
-                            last_update=dt.fromisoformat(src_chapter.metadata.get("mod_time", dt.now().isoformat())),
-                            download_date=dt.fromisoformat(src_chapter.metadata.get("dl_time", dt.now().isoformat())),
-                            word_count=src_chapter.metadata.get("word_count", 0)
-                        )
+                    chapter, created = Chapter.objects.get_or_create(
+                        number=chapter_num, title=src_chapter.title, book=book,
+                        is_interlude="interlude" in src_chapter.title.lower(),
+                        source_url=src_chapter.metadata.get("url", ""),
+                        post_date=dt.fromisoformat(src_chapter.metadata.get("pub_time", dt.now().isoformat())),
+                        last_update=dt.fromisoformat(src_chapter.metadata.get("mod_time", dt.now().isoformat())),
+                        download_date=dt.fromisoformat(src_chapter.metadata.get("dl_time", dt.now().isoformat())),
+                        word_count=src_chapter.metadata.get("word_count", 0)
+                    )
+
+                    if created:
                         self.stdout.write(self.style.SUCCESS(f"> Chapter created: {chapter}"))
-                        chapter.save()
+                    else:
+                        self.stdout.write(self.style.WARNING(f"> Chapter \"{src_chapter.title}\" already exists. Skipping creation..."))
 
                     # Populate TextRefs
                     for ref in src_chapter.all_src_refs:
@@ -307,10 +289,7 @@ class Command(BaseCommand):
                                 ref_type.type = alias.ref_type.type
                                 self.stdout.write(self.style.WARNING(f"> Alias: {alias} already exists. Skipping creation..."))
                             except Alias.DoesNotExist:
-                                # TODO: this temporarily disables the ref type selection
-                                # and automatically fills with [CLASS] type for testing
-                                #ref_type.type = select_ref_type()
-                                ref_type.type = RefType.CLASS
+                                ref_type.type = select_ref_type()
                                 if ref_type.type is not None:
                                     ref_type = RefType(name=ref.text, type=ref_type.type)
                                     ref_type.save()
@@ -319,6 +298,7 @@ class Command(BaseCommand):
                                     self.stdout.write(self.style.WARNING(f"> {ref.text} skipped..."))
 
                         if ref_type.type is not None:
+                            # Detect TextRef color
                             color = None
                             if 'span style="color:' in ref.context:
                                 try:
@@ -361,29 +341,22 @@ class Command(BaseCommand):
                                     print("")
                                     raise CommandError("Build interrupted with Ctrl-D (EOF).") from exc
 
-                            try:
-                                text_ref = TextRef.objects.get(
-                                    chapter=chapter,
-                                    type=ref_type,
-                                    line_number=ref.line_number,
-                                    start_column=ref.start_column,
-                                )
+                            # Create TextRef
+                            text_ref, created = TextRef.objects.get_or_create(
+                                text=ref.text,
+                                type=ref_type,
+                                color=color,
+                                chapter=chapter,
+                                line_number=ref.line_number,
+                                start_column=ref.start_column,
+                                end_column = ref.end_column,
+                                context_offset = ref.context_offset,
+                            )
+                            if created:
+                                self.stdout.write(self.style.SUCCESS(f"> {text_ref} created"))
+                            else:
                                 self.stdout.write(
                                     self.style.WARNING(f"> TextRef: {text_ref.text} @line {text_ref.line_number} already exists. Skipping creation...")
                                 )
-                            except TextRef.DoesNotExist:
-                                text_ref = TextRef(
-                                    text=ref.text,
-                                    type=ref_type,
-                                    color=color,
-                                    chapter=chapter,
-                                    line_number=ref.line_number,
-                                    start_column=ref.start_column,
-                                    end_column = ref.end_column,
-                                    context_offset = ref.context_offset,
-                                )
-
-                                text_ref.save()
-                                self.stdout.write(self.style.SUCCESS(f"> {text_ref} created"))
 
                     vol_num += 1
