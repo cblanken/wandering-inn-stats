@@ -103,6 +103,78 @@ class RefType(models.Model):
     def __str__(self):
         return f"(RefType: {self.name} - Type: {self.type}, is_divine: {self.is_divine})"
 
+class Character(models.Model):
+    """Character data"""
+    SPECIES = [
+        ("AG", "Agelum"),
+        ("AN", "Antinium"),
+        ("BK", "Beastkin"),
+        ("CT", "Centaur"),
+        ("CY", "Cyclops"),
+        ("DE", "Demon"),
+        ("DG", "Dragon"),
+        ("DP", "Drowned People"),
+        ("DR", "Drake"),
+        ("DU", "Dullahan"),
+        ("DY", "Dryad"),
+        ("EL", "Elf"),
+        ("FA", "Fae"),
+        ("FR", "Fraerling"),
+        ("GA", "Gazer"),
+        ("GB", "Goblin"),
+        ("GM", "Golem"),
+        ("GO", "God"),
+        ("GR", "Garuda"),
+        ("HA", "Halfling"),
+        ("HE", "Half-Elf"),
+        ("HR", "Harpy"),
+        ("HT", "Half-Troll"),
+        ("HU", "Human"),
+        ("KE", "Kelpies"),
+        ("KI", "Kitsune"),
+        ("LF", "Lizardfolk"),
+        ("LG", "Lizardfolk - Gorgon"),
+        ("LI", "Lizardfolk - Indishei"),
+        ("LL", "Lizardfolk - Lamia"),
+        ("LM", "Lizardfolk - Medusa"),
+        ("LN", "Lizardfolk - Naga"),
+        ("LQ", "Lizardfolk - Quexal"),
+        ("LS", "Lizardfolk - Scylla"),
+        ("LS", "Lizardfolk - Star Lamia"),
+        ("LT", "Lizardfolk - Tasgiel"),
+        ("LU", "Lucifen"),
+        ("ME", "Merfolk"),
+        ("MI", "Minotaur"),
+        ("OG", "Ogre"),
+        ("PH", "Phoenix"),
+        ("SE", "Selphid"),
+        ("SF", "Spiderfolk"),
+        ("SL", "Sariant Lamb"),
+        ("SP", "String People"),
+        ("TI", "Titan"),
+        ("TL", "Troll"),
+        ("TR", "Treant"),
+        ("UD", "Undead"),
+        ("UN", "Unicorn"),
+        ("VA", "Vampire"),
+        ("WV", "Wyvern"),
+        ("WY", "Wyrm"),
+    ]
+
+    STATUSES = [
+        ("AL", "Alive"),
+        ("DE", "Deceased"),
+        ("UD", "Undead"),
+        ("UN", "Unknown"),
+    ]
+
+    # TODO: add first_href validator
+    ref_type = models.ForeignKey(RefType, on_delete=models.CASCADE, null=False)
+    first_ref_uri = models.URLField()
+    wiki_uri = models.URLField()
+    status = models.CharField(max_length=2, choices=STATUSES)
+    species = models.CharField(max_length=2, choices=SPECIES)
+
 class Alias(models.Model):
     """RefType aliases / alternate names"""
     name = models.CharField(unique=True)
