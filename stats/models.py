@@ -204,6 +204,7 @@ class Alias(models.Model):
 
     class Meta:
         verbose_name_plural = "Aliases"
+        ordering = ["name"]
 
     def __str__(self) -> str:
         return f"(Alias: {self.name} - RefType: {self.ref_type})"
