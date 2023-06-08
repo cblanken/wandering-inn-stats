@@ -6,8 +6,12 @@ from pprint import pprint
 from pathlib import Path
 from django.core.management.base import BaseCommand, CommandError
 from django.db.models.query import QuerySet
-from stats.models import Color, ColorCategory, Chapter, Book, Volume, TextRef, RefType, Alias
-from processing import Volume as SrcVolume, Book as SrcBook, Chapter as SrcChapter, get_metadata
+from stats.models import (
+    Color, ColorCategory, Chapter, Book, Volume, TextRef, RefType, Alias, Character
+)
+from processing import (
+    Volume as SrcVolume, Book as SrcBook, Chapter as SrcChapter, get_metadata
+)
 
 class COLOR_CATEGORY(Enum):
     """Text color categories according to TWI wiki"""
@@ -245,17 +249,33 @@ class Command(BaseCommand):
 
         # Populate spell types from wiki data
         self.stdout.write("\nPopulating spell RefType(s)...")
-        spell_data_path = Path(options["data_path"], "spells.txt")
+        spell_data_path = Path(options["data_path"], "spells.tsv")
         with open(spell_data_path, encoding="utf-8") as file:
             for line in file.readlines():
-                spell_name = "[" + line.strip() + "]"
-                new_ref_type, created = RefType.objects.get_or_create(name=spell_name, type=RefType.SPELL)
-
-                if created:
-                    new_ref_type.save()
-                    self.stdout.write(self.style.SUCCESS(f"> {new_ref_type} created"))
+                line = line.strip().split("|")
+                aliases = []
+                if len(line) > 1:
+                    # Spell with aliases
+                    spell_name, *aliases = line
                 else:
-                    self.stdout.write(self.style.WARNING(f"> Spell RefType: {spell_name} already exists. Skipping creation..."))
+                    spell_name = line[0]
+
+                spell = "[" + spell_name + "]"
+                ref_type, ref_type_created = RefType.objects.get_or_create(name=spell, type=RefType.SPELL)
+
+                if ref_type_created:
+                    self.stdout.write(self.style.SUCCESS(f"> {ref_type} created"))
+                else:
+                    self.stdout.write(self.style.WARNING(f"> Spell RefType: {spell} already exists. Skipping creation..."))
+
+                for alias_name in aliases:
+                    new_alias, new_alias_created = Alias.objects.get_or_create(
+                        name=alias_name, ref_type=ref_type)
+                    if new_alias_created:
+                        self.stdout.write(self.style.SUCCESS(f"> Alias: {alias_name} created"))
+                    else:
+                        self.stdout.write(self.style.WARNING(f"> Alias: {alias_name} already exists. Skipping creation..."))
+
 
         # Populate class types from wiki data
         self.stdout.write("\nPopulating class RefType(s)...")
@@ -263,10 +283,10 @@ class Command(BaseCommand):
         with open(class_data_path, encoding="utf-8") as file:
             for line in file.readlines():
                 class_name = "[" + line.strip() + "]"
-                new_ref_type, created = RefType.objects.get_or_create(name=class_name, type=RefType.CLASS)
+                ref_type, ref_type_created = RefType.objects.get_or_create(name=class_name, type=RefType.CLASS)
 
-                if created:
-                    self.stdout.write(self.style.SUCCESS(f"> {new_ref_type} created"))
+                if ref_type_created:
+                    self.stdout.write(self.style.SUCCESS(f"> {ref_type} created"))
                 else:
                     self.stdout.write(self.style.WARNING(f"> Class RefType: {class_name} already exists. Skipping creation..."))
 
@@ -280,28 +300,52 @@ class Command(BaseCommand):
                 self.stdout.write(self.style.ERROR(
                     f"> Character data ({char_data_path}) could not be decoded"))
             else:
-                for name, data in data.items():
-                    new_ref_type, created = RefType.objects.get_or_create(name=name, type=RefType.CHARACTER,
-                                                                      description=data["wiki_href"])
-                    if created:
-                        self.stdout.write(self.style.SUCCESS(f"> {new_ref_type} created"))
+                for name, char_data in data.items():
+                    # Create Character RefType
+                    ref_type, ref_type_created = RefType.objects.get_or_create(
+                        name=name, type=RefType.CHARACTER)
+                    if ref_type_created:
+                        self.stdout.write(self.style.SUCCESS(f"> Character RefType: {name} created"))
                     else:
                         self.stdout.write(self.style.WARNING(f"> Character RefType: {name} already exists. Skipping creation..."))
+
+                    # Create aliases from Character wiki metadata
+                    aliases = char_data.get("aliases")
+                    if aliases is not None:
+                        for alias_name in char_data.get("aliases"):
+                            alias, alias_created = Alias.objects.get_or_create(name=alias_name, ref_type=ref_type)
+                            if alias_created:
+                                self.stdout.write(self.style.SUCCESS(f"> Alias: {alias_name} created"))
+                            else:
+                                self.stdout.write(self.style.WARNING(f"> Alias: {alias_name} already exists. Skipping creation..."))
+
+                    # Create Character Data
+                    new_character, new_char_created = Character.objects.get_or_create(
+                        ref_type=ref_type,
+                        first_ref_uri=char_data.get("first_href"),
+                        wiki_uri=char_data.get("wiki_href"),
+                        status=Character.parse_status_str(char_data.get("status")),
+                        # species=char_data.get("species")
+                    )
+                    if new_char_created:
+                        self.stdout.write(self.style.SUCCESS(f"> Character data: {name} created"))
+                    else:
+                        self.stdout.write(self.style.WARNING(f"> Character data: {name} already exists. Skipping creation..."))
 
         # Populate locations from wiki data
         self.stdout.write("\nPopulating locations RefType(s)...")
         loc_data_path = Path(options["data_path"], "locations.json")
         with open(loc_data_path, encoding="utf-8") as file:
             try:
-                data = json.load(file)
+                char_data = json.load(file)
             except json.JSONDecodeError:
                 self.stdout.write(self.style.ERROR(
                     f"> location data ({loc_data_path}) could not be decoded"))
             else:
-                for loc_name, data in data.items():
-                    loc_url = data["url"]
-                    new_ref_type, created = RefType.objects.get_or_create(name=loc_name, type=RefType.LOCATION, description=loc_url)
-                    if created:
+                for loc_name, char_data in char_data.items():
+                    loc_url = char_data["url"]
+                    ref_type, ref_type_created = RefType.objects.get_or_create(name=loc_name, type=RefType.LOCATION, description=loc_url)
+                    if ref_type_created:
                         self.stdout.write(
                             self.style.SUCCESS(f"> Location RefType: {loc_name} created"))
                     else:
@@ -316,8 +360,8 @@ class Command(BaseCommand):
 
         for (vol_title, vol_num) in volumes:
             src_vol: SrcVolume = SrcVolume(Path(vol_root, vol_title))
-            volume, created = Volume.objects.get_or_create(title=src_vol.title, number=vol_num)
-            if created:
+            volume, ref_type_created = Volume.objects.get_or_create(title=src_vol.title, number=vol_num)
+            if ref_type_created:
                 self.stdout.write(self.style.SUCCESS(f"> Volume created: {volume}"))
             else:
                 self.stdout.write(
@@ -327,8 +371,8 @@ class Command(BaseCommand):
             # Populate Books
             for (book_num, book_title) in enumerate(src_vol.books):
                 src_book: SrcBook = SrcBook(Path(src_vol.path, book_title))
-                book, created = Book.objects.get_or_create(title=book_title, number=book_num, volume=volume)
-                if created:
+                book, ref_type_created = Book.objects.get_or_create(title=book_title, number=book_num, volume=volume)
+                if ref_type_created:
                     self.stdout.write(self.style.SUCCESS(f"> Book created: {book}"))
                 else:
                     self.stdout.write(
@@ -338,7 +382,7 @@ class Command(BaseCommand):
                 # Populate Chapters
                 for (chapter_num, chapter_title) in enumerate(src_book.chapters):
                     src_chapter: SrcChapter = SrcChapter(Path(src_book.path, chapter_title))
-                    chapter, created = Chapter.objects.get_or_create(
+                    chapter, ref_type_created = Chapter.objects.get_or_create(
                         number=chapter_num, title=src_chapter.title, book=book,
                         is_interlude="interlude" in src_chapter.title.lower(),
                         source_url=src_chapter.metadata.get("url", ""),
@@ -348,7 +392,7 @@ class Command(BaseCommand):
                         word_count=src_chapter.metadata.get("word_count", 0)
                     )
 
-                    if created:
+                    if ref_type_created:
                         self.stdout.write(self.style.SUCCESS(f"> Chapter created: {chapter}"))
                     else:
                         self.stdout.write(self.style.WARNING(
@@ -408,7 +452,7 @@ class Command(BaseCommand):
                                 raise CommandError("Build interrupted with Ctrl-D (EOF).") from exc
 
                         # Create TextRef
-                        text_ref, created = TextRef.objects.get_or_create(
+                        text_ref, ref_type_created = TextRef.objects.get_or_create(
                             text=text_ref.text,
                             type=ref_type,
                             color=color,
@@ -418,7 +462,7 @@ class Command(BaseCommand):
                             end_column = text_ref.end_column,
                             context_offset = text_ref.context_offset,
                         )
-                        if created:
+                        if ref_type_created:
                             self.stdout.write(self.style.SUCCESS(f"> {text_ref} created"))
                         else:
                             self.stdout.write(
