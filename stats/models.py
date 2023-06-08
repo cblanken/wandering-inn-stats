@@ -161,6 +161,10 @@ class Character(models.Model):
         ("WY", "Wyrm"),
     ]
 
+    ALIVE = "AL"
+    DEAD = "DE"
+    UNDEAD = "UD"
+    UNKNOWN = "UN"
     STATUSES = [
         ("AL", "Alive"),
         ("DE", "Deceased"),
@@ -169,11 +173,29 @@ class Character(models.Model):
     ]
 
     # TODO: add first_href validator
-    ref_type = models.ForeignKey(RefType, on_delete=models.CASCADE, null=False)
-    first_ref_uri = models.URLField()
-    wiki_uri = models.URLField()
-    status = models.CharField(max_length=2, choices=STATUSES)
-    species = models.CharField(max_length=2, choices=SPECIES)
+    ref_type = models.ForeignKey(RefType, on_delete=models.CASCADE)
+    first_ref_uri = models.URLField(null=True)
+    wiki_uri = models.URLField(null=True)
+    status = models.CharField(max_length=2, choices=STATUSES, null=True)
+    species = models.CharField(max_length=2, choices=SPECIES, null=True)
+
+    def parse_status_str(s: str):
+        # TODO: correctly parse poorly formatted alternates instead
+        # of lumping into UNKNOWN
+        match s:
+            case "Alive" | "alive":
+                return Character.ALIVE
+            case "Deceased" | "deceased" | "Dead" | "dead":
+                return Character.DEAD
+            case "Undead" | "undead":
+                return Character.UNDEAD
+            case "Unknown" | "unknown" | "Unclear" | "unclear":
+                return Character.UNKNOWN
+            case _:
+                return Character.UNKNOWN
+
+    def __str__(self) -> str:
+        return f"(Character: {self.ref_type.name}, Status: {self.status}, Species: {self.species})"
 
 class Alias(models.Model):
     """RefType aliases / alternate names"""
