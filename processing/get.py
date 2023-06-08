@@ -7,7 +7,7 @@ import hashlib
 import re
 import string
 import time
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, ResultSet, Tag
 import requests
 import requests.exceptions
 from stem import Signal
@@ -214,21 +214,23 @@ class TorSession:
         return sorted(classes)
 
     def get_spell_list(self) -> list[str]:
+        # TODO: fix parsing of spell names with nested brackets
         soup = BeautifulSoup(self.get("https://thewanderinginn.fandom.com/wiki/Spells").text, "html.parser")
+        spell_elements: ResultSet[Tag] = soup.select("table.article-table tr > td:first-of-type")
 
-        spells = [
-            x.text.strip().replace("[", "").replace("]", "") for x in soup.select(
-                "table.article-table tr > td:first-of-type") if "..." not in x.text.strip()
-        ] 
-        
-        for i, c in enumerate(spells):
-            if "/" in c:
-                split = [x.strip() for x in c.split("/")]
-                spells[i] = split[0]
-                for extra in split[1:]:
-                    spells.append(extra)
+        # Split multiple spells/aliases joined by "/"
+        spells = []
+        pattern = re.compile(r"\[(.*?)\]")
+        for i, spell in enumerate(spell_elements):
+            spell_parts = list(filter(lambda x: not x.isnumeric(), pattern.findall(spell.text)))
 
-        return sorted(spells)
+            if len(spell_parts) == 0:
+                spells.append(spell.text.strip())
+            else:
+                #spell_parts = spell.stripped_strings
+                spells.append("|".join(spell_parts))
+
+        return set(sorted(spells))
 
     
 

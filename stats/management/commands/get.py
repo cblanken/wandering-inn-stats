@@ -238,11 +238,11 @@ class Command(BaseCommand):
                 self.stdout.write("Downloading spell information...")
                 spells = tor_session.get_spell_list()
 
-                spell_data_path = Path(options.get("root"), "spells.txt")
+                spell_data_path = Path(options.get("root"), "spells.tsv")
                 save_file(
                     text = "\n".join(spells),
                     path = spell_data_path,
-                    success_msg=f"Character data saved to {spell_data_path}",
+                    success_msg=f"Spell data saved to {spell_data_path}",
                     warn_msg = f"{spell_data_path} already exists. Not saving...")
 
             # Get character info
