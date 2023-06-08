@@ -313,11 +313,13 @@ class Command(BaseCommand):
                     aliases = char_data.get("aliases")
                     if aliases is not None:
                         for alias_name in char_data.get("aliases"):
-                            alias, alias_created = Alias.objects.get_or_create(name=alias_name, ref_type=ref_type)
-                            if alias_created:
-                                self.stdout.write(self.style.SUCCESS(f"> Alias: {alias_name} created"))
-                            else:
+                            try:
+                                Alias.objects.get(name=alias_name)
                                 self.stdout.write(self.style.WARNING(f"> Alias: {alias_name} already exists. Skipping creation..."))
+                            except Alias.DoesNotExist:
+                                self.stdout.write(self.style.SUCCESS(f"> Alias: {alias_name} created"))
+                                alias = Alias.objects.create(name=alias_name, ref_type=ref_type)
+                                alias.save
 
                     # Create Character Data
                     new_character, new_char_created = Character.objects.get_or_create(

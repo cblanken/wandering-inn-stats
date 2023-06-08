@@ -17,6 +17,16 @@ from fake_useragent import UserAgent
 BASE_URL: str = "https://wanderinginn.com"
 WIKI_URL: str = "https://thewanderinginn.fandom.com"
 
+def remove_bracketed_ref_number(s: str) -> str:
+    """Remove a square bracketed reference number from a string"""
+    splits = [x.split("]") for x in s.split("[")]
+    
+    # Filter out reference numbers
+    if len(splits) > 1:
+        return "".join(list(filter(lambda x: not x.isnumeric(), list(chain(*splits)))))
+    else:
+        return s
+
 class TorSession:
     """Session object to download webpages via requests
     Also handles cycling Tor connections to prevent IP bans
@@ -131,11 +141,23 @@ class TorSession:
                     wiki_page = self.get(url)
                     soup = BeautifulSoup(wiki_page.text, "html.parser")
 
+                    # TODO: strip out addendums in parentheses of the form: (...)
                     alias_ele = soup.select('.pi-data[data-source="aliases"]')
                     if len(alias_ele) > 0:
-                        aliases = list(alias_ele[0].select('.pi-data-value')[0].stripped_strings)
+                        # Conditional parsing depending on whether <li> tags or <br> are used
+                        # to create newlines between aliases
+                        alias_lis = alias_ele[0].find_all("li")
+                        if len(alias_lis) > 0:
+                            aliases = [li.text.strip() for li in alias_lis]
+                        else:
+                            alias_soup = BeautifulSoup(
+                                str(alias_ele[0].select('.pi-data-value')[0]).replace("<br/>", "\n").replace("<br>", "\n"),
+                                "html.parser")
+                                
+                            aliases = [
+                                remove_bracketed_ref_number(x) for x in alias_soup.text.strip().split("\n")]
                         data[char]["aliases"] = aliases
-
+                    
                     first_appearance_ele = soup.select('.pi-data[data-source="first appearance"] a')
                     if len(first_appearance_ele) > 0:
                         data[char]["first_href"] = first_appearance_ele[0]["href"]
