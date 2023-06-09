@@ -265,16 +265,16 @@ def parse_chapter(response: requests.Response) -> dict[str]:
     Returns:
 
     """
-    # Parse chapter content html from Response object
     chapter = {}
 
     soup: BeautifulSoup = BeautifulSoup(response.content, 'html.parser')
-    result = soup.select('.entry-content')
-    if len(result) != 0:
-        chapter["html"] = result[0].text
+
+    # Parse chapter content html from Response object
+    result = soup.select_one('.entry-content')
+    if result is not None:
+        chapter["html"] = str(result)
 
     # Parse chapter text from Response object
-    soup: BeautifulSoup = BeautifulSoup(response.content, 'html.parser')
     header_text: str = [element.get_text() for element in soup.select(".entry-title")]
     content_text: str = [element.get_text() for element in soup.select(".entry-content")]
     if len(header_text) != 0 and len(content_text) != 0:
