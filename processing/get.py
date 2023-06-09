@@ -332,7 +332,7 @@ class TableOfContents:
         # TODO: add check to not download chapter with password prompt / protected status
         self.soup = BeautifulSoup(self.response.content, 'html.parser')
         self.chapter_links = self.__get_chapter_links()
-        self.volume_data: dict[dict[dict[str]]] = self.__get_volume_data()
+        self.volume_data: OrderedDict[str:OrderedDict[str:str]] = self.__get_volume_data()
 
     def __get_chapter_links(self) -> list[str]:
         """Scrape table of contents for an list of chapter links
@@ -342,29 +342,72 @@ class TableOfContents:
         
         return [f"https://{self.domain}" + link.get("href") for link in self.soup.select(".chapters a")]
 
-    def __get_volume_data(self):
+    def __get_volume_data(self) -> OrderedDict[str:OrderedDict[str:str]]:
         """Return dictionary containing tuples (volume_title, chapter_indexes) by volume ID
         """
         if self.soup is None:
             return []
-        
-        contents_elements = self.soup.select(".volume, .book, .chapters")
 
         volumes = OrderedDict()
-        volume_title = ""
-        book_title = ""
-        for ele in contents_elements:
-            match ele.name:
-                case "h2":
-                    volume_title = ele.text.strip()
-                    volumes[volume_title] = OrderedDict()
-                case "h3":
-                    book_title = ele.text.strip()
-                    volumes[volume_title][book_title] = OrderedDict()
-                case "p":
-                    for link in ele.select("a"):
-                        volumes[volume_title][book_title][link.text] = f"https://{self.domain}{link['href']}"
+        vol_elements = self.soup.select(".volume-table")
 
+        def get_next_name_and_href_from_a(element: Tag):
+            """Return tuple of text and href from <a> tag
+
+            Args:
+                element: an <a> Tag element
+            """
+            chapter_a = element.find_next("a")
+            chapter_name = chapter_a.text
+            chapter_href = chapter_a.get("href")
+            return (chapter_name, chapter_href)
+
+
+        volumes = OrderedDict()
+        for vol_ele in vol_elements:
+            vol_name = vol_ele.previous_sibling.text.strip()
+            volumes[vol_name] = OrderedDict()
+            # Search for books
+            last_chapter_row = None
+            book_headings = vol_ele.select(".head-book-title")
+            if len(book_headings) > 0:
+                for heading in book_headings:
+                    book_name = heading.text
+                    volumes[vol_name][book_name] = OrderedDict()
+                    chapters = []
+                    # Walk up tree to table head
+                    table_head = heading.parent.parent
+                    for sibling in table_head.next_siblings:
+                        row_classes = sibling.get("class")
+                        if "table-head" in row_classes:
+                            # Found a new Book heading, continue to next Book
+                            break
+                        
+                        last_chapter_row = sibling
+
+                        # Populate chapter for each book by book title if they exist
+                        chapter_name, chapter_href = get_next_name_and_href_from_a(sibling)
+                        volumes[vol_name][book_name][chapter_name] = chapter_href
+            
+            # Lump any REMAINING chapters in Volume under "Unreleased" Book
+            if last_chapter_row is None:
+                # No Books found -> lump ALL chapters into "Unreleased"
+                volumes[vol_name]["Unreleased"] = OrderedDict()
+                for chapter in vol_ele.select(".chapter-entry"):
+                    chapter_name, chapter_href = get_next_name_and_href_from_a(chapter)
+                    volumes[vol_name]["Unreleased"][chapter_name] = chapter_href
+            else:
+                # Start from last visited Chapter row
+                remaining_chapters = list(last_chapter_row.next_siblings)
+                if len(remaining_chapters) == 0:
+                    # No remeaning chapters to populate "Unreleased"
+                    continue
+
+                volumes[vol_name]["Unreleased"] = OrderedDict()
+                for sibling in remaining_chapters:
+                    chapter_name, chapter_href = get_next_name_and_href_from_a(sibling)
+                    volumes[vol_name]["Unreleased"][chapter_name] = chapter_href
+            
         return volumes
 
     def get_book_titles(self, is_released: bool = False):
