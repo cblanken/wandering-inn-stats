@@ -345,10 +345,11 @@ class TableOfContents:
     def __get_volume_data(self) -> OrderedDict[str:OrderedDict[str:str]]:
         """Return dictionary containing tuples (volume_title, chapter_indexes) by volume ID
         """
-        if self.soup is None:
-            return []
 
         volumes = OrderedDict()
+        if self.soup is None:
+            return volumes
+
         vol_elements = self.soup.select(".volume-table")
 
         def get_next_name_and_href_from_a(element: Tag):
@@ -400,7 +401,7 @@ class TableOfContents:
                 # Start from last visited Chapter row
                 remaining_chapters = list(last_chapter_row.next_siblings)
                 if len(remaining_chapters) == 0:
-                    # No remeaning chapters to populate "Unreleased"
+                    # No remeining chapters to populate "Unreleased"
                     continue
 
                 volumes[vol_name]["Unreleased"] = OrderedDict()

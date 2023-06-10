@@ -373,8 +373,8 @@ class Command(BaseCommand):
             # Populate Books
             for (book_num, book_title) in enumerate(src_vol.books):
                 src_book: SrcBook = SrcBook(Path(src_vol.path, book_title))
-                book, ref_type_created = Book.objects.get_or_create(title=book_title, number=book_num, volume=volume)
-                if ref_type_created:
+                book, book_created = Book.objects.get_or_create(title=book_title, number=book_num, volume=volume)
+                if book_created:
                     self.stdout.write(self.style.SUCCESS(f"> Book created: {book}"))
                 else:
                     self.stdout.write(
@@ -384,6 +384,9 @@ class Command(BaseCommand):
                 # Populate Chapters
                 for (chapter_num, chapter_title) in enumerate(src_book.chapters):
                     src_chapter: SrcChapter = SrcChapter(Path(src_book.path, chapter_title))
+                    if src_chapter.metadata is None:
+                        self.stdout.write(self.style.SUCCESS(f"> Missing metadata for Chapter: {src_chapter.title}. Skipping..."))
+                        continue
                     chapter, ref_type_created = Chapter.objects.get_or_create(
                         number=chapter_num, title=src_chapter.title, book=book,
                         is_interlude="interlude" in src_chapter.title.lower(),
@@ -471,4 +474,3 @@ class Command(BaseCommand):
                                 self.style.WARNING(f"> TextRef: {text_ref.text} @line {text_ref.line_number} already exists. Skipping creation...")
                             )
 
-                    vol_num += 1

@@ -37,12 +37,15 @@ class Volume(models.Model):
 class Book(models.Model):
     "Mode for books"
     number = models.PositiveBigIntegerField()
-    title = models.CharField(max_length=50, unique=True)
-    summary = models.TextField(default="")
+    title = models.CharField(max_length=50)
     volume = models.ForeignKey(Volume, on_delete=models.CASCADE)
+    summary = models.TextField(default="")
 
     class Meta:
         ordering = ["volume", "number"]
+        constraints = [
+            models.UniqueConstraint(fields=["volume", "title"], name="unique_volume_and_title")
+        ]
 
     def __str__(self):
         return f"(Book: {self.title}, Summary: {str(self.summary)[:30]})"
