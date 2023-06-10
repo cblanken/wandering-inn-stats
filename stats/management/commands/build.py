@@ -131,7 +131,7 @@ def select_ref_type() -> str:
 
 class Command(BaseCommand):
     """Database build function"""
-    help = "Update database from chapter source HTML and text files"
+    help = "Update database from chapter source HTML and data files"
 
     def add_arguments(self, parser):
         parser.add_argument("data_path", type=str,
@@ -139,11 +139,25 @@ class Command(BaseCommand):
                 This includes volumes, books, chapters, characters, etc.")
         parser.add_argument("-i", "--ignore-missing-chapter-metadata", action="store_true",
             help="Update Chapter data with defaults if the metadata file can't be read")
+        parser.add_argument("--skip-text-refs", action="store_true",
+            help="Skip TextRef generation for each Chapter")
+        parser.add_argument("--skip-wiki-chars", action="store_true",
+            help="Skip Character wiki data build section")
+        parser.add_argument("--skip-wiki-spells", action="store_true",
+            help="Skip [Spell] wiki data build section")
+        parser.add_argument("--skip-wiki-classes", action="store_true",
+            help="Skip [Class] wiki data build section")
+        parser.add_argument("--skip-wiki-all", action="store_true",
+            help="Skip all wiki data build sections")
         # TODO: add (-u) option for updating existing records
 
     def handle(self, *args, **options):
-        self.stdout.write("Updating DB...")
+        if options.get("skip_wiki_all"):
+            options["skip_wiki_chars"] = True
+            options["skip_wiki_spells"] = True
+            options["skip_wiki_classes"] = True
 
+        self.stdout.write("Updating DB...")
         def get_or_create_ref_type(text_ref: TextRef) -> RefType:
             # Check for existing RefType
             try:
@@ -248,91 +262,95 @@ class Command(BaseCommand):
                 self.stdout.write(self.style.SUCCESS(f"> Color created: {color}"))
 
         # Populate spell types from wiki data
-        self.stdout.write("\nPopulating spell RefType(s)...")
-        spell_data_path = Path(options["data_path"], "spells.tsv")
-        with open(spell_data_path, encoding="utf-8") as file:
-            for line in file.readlines():
-                line = line.strip().split("|")
-                aliases = []
-                if len(line) > 1:
-                    # Spell with aliases
-                    spell_name, *aliases = line
-                else:
-                    spell_name = line[0]
-
-                spell = "[" + spell_name + "]"
-                ref_type, ref_type_created = RefType.objects.get_or_create(name=spell, type=RefType.SPELL)
-
-                if ref_type_created:
-                    self.stdout.write(self.style.SUCCESS(f"> {ref_type} created"))
-                else:
-                    self.stdout.write(self.style.WARNING(f"> Spell RefType: {spell} already exists. Skipping creation..."))
-
-                for alias_name in aliases:
-                    new_alias, new_alias_created = Alias.objects.get_or_create(
-                        name=alias_name, ref_type=ref_type)
-                    if new_alias_created:
-                        self.stdout.write(self.style.SUCCESS(f"> Alias: {alias_name} created"))
+        if not options.get("skip_wiki_spells"):
+            self.stdout.write("\nPopulating spell RefType(s)...")
+            spell_data_path = Path(options["data_path"], "spells.tsv")
+            with open(spell_data_path, encoding="utf-8") as file:
+                for line in file.readlines():
+                    line = line.strip().split("|")
+                    aliases = []
+                    if len(line) > 1:
+                        # Spell with aliases
+                        spell_name, *aliases = line
                     else:
-                        self.stdout.write(self.style.WARNING(f"> Alias: {alias_name} already exists. Skipping creation..."))
+                        spell_name = line[0]
 
+                    spell = "[" + spell_name + "]"
+                    ref_type, ref_type_created = RefType.objects.get_or_create(name=spell, type=RefType.SPELL)
 
-        # Populate class types from wiki data
-        self.stdout.write("\nPopulating class RefType(s)...")
-        class_data_path = Path(options["data_path"], "classes.txt")
-        with open(class_data_path, encoding="utf-8") as file:
-            for line in file.readlines():
-                class_name = "[" + line.strip() + "]"
-                ref_type, ref_type_created = RefType.objects.get_or_create(name=class_name, type=RefType.CLASS)
-
-                if ref_type_created:
-                    self.stdout.write(self.style.SUCCESS(f"> {ref_type} created"))
-                else:
-                    self.stdout.write(self.style.WARNING(f"> Class RefType: {class_name} already exists. Skipping creation..."))
-
-        # Populate characters from wiki data
-        self.stdout.write("\nPopulating character RefType(s)...")
-        char_data_path = Path(options["data_path"], "characters.json")
-        with open(char_data_path, encoding="utf-8") as file:
-            try:
-                data = json.load(file)
-            except json.JSONDecodeError:
-                self.stdout.write(self.style.ERROR(
-                    f"> Character data ({char_data_path}) could not be decoded"))
-            else:
-                for name, char_data in data.items():
-                    # Create Character RefType
-                    ref_type, ref_type_created = RefType.objects.get_or_create(
-                        name=name, type=RefType.CHARACTER)
                     if ref_type_created:
-                        self.stdout.write(self.style.SUCCESS(f"> Character RefType: {name} created"))
+                        self.stdout.write(self.style.SUCCESS(f"> {ref_type} created"))
                     else:
-                        self.stdout.write(self.style.WARNING(f"> Character RefType: {name} already exists. Skipping creation..."))
+                        self.stdout.write(self.style.WARNING(f"> Spell RefType: {spell} already exists. Skipping creation..."))
 
-                    # Create aliases from Character wiki metadata
-                    aliases = char_data.get("aliases")
-                    if aliases is not None:
-                        for alias_name in char_data.get("aliases"):
-                            try:
-                                Alias.objects.get(name=alias_name)
-                                self.stdout.write(self.style.WARNING(f"> Alias: {alias_name} already exists. Skipping creation..."))
-                            except Alias.DoesNotExist:
-                                self.stdout.write(self.style.SUCCESS(f"> Alias: {alias_name} created"))
-                                alias = Alias.objects.create(name=alias_name, ref_type=ref_type)
-                                alias.save
+                    for alias_name in aliases:
+                        new_alias, new_alias_created = Alias.objects.get_or_create(
+                            name=alias_name, ref_type=ref_type)
+                        if new_alias_created:
+                            self.stdout.write(self.style.SUCCESS(f"> Alias: {alias_name} created"))
+                        else:
+                            self.stdout.write(self.style.WARNING(f"> Alias: {alias_name} already exists. Skipping creation..."))
 
-                    # Create Character Data
-                    new_character, new_char_created = Character.objects.get_or_create(
-                        ref_type=ref_type,
-                        first_ref_uri=char_data.get("first_href"),
-                        wiki_uri=char_data.get("wiki_href"),
-                        status=Character.parse_status_str(char_data.get("status")),
-                        # species=char_data.get("species")
-                    )
-                    if new_char_created:
-                        self.stdout.write(self.style.SUCCESS(f"> Character data: {name} created"))
+
+
+        if not options.get("skip_wiki_classes"):
+            # Populate class types from wiki data
+            self.stdout.write("\nPopulating class RefType(s)...")
+            class_data_path = Path(options["data_path"], "classes.txt")
+            with open(class_data_path, encoding="utf-8") as file:
+                for line in file.readlines():
+                    class_name = "[" + line.strip() + "]"
+                    ref_type, ref_type_created = RefType.objects.get_or_create(name=class_name, type=RefType.CLASS)
+
+                    if ref_type_created:
+                        self.stdout.write(self.style.SUCCESS(f"> {ref_type} created"))
                     else:
-                        self.stdout.write(self.style.WARNING(f"> Character data: {name} already exists. Skipping creation..."))
+                        self.stdout.write(self.style.WARNING(f"> Class RefType: {class_name} already exists. Skipping creation..."))
+
+        if not options.get("skip_wiki_chars"):
+            # Populate characters from wiki data
+            self.stdout.write("\nPopulating character RefType(s)...")
+            char_data_path = Path(options["data_path"], "characters.json")
+            with open(char_data_path, encoding="utf-8") as file:
+                try:
+                    data = json.load(file)
+                except json.JSONDecodeError:
+                    self.stdout.write(self.style.ERROR(
+                        f"> Character data ({char_data_path}) could not be decoded"))
+                else:
+                    for name, char_data in data.items():
+                        # Create Character RefType
+                        ref_type, ref_type_created = RefType.objects.get_or_create(
+                            name=name, type=RefType.CHARACTER)
+                        if ref_type_created:
+                            self.stdout.write(self.style.SUCCESS(f"> Character RefType: {name} created"))
+                        else:
+                            self.stdout.write(self.style.WARNING(f"> Character RefType: {name} already exists. Skipping creation..."))
+
+                        # Create aliases from Character wiki metadata
+                        aliases = char_data.get("aliases")
+                        if aliases is not None:
+                            for alias_name in char_data.get("aliases"):
+                                try:
+                                    Alias.objects.get(name=alias_name)
+                                    self.stdout.write(self.style.WARNING(f"> Alias: {alias_name} already exists. Skipping creation..."))
+                                except Alias.DoesNotExist:
+                                    self.stdout.write(self.style.SUCCESS(f"> Alias: {alias_name} created"))
+                                    alias = Alias.objects.create(name=alias_name, ref_type=ref_type)
+                                    alias.save
+
+                        # Create Character Data
+                        new_character, new_char_created = Character.objects.get_or_create(
+                            ref_type=ref_type,
+                            first_ref_uri=char_data.get("first_href"),
+                            wiki_uri=char_data.get("wiki_href"),
+                            status=Character.parse_status_str(char_data.get("status")),
+                            # species=char_data.get("species")
+                        )
+                        if new_char_created:
+                            self.stdout.write(self.style.SUCCESS(f"> Character data: {name} created"))
+                        else:
+                            self.stdout.write(self.style.WARNING(f"> Character data: {name} already exists. Skipping creation..."))
 
         # Populate locations from wiki data
         self.stdout.write("\nPopulating locations RefType(s)...")
@@ -352,9 +370,10 @@ class Command(BaseCommand):
                             self.style.SUCCESS(f"> Location RefType: {loc_name} created"))
                     else:
                         self.stdout.write(
-                            self.style.WARNING(f"> location RefType: {loc_name} already exists. Skipping creation..."))
+                            self.style.WARNING(f"> Location RefType: {loc_name} already exists. Skipping creation..."))
 
         # Populate Volumes
+        self.stdout.write("\nPopulating chapter data by volume...")
         vol_root = Path(options["data_path"], "volumes")
         meta_path = Path(vol_root)
         volumes_metadata = get_metadata(meta_path)
@@ -402,6 +421,9 @@ class Command(BaseCommand):
                     else:
                         self.stdout.write(self.style.WARNING(
                             f"> Chapter \"{src_chapter.title}\" already exists. Skipping creation..."))
+
+                    if options.get("skip_text_refs"):
+                        continue
 
                     # Populate TextRefs
                     for text_ref in src_chapter.all_src_refs:
