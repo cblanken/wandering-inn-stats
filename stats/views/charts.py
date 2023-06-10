@@ -5,6 +5,14 @@ import numpy as np
 import pandas as pd
 from ..models import Chapter
 
+def index(request):
+    return render(request, "chart_index.html", {
+        "links": {
+            "Word Counts": "./charts/word_counts",
+            "Character Stats": "./charts/characters"
+        }
+    })
+
 def word_count_charts(request):
     """Word count charts"""
     # Word counts per chapter

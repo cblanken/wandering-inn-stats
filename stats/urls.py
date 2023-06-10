@@ -39,6 +39,7 @@ urlpatterns = [
     path("", index.index, name="index"),
     path("api/", include(router.urls)),
     path("api-auth/", include("rest_framework.urls", namespace="rest_framework")),
+    path("charts", charts.index, name="charts"),
     path("charts/word_counts", charts.word_count_charts, name="charts"),
     path("charts/characters", charts.character_charts, name="charts"),
 ]
