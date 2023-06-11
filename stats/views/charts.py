@@ -30,6 +30,7 @@ def word_count_charts(request):
 
     # Word counts grouped by book
     book_wc_data = (Chapter.objects
+        .filter(~Q(book__title__contains="Unreleased"))
         .values("book", "book__title", "id", "title", "word_count")
         .order_by("book")
     )
