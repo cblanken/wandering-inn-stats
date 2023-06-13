@@ -3,7 +3,7 @@ from django.db.models import Count, F, Q, Sum, Value
 import plotly.express as px
 import numpy as np
 import pandas as pd
-from ..models import Chapter
+from ..models import Chapter, RefType, TextRef
 
 def index(request):
     return render(request, "chart_index.html", {
@@ -101,8 +101,24 @@ def word_count_charts(request):
 
 def character_charts(request):
     """Character stat charts"""
+
+    character_refs = (TextRef.objects
+        .filter(Q(type__type=RefType.CHARACTER))
+        .values("type__name")
+        .annotate(char_instance_cnt=Count("type__name"))
+    )
+
+    char_refs_count_fig = px.pie(character_refs, names="type__name", values="char_instance_cnt",
+           title="Character TextRef Counts")
+
+    char_refs_count_fig.update_traces(textposition="inside")
+    
+    char_refs_count_html = char_refs_count_fig.to_html(full_html=False, include_plotlyjs=False)
+
     return render(request, "chart_demo.html", {
-        "plots": { },
+        "plots": {
+            "Character Reference Counts": char_refs_count_html,
+         },
         "page_title": "Character Stats"
     })
 
