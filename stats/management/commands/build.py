@@ -330,8 +330,15 @@ class Command(BaseCommand):
                             self.stdout.write(self.style.WARNING(f"> Character RefType: {name} already exists. Skipping creation..."))
 
                         # Create alias for Character first name
-                        name_split = name.split(" ")
-                        if len(name) > 0:
+                        # TODO: ignore any articles [a, the, an, etc.]
+                        invalid_first_names = [
+                            "a", "the", "an", "gnoll", "drake", "human", "elf", "half-elf",
+                            "dullahan", "selphid", "goblin", "harpy", "halfling"
+                        ]
+                        name_split = name.strip().split(" ")
+                        # if "Crimson" in name:
+                        #     breakpoint()
+                        if len(name_split) > 0 and name_split[0].lower() not in invalid_first_names:
                             try:
                                 Alias.objects.get(name=name_split[0])
                                 self.stdout.write(self.style.WARNING(f"> Alias: {name_split[0]} already exists. Skipping creation..."))
