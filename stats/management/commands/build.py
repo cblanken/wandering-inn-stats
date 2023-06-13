@@ -151,6 +151,7 @@ class Command(BaseCommand):
             help="Skip [Class] wiki data build section")
         parser.add_argument("--skip-wiki-all", action="store_true",
             help="Skip all wiki data build sections")
+        # TODO: replace input() with prompt cues that can optionally play a sound when hit
         # TODO: add (-u) option for updating existing records
 
     def handle(self, *args, **options):
@@ -476,10 +477,16 @@ class Command(BaseCommand):
                                     for i, col in enumerate(matching_colors):
                                         self.stdout.write(f"{i}: {col}")
                                     # TODO: fix this select color prompt
-                                    # triggers when no valid colors avaiale, add skip option
+                                    # triggers when no valid colors available, add skip option
+                                    skip = False
                                     while True:
                                         try:
-                                            sel: int = int(input("Select color: "))
+                                            sel = input("Select color (leave empty to skip): ")
+                                            if sel.strip() == "":
+                                                skip = True
+                                                break
+
+                                            sel = int(sel)
                                         except ValueError:
                                             self.stdout.write("Invalid selection. Please try again.")
                                             continue
@@ -487,6 +494,12 @@ class Command(BaseCommand):
                                             if sel < len(matching_colors):
                                                 break
                                             self.stdout.write("Invalid selection. Please try again.")
+
+                                    if skip:
+                                        self.stdout.write(
+                                            self.style.WARNING(f"> No color selection provided. Skipping {ref_type.name}..."))
+                                        continue
+                                        
 
                                     color = matching_colors[i]
                             except IndexError:
