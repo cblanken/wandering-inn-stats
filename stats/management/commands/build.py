@@ -329,6 +329,16 @@ class Command(BaseCommand):
                         else:
                             self.stdout.write(self.style.WARNING(f"> Character RefType: {name} already exists. Skipping creation..."))
 
+                        # Create alias for Character first name
+                        name_split = name.split(" ")
+                        if len(name) > 0:
+                            try:
+                                Alias.objects.get(name=name_split[0])
+                                self.stdout.write(self.style.WARNING(f"> Alias: {name_split[0]} already exists. Skipping creation..."))
+                            except Alias.DoesNotExist:
+                                self.stdout.write(self.style.SUCCESS(f"> Alias: {name_split[0]} created"))
+                                Alias.objects.create(name=name_split[0], ref_type=ref_type)
+
                         # Create aliases from Character wiki metadata
                         aliases = char_data.get("aliases")
                         if aliases is not None:
@@ -338,9 +348,8 @@ class Command(BaseCommand):
                                     self.stdout.write(self.style.WARNING(f"> Alias: {alias_name} already exists. Skipping creation..."))
                                 except Alias.DoesNotExist:
                                     self.stdout.write(self.style.SUCCESS(f"> Alias: {alias_name} created"))
-                                    alias = Alias.objects.create(name=alias_name, ref_type=ref_type)
-                                    alias.save
-
+                                    Alias.objects.create(name=alias_name, ref_type=ref_type)
+                        
                         # Create Character Data
                         new_character, new_char_created = Character.objects.get_or_create(
                             ref_type=ref_type,
@@ -348,6 +357,7 @@ class Command(BaseCommand):
                             wiki_uri=char_data.get("wiki_href"),
                             status=Character.parse_status_str(char_data.get("status")),
                             # species=char_data.get("species")
+                            # TODO: parse species string and add to new Characters
                         )
                         if new_char_created:
                             self.stdout.write(self.style.SUCCESS(f"> Character data: {name} created"))
@@ -428,7 +438,9 @@ class Command(BaseCommand):
                         continue
 
                     # Populate TextRefs
-                    character_names = [x.name for x in RefType.objects.filter(type=RefType.CHARACTER)]
+                    character_names = itertools.chain(*[
+                        [ref.name, *[alias.name for alias in Alias.objects.filter(ref_type=ref)]] for ref in RefType.objects.filter(type=RefType.CHARACTER)
+                    ])
                     location_names = [x.name for x in RefType.objects.filter(type=RefType.LOCATION)]
                     names=itertools.chain(character_names, location_names)
                     for text_ref in src_chapter.gen_text_refs(names=names):
