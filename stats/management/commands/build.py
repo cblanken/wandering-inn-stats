@@ -1,9 +1,11 @@
 from datetime import datetime as dt
 from enum import Enum
 import json
+import itertools
 import logging
 from pprint import pprint
 from pathlib import Path
+import re
 from django.core.management.base import BaseCommand, CommandError
 from django.db.models.query import QuerySet
 from stats.models import (
@@ -293,8 +295,8 @@ class Command(BaseCommand):
 
 
 
+        # Populate class types from wiki data
         if not options.get("skip_wiki_classes"):
-            # Populate class types from wiki data
             self.stdout.write("\nPopulating class RefType(s)...")
             class_data_path = Path(options["data_path"], "classes.txt")
             with open(class_data_path, encoding="utf-8") as file:
@@ -307,8 +309,8 @@ class Command(BaseCommand):
                     else:
                         self.stdout.write(self.style.WARNING(f"> Class RefType: {class_name} already exists. Skipping creation..."))
 
+        # Populate characters from wiki data
         if not options.get("skip_wiki_chars"):
-            # Populate characters from wiki data
             self.stdout.write("\nPopulating character RefType(s)...")
             char_data_path = Path(options["data_path"], "characters.json")
             with open(char_data_path, encoding="utf-8") as file:
@@ -402,7 +404,7 @@ class Command(BaseCommand):
 
                 # Populate Chapters
                 for (chapter_num, chapter_title) in enumerate(src_book.chapters):
-                    src_chapter: SrcChapter = SrcChapter(Path(src_book.path, chapter_title))
+                    src_chapter: SrcChapter = SrcChapter(path=Path(src_book.path, chapter_title))
                     if src_chapter.metadata is None:
                         self.stdout.write(self.style.SUCCESS(f"> Missing metadata for Chapter: {src_chapter.title}. Skipping..."))
                         continue
@@ -426,7 +428,10 @@ class Command(BaseCommand):
                         continue
 
                     # Populate TextRefs
-                    for text_ref in src_chapter.all_src_refs:
+                    character_names = [x.name for x in RefType.objects.filter(type=RefType.CHARACTER)]
+                    location_names = [x.name for x in RefType.objects.filter(type=RefType.LOCATION)]
+                    names=itertools.chain(character_names, location_names)
+                    for text_ref in src_chapter.gen_text_refs(names=names):
                         print(text_ref)
 
                         ref_type = get_or_create_ref_type(text_ref)

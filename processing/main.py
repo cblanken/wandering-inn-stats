@@ -16,4 +16,4 @@ if __name__ == "__main__":
     paths = [Path(x) for x in glob(f"./{args.path}/*/*/*/*") if Path(x).is_dir()]
     for p in paths:
         chapter = Chapter(Path(p))
-        chapter.print_all_src_refs()
+        chapter.print_bracket_refs()

@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Generator
 
 OBTAINED_SUFFIX = r".*[Oo]btained.?\]"
-class Pattern(Enum):
+class Pattern():
     """Text matching RE patterns for processing chapter text"""
     ALL_MAGIC_WORDS = re.compile(r"\[(\w\,? ?)+\]")
     SKILL_OBTAINED = re.compile(r"\[[Ss]kill" + OBTAINED_SUFFIX)
@@ -17,11 +17,11 @@ class Pattern(Enum):
     SPELL_OBTAINED = re.compile(r"\[[Ss]pell" + OBTAINED_SUFFIX)
 
     @staticmethod
-    def _or(*patterns: Pattern):
+    def _or(*patterns: re.Pattern):
         if len(patterns) == 1:
-            return patterns[0].value
+            return patterns[0]
 
-        new_pattern = re.compile("|".join([p.value.pattern for p in patterns]))
+        new_pattern = re.compile("|".join([p.pattern for p in patterns]))
         return new_pattern
 
     @staticmethod
@@ -94,29 +94,48 @@ class Chapter:
         self.meta_path: Path = meta_path if meta_path.exists() else None
         self.metadata = get_metadata(self.path) if meta_path.exists() else None
 
-        self.all_src_refs: Generator[TextRef] = self.gen_chapter_src_refs(Pattern._or(
+        self.__bracket_pattern = Pattern._or(
             Pattern.ALL_MAGIC_WORDS,
             Pattern.SKILL_OBTAINED,
             Pattern.CLASS_OBTAINED,
-            Pattern.SPELL_OBTAINED
-        ))
+            Pattern.SPELL_OBTAINED,
+        )
+        self.all_bracket_refs: Generator[TextRef] = self.gen_text_refs()
 
-    def gen_chapter_src_refs(self, pattern: re.Pattern, context_len: int = 50) -> Generator[TextRef]:
+    def gen_text_refs(self, names: any[str] = None, context_len: int = 50) -> Generator[TextRef]:
         """Return  TextRef(s) that match the regex for the given regex patterns
+        and other arguments
 
         Args:
-            patterns (Patterns): Bitwise combination of Patterns
+            names (str): iterable of characters, locations, items, etc.
+
         """
         with open(self.src_path, "r", encoding="utf-8") as file:
             lines = file.readlines()
 
-        matches_per_line = [re.finditer(pattern, line) for line in lines]
-        for line_number, matches in enumerate(matches_per_line):
-            for match in matches:
+        patterns_by_name = {
+            name: Pattern._or(
+                re.compile(r'(^|\W|[,.\?!]\W)' + name + r'(\W|[,.\?!]\W?)'),
+                re.compile(r'(^|\W|[,.\?!]\W)' + name.upper() + r'(\W|[,.\?!]\W?)')
+            ) for name in names
+        }
+
+        for line_number, line in enumerate(lines):
+            # Yield any matches for bracketed types
+            for match in (re.finditer(self.__bracket_pattern, line)):
                 yield TextRef(match.group(), match.string, line_number,
                             match.start(), match.end(), context_len)
 
-    def print_all_src_refs(self):
+            # TODO: selection prompt for aliases with multiple matches
+            # or if an alias matches a common word
+            if names is not None:
+                # Yield any matches for named references such as characters, locations, items, etc.
+                for name, pattern in patterns_by_name.items():
+                    for match in (re.finditer(pattern, line)):
+                        yield TextRef(name, line, line_number,
+                                    match.start(), match.end(), context_len)
+
+    def print_bracket_refs(self):
         """Print TextRef(s) for chapter
         """
         headline = f"{self.title} - {self.path}"
@@ -124,7 +143,7 @@ class Chapter:
         print("=" * len(headline))
         print(headline)
         print("=" * len(headline))
-        for ref in self.all_src_refs:
+        for ref in self.all_bracket_refs:
             print(ref)
 
     def __str__(self):
