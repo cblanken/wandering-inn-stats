@@ -110,7 +110,7 @@ class Character(models.Model):
     """Character data"""
 
     # Unspecified or unclear status/species
-    UNKNOWN = "UN"
+    UNKNOWN = "UK"
 
     # Species short-codes
     AGELUM = "AG"
@@ -169,65 +169,66 @@ class Character(models.Model):
     WYVERN = "WV"
 
     SPECIES = [
-        ("AG", "Agelum"),
-        ("AN", "Antinium"),
-        ("BK", "Beastkin"),
-        ("CT", "Centaur"),
-        ("CY", "Cyclops"),
-        ("DE", "Demon"),
-        ("DG", "Dragon"),
-        ("DP", "Drowned People"),
-        ("DR", "Drake"),
-        ("DU", "Dullahan"),
-        ("DY", "Dryad"),
-        ("EL", "Elf"),
-        ("FA", "Fae"),
-        ("FR", "Fraerling"),
-        ("GA", "Gazer"),
-        ("GB", "Goblin"),
-        ("GM", "Golem"),
-        ("GO", "God"),
-        ("GR", "Garuda"),
-        ("HA", "Halfling"),
-        ("HE", "HalfElf-"),
-        ("HR", "Harpy"),
-        ("HT", "HalfTroll-"),
-        ("HU", "Human"),
-        ("KE", "Kelpies"),
-        ("KI", "Kitsune"),
-        ("LF", "Lizardfolk"),
-        ("LG", "Lizardfolk - Gorgon"),
-        ("LI", "Lizardfolk - Indishei"),
-        ("LL", "Lizardfolk - Lamia"),
-        ("LM", "Lizardfolk - Medusa"),
-        ("LN", "Lizardfolk - Naga"),
-        ("LQ", "Lizardfolk - Quexal"),
-        ("LS", "Lizardfolk - Scylla"),
-        ("LS", "Lizardfolk - Star Lamia"),
-        ("LT", "Lizardfolk - Tasgiel"),
-        ("LU", "Lucifen"),
-        ("ME", "Merfolk"),
-        ("MI", "Minotaur"),
-        ("OG", "Ogre"),
-        ("PH", "Phoenix"),
-        ("SE", "Selphid"),
-        ("SF", "Spiderfolk"),
-        ("SL", "Sariant Lamb"),
-        ("SP", "String People"),
-        ("TI", "Titan"),
-        ("TL", "Troll"),
-        ("TR", "Treant"),
-        ("UD", "Undead"),
-        ("UN", "Unicorn"),
-        ("VA", "Vampire"),
-        ("WV", "Wyvern"),
-        ("WY", "Wyrm"),
+        (AGELUM, "Agelum"),
+        (ANTINIUM, "Antinium"),
+        (BEASTKIN, "Beastkin"),
+        (CENTAUR, "Centaur"),
+        (CYCLOPS, "Cyclops"),
+        (DEMON, "Demon"),
+        (DRAGON, "Dragon"),
+        (DROWNED_PEOPLE, "Drowned People"),
+        (DRAKE, "Drake"),
+        (DULLAHAN, "Dullahan"),
+        (DRYAD, "Dryad"),
+        (ELF, "Elf"),
+        (FAE, "Fae"),
+        (FRAERLING, "Fraerling"),
+        (GAZER, "Gazer"),
+        (GOBLIN, "Goblin"),
+        (GOLEM, "Golem"),
+        (GOD, "God"),
+        (GARUDA, "Garuda"),
+        (HALFLING, "Halfling"),
+        (HALF_ELF, "Half-Elf"),
+        (HALF_GAZER, "Half-Gazer"),
+        (HALF_TROLL, "Half-Troll"),
+        (HARPY, "Harpy"),
+        (HUMAN, "Human"),
+        (KELPIES, "Kelpies"),
+        (KITSUNE, "Kitsune"),
+        (LIZARDFOLK, "Lizardfolk"),
+        (LIZARDFOLK_GORGON, "Lizardfolk - Gorgon"),
+        (LIZARDFOLK_INDISHEI, "Lizardfolk - Indishei"),
+        (LIZARDFOLK_LAMIA, "Lizardfolk - Lamia"),
+        (LIZARDFOLK_MEDUSA, "Lizardfolk - Medusa"),
+        (LIZARDFOLK_NAGA, "Lizardfolk - Naga"),
+        (LIZARDFOLK_QUEXAL, "Lizardfolk - Quexal"),
+        (LIZARDFOLK_SCYLLA, "Lizardfolk - Scylla"),
+        (LIZARDFOLK_STAR_LAMIA, "Lizardfolk - Star Lamia"),
+        (LIZARDFOLK_TASGIEL, "Lizardfolk - Tasgiel"),
+        (LUCIFEN, "Lucifen"),
+        (MERFOLK, "Merfolk"),
+        (MINOTAUR, "Minotaur"),
+        (OGRE, "Ogre"),
+        (PHOENIX, "Phoenix"),
+        (SELPHID, "Selphid"),
+        (SPIDERFOLK, "Spiderfolk"),
+        (SARIANT_LAMB, "Sariant Lamb"),
+        (STRING_PEOPLE, "String People"),
+        (TITAN, "Titan"),
+        (TROLL, "Troll"),
+        (TREANT, "Treant"),
+        (UNDEAD, "Undead"),
+        (UNICORN, "Unicorn"),
+        (VAMPIRE, "Vampire"),
+        (WYVERN, "Wyvern"),
+        (WYRM, "Wyrm"),
+        (UNKNOWN, "Unknown"),
     ]
 
     # Status short-codes
     ALIVE = "AL"
     DEAD = "DE"
-    UNDEAD = "UD"
 
     STATUSES = [
         (ALIVE, "Alive"),
@@ -280,7 +281,7 @@ class Character(models.Model):
                 return Character.DRAGON
             case "drowned":
                 return Character.DROWNED_PEOPLE
-            case "drake":
+            case "drake" | "oldblood drake":
                 return Character.DRAKE
             case "dullahan":
                 return Character.DULLAHAN
