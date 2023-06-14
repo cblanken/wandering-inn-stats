@@ -7,6 +7,7 @@ from pprint import pprint
 from pathlib import Path
 import re
 from django.core.management.base import BaseCommand, CommandError
+from django.db.models import Q
 from django.db.models.query import QuerySet
 from stats.models import (
     Color, ColorCategory, Chapter, Book, Volume, TextRef, RefType, Alias, Character
@@ -357,7 +358,13 @@ class Command(BaseCommand):
                         
                         # Create Character Data
                         try:
-                            first_ref = Chapter.objects.get(source_url=char_data.get("first_href"))
+                            first_href = char_data.get("first_href")
+                            if first_href is not None:
+                                first_ref = Chapter.objects.get(
+                                    # Account for existance or lack of "/" at end of the URI
+                                    Q(source_url=first_href) | Q(source_url=first_href + "/") | Q(source_url=first_href[:-1]))
+                            else:
+                                first_ref = None
                         except Chapter.DoesNotExist:
                             first_ref = None
                         new_character, new_char_created = Character.objects.get_or_create(
