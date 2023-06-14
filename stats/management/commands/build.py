@@ -456,8 +456,9 @@ class Command(BaseCommand):
 
                     # Populate TextRefs
                     character_names = itertools.chain(*[
-                        [ref.name, *[alias.name for alias in Alias.objects.filter(ref_type=ref)]] 
-                        for ref in RefType.objects.filter(type=RefType.CHARACTER)
+                        [char.ref_type.name, *[alias.name for alias in Alias.objects.filter(ref_type=char.ref_type)]] 
+                        for char in Character.objects.filter(
+                            Q(first_chapter_ref__number__lte=chapter_num) | Q(first_chapter_ref=None))
                     ])
                     location_names = [x.name for x in RefType.objects.filter(type=RefType.LOCATION)]
                     names=itertools.chain(character_names, location_names)
