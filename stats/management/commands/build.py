@@ -337,7 +337,7 @@ class Command(BaseCommand):
                             "dullahan", "selphid", "goblin", "harpy", "halfling"
                         ]
                         name_split = name.strip().split(" ")
-                        if len(name_split) > 0 and name_split[0].lower() not in invalid_first_names:
+                        if len(name_split) > 0 and name_split[0].lower() not in invalid_first_names and name_split[0] != name:
                             try:
                                 Alias.objects.get(name=name_split[0])
                                 self.stdout.write(self.style.WARNING(f"> Alias: {name_split[0]} already exists. Skipping creation..."))
