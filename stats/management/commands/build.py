@@ -406,6 +406,7 @@ class Command(BaseCommand):
         volumes_metadata = get_metadata(meta_path)
         volumes = sorted(list(volumes_metadata["volumes"].items()), key=lambda x: x[1])
 
+        chapter_num = 0
         for (vol_title, vol_num) in volumes:
             src_vol: SrcVolume = SrcVolume(Path(vol_root, vol_title))
             volume, ref_type_created = Volume.objects.get_or_create(title=src_vol.title, number=vol_num)
@@ -428,7 +429,7 @@ class Command(BaseCommand):
                     )
 
                 # Populate Chapters
-                for (chapter_num, chapter_title) in enumerate(src_book.chapters):
+                for chapter_title in src_book.chapters:
                     src_chapter: SrcChapter = SrcChapter(path=Path(src_book.path, chapter_title))
                     if src_chapter.metadata is None:
                         self.stdout.write(self.style.SUCCESS(f"> Missing metadata for Chapter: {src_chapter.title}. Skipping..."))
@@ -442,6 +443,7 @@ class Command(BaseCommand):
                         download_date=dt.fromisoformat(src_chapter.metadata.get("dl_time", dt.now().isoformat())),
                         word_count=src_chapter.metadata.get("word_count", 0)
                     )
+                    chapter_num += 1
 
                     if ref_type_created:
                         self.stdout.write(self.style.SUCCESS(f"> Chapter created: {chapter}"))
@@ -454,7 +456,8 @@ class Command(BaseCommand):
 
                     # Populate TextRefs
                     character_names = itertools.chain(*[
-                        [ref.name, *[alias.name for alias in Alias.objects.filter(ref_type=ref)]] for ref in RefType.objects.filter(type=RefType.CHARACTER)
+                        [ref.name, *[alias.name for alias in Alias.objects.filter(ref_type=ref)]] 
+                        for ref in RefType.objects.filter(type=RefType.CHARACTER)
                     ])
                     location_names = [x.name for x in RefType.objects.filter(type=RefType.LOCATION)]
                     names=itertools.chain(character_names, location_names)
