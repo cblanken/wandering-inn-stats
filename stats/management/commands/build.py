@@ -331,14 +331,11 @@ class Command(BaseCommand):
                             self.stdout.write(self.style.WARNING(f"> Character RefType: {name} already exists. Skipping creation..."))
 
                         # Create alias for Character first name
-                        # TODO: ignore any articles [a, the, an, etc.]
                         invalid_first_names = [
                             "a", "the", "an", "gnoll", "drake", "human", "elf", "half-elf",
                             "dullahan", "selphid", "goblin", "harpy", "halfling"
                         ]
                         name_split = name.strip().split(" ")
-                        # if "Crimson" in name:
-                        #     breakpoint()
                         if len(name_split) > 0 and name_split[0].lower() not in invalid_first_names:
                             try:
                                 Alias.objects.get(name=name_split[0])
@@ -359,13 +356,16 @@ class Command(BaseCommand):
                                     Alias.objects.create(name=alias_name, ref_type=ref_type)
                         
                         # Create Character Data
+                        try:
+                            first_ref = Chapter.objects.get(source_url=char_data.get("first_href"))
+                        except Chapter.DoesNotExist:
+                            first_ref = None
                         new_character, new_char_created = Character.objects.get_or_create(
                             ref_type=ref_type,
-                            first_ref_uri=char_data.get("first_href"),
+                            first_chapter_ref=first_ref,
                             wiki_uri=char_data.get("wiki_href"),
                             status=Character.parse_status_str(char_data.get("status")),
-                            # species=char_data.get("species")
-                            # TODO: parse species string and add to new Characters
+                            species=Character.parse_species_str(char_data.get("species"))
                         )
                         if new_char_created:
                             self.stdout.write(self.style.SUCCESS(f"> Character data: {name} created"))

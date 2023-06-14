@@ -108,6 +108,66 @@ class RefType(models.Model):
 
 class Character(models.Model):
     """Character data"""
+
+    # Unspecified or unclear status/species
+    UNKNOWN = "UN"
+
+    # Species short-codes
+    AGELUM = "AG"
+    ANTINIUM = "AN"
+    BEASTKIN = "BK"
+    CENTAUR = "CT"
+    CYCLOPS = "CY"
+    DEMON = "DE"
+    DRAGON = "DG"
+    DRAKE = "DR"
+    DROWNED_PEOPLE = "DP"
+    DRYAD = "DY"
+    DULLAHAN = "DU"
+    ELF = "EL"
+    FAE = "FA"
+    FRAERLING = "FR"
+    GARUDA = "GR"
+    GAZER = "GA"
+    GOBLIN = "GB"
+    GOD = "GO"
+    GOLEM = "GM"
+    HALFLING = "HA"
+    HALF_ELF = "HE"
+    HALF_GAZER = "HG"
+    HALF_TROLL = "HT"
+    HARPY = "HR"
+    HUMAN = "HU"
+    KELPIES = "KE"
+    KITSUNE = "KI"
+    LIZARDFOLK = "LF"
+    LIZARDFOLK_GORGON = "LG"
+    LIZARDFOLK_INDISHEI = "LI"
+    LIZARDFOLK_LAMIA = "LL"
+    LIZARDFOLK_MEDUSA = "LM"
+    LIZARDFOLK_NAGA = "LN"
+    LIZARDFOLK_QUEXAL = "LQ"
+    LIZARDFOLK_SCYLLA = "LS"
+    LIZARDFOLK_STAR_LAMIA = "LS"
+    LIZARDFOLK_TASGIEL = "LT"
+    LUCIFEN = "LU"
+    MERFOLK = "ME"
+    MINOTAUR = "MI"
+    OGRE = "OG"
+    PHOENIX = "PH"
+    SARIANT_LAMB = "SL"
+    SELPHID = "SE"
+    SPIDERFOLK = "SF"
+    STRING_PEOPLE = "SP"
+    TITAN = "TI"
+    TREANT = "TR"
+    TROLL = "TL"
+    UNDEAD = "UD"
+    UNICORN = "UC"
+    VAMPIRE = "VA"
+    WYRM = "WY"
+    WYVERN = "WV"
+
     SPECIES = [
         ("AG", "Agelum"),
         ("AN", "Antinium"),
@@ -129,9 +189,9 @@ class Character(models.Model):
         ("GO", "God"),
         ("GR", "Garuda"),
         ("HA", "Halfling"),
-        ("HE", "Half-Elf"),
+        ("HE", "HalfElf-"),
         ("HR", "Harpy"),
-        ("HT", "Half-Troll"),
+        ("HT", "HalfTroll-"),
         ("HU", "Human"),
         ("KE", "Kelpies"),
         ("KI", "Kitsune"),
@@ -164,28 +224,30 @@ class Character(models.Model):
         ("WY", "Wyrm"),
     ]
 
+    # Status short-codes
     ALIVE = "AL"
     DEAD = "DE"
     UNDEAD = "UD"
-    UNKNOWN = "UN"
+
     STATUSES = [
-        ("AL", "Alive"),
-        ("DE", "Deceased"),
-        ("UD", "Undead"),
-        ("UN", "Unknown"),
+        (ALIVE, "Alive"),
+        (DEAD, "Deceased"),
+        (UNDEAD, "Undead"),
+        (UNKNOWN, "Unknown"),
     ]
 
-    # TODO: add first_href validator
     ref_type = models.ForeignKey(RefType, on_delete=models.CASCADE)
-    first_ref_uri = models.URLField(null=True)
+    first_chapter_ref = models.ForeignKey(Chapter, on_delete=models.CASCADE, null=True)
     wiki_uri = models.URLField(null=True)
     status = models.CharField(max_length=2, choices=STATUSES, null=True)
     species = models.CharField(max_length=2, choices=SPECIES, null=True)
 
+    # TODO: correctly parse poorly formatted alternates instead
+    # of lumping into UNKNOWN
     def parse_status_str(s: str):
-        # TODO: correctly parse poorly formatted alternates instead
-        # of lumping into UNKNOWN
-        match s:
+        if s is None:
+            return Character.UNKNOWN
+        match s.strip():
             case "Alive" | "alive":
                 return Character.ALIVE
             case "Deceased" | "deceased" | "Dead" | "dead":
@@ -194,6 +256,122 @@ class Character(models.Model):
                 return Character.UNDEAD
             case "Unknown" | "unknown" | "Unclear" | "unclear":
                 return Character.UNKNOWN
+            case _:
+                return Character.UNKNOWN
+
+    def parse_species_str(s: str):
+        if s is None:
+            return Character.UNKNOWN
+
+        match s.strip().lower():
+            case "agelum":
+                return Character.AGELUM
+            case "antinium":
+                return Character.ANTINIUM
+            case "beastkin":
+                return Character.BEASTKIN
+            case "centaur":
+                return Character.CENTAUR
+            case "cyclops":
+                return Character.CYCLOPS
+            case "demon":
+                return Character.DEMON
+            case "dragon":
+                return Character.DRAGON
+            case "drowned":
+                return Character.DROWNED_PEOPLE
+            case "drake":
+                return Character.DRAKE
+            case "dullahan":
+                return Character.DULLAHAN
+            case "dryad":
+                return Character.DRYAD
+            case "elf":
+                return Character.ELF
+            case "fae":
+                return Character.FAE
+            case "fraerling":
+                return Character.FRAERLING
+            case "gazer":
+                return Character.GAZER
+            case "goblin":
+                return Character.GOBLIN
+            case "golem":
+                return Character.GOLEM
+            case "god":
+                return Character.GOD
+            case "garuda":
+                return Character.GARUDA
+            case "halfling":
+                return Character.HALFLING
+            case "half-elf":
+                return Character.HALF_ELF
+            case "half-gazer":
+                return Character.HALF_GAZER
+            case "harpy":
+                return Character.HARPY
+            case "half-troll":
+                return Character.HALF_TROLL
+            case "human":
+                return Character.HUMAN
+            case "kelpies" | "kelpy":
+                return Character.KELPIES
+            case "kitsune":
+                return Character.KITSUNE
+            case "lizardfolk" | "lizard-folk":
+                return Character.LIZARDFOLK
+            case "lizardfolk (gorgon)" | "gorgon":
+                return Character.LIZARDFOLK_GORGON
+            case "lizardfolk (indishei)" | "indishei":
+                return Character.LIZARDFOLK_INDISHEI
+            case "lizardfolk (lamia)" | "lamia":
+                return Character.LIZARDFOLK_LAMIA
+            case "lizardfolk (medusa)" | "medusa":
+                return Character.LIZARDFOLK_MEDUSA
+            case "lizardfolk (naga)" | "naga":
+                return Character.LIZARDFOLK_NAGA
+            case "lizardfolk (quexal)" | "quexal":
+                return Character.LIZARDFOLK_QUEXAL
+            case "lizardfolk (scylla)" | "scylla":
+                return Character.LIZARDFOLK_SCYLLA
+            case "lizardfolk (star lamia)" | "star lamia" | "star-lamia":
+                return Character.LIZARDFOLK_STAR_LAMIA
+            case "lizardfolk (tasgiel)" | "tasgiel":
+                return Character.LIZARDFOLK_TASGIEL
+            case "lucifen":
+                return Character.LUCIFEN
+            case "merfolk":
+                return Character.MERFOLK
+            case "minotaur":
+                return Character.MINOTAUR
+            case "ogre":
+                return Character.OGRE
+            case "phoenix":
+                return Character.PHOENIX
+            case "selphid":
+                return Character.SELPHID
+            case "spiderfolk" | "spider-folk":
+                return Character.SPIDERFOLK
+            case "sariant lamb" | "sariant":
+                return Character.SARIANT_LAMB
+            case "string people" | "string person" | "string-person":
+                return Character.STRING_PEOPLE
+            case "titan":
+                return Character.TITAN
+            case "troll":
+                return Character.TROLL
+            case "treant":
+                return Character.TREANT
+            case "undead":
+                return Character.UNDEAD
+            case "unicorn":
+                return Character.UNICORN
+            case "vampire":
+                return Character.VAMPIRE
+            case "wyvern":
+                return Character.WYVERN
+            case "wyrm":
+                return Character.WYRM
             case _:
                 return Character.UNKNOWN
 
