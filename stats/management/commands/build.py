@@ -238,9 +238,17 @@ class Command(BaseCommand):
                 return alias.ref_type
 
 
-            # Could not find existing RefType or Alias or alternate form
-            # Prompt user to select TextRef type
-            new_type = select_ref_type(sound=options.get("prompt_sound"))
+            # Check for [Skill] or [Class] acquisition messages
+            skill_obtained_pattern = re.compile(r'^\[Skill.*[Oo]btained.*\]$')
+            class_obtained_pattern = re.compile(r'^\[.*Class\W[Oo]btained.*\]$')
+            if skill_obtained_pattern.match(text_ref.text):
+                new_type = RefType.SKILL_OBTAINED
+            elif class_obtained_pattern.match(text_ref.text):
+                new_type = RefType.CLASS_OBTAINED
+            else:
+                # Could not find existing RefType or Alias or alternate form
+                # Prompt user to select TextRef type
+                new_type = select_ref_type(sound=options.get("prompt_sound"))
             
             # RefType was NOT categorized, so skip
             if new_type is None:
