@@ -1,7 +1,8 @@
 from datetime import datetime as dt
 from enum import Enum
-import json
+from glob import glob
 import itertools
+import json
 import logging
 from pprint import pprint
 from pathlib import Path
@@ -164,6 +165,8 @@ class Command(BaseCommand):
             help="Skip all wiki data build sections")
         parser.add_argument("--prompt-sound", action="store_true",
             help="Play short alert sound when build stops with a user prompt")
+        parser.add_argument("--chapter-id", type=int, default=None,
+            help="Download a specific chapter by ID number")
         # TODO: add (-u) option for updating existing records
 
     def handle(self, *args, **options):
@@ -418,6 +421,146 @@ class Command(BaseCommand):
                         self.stdout.write(
                             self.style.WARNING(f"> Location RefType: {loc_name} already exists. Skipping creation..."))
 
+
+        def populate_chapter(book: Book, src_path: Path, chapter_num: int):
+            src_chapter: SrcChapter = SrcChapter(src_path)
+            if src_chapter.metadata is None:
+                self.stdout.write(self.style.SUCCESS(f"> Missing metadata for Chapter: {src_chapter.title}. Skipping..."))
+                return
+            
+            chapter, ref_type_updated = Chapter.objects.update_or_create(
+                number=chapter_num,
+                defaults= {
+                    "number": chapter_num,
+                    "title": src_chapter.title,
+                    "book": book,
+                    "is_interlude": "interlude" in src_chapter.title.lower(),
+                    "source_url": src_chapter.metadata.get("url", ""),
+                    "post_date": dt.fromisoformat(src_chapter.metadata.get("pub_time", dt.now().isoformat())),
+                    "last_update": dt.fromisoformat(src_chapter.metadata.get("mod_time", dt.now().isoformat())),
+                    "download_date": dt.fromisoformat(src_chapter.metadata.get("dl_time", dt.now().isoformat())),
+                    "word_count": src_chapter.metadata.get("word_count", 0)
+                }
+            )
+
+            if ref_type_updated:
+                self.stdout.write(self.style.SUCCESS(f"> Chapter created: {chapter}"))
+            else:
+                self.stdout.write(self.style.WARNING(
+                    f"> Chapter \"{src_chapter.title}\" already exists. Chapter updated."))
+
+            if options.get("skip_text_refs"):
+                return
+
+            # Populate TextRefs
+            character_names = itertools.chain(*[
+                [char.ref_type.name, *[alias.name for alias in Alias.objects.filter(ref_type=char.ref_type)]] 
+                for char in Character.objects.filter(
+                    Q(first_chapter_ref__number__lte=chapter_num) | Q(first_chapter_ref=None))
+            ])
+            location_names = [x.name for x in RefType.objects.filter(type=RefType.LOCATION)]
+            names=itertools.chain(character_names, location_names)
+            for text_ref in src_chapter.gen_text_refs(names=names):
+                print(text_ref)
+
+                ref_type = get_or_create_ref_type(text_ref)
+
+                # RefType creation could not complete or was skipped
+                if ref_type is None:
+                    continue
+
+                # Detect TextRef color
+                color = None
+                if 'span style="color:' in text_ref.context:
+                    try:
+                        print(f"Found color span in '{text_ref.context}'")
+                        i: int = text_ref.context.index("color:")
+                        # TODO: make this parsing more robust
+                        rgb_hex: str = text_ref.context[i+7:i+13].upper()
+                        matching_colors: QuerySet = Color.objects.filter(rgb=rgb_hex)
+                        if len(matching_colors) == 1:
+                            color = matching_colors[0]
+                        else:
+                            self.stdout.write(f"Unable to automatically select color for TextRef: {text_ref}")
+                            sel: int = 0
+                            for i, col in enumerate(matching_colors):
+                                self.stdout.write(f"{i}: {col}")
+                            # TODO: fix this select color prompt
+                            # triggers when no valid colors available, add skip option
+                            skip = False
+                            while True:
+                                try:
+                                    sel = prompt("Select color (leave empty to skip): ", options.get("prompt_sound"))
+                                    if sel.strip() == "":
+                                        skip = True
+                                        break
+
+                                    sel = int(sel)
+                                except ValueError:
+                                    self.stdout.write("Invalid selection. Please try again.")
+                                    continue
+                                else:
+                                    if sel < len(matching_colors):
+                                        break
+                                    self.stdout.write("Invalid selection. Please try again.")
+
+                            if skip:
+                                self.stdout.write(
+                                    self.style.WARNING(f"> No color selection provided. Skipping {ref_type.name}..."))
+                                continue
+                                
+
+                            color = matching_colors[i]
+                    except IndexError:
+                        print("Can't get color. Invalid TextRef context index")
+                        raise
+                    except Color.DoesNotExist:
+                        print("Can't get color. There is no existing Color for rgb={rgb_hex}")
+                        raise
+                    except KeyboardInterrupt as exc:
+                        print("")
+                        raise CommandError("Build interrupted with Ctrl-C (Keyboard Interrupt).") from exc
+                    except EOFError as exc:
+                        print("")
+                        raise CommandError("Build interrupted with Ctrl-D (EOF).") from exc
+
+                # Create TextRef
+                text_ref, ref_type_created = TextRef.objects.get_or_create(
+                    text=text_ref.text,
+                    type=ref_type,
+                    color=color,
+                    chapter=chapter,
+                    line_number=text_ref.line_number,
+                    start_column=text_ref.start_column,
+                    end_column = text_ref.end_column,
+                    context_offset = text_ref.context_offset,
+                )
+                if ref_type_created:
+                    self.stdout.write(self.style.SUCCESS(f"> {text_ref} created"))
+                else:
+                    self.stdout.write(
+                        self.style.WARNING(f"> TextRef: {text_ref.text} @line {text_ref.line_number} already exists. Skipping creation...")
+                    )
+        
+        # Populate individual Chapter by ID number
+        chapter_id = options.get("chapter_id")
+        if chapter_id is not None:
+            self.stdout.write(f"\nPopulating chapter data for chapter (id): {chapter_id} ...")
+            try:
+                chapter = Chapter.objects.get(number=chapter_id)
+                chapter_dir = Path(glob(f"./data/*/*/*/{chapter.title}")[0])
+                populate_chapter(chapter.book, chapter_dir, chapter_id, update=True)
+            except Chapter.DoesNotExist:
+                self.stdout.write(
+                    self.style.WARNING(f"> Chapter (id) {chapter_id} does not exist in database. Exiting...")
+                )
+            except IndexError:
+                self.stdout.write(
+                    self.style.WARNING(f"> Chapter (id): {chapter_id} source file does not exist. Exiting...")
+                )
+            finally:
+                return
+
         # Populate Volumes
         self.stdout.write("\nPopulating chapter data by volume...")
         vol_root = Path(options["data_path"], "volumes")
@@ -446,120 +589,8 @@ class Command(BaseCommand):
                     self.stdout.write(
                         self.style.WARNING(f"> Record for {book_title} already exists. Skipping creation...")
                     )
-
                 # Populate Chapters
                 for chapter_title in src_book.chapters:
-                    src_chapter: SrcChapter = SrcChapter(path=Path(src_book.path, chapter_title))
-                    if src_chapter.metadata is None:
-                        self.stdout.write(self.style.SUCCESS(f"> Missing metadata for Chapter: {src_chapter.title}. Skipping..."))
-                        continue
-                    chapter, ref_type_created = Chapter.objects.get_or_create(
-                        number=chapter_num, title=src_chapter.title, book=book,
-                        is_interlude="interlude" in src_chapter.title.lower(),
-                        source_url=src_chapter.metadata.get("url", ""),
-                        post_date=dt.fromisoformat(src_chapter.metadata.get("pub_time", dt.now().isoformat())),
-                        last_update=dt.fromisoformat(src_chapter.metadata.get("mod_time", dt.now().isoformat())),
-                        download_date=dt.fromisoformat(src_chapter.metadata.get("dl_time", dt.now().isoformat())),
-                        word_count=src_chapter.metadata.get("word_count", 0)
-                    )
+                    path = Path(src_book.path, chapter_title)
+                    populate_chapter(book, path, chapter_num)
                     chapter_num += 1
-
-                    if ref_type_created:
-                        self.stdout.write(self.style.SUCCESS(f"> Chapter created: {chapter}"))
-                    else:
-                        self.stdout.write(self.style.WARNING(
-                            f"> Chapter \"{src_chapter.title}\" already exists. Skipping creation..."))
-
-                    if options.get("skip_text_refs"):
-                        continue
-
-                    # Populate TextRefs
-                    character_names = itertools.chain(*[
-                        [char.ref_type.name, *[alias.name for alias in Alias.objects.filter(ref_type=char.ref_type)]] 
-                        for char in Character.objects.filter(
-                            Q(first_chapter_ref__number__lte=chapter_num) | Q(first_chapter_ref=None))
-                    ])
-                    location_names = [x.name for x in RefType.objects.filter(type=RefType.LOCATION)]
-                    names=itertools.chain(character_names, location_names)
-                    for text_ref in src_chapter.gen_text_refs(names=names):
-                        print(text_ref)
-
-                        ref_type = get_or_create_ref_type(text_ref)
-
-                        # RefType creation could not complete or was skipped
-                        if ref_type is None:
-                            continue
-
-                        # Detect TextRef color
-                        color = None
-                        if 'span style="color:' in text_ref.context:
-                            try:
-                                print(f"Found color span in '{text_ref.context}'")
-                                i: int = text_ref.context.index("color:")
-                                # TODO: make this parsing more robust
-                                rgb_hex: str = text_ref.context[i+7:i+13].upper()
-                                matching_colors: QuerySet = Color.objects.filter(rgb=rgb_hex)
-                                if len(matching_colors) == 1:
-                                    color = matching_colors[0]
-                                else:
-                                    self.stdout.write(f"Unable to automatically select color for TextRef: {text_ref}")
-                                    sel: int = 0
-                                    for i, col in enumerate(matching_colors):
-                                        self.stdout.write(f"{i}: {col}")
-                                    # TODO: fix this select color prompt
-                                    # triggers when no valid colors available, add skip option
-                                    skip = False
-                                    while True:
-                                        try:
-                                            sel = prompt("Select color (leave empty to skip): ", options.get("prompt_sound"))
-                                            if sel.strip() == "":
-                                                skip = True
-                                                break
-
-                                            sel = int(sel)
-                                        except ValueError:
-                                            self.stdout.write("Invalid selection. Please try again.")
-                                            continue
-                                        else:
-                                            if sel < len(matching_colors):
-                                                break
-                                            self.stdout.write("Invalid selection. Please try again.")
-
-                                    if skip:
-                                        self.stdout.write(
-                                            self.style.WARNING(f"> No color selection provided. Skipping {ref_type.name}..."))
-                                        continue
-                                        
-
-                                    color = matching_colors[i]
-                            except IndexError:
-                                print("Can't get color. Invalid TextRef context index")
-                                raise
-                            except Color.DoesNotExist:
-                                print("Can't get color. There is no existing Color for rgb={rgb_hex}")
-                                raise
-                            except KeyboardInterrupt as exc:
-                                print("")
-                                raise CommandError("Build interrupted with Ctrl-C (Keyboard Interrupt).") from exc
-                            except EOFError as exc:
-                                print("")
-                                raise CommandError("Build interrupted with Ctrl-D (EOF).") from exc
-
-                        # Create TextRef
-                        text_ref, ref_type_created = TextRef.objects.get_or_create(
-                            text=text_ref.text,
-                            type=ref_type,
-                            color=color,
-                            chapter=chapter,
-                            line_number=text_ref.line_number,
-                            start_column=text_ref.start_column,
-                            end_column = text_ref.end_column,
-                            context_offset = text_ref.context_offset,
-                        )
-                        if ref_type_created:
-                            self.stdout.write(self.style.SUCCESS(f"> {text_ref} created"))
-                        else:
-                            self.stdout.write(
-                                self.style.WARNING(f"> TextRef: {text_ref.text} @line {text_ref.line_number} already exists. Skipping creation...")
-                            )
-
