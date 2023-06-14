@@ -15,6 +15,7 @@ from stats.models import (
 from processing import (
     Volume as SrcVolume, Book as SrcBook, Chapter as SrcChapter, get_metadata
 )
+from playsound import playsound, PlaysoundException
 
 class COLOR_CATEGORY(Enum):
     """Text color categories according to TWI wiki"""
@@ -106,17 +107,26 @@ def match_ref_type(type_str) -> str:
         case _:
             return None
 
-def select_ref_type() -> str:
+def prompt(s: str = "", sound: bool = False):
+    if sound:
+        try:
+            playsound(Path("stats/sounds/alert.mp3"), block=False)
+        except PlaysoundException:
+            pass
+
+    return input(s)
+
+def select_ref_type(sound: bool = False) -> str:
     """Interactive classification of TextRef type"""
     try:
         while True:
-            sel = input(f"Classify the above TextRef {RefType.TYPES} (leave blank to skip): ")
+            sel = prompt(f"Classify the above TextRef {RefType.TYPES} (leave blank to skip): ", sound)
 
             if sel.strip() == "":
                 return None # skip without confirmation
             if len(sel) < 2:
                 print("Invalid selection.")
-                yes_no = input("Try again (y/n)")
+                yes_no = prompt("Try again (y/n)", sound)
                 if yes_no.lower() == "y":
                     continue
                 return None # skip with confirmation
@@ -152,7 +162,8 @@ class Command(BaseCommand):
             help="Skip [Class] wiki data build section")
         parser.add_argument("--skip-wiki-all", action="store_true",
             help="Skip all wiki data build sections")
-        # TODO: replace input() with prompt cues that can optionally play a sound when hit
+        parser.add_argument("--prompt-sound", action="store_true",
+            help="Play short alert sound when build stops with a user prompt")
         # TODO: add (-u) option for updating existing records
 
     def handle(self, *args, **options):
@@ -229,7 +240,7 @@ class Command(BaseCommand):
 
             # Could not find existing RefType or Alias or alternate form
             # Prompt user to select TextRef type
-            new_type = select_ref_type()
+            new_type = select_ref_type(sound=options.get("prompt_sound"))
             
             # RefType was NOT categorized, so skip
             if new_type is None:
@@ -492,7 +503,7 @@ class Command(BaseCommand):
                                     skip = False
                                     while True:
                                         try:
-                                            sel = input("Select color (leave empty to skip): ")
+                                            sel = prompt("Select color (leave empty to skip): ", options.get("prompt_sound"))
                                             if sel.strip() == "":
                                                 skip = True
                                                 break
