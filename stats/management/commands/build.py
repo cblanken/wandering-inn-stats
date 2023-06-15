@@ -163,6 +163,10 @@ class Command(BaseCommand):
             help="Skip [Class] wiki data build section")
         parser.add_argument("--skip-wiki-all", action="store_true",
             help="Skip all wiki data build sections")
+        parser.add_argument("--skip-reftype-select", action="store_true",
+            help="Skip RefType prompt for unknown RefTypes")
+        parser.add_argument("--skip-textref-color-select", action="store_true",
+            help="Disable TextRef selection prompt for ambiguous TextRef colors")
         parser.add_argument("--prompt-sound", action="store_true",
             help="Play short alert sound when build stops with a user prompt")
         parser.add_argument("--chapter-id", type=int, default=None,
@@ -247,11 +251,14 @@ class Command(BaseCommand):
             else:
                 # Could not find existing RefType or Alias or alternate form
                 # Prompt user to select TextRef type
-                new_type = select_ref_type(sound=options.get("prompt_sound"))
+                if options.get("skip_reftype_select"):
+                    new_type = None
+                else:
+                    new_type = select_ref_type(sound=options.get("prompt_sound"))
             
             # RefType was NOT categorized, so skip
             if new_type is None:
-                self.stdout.write(self.style.WARNING(f"> {text_ref.text} manually skipped..."))
+                self.stdout.write(self.style.WARNING(f"> {text_ref.text} skipped..."))
                 return None
 
             # Create RefType
@@ -483,12 +490,15 @@ class Command(BaseCommand):
                         if len(matching_colors) == 1:
                             color = matching_colors[0]
                         else:
+                            if options.get("skip_textref_color_select"):
+                                self.stdout.write(
+                                    self.style.WARNING(f"> TextRef color selection disabled. Skipping {ref_type.name}..."))
+                                continue
+
                             self.stdout.write(f"Unable to automatically select color for TextRef: {text_ref}")
                             sel: int = 0
                             for i, col in enumerate(matching_colors):
                                 self.stdout.write(f"{i}: {col}")
-                            # TODO: fix this select color prompt
-                            # triggers when no valid colors available, add skip option
                             skip = False
                             while True:
                                 try:
