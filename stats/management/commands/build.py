@@ -374,13 +374,19 @@ class Command(BaseCommand):
                                     self.stdout.write(self.style.SUCCESS(f"> Alias: {alias_name} created"))
                                     Alias.objects.create(name=alias_name, ref_type=ref_type)
                         
-                        # Create Character Data
                         try:
                             first_href = char_data.get("first_href")
                             if first_href is not None:
-                                first_ref = Chapter.objects.get(
-                                    # Account for existance or lack of "/" at end of the URI
-                                    Q(source_url=first_href) | Q(source_url=first_href + "/") | Q(source_url=first_href[:-1]))
+                                try:
+                                    endpoint = first_href.split(".com")[1]
+                                except IndexError:
+                                    # Failed to split URL on `.com` meaning the href was likely
+                                    # a relative link to another wiki page
+                                    first_ref = None
+                                else:
+                                    first_ref = Chapter.objects.get(
+                                        # Account for existance or lack of "/" at end of the URI
+                                        Q(source_url__contains=endpoint) | Q(source_url__contains=endpoint + "/") | Q(source_url__contains=endpoint[:-1]))
                             else:
                                 first_ref = None
                         except Chapter.DoesNotExist:
