@@ -208,15 +208,11 @@ class Command(BaseCommand):
               singular_name_candidates.append(f"[{ref_name[:-2]}]" if text_ref.is_bracketed else ref_name.text[:-2])
             if ref_name.endswith("ies"):
               singular_name_candidates.append(f"[{ref_name[:-3]}]" if text_ref.is_bracketed else ref_name.text[:-3])
-            if ref_name.endswith("man"):
-              singular_name_candidates.append(f"[{ref_name[:-3]}]" if text_ref.is_bracketed else ref_name.text[:-3])
-            if ref_name.endswith("woman"):
-              singular_name_candidates.append(f"[{ref_name[:-5]}]" if text_ref.is_bracketed else ref_name.text[:-5])
             if ref_name.endswith("men"):
-              singular_name_candidates.append(f"[{ref_name[:-3]}]" if text_ref.is_bracketed else ref_name.text[:-3])
+              singular_name_candidates.append(f"[{ref_name[:-3]}man]" if text_ref.is_bracketed else ref_name.text[:-3])
             if ref_name.endswith("women"):
-                singular_name_candidates.append(f"[{ref_name[:-5]}]" if text_ref.is_bracketed else ref_name.text[:-5])
-
+                singular_name_candidates.append(f"[{ref_name[:-5]}woman]" if text_ref.is_bracketed else ref_name.text[:-5])
+            
             for c in singular_name_candidates:
                 singular_ref_type_qs = RefType.objects.filter(name=c)
                 singular_alias_qs = Alias.objects.filter(name=c)
@@ -231,7 +227,7 @@ class Command(BaseCommand):
 
                 # Create Alias to base RefType
                 alias, created = Alias.objects.get_or_create(name=text_ref.text, ref_type=ref_type)
-                prelude = f"> RefType: {text_ref.text} did not exist, but it is a pluralized form of {ref_name}. "
+                prelude = f"> RefType: {text_ref.text} did not exist, but it is a pluralized form of {ref_type.name}. "
                 if created:
                     self.stdout.write(self.style.SUCCESS(prelude +
                         f"No existing Alias was found, so one was created."))
