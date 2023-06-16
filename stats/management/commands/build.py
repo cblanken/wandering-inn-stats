@@ -171,6 +171,8 @@ class Command(BaseCommand):
             help="Play short alert sound when build stops with a user prompt")
         parser.add_argument("--chapter-id", type=int, default=None,
             help="Download a specific chapter by ID number")
+        parser.add_argument("--chapter-id-range", type=str, default=None,
+            help="Download a range of chapters by ID number")
         # TODO: add (-u) option for updating existing records
 
     def handle(self, *args, **options):
@@ -555,23 +557,38 @@ class Command(BaseCommand):
                     )
         
         # Populate individual Chapter by ID number
-        chapter_id = options.get("chapter_id")
-        if chapter_id is not None:
-            self.stdout.write(f"\nPopulating chapter data for chapter (id): {chapter_id} ...")
+        def populate_chapter_by_id(chapter_id: int):
             try:
                 chapter = Chapter.objects.get(number=chapter_id)
+                self.stdout.write(f"\nPopulating chapter data for chapter (id={chapter_id}): {chapter.title} ...")
                 chapter_dir = Path(glob(f"./data/*/*/*/{chapter.title}")[0])
-                populate_chapter(chapter.book, chapter_dir, chapter_id, update=True)
+                populate_chapter(chapter.book, chapter_dir, chapter_id)
             except Chapter.DoesNotExist:
                 self.stdout.write(
-                    self.style.WARNING(f"> Chapter (id) {chapter_id} does not exist in database. Exiting...")
+                    self.style.WARNING(f"> Chapter (id) {chapter_id} does not exist in database. Skipping...")
                 )
             except IndexError:
                 self.stdout.write(
-                    self.style.WARNING(f"> Chapter (id): {chapter_id} source file does not exist. Exiting...")
+                    self.style.WARNING(f"> Chapter (id): {chapter_id} source file does not exist. Skipping...")
                 )
-            finally:
-                return
+            return
+
+        chapter_id = options.get("chapter_id")
+        if chapter_id is not None:
+            populate_chapter_by_id(chapter_id)
+            return
+
+        chapter_id_range = options.get("chapter_id_range")
+        if chapter_id_range is not None:
+            try:
+                start, end = [int(x) for x in chapter_id_range.split(",")]
+                for i in range(start, end):
+                    populate_chapter_by_id(i)
+            except ValueError as exc:
+                raise CommandError(f"Invalid chapter ID range provided: {chapter_id_range}.") from exc
+
+            return
+
 
         # Populate Volumes
         self.stdout.write("\nPopulating chapter data by volume...")
