@@ -217,7 +217,7 @@ class Command(BaseCommand):
             if ref_name.endswith("es"):
               singular_name_candidates.append(f"[{ref_name[:-2]}]" if text_ref.is_bracketed else ref_name.text[:-2])
             if ref_name.endswith("ies"):
-              singular_name_candidates.append(f"[{ref_name[:-3]}]" if text_ref.is_bracketed else ref_name.text[:-3])
+              singular_name_candidates.append(f"[{ref_name[:-3]}y]" if text_ref.is_bracketed else ref_name.text[:-3])
             if ref_name.endswith("men"):
               singular_name_candidates.append(f"[{ref_name[:-3]}man]" if text_ref.is_bracketed else ref_name.text[:-3])
             if ref_name.endswith("women"):
