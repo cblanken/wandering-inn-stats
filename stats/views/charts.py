@@ -3,6 +3,7 @@ from django.db.models import Count, F, Q, Sum, Value, Case
 import plotly.express as px
 import numpy as np
 import pandas as pd
+from pprint import pprint
 from ..models import Chapter, RefType, TextRef, Character
 
 def index(request):
@@ -115,30 +116,42 @@ def character_charts(request):
     char_refs_count_fig.update_traces(textposition="inside")
     char_refs_count_html = char_refs_count_fig.to_html(full_html=False, include_plotlyjs=False)
 
+    char_counts_per_chapter = [(Character.objects
+        .filter(first_chapter_ref__number__lt=i)
+        .aggregate(chapter_cnt_per=Count("ref_type"))["chapter_cnt_per"]
+    ) for i in ([x.number for x in Chapter.objects.all().order_by("number")])]
+
+    char_counts_per_chapter = [x for x in zip(range(len(char_counts_per_chapter)), char_counts_per_chapter)]
+    
+    df = pd.DataFrame(char_counts_per_chapter, columns=["Chapter", "Character Count"])
+    char_counts_per_chapter_fig = px.line(df, x="Chapter", y="Character Count")
+    char_counts_per_chapter_html = char_counts_per_chapter_fig.to_html(full_html=False, include_plotlyjs=False)
+
 
     # Character data counts
-    character_refs = (Character.objects.all()
+    characters = (Character.objects.all()
         .annotate(species_cnt=Count("species"), status_cnt=Count("status"))
         .values()
     )
 
     # Character counts by species
-    char_refs_by_species_fig = px.pie(character_refs, names="species", values="species_cnt",
+    chars_by_species_fig = px.pie(characters, names="species", values="species_cnt",
            title="Characters by Species")
-    char_refs_by_species_fig.update_traces(textposition="inside")
-    char_refs_by_species_html = char_refs_by_species_fig.to_html(full_html=False, include_plotlyjs=False)
+    chars_by_species_fig.update_traces(textposition="inside")
+    chars_by_species_html = chars_by_species_fig.to_html(full_html=False, include_plotlyjs=False)
 
     # Character counts by status
-    char_refs_by_status_fig = px.pie(character_refs, names="status", values="status_cnt",
+    chars_by_status_fig = px.pie(characters, names="status", values="status_cnt",
            title="Characters by Status")
-    char_refs_by_status_fig.update_traces(textposition="inside")
-    char_refs_by_status_html = char_refs_by_status_fig.to_html(full_html=False, include_plotlyjs=False)
+    chars_by_status_fig.update_traces(textposition="inside")
+    chars_by_status_html = chars_by_status_fig.to_html(full_html=False, include_plotlyjs=False)
 
     return render(request, "chart_demo.html", {
         "plots": {
             "Character Reference Counts": char_refs_count_html,
-            "Character Species Counts": char_refs_by_species_html,
-            "Character Status Counts": char_refs_by_status_html,
+            "Character Species Counts": chars_by_species_html,
+            "Character Status Counts": chars_by_status_html,
+            "Character Counts Per Chapter": char_counts_per_chapter_html
          },
         "page_title": "Character Stats"
     })
