@@ -38,6 +38,8 @@ class COLOR_CATEGORY(Enum):
     IVOLETHE_FIRE = "Ivolethe summoning fire"
     SER_RAIM = "Ser Raim skill"
     RED = "Red skills and classes"
+    RYOKA_MAUDLIN = "Ryoka's guilt/depression"
+    RYOKA_HATE = "Ryoka's rage/indignation/self-hate"
 
 COLORS: tuple[tuple] = (
     ("0C0E0E", COLOR_CATEGORY.INVISIBLE),
@@ -62,7 +64,9 @@ COLORS: tuple[tuple] = (
     ("99CC00", COLOR_CATEGORY.UNIQUE_SKILL),
     ("E01D1D", COLOR_CATEGORY.IVOLETHE_FIRE),
     ("EB0E0E", COLOR_CATEGORY.SER_RAIM),
-    ("FF0000", COLOR_CATEGORY.RED)
+    ("FF0000", COLOR_CATEGORY.RED),
+    ("9FC5E8", COLOR_CATEGORY.RYOKA_MAUDLIN),
+    ("EA9999", COLOR_CATEGORY.RYOKA_HATE),
 )
 
 def select_color_type(rgb_hex: str) -> COLOR_CATEGORY:
@@ -486,8 +490,7 @@ class Command(BaseCommand):
                     try:
                         print(f"Found color span in '{text_ref.context}'")
                         i: int = text_ref.context.index("color:")
-                        # TODO: make this parsing more robust
-                        rgb_hex: str = text_ref.context[i+7:i+13].upper()
+                        rgb_hex: str = text_ref.context[i+8:i+text_ref.context[i:].index(">") - 1].upper()
                         matching_colors: QuerySet = Color.objects.filter(rgb=rgb_hex)
                         if len(matching_colors) == 1:
                             color = matching_colors[0]
