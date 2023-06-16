@@ -1,15 +1,16 @@
 from django.shortcuts import render
-from django.db.models import Count, F, Q, Sum, Value
+from django.db.models import Count, F, Q, Sum, Value, Case
 import plotly.express as px
 import numpy as np
 import pandas as pd
-from ..models import Chapter, RefType, TextRef
+from ..models import Chapter, RefType, TextRef, Character
 
 def index(request):
     return render(request, "chart_index.html", {
         "links": {
             "Word Counts": "./charts/word_counts",
-            "Character Stats": "./charts/characters"
+            "Character Stats": "./charts/characters",
+            "Class Stats": "./charts/classes",
         }
     })
 
@@ -102,29 +103,71 @@ def word_count_charts(request):
 def character_charts(request):
     """Character stat charts"""
 
-    character_refs = (TextRef.objects
+    # Character TextRef counts
+    character_text_refs = (TextRef.objects
         .filter(Q(type__type=RefType.CHARACTER))
         .values("type__name")
         .annotate(char_instance_cnt=Count("type__name"))
     )
 
-    char_refs_count_fig = px.pie(character_refs, names="type__name", values="char_instance_cnt",
+    char_refs_count_fig = px.pie(character_text_refs, names="type__name", values="char_instance_cnt",
            title="Character TextRef Counts")
-
     char_refs_count_fig.update_traces(textposition="inside")
-    
     char_refs_count_html = char_refs_count_fig.to_html(full_html=False, include_plotlyjs=False)
+
+
+    # Character data counts
+    character_refs = (Character.objects.all()
+        .annotate(species_cnt=Count("species"), status_cnt=Count("status"))
+        .values()
+    )
+
+    # Character counts by species
+    char_refs_by_species_fig = px.pie(character_refs, names="species", values="species_cnt",
+           title="Characters by Species")
+    char_refs_by_species_fig.update_traces(textposition="inside")
+    char_refs_by_species_html = char_refs_by_species_fig.to_html(full_html=False, include_plotlyjs=False)
+
+    # Character counts by status
+    char_refs_by_status_fig = px.pie(character_refs, names="status", values="status_cnt",
+           title="Characters by Status")
+    char_refs_by_status_fig.update_traces(textposition="inside")
+    char_refs_by_status_html = char_refs_by_status_fig.to_html(full_html=False, include_plotlyjs=False)
 
     return render(request, "chart_demo.html", {
         "plots": {
             "Character Reference Counts": char_refs_count_html,
+            "Character Species Counts": char_refs_by_species_html,
+            "Character Status Counts": char_refs_by_status_html,
          },
         "page_title": "Character Stats"
     })
 
 
-# Skill counts per chapter/book/volume with subplots
 # Class counts per chapter/book/volume with subplots
+def class_charts(request):
+    class_refs = (TextRef.objects
+        .filter(type__type=RefType.CLASS)
+        .values("type__name")
+        .annotate(class_instance_cnt=Count("type__name"))
+    )
+
+    class_refs_count_fig = px.pie(class_refs, names="type__name", values="class_instance_cnt",
+        title="Class TextRefCounts")
+    
+    class_refs_count_fig.update_traces(textposition="inside")
+
+    class_refs_count_html = class_refs_count_fig.to_html(full_html=False, include_plotlyjs=False)
+
+    return render(request, "chart_demo.html", {
+        "plots": {
+            "Class Reference Counts": class_refs_count_html,
+        },
+        "page_title": "Class Stats"
+    })
+
+
+# Skill counts per chapter/book/volume with subplots
 # Spellcounts per chapter/book/volume with subplots
 # Locations counts per chapter/book/volume with subplots
 # Item counts per chapter/book/volume with subplots

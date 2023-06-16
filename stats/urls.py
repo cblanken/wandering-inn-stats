@@ -42,4 +42,5 @@ urlpatterns = [
     path("charts", charts.index, name="charts"),
     path("charts/word_counts", charts.word_count_charts, name="charts"),
     path("charts/characters", charts.character_charts, name="charts"),
+    path("charts/classes", charts.class_charts, name="charts"),
 ]
