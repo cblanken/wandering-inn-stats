@@ -45,6 +45,7 @@ class Command(BaseCommand):
                             help="Download location information from wiki")
 
     def handle(self, *args, **options):
+        # TODO: fix Keyboard Exception not working
         tor_session = get.TorSession()
         self.stdout.write("Connecting to Tor session...")
         toc = get.TableOfContents(tor_session)
@@ -90,6 +91,7 @@ class Command(BaseCommand):
             chapter_path.mkdir(parents=True, exist_ok=True)
             src_path = Path(chapter_path, f"{chapter_title}.html")
             txt_path = Path(chapter_path, f"{chapter_title}.txt")
+            authors_note_path = Path(chapter_path, f"{chapter_title}_authors_note.txt")
             meta_path = Path(chapter_path, "metadata.json")
 
             if not options.get("clobber") and src_path.exists() and txt_path.exists() and meta_path.exists():
@@ -125,6 +127,13 @@ class Command(BaseCommand):
                 path = txt_path,
                 success_msg = f"\"{chapter_title}\" text saved to {txt_path}",
                 warn_msg = f"{txt_path} already exists. Not saving...")
+
+            # Save author's note
+            save_file(
+                text = data["authors_note"],
+                path = authors_note_path,
+                success_msg = f"\"{chapter_title}\" text saved to {authors_note_path}",
+                warn_msg = f"{authors_note_path} already exists. Not saving...")
 
             # Save metadata
             save_file(

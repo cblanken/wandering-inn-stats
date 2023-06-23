@@ -275,10 +275,42 @@ def parse_chapter(response: requests.Response) -> dict[str]:
         chapter["html"] = str(result)
 
     # Parse chapter text from Response object
-    header_text: str = [element.get_text() for element in soup.select(".entry-title")]
-    content_text: str = [element.get_text() for element in soup.select(".entry-content")]
-    if len(header_text) != 0 and len(content_text) != 0:
-        chapter["text"] = "\n".join([header_text[0], content_text[0]])
+    # Exclude last two lines which usually include (previous and next chapter links)
+    content_lines: list[str] = "\n".join([element.get_text() for element in soup.select(".entry-content")]).split("\n")[:-2]
+
+    # Parse chapter plaintext and Author's Note if it exists
+    authors_note_re = re.compile(r"Author['|’]s [N|n]ote.*")
+
+    # Determine line index from the end for start of Author's note
+    chapter_lines = []
+    authors_note_lines = []
+    i = 0
+    while i < len(content_lines):
+        if authors_note_re.match(content_lines[i].strip()):
+            # breakpoint()
+            # Found start of Author's Note
+            empty_line_cnt = 0
+            for j, authors_note_line in enumerate(content_lines[i:]):
+                if len(authors_note_line.strip()): # if line is just whitespace
+                    empty_line_cnt += 1
+                    continue
+                if empty_line_cnt > 1:
+                    authors_note_lines = content_lines[i:i+j+2]
+                    i += j + 1
+                    break
+            
+            continue
+
+        chapter_lines.append(content_lines[i])
+
+        i += 1
+
+
+    # chapter_lines = content_lines[:-authors_note_start_index-1]
+    # authors_note_lines = content_lines[-authors_note_start_index-1:]
+
+    chapter["text"] = "\n".join(chapter_lines).strip()
+    chapter["authors_note"] = "\n".join(authors_note_lines).strip()
 
     # Parse chapter metadata from Response object
     soup: BeautifulSoup = BeautifulSoup(response.content, 'html.parser')
@@ -286,7 +318,8 @@ def parse_chapter(response: requests.Response) -> dict[str]:
         title: str = soup.select(".entry-title")[0].get_text()
         pub_time: str = soup.select("meta[property='article:published_time']")[0].get("content")
         mod_time: str = soup.select("meta[property='article:modified_time']")[0].get("content")
-        word_count: str = len(re.split(r'\W+', soup.text))
+        word_count: str = len(chapter["text"].split())
+        authors_note_word_count: str = len(chapter["authors_note"].split())
         dl_time: str = str(datetime.now().astimezone())
         digest: str = hashlib.sha256(chapter["text"].encode("utf-8")).hexdigest()
         chapter["metadata"] = {
@@ -296,6 +329,7 @@ def parse_chapter(response: requests.Response) -> dict[str]:
             "dl_time": dl_time,
             "url": response.url,
             "word_count": word_count,
+            "authors_note_word_count": authors_note_word_count,
             "digest": digest,
         }
     except IndexError as exc:
