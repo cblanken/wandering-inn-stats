@@ -454,7 +454,8 @@ class Command(BaseCommand):
                     "post_date": dt.fromisoformat(src_chapter.metadata.get("pub_time", dt.now().isoformat())),
                     "last_update": dt.fromisoformat(src_chapter.metadata.get("mod_time", dt.now().isoformat())),
                     "download_date": dt.fromisoformat(src_chapter.metadata.get("dl_time", dt.now().isoformat())),
-                    "word_count": src_chapter.metadata.get("word_count", 0)
+                    "word_count": src_chapter.metadata.get("word_count", 0),
+                    "authors_note_word_count": src_chapter.metadata.get("authors_note_word_count", 0)
                 }
             )
 
