@@ -34,7 +34,7 @@ def word_count_charts(request):
     book_wc_data = (Chapter.objects
         .filter(~Q(book__title__contains="Unreleased"))
         .values("book", "book__title", "id", "title", "word_count")
-        .order_by("book")
+        .order_by("book", "number")
     )
 
     book_wc_fig = px.bar(book_wc_data, title="Word Count Per Book",
@@ -64,7 +64,7 @@ def word_count_charts(request):
     # Word counts grouped by volume
     volume_wc_data = (Chapter.objects
         .values("book__volume", "book__volume__title", "id", "title", "word_count")
-        .order_by("book__volume")
+        .order_by("book__volume", "number")
     )
 
     volume_wc_fig = px.bar(volume_wc_data, title="Word Count Per Volume",
@@ -119,7 +119,7 @@ def character_charts(request):
     char_counts_per_chapter = [(Character.objects
         .filter(first_chapter_ref__number__lt=i)
         .aggregate(chapter_cnt_per=Count("ref_type"))["chapter_cnt_per"]
-    ) for i in ([x.number for x in Chapter.objects.all().order_by("number")])]
+    ) for i in ([x.number for x in Chapters.objects.all()])]
 
     char_counts_per_chapter = [x for x in zip(range(len(char_counts_per_chapter)), char_counts_per_chapter)]
     
