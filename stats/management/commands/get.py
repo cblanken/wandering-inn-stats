@@ -261,7 +261,7 @@ class Command(BaseCommand):
                 self.stdout.write("Downloading spell information...")
                 spells = tor_session.get_spell_list()
 
-                spell_data_path = Path(options.get("root"), "spells.tsv")
+                spell_data_path = Path(options.get("root"), "spells.txt")
                 save_file(
                     text = "\n".join(spells),
                     path = spell_data_path,

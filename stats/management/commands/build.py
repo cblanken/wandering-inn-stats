@@ -299,7 +299,7 @@ class Command(BaseCommand):
         # Populate spell types from wiki data
         if not options.get("skip_wiki_spells"):
             self.stdout.write("\nPopulating spell RefType(s)...")
-            spell_data_path = Path(options["data_path"], "spells.tsv")
+            spell_data_path = Path(options["data_path"], "spells.txt")
             with open(spell_data_path, encoding="utf-8") as file:
                 for line in file.readlines():
                     line = line.strip().split("|")
