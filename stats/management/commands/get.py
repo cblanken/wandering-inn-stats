@@ -37,6 +37,8 @@ class Command(BaseCommand):
                             help="Download only the most recently released chapter")
         parser.add_argument("--classes", action="store_true",
                             help="Download class information from wiki")
+        parser.add_argument("--skills", action="store_true",
+                            help="Download skill information from wiki")
         parser.add_argument("--spells", action="store_true",
                             help="Download spell information from wiki")
         parser.add_argument("--chars", action="store_true",
@@ -241,6 +243,18 @@ class Command(BaseCommand):
                     path = class_data_path,
                     success_msg=f"Character data saved to {class_data_path}",
                     warn_msg = f"{class_data_path} already exists. Not saving...")
+
+            # Get skill info
+            if options.get("skills"):
+                self.stdout.write("Downloading skill information...")
+                skills = tor_session.get_skill_list()
+
+                skill_data_path = Path(options.get("root"), "skills.txt")
+                save_file(
+                    text = "\n".join(skills),
+                    path = skill_data_path,
+                    success_msg=f"Character data saved to {skill_data_path}",
+                    warn_msg = f"{skill_data_path} already exists. Not saving...")
 
             # Get spell info
             if options.get("spells"):
