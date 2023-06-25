@@ -256,8 +256,12 @@ class TorSession:
 
     def get_skill_list(self) -> list[str]:
         soup = BeautifulSoup(self.get("https://thewanderinginn.fandom.com/wiki/Skills").text, "html.parser")
-        skill_elements: ResultSet[Tag] = soup.select_one("#List_of_Skills_-_Alphabetical_Order").find_all_next("li", recursive=False)
-
+        skill_elements: ResultSet[Tag] = chain(
+            # Parse main list of skills
+            soup.select_one("#List_of_Skills_-_Alphabetical_Order").find_all_next("li", recursive=False),
+            # Parse colored and fake/imaginary skills
+            soup.select(".wikitable tr td:first-of-type")
+        )
 
         skills = [x.text.split('\n')[0].replace("[", "").replace("]", "")
             for x in skill_elements if x.text.find("[") != -1]
@@ -268,7 +272,7 @@ class TorSession:
             else:
                 skills[i] = skill.strip()
 
-        return list(sorted(skills))
+        return sorted(set(sorted(skills)))
 
 def parse_chapter(response: requests.Response) -> dict[str]:
     """Parse data from chapter
