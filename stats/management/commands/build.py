@@ -184,6 +184,7 @@ class Command(BaseCommand):
             options["skip_wiki_chars"] = True
             options["skip_wiki_spells"] = True
             options["skip_wiki_classes"] = True
+            options["skip_wiki_skills"] = True
 
         self.stdout.write("Updating DB...")
         def get_or_create_ref_type(text_ref: TextRef) -> RefType:
@@ -325,7 +326,27 @@ class Command(BaseCommand):
                             self.stdout.write(self.style.SUCCESS(f"> Alias: {alias_name} created"))
                         else:
                             self.stdout.write(self.style.WARNING(f"> Alias: {alias_name} already exists. Skipping creation..."))
+        
+        if not options.get("skip_wiki_skills"):
+            self.stdout.write("\nPopulating spell RefType(s)...")
+            skill_data_path = Path(options["data_path"], "skills.txt")
+            with open(skill_data_path, encoding="utf-8") as file:
+                for line in file.readlines():
+                    skill, *aliases = line.split("|")
+                    
+                    ref_type, ref_type_created = RefType.objects.get_or_create(name=skill, type=RefType.SKILL)
+                    if ref_type_created:
+                        self.stdout.write(self.style.SUCCESS(f"> {ref_type} created"))
+                    else:
+                        self.stdout.write(self.style.WARNING(f"> Skill RefType: {skill} already exists. Skipping creation..."))
 
+                    for alias_name in aliases:
+                        new_alias, new_alias_created = Alias.objects.get_or_create(
+                            name=alias_name, ref_type=ref_type)
+                        if new_alias_created:
+                            self.stdout.write(self.style.SUCCESS(f"> Alias: {alias_name} created"))
+                        else:
+                            self.stdout.write(self.style.WARNING(f"> Alias: {alias_name} already exists. Skipping creation..."))
 
 
         # Populate class types from wiki data
