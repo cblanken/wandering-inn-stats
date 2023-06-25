@@ -139,7 +139,6 @@ def select_ref_type(sound: bool = False) -> str:
             ref_type = match_ref_type(sel)
             return ref_type
 
-
     except KeyboardInterrupt as exc:
         print("")
         raise CommandError("Build interrupted with Ctrl-C (Keyboard Interrupt).") from exc
@@ -165,6 +164,10 @@ class Command(BaseCommand):
             help="Skip [Spell] wiki data build section")
         parser.add_argument("--skip-wiki-classes", action="store_true",
             help="Skip [Class] wiki data build section")
+        parser.add_argument("--skip-wiki-skills", action="store_true",
+            help="Skip [Skill] wiki data build section")
+        parser.add_argument("--skip-wiki-locs", action="store_true",
+            help="Skip location wiki data build section")
         parser.add_argument("--skip-wiki-all", action="store_true",
             help="Skip all wiki data build sections")
         parser.add_argument("--skip-reftype-select", action="store_true",
@@ -182,6 +185,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         if options.get("skip_wiki_all"):
             options["skip_wiki_chars"] = True
+            options["skip_wiki_locs"] = True
             options["skip_wiki_spells"] = True
             options["skip_wiki_classes"] = True
             options["skip_wiki_skills"] = True
@@ -196,6 +200,9 @@ class Command(BaseCommand):
                 return ref_type
             except RefType.DoesNotExist:
                 pass
+            except RefType.MultipleObjectsReturned:
+                # TODO: add selection for RefType with the same name when categorizing
+                ref_type = None
 
             # Check for existing Alias
             try:
@@ -332,7 +339,7 @@ class Command(BaseCommand):
             skill_data_path = Path(options["data_path"], "skills.txt")
             with open(skill_data_path, encoding="utf-8") as file:
                 for line in file.readlines():
-                    skill, *aliases = line.split("|")
+                    skill, *aliases = ["[" + name + "]" for name in line.strip().split("|")]
                     
                     ref_type, ref_type_created = RefType.objects.get_or_create(name=skill, type=RefType.SKILL)
                     if ref_type_created:
@@ -438,24 +445,25 @@ class Command(BaseCommand):
                             self.stdout.write(self.style.WARNING(f"> Character data: {name} already exists. Skipping creation..."))
 
         # Populate locations from wiki data
-        self.stdout.write("\nPopulating locations RefType(s)...")
-        loc_data_path = Path(options["data_path"], "locations.json")
-        with open(loc_data_path, encoding="utf-8") as file:
-            try:
-                char_data = json.load(file)
-            except json.JSONDecodeError:
-                self.stdout.write(self.style.ERROR(
-                    f"> location data ({loc_data_path}) could not be decoded"))
-            else:
-                for loc_name, char_data in char_data.items():
-                    loc_url = char_data["url"]
-                    ref_type, ref_type_created = RefType.objects.get_or_create(name=loc_name, type=RefType.LOCATION, description=loc_url)
-                    if ref_type_created:
-                        self.stdout.write(
-                            self.style.SUCCESS(f"> Location RefType: {loc_name} created"))
-                    else:
-                        self.stdout.write(
-                            self.style.WARNING(f"> Location RefType: {loc_name} already exists. Skipping creation..."))
+        if not options.get("skip_wiki_locs"):
+            self.stdout.write("\nPopulating locations RefType(s)...")
+            loc_data_path = Path(options["data_path"], "locations.json")
+            with open(loc_data_path, encoding="utf-8") as file:
+                try:
+                    char_data = json.load(file)
+                except json.JSONDecodeError:
+                    self.stdout.write(self.style.ERROR(
+                        f"> location data ({loc_data_path}) could not be decoded"))
+                else:
+                    for loc_name, char_data in char_data.items():
+                        loc_url = char_data["url"]
+                        ref_type, ref_type_created = RefType.objects.get_or_create(name=loc_name, type=RefType.LOCATION, description=loc_url)
+                        if ref_type_created:
+                            self.stdout.write(
+                                self.style.SUCCESS(f"> Location RefType: {loc_name} created"))
+                        else:
+                            self.stdout.write(
+                                self.style.WARNING(f"> Location RefType: {loc_name} already exists. Skipping creation..."))
 
 
         def populate_chapter(book: Book, src_path: Path, chapter_num: int):
