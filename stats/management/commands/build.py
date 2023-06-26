@@ -363,6 +363,7 @@ class Command(BaseCommand):
                         self.stdout.write(self.style.WARNING(f"> Spell RefType: {spell} already exists. Skipping creation..."))
 
                     for alias_name in aliases:
+                        alias_name = "[" + alias_name + "]"
                         new_alias, new_alias_created = Alias.objects.get_or_create(
                             name=alias_name, ref_type=ref_type)
                         if new_alias_created:
