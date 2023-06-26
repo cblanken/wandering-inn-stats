@@ -40,6 +40,7 @@ class COLOR_CATEGORY(Enum):
     RED = "Red skills and classes"
     RYOKA_MAUDLIN = "Ryoka's guilt/depression"
     RYOKA_HATE = "Ryoka's rage/indignation/self-hate"
+    DARKNESS = "Darkness / fading light"
 
 COLORS: tuple[tuple] = (
     ("0C0E0E", COLOR_CATEGORY.INVISIBLE),
@@ -68,6 +69,8 @@ COLORS: tuple[tuple] = (
     ("FF0000", COLOR_CATEGORY.RED),
     ("9FC5E8", COLOR_CATEGORY.RYOKA_MAUDLIN),
     ("EA9999", COLOR_CATEGORY.RYOKA_HATE),
+    ("787878", COLOR_CATEGORY.DARKNESS),
+    ("333333", COLOR_CATEGORY.DARKNESS)
 )
 
 def select_color_type(rgb_hex: str) -> COLOR_CATEGORY:
