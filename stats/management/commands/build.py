@@ -51,6 +51,7 @@ COLORS: tuple[tuple] = (
     ("FD78FF", COLOR_CATEGORY.MAGNOLIA_CHARM),
     ("FFB8FD", COLOR_CATEGORY.MAGNOLIA_CHARM),
     ("FDDBFF", COLOR_CATEGORY.MAGNOLIA_CHARM),
+    ("FEEDFF", COLOR_CATEGORY.MAGNOLIA_CHARM),
     ("99CC00", COLOR_CATEGORY.FLYING_QUEEN),
     ("993300", COLOR_CATEGORY.TWISTED_QUEEN),
     ("999999", COLOR_CATEGORY.ARMORED_QUEEN),
@@ -570,7 +571,7 @@ class Command(BaseCommand):
                     try:
                         print(f"Found color span in '{text_ref.context}'")
                         i: int = text_ref.context.index("color:")
-                        rgb_hex: str = text_ref.context[i+8:i+text_ref.context[i:].index(">") - 1].upper()
+                        rgb_hex: str = text_ref.context[i+text_ref.context[i:].index("#")+1:i+text_ref.context[i:].index(">") - 1].upper()
                         matching_colors: QuerySet = Color.objects.filter(rgb=rgb_hex)
                         if len(matching_colors) == 1:
                             color = matching_colors[0]
