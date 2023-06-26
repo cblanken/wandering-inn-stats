@@ -132,7 +132,7 @@ def select_ref_type(sound: bool = False) -> str:
                 return None # skip without confirmation
             if len(sel) < 2:
                 print("Invalid selection.")
-                yes_no = prompt("Try again (y/n)", sound)
+                yes_no = prompt("Try again (y/n): ", sound)
                 if yes_no.lower() == "y":
                     continue
                 return None # skip with confirmation
@@ -167,7 +167,7 @@ def select_ref_type_from_qs(query_set: QuerySet[RefType], sound: bool = False) -
                 return query_set[sel]
             else:
                 print("Invalid selection.")
-                yes_no = prompt("Try again (y/n)", sound)
+                yes_no = prompt("Try again (y/n): ", sound)
                 if yes_no.lower() == "y":
                     continue
                 return None # skip with confirmation
@@ -545,7 +545,7 @@ class Command(BaseCommand):
 
                         if skip:
                             self.stdout.write(
-                                self.style.WARNING(f"> No color selection provided. Skipping {ref_type.name}..."))
+                                self.style.WARNING(f"> No color selection provided. Skipping {text_ref.text}..."))
                             return None
                             
                         return matching_colors[i]
