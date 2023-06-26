@@ -129,8 +129,10 @@ def select_ref_type(sound: bool = False) -> str:
     """Interactive classification of TextRef type"""
     try:
         while True:
-            sel = prompt(f"Classify the above TextRef {RefType.TYPES} (leave blank to skip): ", sound)
+            sel = prompt(f"Classify the above TextRef with {RefType.TYPES} (leave blank to skip OR use \"r\" to retry): ", sound)
 
+            if sel.strip().lower() == "r":
+                return "retry" # special case to retry RefType acquisition
             if sel.strip() == "":
                 return None # skip without confirmation
             if len(sel) < 2:
@@ -230,94 +232,99 @@ class Command(BaseCommand):
         self.stdout.write("Updating DB...")
         def get_or_create_ref_type(text_ref: TextRef) -> RefType:
             # Check for existing RefType and create if necessary
-            try:
-                ref_type = RefType.objects.get(name=text_ref.text)
-                self.stdout.write(self.style.WARNING(
-                    f"> RefType: {text_ref.text} already exists. Skipping creation..."))
-                return ref_type
-            except RefType.DoesNotExist:
-                ref_type = None
-            except RefType.MultipleObjectsReturned:
-                ref_types = RefType.objects.filter(name=text_ref.text)
-                self.stdout.write(self.style.WARNING(f"> Multiple RefType(s) exist for the name: {text_ref.text}..."))
-                ref_type = select_ref_type_from_qs(ref_types, sound=True)
-                return ref_type
-
-            # Check for existing Alias
-            try:
-                alias = Alias.objects.get(name=text_ref.text)
-                if alias:
+            while True: # loop for retries from select RefeType prompt
+                try:
+                    ref_type = RefType.objects.get(name=text_ref.text)
                     self.stdout.write(self.style.WARNING(
-                        f"> Alias exists for RefType {text_ref.text} already. Skipping creation..."))
+                        f"> RefType: {text_ref.text} already exists. Skipping creation..."))
+                    return ref_type
+                except RefType.DoesNotExist:
+                    ref_type = None
+                except RefType.MultipleObjectsReturned:
+                    ref_types = RefType.objects.filter(name=text_ref.text)
+                    self.stdout.write(self.style.WARNING(f"> Multiple RefType(s) exist for the name: {text_ref.text}..."))
+                    ref_type = select_ref_type_from_qs(ref_types, sound=True)
+                    return ref_type
+
+                # Check for existing Alias
+                try:
+                    alias = Alias.objects.get(name=text_ref.text)
+                    if alias:
+                        self.stdout.write(self.style.WARNING(
+                            f"> Alias exists for RefType {text_ref.text} already. Skipping creation..."))
+                        return alias.ref_type
+                except Alias.DoesNotExist:
+                    pass
+
+                # Check for alternate forms of RefType (pluralized, gendered, etc.)
+                ref_name = text_ref.text[1:-1] if text_ref.is_bracketed else text_ref.text
+
+                singular_ref_type_qs = None
+                singular_name_candidates = []
+                if ref_name.endswith("s"):
+                    singular_name_candidates.append(f"[{ref_name[:-1]}]" if text_ref.is_bracketed else ref_name.text[:-1])
+                if ref_name.endswith("es"):
+                    singular_name_candidates.append(f"[{ref_name[:-2]}]" if text_ref.is_bracketed else ref_name.text[:-2])
+                if ref_name.endswith("ies"):
+                    singular_name_candidates.append(f"[{ref_name[:-3]}y]" if text_ref.is_bracketed else ref_name.text[:-3])
+                if ref_name.endswith("men"):
+                    singular_name_candidates.append(f"[{ref_name[:-3]}man]" if text_ref.is_bracketed else ref_name.text[:-3])
+                if ref_name.endswith("women"):
+                    singular_name_candidates.append(f"[{ref_name[:-5]}woman]" if text_ref.is_bracketed else ref_name.text[:-5])
+                
+                for c in singular_name_candidates:
+                    singular_ref_type_qs = RefType.objects.filter(name=c)
+                    singular_alias_qs = Alias.objects.filter(name=c)
+                    if singular_ref_type_qs.exists():
+                        # The TextRef is an alternate version of an existing RefType
+                        ref_type = singular_ref_type_qs[0]
+                    elif singular_alias_qs.exists():
+                        # The TextRef is an alternate version of an existing Alias
+                        ref_type = singular_alias_qs[0].ref_type
+                    else:
+                        continue
+
+                    # Create Alias to base RefType
+                    alias, created = Alias.objects.get_or_create(name=text_ref.text, ref_type=ref_type)
+                    prelude = f"> RefType: {text_ref.text} did not exist, but it is a pluralized form of {ref_type.name}. "
+                    if created:
+                        self.stdout.write(self.style.SUCCESS(prelude +
+                            f"No existing Alias was found, so one was created."))
+                    else:
+                        self.stdout.write(self.style.WARNING(prelude +
+                            f"An existing Alias was found, so none were created."))
                     return alias.ref_type
-            except Alias.DoesNotExist:
-                pass
 
-            # Check for alternate forms of RefType (pluralized, gendered, etc.)
-            ref_name = text_ref.text[1:-1] if text_ref.is_bracketed else text_ref.text
 
-            singular_ref_type_qs = None
-            singular_name_candidates = []
-            if ref_name.endswith("s"):
-                singular_name_candidates.append(f"[{ref_name[:-1]}]" if text_ref.is_bracketed else ref_name.text[:-1])
-            if ref_name.endswith("es"):
-              singular_name_candidates.append(f"[{ref_name[:-2]}]" if text_ref.is_bracketed else ref_name.text[:-2])
-            if ref_name.endswith("ies"):
-              singular_name_candidates.append(f"[{ref_name[:-3]}y]" if text_ref.is_bracketed else ref_name.text[:-3])
-            if ref_name.endswith("men"):
-              singular_name_candidates.append(f"[{ref_name[:-3]}man]" if text_ref.is_bracketed else ref_name.text[:-3])
-            if ref_name.endswith("women"):
-                singular_name_candidates.append(f"[{ref_name[:-5]}woman]" if text_ref.is_bracketed else ref_name.text[:-5])
-            
-            for c in singular_name_candidates:
-                singular_ref_type_qs = RefType.objects.filter(name=c)
-                singular_alias_qs = Alias.objects.filter(name=c)
-                if singular_ref_type_qs.exists():
-                    # The TextRef is an alternate version of an existing RefType
-                    ref_type = singular_ref_type_qs[0]
-                elif singular_alias_qs.exists():
-                    # The TextRef is an alternate version of an existing Alias
-                    ref_type = singular_alias_qs[0].ref_type
+                # Could not find existing RefType or Alias or alternate form so
+                # intialize type for new RefType
+
+                # Check for [Skill] or [Class] acquisition messages
+                skill_obtained_pattern = re.compile(r'^\[Skill.*[Oo]btained.*\]$')
+                class_obtained_pattern = re.compile(r'^\[.*Class\W[Oo]btained.*\]$')
+                if skill_obtained_pattern.match(text_ref.text):
+                    new_type = RefType.SKILL_OBTAINED
+                elif class_obtained_pattern.match(text_ref.text):
+                    new_type = RefType.CLASS_OBTAINED
                 else:
-                    continue
+                    # Prompt user to select TextRef type
+                    if options.get("skip_reftype_select"):
+                        new_type = None
+                    else:
+                        new_type = select_ref_type(sound=options.get("prompt_sound"))
+                        if new_type == "retry":
+                            continue # retry RefType acquisition
+                
+                # RefType was NOT categorized, so skip
+                if new_type is None:
+                    self.stdout.write(self.style.WARNING(f"> {text_ref.text} skipped..."))
+                    return None
 
-                # Create Alias to base RefType
-                alias, created = Alias.objects.get_or_create(name=text_ref.text, ref_type=ref_type)
-                prelude = f"> RefType: {text_ref.text} did not exist, but it is a pluralized form of {ref_type.name}. "
-                if created:
-                    self.stdout.write(self.style.SUCCESS(prelude +
-                        f"No existing Alias was found, so one was created."))
-                else:
-                    self.stdout.write(self.style.WARNING(prelude +
-                        f"An existing Alias was found, so none were created."))
-                return alias.ref_type
-
-
-            # Check for [Skill] or [Class] acquisition messages
-            skill_obtained_pattern = re.compile(r'^\[Skill.*[Oo]btained.*\]$')
-            class_obtained_pattern = re.compile(r'^\[.*Class\W[Oo]btained.*\]$')
-            if skill_obtained_pattern.match(text_ref.text):
-                new_type = RefType.SKILL_OBTAINED
-            elif class_obtained_pattern.match(text_ref.text):
-                new_type = RefType.CLASS_OBTAINED
-            else:
-                # Could not find existing RefType or Alias or alternate form
-                # Prompt user to select TextRef type
-                if options.get("skip_reftype_select"):
-                    new_type = None
-                else:
-                    new_type = select_ref_type(sound=options.get("prompt_sound"))
-            
-            # RefType was NOT categorized, so skip
-            if new_type is None:
-                self.stdout.write(self.style.WARNING(f"> {text_ref.text} skipped..."))
-                return None
-
-            # Create RefType
-            new_ref_type = RefType(name=text_ref.text, type=new_type)
-            new_ref_type.save()
-            self.stdout.write(self.style.SUCCESS(f"> {new_ref_type} created"))
-            return new_ref_type
+                # Create RefType
+                new_ref_type = RefType(name=text_ref.text, type=new_type)
+                new_ref_type.save()
+                self.stdout.write(self.style.SUCCESS(f"> {new_ref_type} created"))
+                return new_ref_type
 
         # Populate ColorsCategory
         self.stdout.write("\nPopulating color categories...")
