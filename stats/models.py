@@ -405,6 +405,10 @@ class TextRef(models.Model):
 
     class Meta:
         verbose_name_plural = "Text Refs"
-
+        constraints = [
+            models.UniqueConstraint(name="key", fields=[
+                "text", "chapter", "line_number", "start_column", "end_column"
+            ])
+        ]
     def __str__(self):
         return f"(TextRef: {self.text} - type: {self.type}, line: {self.line_number:>5}, start: {self.start_column:>4}, end: {self.end_column:>4})"

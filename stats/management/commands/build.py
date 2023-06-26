@@ -14,7 +14,7 @@ from stats.models import (
     Color, ColorCategory, Chapter, Book, Volume, TextRef, RefType, Alias, Character
 )
 from processing import (
-    Volume as SrcVolume, Book as SrcBook, Chapter as SrcChapter, get_metadata
+    Volume as SrcVolume, Book as SrcBook, Chapter as SrcChapter, TextRef as SrcTextRef, get_metadata
 )
 from playsound import playsound, PlaysoundException
 
@@ -146,6 +146,39 @@ def select_ref_type(sound: bool = False) -> str:
         print("")
         raise CommandError("Build interrupted with Ctrl-D (EOF).") from exc
 
+def select_ref_type_from_qs(query_set: QuerySet[RefType], sound: bool = False) -> str:
+    """Interactive selection of an existing set of RefType(s)"""
+    try:
+        while True:
+            for i, ref_type in enumerate(query_set):
+                print(f"{i}: {ref_type.name} - {match_ref_type(ref_type.type)}")
+
+            sel = prompt(f"Select one of the RefType(s) from the above options (leave empty to skip): ", sound)
+
+            if sel.strip() == "":
+                return None # skip without confirmation
+            try:
+                sel = int(sel)
+            except ValueError:
+                sel = -1 # invalid selection
+
+            if sel >= 0 and sel < len(query_set):
+                return query_set[sel]
+            else:
+                print("Invalid selection.")
+                yes_no = prompt("Try again (y/n)", sound)
+                if yes_no.lower() == "y":
+                    continue
+                return None # skip with confirmation
+
+    except KeyboardInterrupt as exc:
+        print("")
+        raise CommandError("Build interrupted with Ctrl-C (Keyboard Interrupt).") from exc
+    except EOFError as exc:
+        print("")
+        raise CommandError("Build interrupted with Ctrl-D (EOF).") from exc
+
+
 class Command(BaseCommand):
     """Database build function"""
     help = "Update database from chapter source HTML and data files"
@@ -199,10 +232,13 @@ class Command(BaseCommand):
                     f"> RefType: {text_ref.text} already exists. Skipping creation..."))
                 return ref_type
             except RefType.DoesNotExist:
-                pass
+                ref_type = None
             except RefType.MultipleObjectsReturned:
                 # TODO: add selection for RefType with the same name when categorizing
-                ref_type = None
+                ref_types = RefType.objects.filter(name=text_ref.text)
+                self.stdout.write(self.style.WARNING(f"> Multiple RefType(s) exist for the name: {text_ref.text}..."))
+                ref_type = select_ref_type_from_qs(ref_types, sound=True)
+                return ref_type
 
             # Check for existing Alias
             try:
@@ -506,13 +542,26 @@ class Command(BaseCommand):
             location_names = [x.name for x in RefType.objects.filter(type=RefType.LOCATION)]
             names=itertools.chain(character_names, location_names)
             for text_ref in src_chapter.gen_text_refs(names=names):
-                print(text_ref)
+                print(f"{chapter.number} - {text_ref}")
 
-                ref_type = get_or_create_ref_type(text_ref)
-
-                # RefType creation could not complete or was skipped
-                if ref_type is None:
+                # Check for existing TextRef
+                try:
+                    TextRef.objects.get(
+                        text=text_ref.text,
+                        chapter=chapter,
+                        line_number=text_ref.line_number,
+                        start_column=text_ref.start_column,
+                        end_column = text_ref.end_column,
+                        context_offset = text_ref.context_offset,
+                    )
+                    self.stdout.write(self.style.WARNING(f"> TextRef already exists. Skipping..."))
                     continue
+                except TextRef.DoesNotExist:
+                    ref_type = get_or_create_ref_type(text_ref)
+
+                    # RefType creation could not complete or was skipped
+                    if ref_type is None:
+                        continue
 
                 # Detect TextRef color
                 color = None
@@ -572,21 +621,29 @@ class Command(BaseCommand):
                         raise CommandError("Build interrupted with Ctrl-D (EOF).") from exc
 
                 # Create TextRef
-                text_ref, ref_type_created = TextRef.objects.get_or_create(
+                text_ref, ref_type_created = TextRef.objects.update_or_create(
                     text=text_ref.text,
-                    type=ref_type,
-                    color=color,
                     chapter=chapter,
                     line_number=text_ref.line_number,
                     start_column=text_ref.start_column,
                     end_column = text_ref.end_column,
                     context_offset = text_ref.context_offset,
+                    defaults= {
+                        "text": text_ref.text,
+                        "chapter": chapter,
+                        "type": ref_type,
+                        "color": color,
+                        "line_number": text_ref.line_number,
+                        "start_column": text_ref.start_column,
+                        "end_column": text_ref.end_column,
+                        "context_offset": text_ref.context_offset,
+                    }
                 )
                 if ref_type_created:
-                    self.stdout.write(self.style.SUCCESS(f"> {text_ref} created"))
+                    self.stdout.write(self.style.SUCCESS(f"> TextRef: {text_ref.text} created"))
                 else:
                     self.stdout.write(
-                        self.style.WARNING(f"> TextRef: {text_ref.text} @line {text_ref.line_number} already exists. Skipping creation...")
+                        self.style.WARNING(f"> TextRef: {text_ref.text} @line {text_ref.line_number} updated...")
                     )
         
         # Populate individual Chapter by ID number
