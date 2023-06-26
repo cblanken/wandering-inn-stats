@@ -226,7 +226,7 @@ class Command(BaseCommand):
 
         self.stdout.write("Updating DB...")
         def get_or_create_ref_type(text_ref: TextRef) -> RefType:
-            # Check for existing RefType
+            # Check for existing RefType and create if necessary
             try:
                 ref_type = RefType.objects.get(name=text_ref.text)
                 self.stdout.write(self.style.WARNING(
@@ -235,7 +235,6 @@ class Command(BaseCommand):
             except RefType.DoesNotExist:
                 ref_type = None
             except RefType.MultipleObjectsReturned:
-                # TODO: add selection for RefType with the same name when categorizing
                 ref_types = RefType.objects.filter(name=text_ref.text)
                 self.stdout.write(self.style.WARNING(f"> Multiple RefType(s) exist for the name: {text_ref.text}..."))
                 ref_type = select_ref_type_from_qs(ref_types, sound=True)
@@ -244,7 +243,6 @@ class Command(BaseCommand):
             # Check for existing Alias
             try:
                 alias = Alias.objects.get(name=text_ref.text)
-
                 if alias:
                     self.stdout.write(self.style.WARNING(
                         f"> Alias exists for RefType {text_ref.text} already. Skipping creation..."))
@@ -504,6 +502,67 @@ class Command(BaseCommand):
                                 self.style.WARNING(f"> Location RefType: {loc_name} already exists. Skipping creation..."))
 
 
+        def detect_textref_color(text_ref) -> str | None:
+            # Detect TextRef color
+            if 'span style="color:' in text_ref.context:
+                try:
+                    print(f"Found color span in '{text_ref.context}'")
+                    i: int = text_ref.context.index("color:")
+                    try:
+                        rgb_hex: str = text_ref.context[i+text_ref.context[i:].index("#")+1:i+text_ref.context[i:].index(">") - 1].upper()
+                    except ValueError:
+                        self.stdout.write("Color span found but colored text is outside the current context range.")
+                        return None
+                    matching_colors: QuerySet = Color.objects.filter(rgb=rgb_hex)
+                    if len(matching_colors) == 1:
+                        return matching_colors[0]
+                    else:
+                        if options.get("skip_textref_color_select"):
+                            self.stdout.write(
+                                self.style.WARNING(f"> TextRef color selection disabled. Skipping {ref_type.name}..."))
+                            return None
+
+                        self.stdout.write(f"Unable to automatically select color for TextRef: {text_ref}")
+                        sel: int = 0
+                        for i, col in enumerate(matching_colors):
+                            self.stdout.write(f"{i}: {col}")
+                        skip = False
+                        while True:
+                            try:
+                                sel = prompt("Select color (leave empty to skip): ", options.get("prompt_sound"))
+                                if sel.strip() == "":
+                                    skip = True
+                                    break
+
+                                sel = int(sel)
+                            except ValueError:
+                                self.stdout.write("Invalid selection. Please try again.")
+                                continue
+                            else:
+                                if sel < len(matching_colors):
+                                    break
+                                self.stdout.write("Invalid selection. Please try again.")
+
+                        if skip:
+                            self.stdout.write(
+                                self.style.WARNING(f"> No color selection provided. Skipping {ref_type.name}..."))
+                            return None
+                            
+                        return matching_colors[i]
+                except IndexError:
+                    print("Can't get color. Invalid TextRef context index")
+                    raise
+                except Color.DoesNotExist:
+                    print("Can't get color. There is no existing Color for rgb={rgb_hex}")
+                    raise
+                except KeyboardInterrupt as exc:
+                    print("")
+                    raise CommandError("Build interrupted with Ctrl-C (Keyboard Interrupt).") from exc
+                except EOFError as exc:
+                    print("")
+                    raise CommandError("Build interrupted with Ctrl-D (EOF).") from exc
+
+
         def populate_chapter(book: Book, src_path: Path, chapter_num: int):
             src_chapter: SrcChapter = SrcChapter(src_path)
             if src_chapter.metadata is None:
@@ -565,62 +624,7 @@ class Command(BaseCommand):
                     if ref_type is None:
                         continue
 
-                # Detect TextRef color
-                color = None
-                if 'span style="color:' in text_ref.context:
-                    try:
-                        print(f"Found color span in '{text_ref.context}'")
-                        i: int = text_ref.context.index("color:")
-                        rgb_hex: str = text_ref.context[i+text_ref.context[i:].index("#")+1:i+text_ref.context[i:].index(">") - 1].upper()
-                        matching_colors: QuerySet = Color.objects.filter(rgb=rgb_hex)
-                        if len(matching_colors) == 1:
-                            color = matching_colors[0]
-                        else:
-                            if options.get("skip_textref_color_select"):
-                                self.stdout.write(
-                                    self.style.WARNING(f"> TextRef color selection disabled. Skipping {ref_type.name}..."))
-                                continue
-
-                            self.stdout.write(f"Unable to automatically select color for TextRef: {text_ref}")
-                            sel: int = 0
-                            for i, col in enumerate(matching_colors):
-                                self.stdout.write(f"{i}: {col}")
-                            skip = False
-                            while True:
-                                try:
-                                    sel = prompt("Select color (leave empty to skip): ", options.get("prompt_sound"))
-                                    if sel.strip() == "":
-                                        skip = True
-                                        break
-
-                                    sel = int(sel)
-                                except ValueError:
-                                    self.stdout.write("Invalid selection. Please try again.")
-                                    continue
-                                else:
-                                    if sel < len(matching_colors):
-                                        break
-                                    self.stdout.write("Invalid selection. Please try again.")
-
-                            if skip:
-                                self.stdout.write(
-                                    self.style.WARNING(f"> No color selection provided. Skipping {ref_type.name}..."))
-                                continue
-                                
-
-                            color = matching_colors[i]
-                    except IndexError:
-                        print("Can't get color. Invalid TextRef context index")
-                        raise
-                    except Color.DoesNotExist:
-                        print("Can't get color. There is no existing Color for rgb={rgb_hex}")
-                        raise
-                    except KeyboardInterrupt as exc:
-                        print("")
-                        raise CommandError("Build interrupted with Ctrl-C (Keyboard Interrupt).") from exc
-                    except EOFError as exc:
-                        print("")
-                        raise CommandError("Build interrupted with Ctrl-D (EOF).") from exc
+                color = detect_textref_color(text_ref)
 
                 # Create TextRef
                 text_ref, ref_type_created = TextRef.objects.update_or_create(
@@ -674,10 +678,11 @@ class Command(BaseCommand):
         if chapter_id_range is not None:
             try:
                 start, end = [int(x) for x in chapter_id_range.split(",")]
-                for i in range(start, end):
-                    populate_chapter_by_id(i)
             except ValueError as exc:
                 raise CommandError(f"Invalid chapter ID range provided: {chapter_id_range}.") from exc
+
+            for i in range(start, end):
+                populate_chapter_by_id(i)
 
             return
 
