@@ -438,8 +438,12 @@ class Command(BaseCommand):
 
                         # Create alias for Character first name
                         invalid_first_names = [
-                            "a", "the", "an", "gnoll", "drake", "human", "elf", "half-elf",
-                            "dullahan", "selphid", "goblin", "harpy", "halfling"
+                            "a", "an", "armored", "crusader", "demon", "drake",
+                            "dullahan", "eater", "elf", "emperor", "flying", "free",
+                            "frost", "gnoll", "goblin", "grand", "half-elf", "halfling",
+                            "harpy", "human", "king", "knight", "old", "oldest",
+                            "oracle", "purple", "queen", "selphid", "silent", "the",
+                            "twin", "twisted", "yellow", "wyvern"
                         ]
                         name_split = name.strip().split(" ")
                         if len(name_split) > 0 and name_split[0].lower() not in invalid_first_names and name_split[0] != name:
