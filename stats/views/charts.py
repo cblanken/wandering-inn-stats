@@ -134,7 +134,7 @@ def character_charts(request):
     char_counts_per_chapter = [(Character.objects
         .filter(first_chapter_ref__number__lt=i)
         .aggregate(chapter_cnt_per=Count("ref_type"))["chapter_cnt_per"]
-    ) for i in ([x.number for x in Chapters.objects.all()])]
+    ) for i in ([x.number for x in Chapter.objects.all()])]
 
     char_counts_per_chapter = [x for x in zip(range(len(char_counts_per_chapter)), char_counts_per_chapter)]
     
