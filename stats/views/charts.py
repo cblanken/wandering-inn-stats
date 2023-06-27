@@ -30,6 +30,20 @@ def word_count_charts(request):
     chapter_wc_html = chapter_wc_fig.to_html(full_html=False, include_plotlyjs=False)
 
 
+    # Word counts per author's note
+    chapter_wc_data = (Chapter.objects
+        .filter(authors_note_word_count__gt=0)
+        .values("title", "authors_note_word_count")
+        .order_by("id")
+    )
+
+    chapter_authors_wc_fig = px.line(chapter_wc_data, title="Word Count Per Author's Note",
+        x="title", y="authors_note_word_count"
+    )
+
+    chapter_authors_wc_html = chapter_authors_wc_fig.to_html(full_html=False, include_plotlyjs=False)
+
+
     # Word counts grouped by book
     book_wc_data = (Chapter.objects
         .filter(~Q(book__title__contains="Unreleased"))
@@ -95,6 +109,7 @@ def word_count_charts(request):
     return render(request, "chart_demo.html", {
         "plots": {
             "Word Counts by Chapter": chapter_wc_html,
+            "Word Counts by Author's Note": chapter_authors_wc_html,
             "Word Counts by Book": book_wc_html,
             "Word Counts by Volume": volume_wc_html,
         },
