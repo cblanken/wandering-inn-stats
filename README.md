@@ -11,6 +11,10 @@ poetry install
 ...
 
 ## Deployment
+
+### Build
+- TODO: add Tor config links/instructions for scraper
+- TODO: add install / build instructions
 ...
 
 
@@ -21,8 +25,5 @@ pirateba
 
 ## Credits
 - See The Wandering Inn offical website to check out the web serial which inspired this project. Please check out the author's Patreon if you've enjoyed the web serial and would like to support them.
-
-TODO: add Tor config links/instructions for scraper
-TODO: add install / build instructions
-TODO: credit wiki for character descriptions and locations
-TODO: credit libraries (pandas/plotly/django etc.) and add badges (https://shields.io/)
+- Thanks to the Fandom [wiki](https://thewanderinginn.fandom.com/wiki/The_Wandering_Inn_Wiki) for The Wandering Inn, which was used to source most of the of the various characters, locations, [Skills], [Classes], [Spells] etc. when building out the database.
+- TODO: credit libraries (pandas/plotly/django etc.) and add badges (https://shields.io/)
