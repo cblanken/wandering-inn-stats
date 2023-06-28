@@ -26,12 +26,13 @@ SECRET_KEY = 'django-insecure-pk3m*p7(m7#6tw-4zr)b4io1#76o(&-!h)wx-c5wk943#6mryc
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
+if DEBUG:
+    X_FRAME_OPTIONS = "SAMEORIGIN" # get detailed error pages from pattern library
 
 ALLOWED_HOSTS = []
 
 
 # Application definition
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -40,10 +41,12 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'innverse_stats.core',
     'stats',
     'tailwind',
     'theme',
     'django_browser_reload',
+    'pattern_library'
 ]
 
 MIDDLEWARE = [
@@ -71,6 +74,9 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
             ],
+            'builtins': [
+                "pattern_library.loader_tags"
+            ]
         },
     },
 ]
@@ -147,3 +153,24 @@ TAILWIND_APP_NAME = "theme"
 INTERNAL_IPS = [
     "127.0.0.1"
 ]
+
+PATTERN_LIBRARY = {
+    # Groups of templates for the pattern library navigation. The keys
+    # are the group titles and the values are lists of template name prefixes that will
+    # be searched to populate the groups.
+    "SECTIONS": (
+        ("components", ["patterns/components"]),
+        ("pages", ["patterns/pages"]),
+    ),
+
+    # Configure which files to detect as templates.
+    "TEMPLATE_SUFFIX": ".html",
+
+    # Set which template components should be rendered inside of,
+    # so they may use page-level component dependencies like CSS.
+    "PATTERN_BASE_TEMPLATE_NAME": "patterns/base.html",
+
+    # Any template in BASE_TEMPLATE_NAMES or any template that extends a template in
+    # BASE_TEMPLATE_NAMES is a "page" and will be rendered as-is without being wrapped.
+    "BASE_TEMPLATE_NAMES": ["patterns/base_page.html"],
+}

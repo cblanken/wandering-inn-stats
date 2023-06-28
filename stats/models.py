@@ -13,7 +13,7 @@ class ColorCategory(models.Model):
 class Color(models.Model):
     """Model for colored text"""
     #TODO: add rgb regex constraint
-    rgb = models.CharField()
+    rgb = models.CharField(max_length=8)
     category = models.ForeignKey(ColorCategory, on_delete=models.CASCADE)
 
     class Meta:
@@ -382,7 +382,7 @@ class Character(models.Model):
 
 class Alias(models.Model):
     """RefType aliases / alternate names"""
-    name = models.CharField(unique=True)
+    name = models.CharField(unique=True, max_length=100)
     ref_type = models.ForeignKey(RefType, on_delete=models.CASCADE)
 
     class Meta:
