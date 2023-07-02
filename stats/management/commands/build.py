@@ -303,11 +303,14 @@ class Command(BaseCommand):
 
                 # Check for [Skill] or [Class] acquisition messages
                 skill_obtained_pattern = re.compile(r'^\[Skill.*[Oo]btained.*\]$')
+                spell_obtained_pattern = re.compile(r'^\[Spell.*[Oo]btained.*\]$')
                 class_obtained_pattern = re.compile(r'^\[.*Class\W[Oo]btained.*\]$')
                 if skill_obtained_pattern.match(text_ref.text):
                     new_type = RefType.SKILL_OBTAINED
                 elif class_obtained_pattern.match(text_ref.text):
                     new_type = RefType.CLASS_OBTAINED
+                elif spell_obtained_pattern.match(text_ref.text):
+                    new_type = RefType.SPELL_OBTAINED
                 else:
                     # Prompt user to select TextRef type
                     if options.get("skip_reftype_select"):
