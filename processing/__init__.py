@@ -115,8 +115,8 @@ class Chapter:
 
         patterns_by_name = {
             name: Pattern._or(
-                re.compile(r'(^|\W|[,.\?!]\W)' + name + r'(\W|[,.\?!]\W?)'),
-                re.compile(r'(^|\W|[,.\?!]\W)' + name.upper() + r'(\W|[,.\?!]\W?)')
+                re.compile(r'(^|\W|[,.\?!][\W]?)' + name + r'(\W|[,.\?!]\W?)'),
+                re.compile(r'(^|\W|[,.\?!][\W]?)' + name.upper() + r'(\W|[,.\?!]\W?)')
             ) for name in names
         }
 
