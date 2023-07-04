@@ -71,31 +71,32 @@ class Chapter(models.Model):
 
 class RefType(models.Model):
     """Reference keywords / phrases"""
+    CHARACTER = "CH"
     CLASS = "CL"
     CLASS_OBTAINED = "CO"
+    ITEM = "IT"
+    LOCATION = "LO"
+    MIRACLE = "MI"
     SKILL = "SK"
     SKILL_OBTAINED = "SO"
     SPELL = "SP"
     SPELL_OBTAINED = "SB"
-    CHARACTER = "CH"
-    ITEM = "IT"
-    LOCATION = "LO"
     TYPES = [
+        (CHARACTER, "Character"),
         (CLASS, "Class"),
         (CLASS_OBTAINED, "Class Obtained"),
+        (ITEM, "Item"),
+        (LOCATION, "Location"),
+        (MIRACLE, "Miracle"),
         (SKILL, "Skill"),
         (SKILL_OBTAINED, "Skill Obtained"),
         (SPELL, "Spell"),
         (SPELL_OBTAINED, "Spell Obtained"),
-        (CHARACTER, "Character"),
-        (ITEM, "Item"),
-        (LOCATION, "Location"),
     ]
     name = models.CharField(max_length=120)
     type = models.CharField(max_length=2, choices=TYPES, null=True)
     description = models.CharField(max_length=120, default="")
     is_divine = models.BooleanField(default=False)
-    
 
     class Meta:
         verbose_name_plural = "Ref Types"

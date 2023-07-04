@@ -96,27 +96,19 @@ def select_color_type(rgb_hex: str) -> COLOR_CATEGORY:
                 continue
 
 def match_ref_type(type_str) -> str:
-    match type_str[:2].upper():
-        case "CL":
-            return RefType.CLASS
-        case "CO":
-            return RefType.CLASS_OBTAINED
-        case "SK":
-            return RefType.SKILL
-        case "SO":
-            return RefType.SKILL_OBTAINED
-        case "SP":
-            return RefType.SPELL
-        case "SB":
-            return RefType.SPELL_OBTAINED
-        case "CH":
-            return RefType.CHARACTER
-        case "IT":
-            return RefType.ITEM
-        case "LO":
-            return RefType.LOCATION
-        case _:
-            return None
+    try:
+        matches = list(
+            filter(lambda rt: rt[0] == type_str.strip()[:2].upper(), RefType.TYPES)
+        )
+
+        # Return matching RefType shortcode from RefType.TYPES
+        if matches:
+            return matches[0][0]
+
+    except ValueError:
+        # No match found
+        breakpoint()
+        return None
 
 def prompt(s: str = "", sound: bool = False):
     if sound:
