@@ -234,7 +234,7 @@ class Command(BaseCommand):
         self.stdout.write("Updating DB...")
         def get_or_create_ref_type(text_ref: TextRef) -> RefType:
             # Check for existing RefType and create if necessary
-            while True: # loop for retries from select RefeType prompt
+            while True: # loop for retries from select RefType prompt
                 try:
                     ref_type = RefType.objects.get(name=text_ref.text)
                     self.stdout.write(self.style.WARNING(
@@ -258,23 +258,23 @@ class Command(BaseCommand):
                 except Alias.DoesNotExist:
                     pass
 
-                # Check for alternate forms of RefType (pluralized, gendered, etc.)
+                # Check for alternate forms of RefType (titlecase, pluralized, gendered, etc.)
                 ref_name = text_ref.text[1:-1] if text_ref.is_bracketed else text_ref.text
 
+                candidates = [text_ref.text.title()]
                 singular_ref_type_qs = None
-                singular_name_candidates = []
                 if ref_name.endswith("s"):
-                    singular_name_candidates.append(f"[{ref_name[:-1]}]" if text_ref.is_bracketed else ref_name.text[:-1])
+                    candidates.append(f"[{ref_name[:-1]}]" if text_ref.is_bracketed else ref_name.text[:-1])
                 if ref_name.endswith("es"):
-                    singular_name_candidates.append(f"[{ref_name[:-2]}]" if text_ref.is_bracketed else ref_name.text[:-2])
+                    candidates.append(f"[{ref_name[:-2]}]" if text_ref.is_bracketed else ref_name.text[:-2])
                 if ref_name.endswith("ies"):
-                    singular_name_candidates.append(f"[{ref_name[:-3]}y]" if text_ref.is_bracketed else ref_name.text[:-3])
+                    candidates.append(f"[{ref_name[:-3]}y]" if text_ref.is_bracketed else ref_name.text[:-3])
                 if ref_name.endswith("men"):
-                    singular_name_candidates.append(f"[{ref_name[:-3]}man]" if text_ref.is_bracketed else ref_name.text[:-3])
+                    candidates.append(f"[{ref_name[:-3]}man]" if text_ref.is_bracketed else ref_name.text[:-3])
                 if ref_name.endswith("women"):
-                    singular_name_candidates.append(f"[{ref_name[:-5]}woman]" if text_ref.is_bracketed else ref_name.text[:-5])
+                    candidates.append(f"[{ref_name[:-5]}woman]" if text_ref.is_bracketed else ref_name.text[:-5])
                 
-                for c in singular_name_candidates:
+                for c in candidates:
                     singular_ref_type_qs = RefType.objects.filter(name=c)
                     singular_alias_qs = Alias.objects.filter(name=c)
                     if singular_ref_type_qs.exists():
@@ -288,7 +288,7 @@ class Command(BaseCommand):
 
                     # Create Alias to base RefType
                     alias, created = Alias.objects.get_or_create(name=text_ref.text, ref_type=ref_type)
-                    prelude = f"> RefType: {text_ref.text} did not exist, but it is a pluralized form of {ref_type.name}. "
+                    prelude = f"> RefType: {text_ref.text} did not exist, but it is a alternative form of {ref_type.name}. "
                     if created:
                         self.stdout.write(self.style.SUCCESS(prelude +
                             f"No existing Alias was found, so one was created."))
