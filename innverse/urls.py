@@ -17,8 +17,18 @@ Including another URLconf
 from django.contrib import admin
 from django.apps import apps
 from django.urls import path, include
+from .views import root
 
 urlpatterns = [
+    path("", root.overview),
+    path("overview", root.overview),
+    path("characters", root.characters),
+    path("classes", root.classes),
+    path("skills", root.skills),
+    path("magic", root.magic),
+    path("search", root.search),
+    path("about", root.about),
+    path("settings", root.settings),
     path("stats/", include("stats.urls")),
     path("admin/", admin.site.urls),
     path("__reload__", include("django_browser_reload.urls")),
