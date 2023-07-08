@@ -65,7 +65,7 @@ ROOT_URLCONF = 'innverse.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [Path(BASE_DIR, "innverse/core/templates/patterns")],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
