@@ -273,6 +273,9 @@ class TorSession:
                 skills[i] = skill.strip()
 
         return sorted(set(sorted(skills)))
+    
+    def get_miracle_list(self) -> list[str]:
+        pass
 
 def parse_chapter(response: requests.Response) -> dict[str]:
     """Parse data from chapter
@@ -387,12 +390,12 @@ class TableOfContents:
         self.volume_data: OrderedDict[str:OrderedDict[str:str]] = self.__get_volume_data()
 
     def __get_chapter_links(self) -> list[str]:
-        """Scrape table of contents for an list of chapter links
+        """Scrape table of contents for a list of chapter links
         """
         if self.soup is None:
             return []
         
-        return [f"https://{self.domain}" + link.get("href") for link in self.soup.select(".chapters a")]
+        return [f"https://{self.domain}" + link.get("href") for link in self.soup.select(".chapter-entry a")]
 
     def __get_volume_data(self) -> OrderedDict[str:OrderedDict[str:str]]:
         """Return dictionary containing tuples (volume_title, chapter_indexes) by volume ID
@@ -402,7 +405,7 @@ class TableOfContents:
         if self.soup is None:
             return volumes
 
-        vol_elements = self.soup.select(".volume-table")
+        vol_elements = self.soup.select(".volume-wrapper")
 
         def get_next_name_and_href_from_a(element: Tag):
             """Return tuple of text and href from <a> tag
@@ -418,7 +421,7 @@ class TableOfContents:
 
         volumes = OrderedDict()
         for vol_ele in vol_elements:
-            vol_name = vol_ele.previous_sibling.text.strip()
+            vol_name = vol_ele.select_one(".volume-header").text.strip()
             volumes[vol_name] = OrderedDict()
             # Search for books
             last_chapter_row = None
@@ -430,7 +433,7 @@ class TableOfContents:
                     chapters = []
                     # Walk up tree to table head
                     table_head = heading.parent.parent
-                    for sibling in table_head.next_siblings:
+                    for sibling in [x for x in table_head.next_siblings if isinstance(x, Tag)]:
                         row_classes = sibling.get("class")
                         if "table-head" in row_classes:
                             # Found a new Book heading, continue to next Book

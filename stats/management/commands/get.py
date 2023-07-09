@@ -215,19 +215,20 @@ class Command(BaseCommand):
 
                 # Download all volumes
                 for i, (volume_title, books) in list(enumerate(toc.volume_data.items())):
+                    # TODO: check for empty volume_title
                     volume_path = Path(volume_root, f"{volume_title}")
                     download_volume(volume_title, volume_path)
             elif options.get("chapter"):
                 # Download selected chapter
-                path = Path(volume_root, v_title, b_title, c_title)
+                path = Path(volume_path, v_title, b_title, c_title)
                 download_chapter(v_title, b_title, c_title, path)
             elif options.get("book"):
                 # Download selected book
-                path = Path(volume_root, v_title, b_title)
+                path = Path(volume_path, v_title, b_title)
                 download_book(v_title, b_title, path)
             elif options.get("volume"):
                 # Download selected volume
-                path = Path(volume_root, v_title)
+                path = Path(volume_path, v_title)
                 download_volume(v_title, path)
 
             # TODO: refactor common meta data download code into function
