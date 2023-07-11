@@ -5,6 +5,8 @@
  * https://unpkg.com/browse/tailwindcss@latest/stubs/defaultConfig.stub.js
  */
 
+const defaultTheme = require("tailwindcss/defaultTheme")
+
 module.exports = {
     content: [
         /**
@@ -42,7 +44,22 @@ module.exports = {
         // '../../**/*.py'
     ],
     theme: {
-        extend: {},
+        extend: {
+            fontFamily: {
+                heading: ['Amatic SC', 'cursive'],
+                para: ['Andika', 'sans']
+            },
+            colors: {
+                "bg-primary": "#313638ff",
+                "bg-secondary": "#424647ff",
+                "bg-tertiary": "#966955ff",
+                "text-primary": "#e8e9ebff",
+                "text-secondary": "#e0dfd5ff",
+                "hl-primary": "#ef6461ff",
+                "hl-secondary": "#ea8c62ff",
+                "hl-tertiary": "#e4b363ff",
+            },
+        },
     },
     plugins: [
         /**
