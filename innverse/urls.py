@@ -1,34 +1,17 @@
-"""
-URL configuration for innverse project.
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/4.2/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-"""
 from django.contrib import admin
 from django.apps import apps
 from django.urls import path, include
-from .views import root
+from . import views
 
 urlpatterns = [
-    path("", root.overview),
-    path("overview", root.overview),
-    path("characters", root.characters),
-    path("classes", root.classes),
-    path("skills", root.skills),
-    path("magic", root.magic),
-    path("search", root.search),
-    path("about", root.about),
-    path("settings", root.settings),
+    path("", views.overview, name="overview"),
+    path("characters", views.characters, name="characters"),
+    path("classes", views.classes),
+    path("skills", views.skills),
+    path("magic", views.magic),
+    path("search", views.search),
+    path("about", views.about),
+    path("settings", views.settings),
     path("stats/", include("stats.urls")),
     path("admin/", admin.site.urls),
     path("__reload__", include("django_browser_reload.urls")),
