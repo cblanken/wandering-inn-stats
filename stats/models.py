@@ -59,7 +59,7 @@ class Chapter(models.Model):
     post_date = models.DateTimeField()
     last_update = models.DateTimeField()
     download_date = models.DateTimeField()
-    word_count = models.PositiveIntegerField(default=0)
+    word_count = models.PositiveBigIntegerField(default=0)
     authors_note_word_count = models.PositiveBigIntegerField(default=0)
     book = models.ForeignKey(Book, on_delete=models.CASCADE)
 
