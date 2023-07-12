@@ -1,14 +1,15 @@
 from django.shortcuts import render
 from django.http import HttpResponse
+from stats.charts import word_count_charts, character_charts, class_charts
 
 def overview(request):
-    return render(request, "pages/overview.html")
+    return render(request, "pages/overview.html", word_count_charts())
 
 def characters(request):
-    return render(request, "pages/characters.html")
+    return render(request, "pages/characters.html", character_charts())
 
 def classes(request):
-    return render(request, "pages/classes.html")
+    return render(request, "pages/classes.html", class_charts())
 
 def skills(request):
     return render(request, "pages/skills.html")
