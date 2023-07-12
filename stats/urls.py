@@ -16,7 +16,6 @@ Including another URLconf
 from django.urls import path, include
 from django.contrib.auth import get_user_model
 from rest_framework import routers, serializers, viewsets
-from .views import index, charts
 
 # Serializers define the API representation.
 class UserSerializer(serializers.HyperlinkedModelSerializer):
@@ -36,11 +35,6 @@ router.register(r'users', UserViewSet)
 # Wire up our API using automatic URL routing.
 # Additionally, we include login URLs for the browsable API.
 urlpatterns = [
-    path("", index.index, name="index"),
     path("api/", include(router.urls)),
     path("api-auth/", include("rest_framework.urls", namespace="rest_framework")),
-    path("charts", charts.index, name="charts"),
-    path("charts/word_counts", charts.word_count_charts, name="charts"),
-    path("charts/characters", charts.character_charts, name="charts"),
-    path("charts/classes", charts.class_charts, name="charts"),
 ]
