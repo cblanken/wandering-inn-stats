@@ -50,11 +50,12 @@ module.exports = {
                 para: ['Andika', 'sans']
             },
             colors: {
-                "bg-primary": "#313638ff",
-                "bg-secondary": "#424647ff",
-                "bg-tertiary": "#966955ff",
+                "bg-primary": "#262b2cff",
+                "bg-secondary": "#313638ff",
+                "bg-tertiary": "#424647ff",
                 "text-primary": "#e8e9ebff",
                 "text-secondary": "#e0dfd5ff",
+                "text-tertiary": "#e6cea7ff",
                 "hl-primary": "#ef6461ff",
                 "hl-secondary": "#ea8c62ff",
                 "hl-tertiary": "#e4b363ff",
