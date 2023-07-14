@@ -6,6 +6,8 @@ from .models import Chapter, RefType, TextRef, Character
 
 px.defaults.height = 800
 
+DEFAULT_PLOTLY_TEMPLATE = "plotly_dark"
+
 def word_count_charts():
     """Word count charts"""
     # Word counts per chapter
@@ -14,8 +16,10 @@ def word_count_charts():
         .order_by("id")
     )
 
-    chapter_wc_fig = px.scatter(chapter_wc_data, title="Word Count Per Chapter",
-        x="title", y="word_count"
+    chapter_wc_fig = px.scatter(chapter_wc_data,
+                                x="title", y="word_count",
+                                template=DEFAULT_PLOTLY_TEMPLATE,
+                                title="Word Count Per Chapter",
     )
 
     chapter_wc_html = chapter_wc_fig.to_html(full_html=False, include_plotlyjs=False)
@@ -28,8 +32,10 @@ def word_count_charts():
         .order_by("id")
     )
 
-    chapter_authors_wc_fig = px.line(chapter_wc_data, title="Word Count Per Author's Note",
-        x="title", y="authors_note_word_count"
+    chapter_authors_wc_fig = px.line(chapter_wc_data, 
+                                     x="title", y="authors_note_word_count",
+                                     template=DEFAULT_PLOTLY_TEMPLATE,
+                                     title="Word Count Per Author's Note",
     )
 
     chapter_authors_wc_html = chapter_authors_wc_fig.to_html(full_html=False, include_plotlyjs=False)
@@ -42,8 +48,10 @@ def word_count_charts():
         .order_by("book", "number")
     )
 
-    book_wc_fig = px.bar(book_wc_data, title="Word Count Per Book",
-        x="book__title", y="word_count", color="book",
+    book_wc_fig = px.bar(book_wc_data,
+                         x="book__title", y="word_count", color="book",
+                         template=DEFAULT_PLOTLY_TEMPLATE,
+                         title="Word Count Per Book",
         color_continuous_scale=px.colors.qualitative.Vivid)
     book_wc_fig.update_layout(
         xaxis={"title": "Book"},
@@ -72,8 +80,10 @@ def word_count_charts():
         .order_by("book__volume", "number")
     )
 
-    volume_wc_fig = px.bar(volume_wc_data, title="Word Count Per Volume",
-        x="book__volume__title", y="word_count", color="book__volume",
+    volume_wc_fig = px.bar(volume_wc_data,
+                           x="book__volume__title", y="word_count", color="book__volume",
+                           template=DEFAULT_PLOTLY_TEMPLATE,
+                           title="Word Count Per Volume",
         color_continuous_scale=px.colors.qualitative.Vivid)
     volume_wc_fig.update_layout(
         xaxis={"title": "Volume"},
@@ -115,8 +125,10 @@ def character_charts():
         .annotate(char_instance_cnt=Count("type__name"))
     )
 
-    char_refs_count_fig = px.pie(character_text_refs, names="type__name", values="char_instance_cnt",
-           title="Character TextRef Counts")
+    char_refs_count_fig = px.pie(character_text_refs,
+                                 names="type__name", values="char_instance_cnt", 
+                                 template=DEFAULT_PLOTLY_TEMPLATE,
+                                 title="Character Reference Counts")
     char_refs_count_fig.update_traces(textposition="inside")
     char_refs_count_html = char_refs_count_fig.to_html(full_html=False, include_plotlyjs=False)
 
@@ -128,7 +140,9 @@ def character_charts():
     char_counts_per_chapter = [x for x in zip(range(len(char_counts_per_chapter)), char_counts_per_chapter)]
     
     df = pd.DataFrame(char_counts_per_chapter, columns=["Chapter", "Character Count"])
-    char_counts_per_chapter_fig = px.line(df, x="Chapter", y="Character Count")
+    char_counts_per_chapter_fig = px.line(df, x="Chapter", y="Character Count",
+                                          template=DEFAULT_PLOTLY_TEMPLATE,
+                                          title="Character Count Over Time")
     char_counts_per_chapter_html = char_counts_per_chapter_fig.to_html(full_html=False, include_plotlyjs=False)
 
 
@@ -140,13 +154,15 @@ def character_charts():
 
     # Character counts by species
     chars_by_species_fig = px.pie(characters, names="species", values="species_cnt",
-           title="Characters by Species")
+                                  template=DEFAULT_PLOTLY_TEMPLATE,
+                                  title="Characters by Species")
     chars_by_species_fig.update_traces(textposition="inside")
     chars_by_species_html = chars_by_species_fig.to_html(full_html=False, include_plotlyjs=False)
 
     # Character counts by status
     chars_by_status_fig = px.pie(characters, names="status", values="status_cnt",
-           title="Characters by Status")
+                                 template=DEFAULT_PLOTLY_TEMPLATE,
+                                 title="Characters by Status")
     chars_by_status_fig.update_traces(textposition="inside")
     chars_by_status_html = chars_by_status_fig.to_html(full_html=False, include_plotlyjs=False)
 
@@ -170,7 +186,8 @@ def class_charts():
     )
 
     class_refs_count_fig = px.pie(class_refs, names="type__name", values="class_instance_cnt",
-        title="Class TextRefCounts")
+                                  template=DEFAULT_PLOTLY_TEMPLATE,
+                                  title="Class TextRefCounts")
     
     class_refs_count_fig.update_traces(textposition="inside")
 
