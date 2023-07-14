@@ -2,11 +2,25 @@ from django.db.models import Count, F, Q, Sum, Value, Case
 import plotly.express as px
 import numpy as np
 import pandas as pd
+from enum import Enum
 from .models import Chapter, RefType, TextRef, Character
 
 px.defaults.height = 800
 
 DEFAULT_PLOTLY_TEMPLATE = "plotly_dark"
+
+
+DEFAULT_LAYOUT = {
+    "font": {
+        # "color": "#e8e9eb",
+        "family": "Courier New, mono",
+        "size": 16,
+    },
+    "title_font": {
+        "family": "Courier New, mono",
+        "size": 32,
+    }
+}
 
 def word_count_charts():
     """Word count charts"""
@@ -21,6 +35,8 @@ def word_count_charts():
                                 template=DEFAULT_PLOTLY_TEMPLATE,
                                 title="Word Count Per Chapter",
     )
+
+    chapter_wc_fig.update_layout(DEFAULT_LAYOUT)
 
     chapter_wc_html = chapter_wc_fig.to_html(full_html=False, include_plotlyjs=False)
 
@@ -38,6 +54,7 @@ def word_count_charts():
                                      title="Word Count Per Author's Note",
     )
 
+    chapter_authors_wc_fig.update_layout(DEFAULT_LAYOUT)
     chapter_authors_wc_html = chapter_authors_wc_fig.to_html(full_html=False, include_plotlyjs=False)
 
 
@@ -53,7 +70,7 @@ def word_count_charts():
                          template=DEFAULT_PLOTLY_TEMPLATE,
                          title="Word Count Per Book",
         color_continuous_scale=px.colors.qualitative.Vivid)
-    book_wc_fig.update_layout(
+    book_wc_fig.update_layout(DEFAULT_LAYOUT,
         xaxis={"title": "Book"},
         yaxis={"title": "Word Count"},
         showlegend=False,
@@ -85,7 +102,7 @@ def word_count_charts():
                            template=DEFAULT_PLOTLY_TEMPLATE,
                            title="Word Count Per Volume",
         color_continuous_scale=px.colors.qualitative.Vivid)
-    volume_wc_fig.update_layout(
+    volume_wc_fig.update_layout(DEFAULT_LAYOUT,
         xaxis={"title": "Volume"},
         yaxis={"title": "Word Count"},
         showlegend=False,
@@ -129,6 +146,7 @@ def character_charts():
                                  names="type__name", values="char_instance_cnt", 
                                  template=DEFAULT_PLOTLY_TEMPLATE,
                                  title="Character Reference Counts")
+    char_refs_count_fig.update_layout(DEFAULT_LAYOUT)
     char_refs_count_fig.update_traces(textposition="inside")
     char_refs_count_html = char_refs_count_fig.to_html(full_html=False, include_plotlyjs=False)
 
@@ -143,6 +161,7 @@ def character_charts():
     char_counts_per_chapter_fig = px.line(df, x="Chapter", y="Character Count",
                                           template=DEFAULT_PLOTLY_TEMPLATE,
                                           title="Character Count Over Time")
+    char_counts_per_chapter_fig.update_layout(DEFAULT_LAYOUT)
     char_counts_per_chapter_html = char_counts_per_chapter_fig.to_html(full_html=False, include_plotlyjs=False)
 
 
@@ -156,6 +175,7 @@ def character_charts():
     chars_by_species_fig = px.pie(characters, names="species", values="species_cnt",
                                   template=DEFAULT_PLOTLY_TEMPLATE,
                                   title="Characters by Species")
+    chars_by_species_fig.update_layout(DEFAULT_LAYOUT)
     chars_by_species_fig.update_traces(textposition="inside")
     chars_by_species_html = chars_by_species_fig.to_html(full_html=False, include_plotlyjs=False)
 
@@ -163,15 +183,16 @@ def character_charts():
     chars_by_status_fig = px.pie(characters, names="status", values="status_cnt",
                                  template=DEFAULT_PLOTLY_TEMPLATE,
                                  title="Characters by Status")
+    chars_by_status_fig.update_layout(DEFAULT_LAYOUT)
     chars_by_status_fig.update_traces(textposition="inside")
     chars_by_status_html = chars_by_status_fig.to_html(full_html=False, include_plotlyjs=False)
 
     return {
         "plots": {
             "Character Reference Counts": char_refs_count_html,
+            "Character Counts Per Chapter": char_counts_per_chapter_html,
             "Character Species Counts": chars_by_species_html,
             "Character Status Counts": chars_by_status_html,
-            "Character Counts Per Chapter": char_counts_per_chapter_html
          },
         "page_title": "Character Stats"
     }
@@ -189,6 +210,7 @@ def class_charts():
                                   template=DEFAULT_PLOTLY_TEMPLATE,
                                   title="Class TextRefCounts")
     
+    class_refs_count_fig.update_layout(DEFAULT_LAYOUT)
     class_refs_count_fig.update_traces(textposition="inside")
 
     class_refs_count_html = class_refs_count_fig.to_html(full_html=False, include_plotlyjs=False)
