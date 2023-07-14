@@ -175,3 +175,13 @@ PATTERN_LIBRARY = {
     # BASE_TEMPLATE_NAMES is a "page" and will be rendered as-is without being wrapped.
     "BASE_TEMPLATE_NAMES": ["patterns/base_page.html"],
 }
+
+CACHES = {
+    "default": {
+        # "BACKEND": "django.core.cache.backends.memcached.PyMemcacheCache",
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        # "LOCATION": env.get("CACHE_URI", "PROTO://IP:PORT"),
+        "TIMEOUT": 60,
+        "OPTIONS": {"MAX_ENTRIES": 1000},
+    }
+}
