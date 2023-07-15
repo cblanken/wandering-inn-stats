@@ -44,6 +44,9 @@ module.exports = {
         // '../../**/*.py'
     ],
     theme: {
+        container: {
+            center: true,
+        },
         extend: {
             fontFamily: {
                 heading: ['Amatic SC', 'cursive'],

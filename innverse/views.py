@@ -23,14 +23,12 @@ def skills(request):
 def magic(request):
     return render(request, "pages/magic.html")
 
-@cache_page(60)
 def search(request):
     return render(request, "pages/search.html")
 
-@cache_page(60)
+@cache_page(60*60*24)
 def about(request):
     return render(request, "pages/about.html")
 
-@cache_page(60)
 def settings(request):
     return render(request, "pages/settings.html")
