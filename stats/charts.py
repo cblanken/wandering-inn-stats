@@ -19,24 +19,41 @@ DEFAULT_LAYOUT = {
     "title_font": {
         "family": "Courier New, mono",
         "size": 32,
-    }
+    },
 }
 
 def word_count_charts():
-    """Word count charts"""
+    """Overview charts - all main word count charts to show on overview
+    """
+
     # Word counts per chapter
     chapter_wc_data = (Chapter.objects
-        .values("title", "word_count")
-        .order_by("id")
+        .values("number", "title", "word_count", "post_date")
+        .order_by("number")
     )
 
     chapter_wc_fig = px.scatter(chapter_wc_data,
-                                x="title", y="word_count",
-                                template=DEFAULT_PLOTLY_TEMPLATE,
-                                title="Word Count Per Chapter",
+        x="number", y="word_count",
+        template=DEFAULT_PLOTLY_TEMPLATE,
+        title="Word Count Per Chapter",
+        hover_data=["title", "number", "word_count", "post_date"],
+        trendline="ols",
+        trendline_color_override="#FF8585"
     )
 
-    chapter_wc_fig.update_layout(DEFAULT_LAYOUT)
+    chapter_wc_fig.update_layout(DEFAULT_LAYOUT,
+        xaxis={"title": "Chapter Number"}, yaxis={"title": "Word Count"})
+
+    chapter_wc_fig.update_traces(
+        customdata = np.stack((
+            chapter_wc_data.values_list("title"),
+        ), axis=-1),
+        hovertemplate=
+            "<b>Chapter Title</b>: %{customdata[0]}<br>" +
+            "<b>Chapter Number</b>: %{x}<br>" +
+            "<b>Word Count</b>: %{y}" +
+            "<extra></extra>"
+    )
 
     chapter_wc_html = chapter_wc_fig.to_html(full_html=False, include_plotlyjs=False)
 
@@ -44,17 +61,31 @@ def word_count_charts():
     # Word counts per author's note
     chapter_wc_data = (Chapter.objects
         .filter(authors_note_word_count__gt=0)
-        .values("title", "authors_note_word_count")
-        .order_by("id")
+        .values("number", "title", "authors_note_word_count")
+        .order_by("number")
     )
 
     chapter_authors_wc_fig = px.line(chapter_wc_data, 
-                                     x="title", y="authors_note_word_count",
-                                     template=DEFAULT_PLOTLY_TEMPLATE,
-                                     title="Word Count Per Author's Note",
+        x="number", y="authors_note_word_count",
+        template=DEFAULT_PLOTLY_TEMPLATE,
+        title="Word Count Per Author's Note",
+        hover_data=["title", "number", "authors_note_word_count"],
     )
 
-    chapter_authors_wc_fig.update_layout(DEFAULT_LAYOUT)
+    chapter_authors_wc_fig.update_layout(DEFAULT_LAYOUT,
+        xaxis={"title": "Chapter Number"}, yaxis={"title": "Word Count"})
+
+    chapter_authors_wc_fig.update_traces(
+        customdata = np.stack((
+            chapter_wc_data.values_list("title"),
+        ), axis=-1),
+        hovertemplate=
+            "<b>Chapter Title</b>: %{customdata[0]}<br>" +
+            "<b>Chapter Number</b>: %{x}<br>" +
+            "<b>Word Count</b>: %{y}" +
+            "<extra></extra>"
+    )
+
     chapter_authors_wc_html = chapter_authors_wc_fig.to_html(full_html=False, include_plotlyjs=False)
 
 
@@ -66,9 +97,9 @@ def word_count_charts():
     )
 
     book_wc_fig = px.bar(book_wc_data,
-                         x="book__title", y="word_count", color="book",
-                         template=DEFAULT_PLOTLY_TEMPLATE,
-                         title="Word Count Per Book",
+        x="book__title", y="word_count", color="book",
+        template=DEFAULT_PLOTLY_TEMPLATE,
+        title="Word Count Per Book",
         color_continuous_scale=px.colors.qualitative.Vivid)
     book_wc_fig.update_layout(DEFAULT_LAYOUT,
         xaxis={"title": "Book"},
