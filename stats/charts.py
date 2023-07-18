@@ -1,4 +1,4 @@
-from django.db.models import Count, F, Q, Sum, Value, Case
+from django.db.models import Count, F, Q, Sum, Value, Case, ExpressionWrapper
 import plotly.express as px
 import numpy as np
 import pandas as pd
@@ -42,16 +42,25 @@ def word_count_charts():
     )
 
     chapter_wc_fig.update_layout(DEFAULT_LAYOUT,
-        xaxis={"title": "Chapter Number"}, yaxis={"title": "Word Count"})
+        xaxis=dict(
+            title="Chapter Number",
+            rangeslider=dict(
+                visible=True
+            ),
+            type="linear"
+        ),
+        yaxis=dict(title="Word Count")
+    )
 
     chapter_wc_fig.update_traces(
         customdata = np.stack((
-            chapter_wc_data.values_list("title"),
+            chapter_wc_data.values_list("title", "post_date"),
         ), axis=-1),
         hovertemplate=
             "<b>Chapter Title</b>: %{customdata[0]}<br>" +
             "<b>Chapter Number</b>: %{x}<br>" +
-            "<b>Word Count</b>: %{y}" +
+            "<b>Word Count</b>: %{y}<br>" +
+            "<b>Post Date</b>: %{customdata[1]}" +
             "<extra></extra>"
     )
 
@@ -72,8 +81,16 @@ def word_count_charts():
         hover_data=["title", "number", "authors_note_word_count"],
     )
 
-    chapter_authors_wc_fig.update_layout(DEFAULT_LAYOUT,
-        xaxis={"title": "Chapter Number"}, yaxis={"title": "Word Count"})
+    chapter_authors_wc_fig.update_layout(
+        DEFAULT_LAYOUT,
+        xaxis=dict(
+            title="Chapter Number", 
+            rangeslider=dict(
+                visible=True
+            ),
+        ),
+        yaxis=dict(title="Word Count")
+    )
 
     chapter_authors_wc_fig.update_traces(
         customdata = np.stack((
@@ -178,7 +195,16 @@ def character_charts():
                                  template=DEFAULT_PLOTLY_TEMPLATE,
                                  title="Character Reference Counts")
     char_refs_count_fig.update_layout(DEFAULT_LAYOUT)
-    char_refs_count_fig.update_traces(textposition="inside")
+    char_refs_count_fig.update_traces(
+        textposition="inside",
+        customdata = np.stack((
+            character_text_refs.values_list("type__name", "char_instance_cnt"),
+        ), axis=-1),
+        hovertemplate=
+            "<b>Character</b>: %{customdata[0][0]}<br>" +
+            "<b>Character Ref Count</b>: %{customdata[0][1]}" +
+            "<extra></extra>"
+    )
     char_refs_count_html = char_refs_count_fig.to_html(full_html=False, include_plotlyjs=False)
 
     char_counts_per_chapter = [(Character.objects
@@ -189,25 +215,49 @@ def character_charts():
     char_counts_per_chapter = [x for x in zip(range(len(char_counts_per_chapter)), char_counts_per_chapter)]
     
     df = pd.DataFrame(char_counts_per_chapter, columns=["Chapter", "Character Count"])
-    char_counts_per_chapter_fig = px.line(df, x="Chapter", y="Character Count",
+    char_counts_per_chapter_fig = px.scatter(df, x="Chapter", y="Character Count",
                                           template=DEFAULT_PLOTLY_TEMPLATE,
                                           title="Character Count Over Time")
-    char_counts_per_chapter_fig.update_layout(DEFAULT_LAYOUT)
+    char_counts_per_chapter_fig.update_layout(
+        DEFAULT_LAYOUT,
+        xaxis=dict(
+            title="Chapter Number", 
+            rangeslider=dict(
+                visible=True
+            ),
+            type="linear",
+        ),
+        yaxis=dict(title="Character Count")
+    )
+    char_counts_per_chapter_fig.update_traces(
+        hovertemplate=
+            "<b>Chapter</b>: %{x}<br>" +
+            "<b>Total Characters</b>: %{y}" +
+            "<extra></extra>"
+    )
     char_counts_per_chapter_html = char_counts_per_chapter_fig.to_html(full_html=False, include_plotlyjs=False)
 
 
     # Character data counts
     characters = (Character.objects.all()
         .annotate(species_cnt=Count("species"), status_cnt=Count("status"))
-        .values()
-    )
+    ).values()
 
     # Character counts by species
     chars_by_species_fig = px.pie(characters, names="species", values="species_cnt",
                                   template=DEFAULT_PLOTLY_TEMPLATE,
                                   title="Characters by Species")
     chars_by_species_fig.update_layout(DEFAULT_LAYOUT)
-    chars_by_species_fig.update_traces(textposition="inside")
+    chars_by_species_fig.update_traces(
+        textposition="inside",
+        customdata = np.stack((
+            characters.values_list("species_cnt", "status_cnt"),
+        ), axis=-1),
+        hovertemplate=
+            "<b>Character Count</b>: %{label}<br>" +
+            "<b>Total Characters</b>: %{value}" +
+            "<extra></extra>"
+    )
     chars_by_species_html = chars_by_species_fig.to_html(full_html=False, include_plotlyjs=False)
 
     # Character counts by status
