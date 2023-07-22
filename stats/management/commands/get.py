@@ -35,6 +35,8 @@ class Command(BaseCommand):
                             help="Overwrite chapter files if they already exist")
         parser.add_argument("-l", "--latest", action="store_true",
                             help="Download only the most recently released chapter")
+        parser.add_argument("-m", "--metadata-only", action="store_true",
+                            help="Download only metadata")
         parser.add_argument("--classes", action="store_true",
                             help="Download class information from wiki")
         parser.add_argument("--skills", action="store_true",
@@ -116,6 +118,16 @@ class Command(BaseCommand):
                 self.stdout.write(f"Skipping download for {chapter_title} → {chapter_href}")
                 return
 
+            # Save metadata
+            save_file(
+                text = json.dumps(data["metadata"], sort_keys=True, indent=4),
+                path = meta_path,
+                success_msg = f"\"{chapter_title}\" metadata saved to {meta_path}",
+                warn_msg = f"{meta_path} already exists. Not saving...")
+
+            if options.get("metadata_only"):
+                return
+
             # Save source HTML
             save_file(
                 text = data["html"],
@@ -136,13 +148,6 @@ class Command(BaseCommand):
                 path = authors_note_path,
                 success_msg = f"\"{chapter_title}\" text saved to {authors_note_path}",
                 warn_msg = f"{authors_note_path} already exists. Not saving...")
-
-            # Save metadata
-            save_file(
-                text = json.dumps(data["metadata"], sort_keys=True, indent=4),
-                path = meta_path,
-                success_msg = f"\"{chapter_title}\" metadata saved to {meta_path}",
-                warn_msg = f"{meta_path} already exists. Not saving...")
 
             self.last_download = time.time()
 
@@ -220,15 +225,15 @@ class Command(BaseCommand):
                     download_volume(volume_title, volume_path)
             elif options.get("chapter"):
                 # Download selected chapter
-                path = Path(volume_path, v_title, b_title, c_title)
+                path = Path(volume_root, v_title, b_title, c_title)
                 download_chapter(v_title, b_title, c_title, path)
             elif options.get("book"):
                 # Download selected book
-                path = Path(volume_path, v_title, b_title)
+                path = Path(volume_root, v_title, b_title)
                 download_book(v_title, b_title, path)
             elif options.get("volume"):
                 # Download selected volume
-                path = Path(volume_path, v_title)
+                path = Path(volume_root, v_title)
                 download_volume(v_title, path)
 
             # TODO: refactor common meta data download code into function
