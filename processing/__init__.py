@@ -9,8 +9,11 @@ from pathlib import Path
 from typing import Generator
 
 OBTAINED_SUFFIX = r".*[Oo]btained.?\]"
-class Pattern():
+
+
+class Pattern:
     """Text matching RE patterns for processing chapter text"""
+
     ALL_MAGIC_WORDS = re.compile(r"\[(\w\,? ?)+\]")
     SKILL_OBTAINED = re.compile(r"\[[Ss]kill" + OBTAINED_SUFFIX)
     CLASS_OBTAINED = re.compile(r"\[.*[Cc]lass" + OBTAINED_SUFFIX)
@@ -29,6 +32,7 @@ class Pattern():
         # TODO: implement for combining Pattern with AND
         pass
 
+
 class TextRef:
     """
     A Text Reference to a specified keyword in the text
@@ -41,8 +45,17 @@ class TextRef:
     - end_col (int): Column number of last letter in (phrase) found in the text
     - context (str): Contextual text surrounding (phrase)
     """
-    def __init__(self, text: str, line_text: str, line_id: int, start_column: int,
-        end_column: int, context_len: int, is_bracketed: bool = True) -> TextRef:
+
+    def __init__(
+        self,
+        text: str,
+        line_text: str,
+        line_id: int,
+        start_column: int,
+        end_column: int,
+        context_len: int,
+        is_bracketed: bool = True,
+    ) -> TextRef:
         self.text: str = text.strip()
         self.is_bracketed = is_bracketed
         self.line_text = line_text.strip()
@@ -59,27 +72,29 @@ class TextRef:
     def __str__(self):
         return f"Line: {self.line_number:>5}: {self.text:⋅<55}context: {self.context}"
 
+
 def get_metadata(path: Path, filename: str = "metadata.json") -> dict:
-    """Return dictionary of metadata from a JSON file
-    """
+    """Return dictionary of metadata from a JSON file"""
     try:
         with open(Path(path, filename), "r", encoding="utf-8") as file:
             return json.load(file)
     except json.JSONDecodeError as exc:
-        print(f"Metadata file at \"{path}\" could not be decoded.", file=sys.stderr)
+        print(f'Metadata file at "{path}" could not be decoded.', file=sys.stderr)
         print("Check for syntax errors.", exc, file=sys.stderr)
         return None
     except ValueError as exc:
-        print(f"Metadata file at \"{path}\" could not be found.", exc, file=sys.stderr)
+        print(f'Metadata file at "{path}" could not be found.', exc, file=sys.stderr)
         return None
+
 
 class Chapter:
     """Model for chapter as a file
-    
+
     Args:
         title (str): Chapter title
         path (Path): path to HTML file of downloaded chapter
     """
+
     def __init__(self, path: Path):
         self.path: Path = path
         self.title: str = path.name
@@ -102,7 +117,9 @@ class Chapter:
         )
         self.all_bracket_refs: Generator[TextRef] = self.gen_text_refs()
 
-    def gen_text_refs(self, names: any[str] = None, context_len: int = 50) -> Generator[TextRef]:
+    def gen_text_refs(
+        self, names: any[str] = None, context_len: int = 50
+    ) -> Generator[TextRef]:
         """Return  TextRef(s) that match the regex for the given regex patterns
         and other arguments
 
@@ -115,29 +132,41 @@ class Chapter:
 
         patterns_by_name = {
             name: Pattern._or(
-                re.compile(r'(^|\W|[,.\?!][\W]?)' + name + r'(\W|[,.\?!]\W?)'),
-                re.compile(r'(^|\W|[,.\?!][\W]?)' + name.upper() + r'(\W|[,.\?!]\W?)')
-            ) for name in names
+                re.compile(r"(^|\W|[,.\?!][\W]?)" + name + r"(\W|[,.\?!]\W?)"),
+                re.compile(r"(^|\W|[,.\?!][\W]?)" + name.upper() + r"(\W|[,.\?!]\W?)"),
+            )
+            for name in names
         }
 
         for line_number, line in enumerate(lines):
             # Yield any matches for bracketed types
-            for match in (re.finditer(self.__bracket_pattern, line)):
-                yield TextRef(match.group(), match.string, line_number,
-                            match.start(), match.end(), context_len)
+            for match in re.finditer(self.__bracket_pattern, line):
+                yield TextRef(
+                    match.group(),
+                    match.string,
+                    line_number,
+                    match.start(),
+                    match.end(),
+                    context_len,
+                )
 
             # TODO: selection prompt for aliases with multiple matches
             # or if an alias matches a common word
             if names is not None:
                 # Yield any matches for named references such as characters, locations, items, etc.
                 for name, pattern in patterns_by_name.items():
-                    for match in (re.finditer(pattern, line)):
-                        yield TextRef(name, line, line_number,
-                                    match.start(), match.end(), context_len)
+                    for match in re.finditer(pattern, line):
+                        yield TextRef(
+                            name,
+                            line,
+                            line_number,
+                            match.start(),
+                            match.end(),
+                            context_len,
+                        )
 
     def print_bracket_refs(self):
-        """Print TextRef(s) for chapter
-        """
+        """Print TextRef(s) for chapter"""
         headline = f"{self.title} - {self.path}"
         print("")
         print("=" * len(headline))
@@ -152,26 +181,34 @@ class Chapter:
 
 class Book:
     """Model for book as a file"""
+
     def __init__(self, path: Path):
         self.path = path
         self.metadata = get_metadata(self.path)
         self.title: str = self.metadata["title"]
-        self.chapters: list[str] = [x[0] for x in sorted(list(self.metadata["chapters"].items()), key=lambda x: x[1])]
+        self.chapters: list[str] = [
+            x[0]
+            for x in sorted(list(self.metadata["chapters"].items()), key=lambda x: x[1])
+        ]
 
     def __str__(self):
         return f"{self.title}: {self.path}"
 
+
 class Volume:
     """Model for Volume as a file"""
+
     def __init__(self, path: Path):
         self.path: Path = path
         self.metadata = get_metadata(self.path)
         self.title: str = self.metadata["title"]
-        self.books: list[str] = [x[0] for x in sorted(list(self.metadata["books"].items()), key=lambda x: x[1])]
+        self.books: list[str] = [
+            x[0]
+            for x in sorted(list(self.metadata["books"].items()), key=lambda x: x[1])
+        ]
 
     def print_all_text_refs(self):
-        """Print all text references found by `generate_all_text_refs` generator
-        """
+        """Print all text references found by `generate_all_text_refs` generator"""
         for book in self.books:
             for chapter in book.chapters:
                 chapter.print_all_text_refs()

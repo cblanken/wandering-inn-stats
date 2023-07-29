@@ -6,21 +6,23 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('stats', '0006_alter_character_first_ref_uri_and_more'),
+        ("stats", "0006_alter_character_first_ref_uri_and_more"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='alias',
-            options={'ordering': ['name'], 'verbose_name_plural': 'Aliases'},
+            name="alias",
+            options={"ordering": ["name"], "verbose_name_plural": "Aliases"},
         ),
         migrations.AlterField(
-            model_name='book',
-            name='title',
+            model_name="book",
+            name="title",
             field=models.CharField(max_length=50),
         ),
         migrations.AddConstraint(
-            model_name='book',
-            constraint=models.UniqueConstraint(fields=('volume', 'title'), name='unique_volume_and_title'),
+            model_name="book",
+            constraint=models.UniqueConstraint(
+                fields=("volume", "title"), name="unique_volume_and_title"
+            ),
         ),
     ]

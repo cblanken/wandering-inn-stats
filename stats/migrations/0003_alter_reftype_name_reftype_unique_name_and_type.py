@@ -6,17 +6,19 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('stats', '0002_textref_color'),
+        ("stats", "0002_textref_color"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='reftype',
-            name='name',
+            model_name="reftype",
+            name="name",
             field=models.CharField(max_length=120),
         ),
         migrations.AddConstraint(
-            model_name='reftype',
-            constraint=models.UniqueConstraint(fields=('name', 'type'), name='unique_name_and_type'),
+            model_name="reftype",
+            constraint=models.UniqueConstraint(
+                fields=("name", "type"), name="unique_name_and_type"
+            ),
         ),
     ]

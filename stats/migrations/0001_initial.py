@@ -8,117 +8,225 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='Book',
+            name="Book",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('number', models.PositiveBigIntegerField()),
-                ('title', models.CharField(max_length=50, unique=True)),
-                ('summary', models.TextField(default='')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("number", models.PositiveBigIntegerField()),
+                ("title", models.CharField(max_length=50, unique=True)),
+                ("summary", models.TextField(default="")),
             ],
             options={
-                'ordering': ['volume', 'number'],
+                "ordering": ["volume", "number"],
             },
         ),
         migrations.CreateModel(
-            name='Chapter',
+            name="Chapter",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('number', models.PositiveBigIntegerField()),
-                ('title', models.CharField(max_length=50)),
-                ('is_interlude', models.BooleanField()),
-                ('source_url', models.URLField()),
-                ('post_date', models.DateTimeField()),
-                ('last_update', models.DateTimeField()),
-                ('download_date', models.DateTimeField()),
-                ('word_count', models.PositiveIntegerField(default=0)),
-                ('book', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='stats.book')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("number", models.PositiveBigIntegerField()),
+                ("title", models.CharField(max_length=50)),
+                ("is_interlude", models.BooleanField()),
+                ("source_url", models.URLField()),
+                ("post_date", models.DateTimeField()),
+                ("last_update", models.DateTimeField()),
+                ("download_date", models.DateTimeField()),
+                ("word_count", models.PositiveIntegerField(default=0)),
+                (
+                    "book",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, to="stats.book"
+                    ),
+                ),
             ],
             options={
-                'ordering': ['book', 'number'],
+                "ordering": ["book", "number"],
             },
         ),
         migrations.CreateModel(
-            name='ColorCategory',
+            name="ColorCategory",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=50, unique=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=50, unique=True)),
             ],
             options={
-                'verbose_name_plural': 'Color Categories',
+                "verbose_name_plural": "Color Categories",
             },
         ),
         migrations.CreateModel(
-            name='RefType',
+            name="RefType",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=120, unique=True)),
-                ('type', models.CharField(choices=[('CL', 'Class'), ('CO', 'Class Obtained'), ('SK', 'Skill'), ('SO', 'Skill Obtained'), ('SP', 'Spell'), ('SB', 'Spell Obtained'), ('CH', 'Character'), ('IT', 'Item'), ('LO', 'Location')], max_length=2, null=True)),
-                ('description', models.CharField(default='', max_length=120)),
-                ('is_divine', models.BooleanField(default=False)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=120, unique=True)),
+                (
+                    "type",
+                    models.CharField(
+                        choices=[
+                            ("CL", "Class"),
+                            ("CO", "Class Obtained"),
+                            ("SK", "Skill"),
+                            ("SO", "Skill Obtained"),
+                            ("SP", "Spell"),
+                            ("SB", "Spell Obtained"),
+                            ("CH", "Character"),
+                            ("IT", "Item"),
+                            ("LO", "Location"),
+                        ],
+                        max_length=2,
+                        null=True,
+                    ),
+                ),
+                ("description", models.CharField(default="", max_length=120)),
+                ("is_divine", models.BooleanField(default=False)),
             ],
             options={
-                'verbose_name_plural': 'Ref Types',
-                'ordering': ['name'],
+                "verbose_name_plural": "Ref Types",
+                "ordering": ["name"],
             },
         ),
         migrations.CreateModel(
-            name='Volume',
+            name="Volume",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('number', models.PositiveIntegerField(unique=True)),
-                ('title', models.CharField(max_length=50, unique=True)),
-                ('summary', models.TextField(default='')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("number", models.PositiveIntegerField(unique=True)),
+                ("title", models.CharField(max_length=50, unique=True)),
+                ("summary", models.TextField(default="")),
             ],
             options={
-                'ordering': ['number'],
+                "ordering": ["number"],
             },
         ),
         migrations.CreateModel(
-            name='TextRef',
+            name="TextRef",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('text', models.TextField()),
-                ('line_number', models.PositiveIntegerField()),
-                ('start_column', models.PositiveIntegerField()),
-                ('end_column', models.PositiveIntegerField()),
-                ('context_offset', models.PositiveBigIntegerField(default=50)),
-                ('chapter', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='stats.chapter')),
-                ('type', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='stats.reftype')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("text", models.TextField()),
+                ("line_number", models.PositiveIntegerField()),
+                ("start_column", models.PositiveIntegerField()),
+                ("end_column", models.PositiveIntegerField()),
+                ("context_offset", models.PositiveBigIntegerField(default=50)),
+                (
+                    "chapter",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, to="stats.chapter"
+                    ),
+                ),
+                (
+                    "type",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, to="stats.reftype"
+                    ),
+                ),
             ],
             options={
-                'verbose_name_plural': 'Text Refs',
+                "verbose_name_plural": "Text Refs",
             },
         ),
         migrations.CreateModel(
-            name='Color',
+            name="Color",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('rgb', models.CharField()),
-                ('category', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='stats.colorcategory')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("rgb", models.CharField()),
+                (
+                    "category",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="stats.colorcategory",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['rgb'],
+                "ordering": ["rgb"],
             },
         ),
         migrations.AddField(
-            model_name='book',
-            name='volume',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='stats.volume'),
+            model_name="book",
+            name="volume",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE, to="stats.volume"
+            ),
         ),
         migrations.CreateModel(
-            name='Alias',
+            name="Alias",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(unique=True)),
-                ('ref_type', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='stats.reftype')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(unique=True)),
+                (
+                    "ref_type",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, to="stats.reftype"
+                    ),
+                ),
             ],
             options={
-                'verbose_name_plural': 'Aliases',
+                "verbose_name_plural": "Aliases",
             },
         ),
     ]
