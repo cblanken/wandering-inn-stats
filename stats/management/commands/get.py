@@ -7,46 +7,76 @@ import time
 from django.core.management.base import BaseCommand, CommandError
 from processing import get
 
+
 class Command(BaseCommand):
     help = "Download Wandering Inn data including volumes, books, chapters, characters etc."
     last_download: float = 0.0
 
     def add_arguments(self, parser):
-        parser.add_argument("volume", nargs="?", type=str,
-                            help="Volume to download")
-        parser.add_argument("book", nargs="?", type=str,
-                            help="Book to download")
-        parser.add_argument("chapter", nargs="?", type=str,
-                            help="Chapter to download")
-        parser.add_argument("-a", "--all", action="store_true",
-                            help="Download all volumes")
-        parser.add_argument("-i", "--index", action="store_true",
-                            help="Retrieve volume/book/chapter by indexes instead of title")
-        parser.add_argument("-d", "--request_delay", default=5.0,
-                            help="Time delay")
-        parser.add_argument("-j", "--jitter", action="store_true",
-                            help="Randomized delay betweeen (0.5 to 1.5) times")
+        parser.add_argument("volume", nargs="?", type=str, help="Volume to download")
+        parser.add_argument("book", nargs="?", type=str, help="Book to download")
+        parser.add_argument("chapter", nargs="?", type=str, help="Chapter to download")
+        parser.add_argument(
+            "-a", "--all", action="store_true", help="Download all volumes"
+        )
+        parser.add_argument(
+            "-i",
+            "--index",
+            action="store_true",
+            help="Retrieve volume/book/chapter by indexes instead of title",
+        )
+        parser.add_argument("-d", "--request_delay", default=5.0, help="Time delay")
+        parser.add_argument(
+            "-j",
+            "--jitter",
+            action="store_true",
+            help="Randomized delay betweeen (0.5 to 1.5) times",
+        )
         # TODO: update --jitter to use `const` argument type option
-        parser.add_argument("-r", "--root", default="./data",
-                            help="Root path downloaded data")
-        parser.add_argument("--volume_root", default="volumes",
-                            help="Path under root directory to save volumes")
-        parser.add_argument("-c", "--clobber", action="store_true",
-                            help="Overwrite chapter files if they already exist")
-        parser.add_argument("-l", "--latest", action="store_true",
-                            help="Download only the most recently released chapter")
-        parser.add_argument("-m", "--metadata-only", action="store_true",
-                            help="Download only metadata")
-        parser.add_argument("--classes", action="store_true",
-                            help="Download class information from wiki")
-        parser.add_argument("--skills", action="store_true",
-                            help="Download skill information from wiki")
-        parser.add_argument("--spells", action="store_true",
-                            help="Download spell information from wiki")
-        parser.add_argument("--chars", action="store_true",
-                            help="Download character information from wiki")
-        parser.add_argument("--locs", action="store_true",
-                            help="Download location information from wiki")
+        parser.add_argument(
+            "-r", "--root", default="./data", help="Root path downloaded data"
+        )
+        parser.add_argument(
+            "--volume_root",
+            default="volumes",
+            help="Path under root directory to save volumes",
+        )
+        parser.add_argument(
+            "-c",
+            "--clobber",
+            action="store_true",
+            help="Overwrite chapter files if they already exist",
+        )
+        parser.add_argument(
+            "-l",
+            "--latest",
+            action="store_true",
+            help="Download only the most recently released chapter",
+        )
+        parser.add_argument(
+            "-m", "--metadata-only", action="store_true", help="Download only metadata"
+        )
+        parser.add_argument(
+            "--classes",
+            action="store_true",
+            help="Download class information from wiki",
+        )
+        parser.add_argument(
+            "--skills", action="store_true", help="Download skill information from wiki"
+        )
+        parser.add_argument(
+            "--spells", action="store_true", help="Download spell information from wiki"
+        )
+        parser.add_argument(
+            "--chars",
+            action="store_true",
+            help="Download character information from wiki",
+        )
+        parser.add_argument(
+            "--locs",
+            action="store_true",
+            help="Download location information from wiki",
+        )
 
     def handle(self, *args, **options):
         # TODO: fix Keyboard Exception not working
@@ -54,30 +84,38 @@ class Command(BaseCommand):
         self.stdout.write("Connecting to Tor session...")
         toc = get.TableOfContents(tor_session)
         if len(toc.volume_data) == 0:
-            self.stdout.write(self.style.WARNING("Volume data is empty. The Table of Contents may have changed..."))
+            self.stdout.write(
+                self.style.WARNING(
+                    "Volume data is empty. The Table of Contents may have changed..."
+                )
+            )
         self.last_download: int = 0
 
-        def save_file(text: str, path: Path, success_msg: str = None, warn_msg: str = None):
+        def save_file(
+            text: str, path: Path, success_msg: str = None, warn_msg: str = None
+        ):
             was_saved = get.save_file(path, text, clobber=options.get("clobber"))
 
             if was_saved:
                 if success_msg is None:
-                    success_msg = f"\"{path}\" saved"
+                    success_msg = f'"{path}" saved'
                 self.stdout.write("> ", ending="")
                 self.stdout.write(self.style.SUCCESS(success_msg))
             else:
                 if warn_msg is None:
-                    warn_msg = f"\"{path}\" could not be saved"
+                    warn_msg = f'"{path}" could not be saved'
                 self.stdout.write("> ", ending="")
                 self.stdout.write(self.style.WARNING(warn_msg))
-       
+
             return was_saved
 
         def download_last_chapter():
             # TODO
             pass
 
-        def download_chapter(volume_title: str, book_title: str, chapter_title: str, chapter_path: Path):
+        def download_chapter(
+            volume_title: str, book_title: str, chapter_title: str, chapter_path: Path
+        ):
             try:
                 chapter_href = toc.volume_data[volume_title][book_title][chapter_title]
             except KeyError as exc:
@@ -98,56 +136,81 @@ class Command(BaseCommand):
             authors_note_path = Path(chapter_path, f"{chapter_title}_authors_note.txt")
             meta_path = Path(chapter_path, "metadata.json")
 
-            if not options.get("clobber") and src_path.exists() and txt_path.exists() and meta_path.exists():
-                self.stdout.write(self.style.NOTICE(f"> All chapter files exist for chapter: \"{chapter_title}\". Skipping..."))
+            if (
+                not options.get("clobber")
+                and src_path.exists()
+                and txt_path.exists()
+                and meta_path.exists()
+            ):
+                self.stdout.write(
+                    self.style.NOTICE(
+                        f'> All chapter files exist for chapter: "{chapter_title}". Skipping...'
+                    )
+                )
                 return
 
             self.stdout.write(f"Downloading {chapter_href}")
             chapter_response = tor_session.get(chapter_href)
             if chapter_response is None:
-                self.stdout.write(self.style.WARNING("! Chapter could not be downloaded!"))
-                self.stdout.write(f"Skipping download for {chapter_title} → {chapter_href}")
+                self.stdout.write(
+                    self.style.WARNING("! Chapter could not be downloaded!")
+                )
+                self.stdout.write(
+                    f"Skipping download for {chapter_title} → {chapter_href}"
+                )
                 tor_session.reset_tries()
                 return
 
             data = get.parse_chapter(chapter_response)
 
-            if data.get("html") is None or data.get("text") is None or data.get("metadata") is None:
-                self.stdout.write(self.style.WARNING("Some data could not be parsed from:"))
+            if (
+                data.get("html") is None
+                or data.get("text") is None
+                or data.get("metadata") is None
+            ):
+                self.stdout.write(
+                    self.style.WARNING("Some data could not be parsed from:")
+                )
                 self.stdout.write(f"HTTP Response:\n {chapter_response}")
-                self.stdout.write(f"Skipping download for {chapter_title} → {chapter_href}")
+                self.stdout.write(
+                    f"Skipping download for {chapter_title} → {chapter_href}"
+                )
                 return
 
             # Save metadata
             save_file(
-                text = json.dumps(data["metadata"], sort_keys=True, indent=4),
-                path = meta_path,
-                success_msg = f"\"{chapter_title}\" metadata saved to {meta_path}",
-                warn_msg = f"{meta_path} already exists. Not saving...")
+                text=json.dumps(data["metadata"], sort_keys=True, indent=4),
+                path=meta_path,
+                success_msg=f'"{chapter_title}" metadata saved to {meta_path}',
+                warn_msg=f"{meta_path} already exists. Not saving...",
+            )
 
             if options.get("metadata_only"):
                 return
 
             # Save source HTML
             save_file(
-                text = data["html"],
-                path = src_path,
-                success_msg = f"\"{chapter_title}\" html saved to {src_path}",
-                warn_msg = f"{src_path} already exists. Not saving...")
+                text=data["html"],
+                path=src_path,
+                success_msg=f'"{chapter_title}" html saved to {src_path}',
+                warn_msg=f"{src_path} already exists. Not saving...",
+            )
 
             # Save text
             save_file(
-                text = data["text"],
-                path = txt_path,
-                success_msg = f"\"{chapter_title}\" text saved to {txt_path}",
-                warn_msg = f"{txt_path} already exists. Not saving...")
+                text=data["text"],
+                path=txt_path,
+                success_msg=f'"{chapter_title}" text saved to {txt_path}',
+                warn_msg=f"{txt_path} already exists. Not saving...",
+            )
 
             # Save author's note
             save_file(
-                text = data["authors_note"],
-                path = authors_note_path,
-                success_msg = f"\"{chapter_title}\" text saved to {authors_note_path}",
-                warn_msg = f"{authors_note_path} already exists. Not saving...")
+                text=data["authors_note"],
+                path=authors_note_path,
+                success_msg=f'"{chapter_title}" text saved to {authors_note_path}',
+                warn_msg=f"{authors_note_path} already exists. Not saving...",
+            )
 
             self.last_download = time.time()
 
@@ -158,14 +221,15 @@ class Command(BaseCommand):
             # Save metadata
             metadata: dict = {
                 "title": book_title,
-                "chapters": { k:i for (i, (k,_)) in enumerate(chapters.items()) }
+                "chapters": {k: i for (i, (k, _)) in enumerate(chapters.items())},
             }
             meta_path = Path(book_path, "metadata.json")
             save_file(
-                text = json.dumps(metadata, sort_keys=True, indent=4),
-                path = meta_path,
-                success_msg = f"\"{book_title}\" metadata saved to {meta_path}",
-                warn_msg = f"{meta_path} already exists. Not saving...")
+                text=json.dumps(metadata, sort_keys=True, indent=4),
+                path=meta_path,
+                success_msg=f'"{book_title}" metadata saved to {meta_path}',
+                warn_msg=f"{meta_path} already exists. Not saving...",
+            )
 
             for chapter_title in chapters:
                 chapter_path = Path(book_path, chapter_title)
@@ -178,14 +242,15 @@ class Command(BaseCommand):
             # Save metadata
             metadata: dict = {
                 "title": volume_title,
-                "books": { k:i for (i, (k,_)) in enumerate(books.items()) }
+                "books": {k: i for (i, (k, _)) in enumerate(books.items())},
             }
             meta_path = Path(volume_path, "metadata.json")
             save_file(
-                text = json.dumps(metadata, sort_keys=True, indent=4),
-                path = meta_path,
-                success_msg = f"\"{volume_title}\" metadata saved to {meta_path}",
-                warn_msg = f"{meta_path} already exists. Not saving...")
+                text=json.dumps(metadata, sort_keys=True, indent=4),
+                path=meta_path,
+                success_msg=f'"{volume_title}" metadata saved to {meta_path}',
+                warn_msg=f"{meta_path} already exists. Not saving...",
+            )
 
             for book_title in books:
                 book_path = Path(volume_path, book_title)
@@ -195,7 +260,9 @@ class Command(BaseCommand):
         # only get the latest posted volumes/chapters
         try:
             if toc.response is None:
-                raise CommandError(f"The table of contents ({toc.url}) could not be downloaded.\nCheck your network connection and confirm the host hasn't been IP blocked.")
+                raise CommandError(
+                    f"The table of contents ({toc.url}) could not be downloaded.\nCheck your network connection and confirm the host hasn't been IP blocked."
+                )
 
             v_title = options.get("volume")
             b_title = options.get("book")
@@ -209,17 +276,20 @@ class Command(BaseCommand):
                 # Save metadata
                 metadata: dict = {
                     "title": "The Wandering Inn",
-                    "volumes": { k:i for i, k in enumerate(toc.volume_data) }
+                    "volumes": {k: i for i, k in enumerate(toc.volume_data)},
                 }
                 meta_path = Path(volume_root, "metadata.json")
                 save_file(
-                    text = json.dumps(metadata, sort_keys=True, indent=4),
-                    path = meta_path,
-                    success_msg = f"Volumes metadata saved to {meta_path}",
-                    warn_msg = f"{meta_path} already exists. Not saving...")
+                    text=json.dumps(metadata, sort_keys=True, indent=4),
+                    path=meta_path,
+                    success_msg=f"Volumes metadata saved to {meta_path}",
+                    warn_msg=f"{meta_path} already exists. Not saving...",
+                )
 
                 # Download all volumes
-                for i, (volume_title, books) in list(enumerate(toc.volume_data.items())):
+                for i, (volume_title, books) in list(
+                    enumerate(toc.volume_data.items())
+                ):
                     # TODO: check for empty volume_title
                     volume_path = Path(volume_root, f"{volume_title}")
                     download_volume(volume_title, volume_path)
@@ -245,10 +315,11 @@ class Command(BaseCommand):
 
                 class_data_path = Path(options.get("root"), "classes.txt")
                 save_file(
-                    text = "\n".join(classes),
-                    path = class_data_path,
+                    text="\n".join(classes),
+                    path=class_data_path,
                     success_msg=f"Character data saved to {class_data_path}",
-                    warn_msg = f"{class_data_path} already exists. Not saving...")
+                    warn_msg=f"{class_data_path} already exists. Not saving...",
+                )
 
             # Get skill info
             if options.get("skills"):
@@ -257,10 +328,11 @@ class Command(BaseCommand):
 
                 skill_data_path = Path(options.get("root"), "skills.txt")
                 save_file(
-                    text = "\n".join(skills),
-                    path = skill_data_path,
+                    text="\n".join(skills),
+                    path=skill_data_path,
                     success_msg=f"Character data saved to {skill_data_path}",
-                    warn_msg = f"{skill_data_path} already exists. Not saving...")
+                    warn_msg=f"{skill_data_path} already exists. Not saving...",
+                )
 
             # Get spell info
             if options.get("spells"):
@@ -269,22 +341,24 @@ class Command(BaseCommand):
 
                 spell_data_path = Path(options.get("root"), "spells.txt")
                 save_file(
-                    text = "\n".join(spells),
-                    path = spell_data_path,
+                    text="\n".join(spells),
+                    path=spell_data_path,
                     success_msg=f"Spell data saved to {spell_data_path}",
-                    warn_msg = f"{spell_data_path} already exists. Not saving...")
+                    warn_msg=f"{spell_data_path} already exists. Not saving...",
+                )
 
             # Get character info
             if options.get("chars"):
                 self.stdout.write("Downloading character information...")
                 data = tor_session.get_all_character_data()
-                
+
                 char_data_path = Path(options.get("root"), "characters.json")
                 save_file(
-                    text = json.dumps(data, sort_keys=True, indent=4),
-                    path = char_data_path,
+                    text=json.dumps(data, sort_keys=True, indent=4),
+                    path=char_data_path,
                     success_msg=f"Character data saved to {char_data_path}",
-                    warn_msg = f"{char_data_path} already exists. Not saving...")
+                    warn_msg=f"{char_data_path} already exists. Not saving...",
+                )
 
             # Get location info
             if options.get("locs"):
@@ -293,16 +367,15 @@ class Command(BaseCommand):
                 data = {}
                 for locs in locs_by_alpha.values():
                     for loc in locs.items():
-                        data[loc[0]] = {
-                            "url": loc[1]
-                        }
+                        data[loc[0]] = {"url": loc[1]}
 
                 loc_data_path = Path(options.get("root"), "locations.json")
                 save_file(
-                    text = json.dumps(data, sort_keys=True, indent=4),
-                    path = loc_data_path,
+                    text=json.dumps(data, sort_keys=True, indent=4),
+                    path=loc_data_path,
                     success_msg=f"Location data saved to {loc_data_path}",
-                    warn_msg = f"{loc_data_path} already exists. Not saving...")
+                    warn_msg=f"{loc_data_path} already exists. Not saving...",
+                )
 
         except KeyboardInterrupt as exc:
             # TODO: file / partial download cleanup

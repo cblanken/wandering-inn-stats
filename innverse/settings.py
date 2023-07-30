@@ -22,79 +22,77 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 # TODO: read secret key from env
-SECRET_KEY = 'django-insecure-pk3m*p7(m7#6tw-4zr)b4io1#76o(&-!h)wx-c5wk943#6mryc'
+SECRET_KEY = "django-insecure-pk3m*p7(m7#6tw-4zr)b4io1#76o(&-!h)wx-c5wk943#6mryc"
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 if DEBUG:
-    X_FRAME_OPTIONS = "SAMEORIGIN" # get detailed error pages from pattern library
+    X_FRAME_OPTIONS = "SAMEORIGIN"  # get detailed error pages from pattern library
 
 ALLOWED_HOSTS = []
 
 
 # Application definition
 INSTALLED_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    'rest_framework',
-    'innverse.core',
-    'stats',
-    'tailwind',
-    'theme',
-    'django_browser_reload',
-    'pattern_library'
+    "django.contrib.admin",
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
+    "rest_framework",
+    "innverse.core",
+    "stats",
+    "tailwind",
+    "theme",
+    "django_browser_reload",
+    "pattern_library",
 ]
 
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'django_browser_reload.middleware.BrowserReloadMiddleware',
+    "django.middleware.security.SecurityMiddleware",
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "django_browser_reload.middleware.BrowserReloadMiddleware",
 ]
 
-ROOT_URLCONF = 'innverse.urls'
+ROOT_URLCONF = "innverse.urls"
 
 TEMPLATES = [
     {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [Path(BASE_DIR, "innverse/core/templates/patterns")],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [Path(BASE_DIR, "innverse/core/templates/patterns")],
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.debug",
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
             ],
-            'builtins': [
-                "pattern_library.loader_tags"
-            ]
+            "builtins": ["pattern_library.loader_tags"],
         },
     },
 ]
 
-WSGI_APPLICATION = 'innverse.wsgi.application'
+WSGI_APPLICATION = "innverse.wsgi.application"
 
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'innverse',
-        'USER': env.get('INNVERSE_DB_USER', 'postgres'),
-        'PASSWORD': env.get('INNVERSE_DB_PASS', 'password'),
-        'HOST': env.get('INNVERSE_DB_HOST', '127.0.0.1'),
-        'PORT': env.get('INNVERSE_DB_PORT', '5432'),
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": "innverse",
+        "USER": env.get("INNVERSE_DB_USER", "postgres"),
+        "PASSWORD": env.get("INNVERSE_DB_PASS", "password"),
+        "HOST": env.get("INNVERSE_DB_HOST", "127.0.0.1"),
+        "PORT": env.get("INNVERSE_DB_PORT", "5432"),
     }
 }
 
@@ -104,16 +102,16 @@ DATABASES = {
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+        "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+        "NAME": "django.contrib.auth.password_validation.NumericPasswordValidator",
     },
 ]
 
@@ -121,9 +119,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = "UTC"
 
 USE_I18N = True
 
@@ -133,26 +131,24 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = "static/"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 REST_FRAMEWORK = {
     # Use Django's standard `django.contrib.auth` permissions,
     # or allow read-only access for unauthenticated users.
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly"
     ]
 }
 
 TAILWIND_APP_NAME = "theme"
 
-INTERNAL_IPS = [
-    "127.0.0.1"
-]
+INTERNAL_IPS = ["127.0.0.1"]
 
 PATTERN_LIBRARY = {
     # Groups of templates for the pattern library navigation. The keys
@@ -163,14 +159,11 @@ PATTERN_LIBRARY = {
         ("molecules", ["patterns/molecules"]),
         ("pages", ["patterns/pages"]),
     ),
-
     # Configure which files to detect as templates.
     "TEMPLATE_SUFFIX": ".html",
-
     # Set which template components should be rendered inside of,
     # so they may use page-level component dependencies like CSS.
     "PATTERN_BASE_TEMPLATE_NAME": "patterns/base.html",
-
     # Any template in BASE_TEMPLATE_NAMES or any template that extends a template in
     # BASE_TEMPLATE_NAMES is a "page" and will be rendered as-is without being wrapped.
     "BASE_TEMPLATE_NAMES": ["patterns/base_page.html"],

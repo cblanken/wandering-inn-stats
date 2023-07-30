@@ -11,15 +11,29 @@ from django.core.management.base import BaseCommand, CommandError
 from django.db.models import Q
 from django.db.models.query import QuerySet
 from stats.models import (
-    Color, ColorCategory, Chapter, Book, Volume, TextRef, RefType, Alias, Character
+    Color,
+    ColorCategory,
+    Chapter,
+    Book,
+    Volume,
+    TextRef,
+    RefType,
+    Alias,
+    Character,
 )
 from processing import (
-    Volume as SrcVolume, Book as SrcBook, Chapter as SrcChapter, TextRef as SrcTextRef, get_metadata
+    Volume as SrcVolume,
+    Book as SrcBook,
+    Chapter as SrcChapter,
+    TextRef as SrcTextRef,
+    get_metadata,
 )
 from playsound import playsound, PlaysoundException
 
+
 class COLOR_CATEGORY(Enum):
     """Text color categories according to TWI wiki"""
+
     INVISIBLE = "Invisible skills/text"
     SIREN_WATER = "Siren water skill"
     CERIA_COLD = "Ceria cold skill"
@@ -42,6 +56,7 @@ class COLOR_CATEGORY(Enum):
     RYOKA_HATE = "Ryoka's rage/indignation/self-hate"
     DARKNESS = "Darkness / fading light"
     PLAIN = "Normal appearing text to overwrite link text color"
+
 
 COLORS: tuple[tuple] = (
     ("0C0E0E", COLOR_CATEGORY.INVISIBLE),
@@ -72,8 +87,9 @@ COLORS: tuple[tuple] = (
     ("EA9999", COLOR_CATEGORY.RYOKA_HATE),
     ("787878", COLOR_CATEGORY.DARKNESS),
     ("333333", COLOR_CATEGORY.DARKNESS),
-    ("B7B7B7", COLOR_CATEGORY.PLAIN)
+    ("B7B7B7", COLOR_CATEGORY.PLAIN),
 )
+
 
 def select_color_type(rgb_hex: str) -> COLOR_CATEGORY:
     """Interactive selection of ColorCategory"""
@@ -95,6 +111,7 @@ def select_color_type(rgb_hex: str) -> COLOR_CATEGORY:
                 print("Invalid selection. Try again.")
                 continue
 
+
 def match_ref_type(type_str) -> str:
     try:
         matches = list(
@@ -107,8 +124,9 @@ def match_ref_type(type_str) -> str:
 
     except ValueError:
         # No match found
-        breakpoint()
+        # breakpoint()
         return None
+
 
 def prompt(s: str = "", sound: bool = False):
     if sound:
@@ -119,32 +137,39 @@ def prompt(s: str = "", sound: bool = False):
 
     return input(s)
 
+
 def select_ref_type(sound: bool = False) -> str:
     """Interactive classification of TextRef type"""
     try:
         while True:
-            sel = prompt(f"Classify the above TextRef with {RefType.TYPES} (leave blank to skip OR use \"r\" to retry): ", sound)
+            sel = prompt(
+                f'Classify the above TextRef with {RefType.TYPES} (leave blank to skip OR use "r" to retry): ',
+                sound,
+            )
 
             if sel.strip().lower() == "r":
-                return "retry" # special case to retry RefType acquisition
+                return "retry"  # special case to retry RefType acquisition
             if sel.strip() == "":
-                return None # skip without confirmation
+                return None  # skip without confirmation
             if len(sel) < 2:
                 print("Invalid selection.")
                 yes_no = prompt("Try again (y/n): ", sound)
                 if yes_no.lower() == "y":
                     continue
-                return None # skip with confirmation
+                return None  # skip with confirmation
 
             ref_type = match_ref_type(sel)
             return ref_type
 
     except KeyboardInterrupt as exc:
         print("")
-        raise CommandError("Build interrupted with Ctrl-C (Keyboard Interrupt).") from exc
+        raise CommandError(
+            "Build interrupted with Ctrl-C (Keyboard Interrupt)."
+        ) from exc
     except EOFError as exc:
         print("")
         raise CommandError("Build interrupted with Ctrl-D (EOF).") from exc
+
 
 def select_ref_type_from_qs(query_set: QuerySet[RefType], sound: bool = False) -> str:
     """Interactive selection of an existing set of RefType(s)"""
@@ -153,14 +178,17 @@ def select_ref_type_from_qs(query_set: QuerySet[RefType], sound: bool = False) -
             for i, ref_type in enumerate(query_set):
                 print(f"{i}: {ref_type.name} - {match_ref_type(ref_type.type)}")
 
-            sel = prompt(f"Select one of the RefType(s) from the above options (leave empty to skip): ", sound)
+            sel = prompt(
+                f"Select one of the RefType(s) from the above options (leave empty to skip): ",
+                sound,
+            )
 
             if sel.strip() == "":
-                return None # skip without confirmation
+                return None  # skip without confirmation
             try:
                 sel = int(sel)
             except ValueError:
-                sel = -1 # invalid selection
+                sel = -1  # invalid selection
 
             if sel >= 0 and sel < len(query_set):
                 return query_set[sel]
@@ -169,11 +197,13 @@ def select_ref_type_from_qs(query_set: QuerySet[RefType], sound: bool = False) -
                 yes_no = prompt("Try again (y/n): ", sound)
                 if yes_no.lower() == "y":
                     continue
-                return None # skip with confirmation
+                return None  # skip with confirmation
 
     except KeyboardInterrupt as exc:
         print("")
-        raise CommandError("Build interrupted with Ctrl-C (Keyboard Interrupt).") from exc
+        raise CommandError(
+            "Build interrupted with Ctrl-C (Keyboard Interrupt)."
+        ) from exc
     except EOFError as exc:
         print("")
         raise CommandError("Build interrupted with Ctrl-D (EOF).") from exc
@@ -181,38 +211,84 @@ def select_ref_type_from_qs(query_set: QuerySet[RefType], sound: bool = False) -
 
 class Command(BaseCommand):
     """Database build function"""
+
     help = "Update database from chapter source HTML and data files"
 
     def add_arguments(self, parser):
-        parser.add_argument("data_path", type=str,
+        parser.add_argument(
+            "data_path",
+            type=str,
             help="Path in file system where build data is saved to disk. \
-                This includes volumes, books, chapters, characters, etc.")
-        parser.add_argument("-i", "--ignore-missing-chapter-metadata", action="store_true",
-            help="Update Chapter data with defaults if the metadata file can't be read")
-        parser.add_argument("--skip-text-refs", action="store_true",
-            help="Skip TextRef generation for each Chapter")
-        parser.add_argument("--skip-wiki-chars", action="store_true",
-            help="Skip Character wiki data build section")
-        parser.add_argument("--skip-wiki-spells", action="store_true",
-            help="Skip [Spell] wiki data build section")
-        parser.add_argument("--skip-wiki-classes", action="store_true",
-            help="Skip [Class] wiki data build section")
-        parser.add_argument("--skip-wiki-skills", action="store_true",
-            help="Skip [Skill] wiki data build section")
-        parser.add_argument("--skip-wiki-locs", action="store_true",
-            help="Skip location wiki data build section")
-        parser.add_argument("--skip-wiki-all", action="store_true",
-            help="Skip all wiki data build sections")
-        parser.add_argument("--skip-reftype-select", action="store_true",
-            help="Skip RefType prompt for unknown RefTypes")
-        parser.add_argument("--skip-textref-color-select", action="store_true",
-            help="Disable TextRef selection prompt for ambiguous TextRef colors")
-        parser.add_argument("--prompt-sound", action="store_true",
-            help="Play short alert sound when build stops with a user prompt")
-        parser.add_argument("--chapter-id", type=int, default=None,
-            help="Download a specific chapter by ID number")
-        parser.add_argument("--chapter-id-range", type=str, default=None,
-            help="Download a range of chapters by ID number")
+                This includes volumes, books, chapters, characters, etc.",
+        )
+        parser.add_argument(
+            "-i",
+            "--ignore-missing-chapter-metadata",
+            action="store_true",
+            help="Update Chapter data with defaults if the metadata file can't be read",
+        )
+        parser.add_argument(
+            "--skip-text-refs",
+            action="store_true",
+            help="Skip TextRef generation for each Chapter",
+        )
+        parser.add_argument(
+            "--skip-wiki-chars",
+            action="store_true",
+            help="Skip Character wiki data build section",
+        )
+        parser.add_argument(
+            "--skip-wiki-spells",
+            action="store_true",
+            help="Skip [Spell] wiki data build section",
+        )
+        parser.add_argument(
+            "--skip-wiki-classes",
+            action="store_true",
+            help="Skip [Class] wiki data build section",
+        )
+        parser.add_argument(
+            "--skip-wiki-skills",
+            action="store_true",
+            help="Skip [Skill] wiki data build section",
+        )
+        parser.add_argument(
+            "--skip-wiki-locs",
+            action="store_true",
+            help="Skip location wiki data build section",
+        )
+        parser.add_argument(
+            "--skip-wiki-all",
+            action="store_true",
+            help="Skip all wiki data build sections",
+        )
+        parser.add_argument(
+            "--skip-reftype-select",
+            action="store_true",
+            help="Skip RefType prompt for unknown RefTypes",
+        )
+        parser.add_argument(
+            "--skip-textref-color-select",
+            action="store_true",
+            help="Disable TextRef selection prompt for ambiguous TextRef colors",
+        )
+        parser.add_argument(
+            "--prompt-sound",
+            action="store_true",
+            help="Play short alert sound when build stops with a user prompt",
+        )
+        parser.add_argument(
+            "--chapter-id",
+            type=int,
+            default=None,
+            help="Download a specific chapter by ID number",
+        )
+        parser.add_argument(
+            "--chapter-id-range",
+            type=str,
+            default=None,
+            help="Download a range of chapters by ID number",
+        )
         # TODO: add (-u) option for updating existing records
 
     def handle(self, *args, **options):
@@ -224,19 +300,27 @@ class Command(BaseCommand):
             options["skip_wiki_skills"] = True
 
         self.stdout.write("Updating DB...")
+
         def get_or_create_ref_type(text_ref: TextRef) -> RefType:
             # Check for existing RefType and create if necessary
-            while True: # loop for retries from select RefType prompt
+            while True:  # loop for retries from select RefType prompt
                 try:
                     ref_type = RefType.objects.get(name=text_ref.text)
-                    self.stdout.write(self.style.WARNING(
-                        f"> RefType: {text_ref.text} already exists. Skipping creation..."))
+                    self.stdout.write(
+                        self.style.WARNING(
+                            f"> RefType: {text_ref.text} already exists. Skipping creation..."
+                        )
+                    )
                     return ref_type
                 except RefType.DoesNotExist:
                     ref_type = None
                 except RefType.MultipleObjectsReturned:
                     ref_types = RefType.objects.filter(name=text_ref.text)
-                    self.stdout.write(self.style.WARNING(f"> Multiple RefType(s) exist for the name: {text_ref.text}..."))
+                    self.stdout.write(
+                        self.style.WARNING(
+                            f"> Multiple RefType(s) exist for the name: {text_ref.text}..."
+                        )
+                    )
                     ref_type = select_ref_type_from_qs(ref_types, sound=True)
                     return ref_type
 
@@ -244,28 +328,53 @@ class Command(BaseCommand):
                 try:
                     alias = Alias.objects.get(name=text_ref.text)
                     if alias:
-                        self.stdout.write(self.style.WARNING(
-                            f"> Alias exists for RefType {text_ref.text} already. Skipping creation..."))
+                        self.stdout.write(
+                            self.style.WARNING(
+                                f"> Alias exists for RefType {text_ref.text} already. Skipping creation..."
+                            )
+                        )
                         return alias.ref_type
                 except Alias.DoesNotExist:
                     pass
 
                 # Check for alternate forms of RefType (titlecase, pluralized, gendered, etc.)
-                ref_name = text_ref.text[1:-1] if text_ref.is_bracketed else text_ref.text
+                ref_name = (
+                    text_ref.text[1:-1] if text_ref.is_bracketed else text_ref.text
+                )
 
                 candidates = [text_ref.text.title()]
                 singular_ref_type_qs = None
                 if ref_name.endswith("s"):
-                    candidates.append(f"[{ref_name[:-1]}]" if text_ref.is_bracketed else ref_name.text[:-1])
+                    candidates.append(
+                        f"[{ref_name[:-1]}]"
+                        if text_ref.is_bracketed
+                        else ref_name.text[:-1]
+                    )
                 if ref_name.endswith("es"):
-                    candidates.append(f"[{ref_name[:-2]}]" if text_ref.is_bracketed else ref_name.text[:-2])
+                    candidates.append(
+                        f"[{ref_name[:-2]}]"
+                        if text_ref.is_bracketed
+                        else ref_name.text[:-2]
+                    )
                 if ref_name.endswith("ies"):
-                    candidates.append(f"[{ref_name[:-3]}y]" if text_ref.is_bracketed else ref_name.text[:-3])
+                    candidates.append(
+                        f"[{ref_name[:-3]}y]"
+                        if text_ref.is_bracketed
+                        else ref_name.text[:-3]
+                    )
                 if ref_name.endswith("men"):
-                    candidates.append(f"[{ref_name[:-3]}man]" if text_ref.is_bracketed else ref_name.text[:-3])
+                    candidates.append(
+                        f"[{ref_name[:-3]}man]"
+                        if text_ref.is_bracketed
+                        else ref_name.text[:-3]
+                    )
                 if ref_name.endswith("women"):
-                    candidates.append(f"[{ref_name[:-5]}woman]" if text_ref.is_bracketed else ref_name.text[:-5])
-                
+                    candidates.append(
+                        f"[{ref_name[:-5]}woman]"
+                        if text_ref.is_bracketed
+                        else ref_name.text[:-5]
+                    )
+
                 for c in candidates:
                     singular_ref_type_qs = RefType.objects.filter(name=c)
                     singular_alias_qs = Alias.objects.filter(name=c)
@@ -279,24 +388,33 @@ class Command(BaseCommand):
                         continue
 
                     # Create Alias to base RefType
-                    alias, created = Alias.objects.get_or_create(name=text_ref.text, ref_type=ref_type)
+                    alias, created = Alias.objects.get_or_create(
+                        name=text_ref.text, ref_type=ref_type
+                    )
                     prelude = f"> RefType: {text_ref.text} did not exist, but it is a alternative form of {ref_type.name}. "
                     if created:
-                        self.stdout.write(self.style.SUCCESS(prelude +
-                            f"No existing Alias was found, so one was created."))
+                        self.stdout.write(
+                            self.style.SUCCESS(
+                                prelude
+                                + f"No existing Alias was found, so one was created."
+                            )
+                        )
                     else:
-                        self.stdout.write(self.style.WARNING(prelude +
-                            f"An existing Alias was found, so none were created."))
+                        self.stdout.write(
+                            self.style.WARNING(
+                                prelude
+                                + f"An existing Alias was found, so none were created."
+                            )
+                        )
                     return alias.ref_type
-
 
                 # Could not find existing RefType or Alias or alternate form so
                 # intialize type for new RefType
 
                 # Check for [Skill] or [Class] acquisition messages
-                skill_obtained_pattern = re.compile(r'^\[Skill.*[Oo]btained.*\]$')
-                spell_obtained_pattern = re.compile(r'^\[Spell.*[Oo]btained.*\]$')
-                class_obtained_pattern = re.compile(r'^\[.*Class\W[Oo]btained.*\]$')
+                skill_obtained_pattern = re.compile(r"^\[Skill.*[Oo]btained.*\]$")
+                spell_obtained_pattern = re.compile(r"^\[Spell.*[Oo]btained.*\]$")
+                class_obtained_pattern = re.compile(r"^\[.*Class\W[Oo]btained.*\]$")
                 if skill_obtained_pattern.match(text_ref.text):
                     new_type = RefType.SKILL_OBTAINED
                 elif class_obtained_pattern.match(text_ref.text):
@@ -310,11 +428,13 @@ class Command(BaseCommand):
                     else:
                         new_type = select_ref_type(sound=options.get("prompt_sound"))
                         if new_type == "retry":
-                            continue # retry RefType acquisition
-                
+                            continue  # retry RefType acquisition
+
                 # RefType was NOT categorized, so skip
                 if new_type is None:
-                    self.stdout.write(self.style.WARNING(f"> {text_ref.text} skipped..."))
+                    self.stdout.write(
+                        self.style.WARNING(f"> {text_ref.text} skipped...")
+                    )
                     return None
 
                 # Create RefType
@@ -328,11 +448,17 @@ class Command(BaseCommand):
         for cat in COLOR_CATEGORY:
             try:
                 category = ColorCategory.objects.get(name=cat.value)
-                self.stdout.write(self.style.WARNING(f"> {category} already exists. Skipping creation..."))
+                self.stdout.write(
+                    self.style.WARNING(
+                        f"> {category} already exists. Skipping creation..."
+                    )
+                )
             except ColorCategory.DoesNotExist:
                 category = ColorCategory(name=cat.value)
                 category.save()
-                self.stdout.write(self.style.SUCCESS(f"> ColorCategory created: {category}"))
+                self.stdout.write(
+                    self.style.SUCCESS(f"> ColorCategory created: {category}")
+                )
 
         # Populate Colors
         self.stdout.write("\nPopulating colors...")
@@ -340,7 +466,11 @@ class Command(BaseCommand):
             matching_category = ColorCategory.objects.get(name=col[1].value)
             try:
                 color = Color.objects.get(rgb=col[0], category=matching_category)
-                self.stdout.write(self.style.WARNING(f"> {color} already exists. Skipping creation..."))
+                self.stdout.write(
+                    self.style.WARNING(
+                        f"> {color} already exists. Skipping creation..."
+                    )
+                )
             except Color.DoesNotExist:
                 color = Color(rgb=col[0], category=matching_category)
                 color.save()
@@ -361,43 +491,70 @@ class Command(BaseCommand):
                         spell_name = line[0]
 
                     spell = "[" + spell_name + "]"
-                    ref_type, ref_type_created = RefType.objects.get_or_create(name=spell, type=RefType.SPELL)
+                    ref_type, ref_type_created = RefType.objects.get_or_create(
+                        name=spell, type=RefType.SPELL
+                    )
 
                     if ref_type_created:
                         self.stdout.write(self.style.SUCCESS(f"> {ref_type} created"))
                     else:
-                        self.stdout.write(self.style.WARNING(f"> Spell RefType: {spell} already exists. Skipping creation..."))
+                        self.stdout.write(
+                            self.style.WARNING(
+                                f"> Spell RefType: {spell} already exists. Skipping creation..."
+                            )
+                        )
 
                     for alias_name in aliases:
                         alias_name = "[" + alias_name + "]"
                         new_alias, new_alias_created = Alias.objects.get_or_create(
-                            name=alias_name, ref_type=ref_type)
+                            name=alias_name, ref_type=ref_type
+                        )
                         if new_alias_created:
-                            self.stdout.write(self.style.SUCCESS(f"> Alias: {alias_name} created"))
+                            self.stdout.write(
+                                self.style.SUCCESS(f"> Alias: {alias_name} created")
+                            )
                         else:
-                            self.stdout.write(self.style.WARNING(f"> Alias: {alias_name} already exists. Skipping creation..."))
-        
+                            self.stdout.write(
+                                self.style.WARNING(
+                                    f"> Alias: {alias_name} already exists. Skipping creation..."
+                                )
+                            )
+
         if not options.get("skip_wiki_skills"):
             self.stdout.write("\nPopulating spell RefType(s)...")
             skill_data_path = Path(options["data_path"], "skills.txt")
             with open(skill_data_path, encoding="utf-8") as file:
                 for line in file.readlines():
-                    skill, *aliases = ["[" + name + "]" for name in line.strip().split("|")]
-                    
-                    ref_type, ref_type_created = RefType.objects.get_or_create(name=skill, type=RefType.SKILL)
+                    skill, *aliases = [
+                        "[" + name + "]" for name in line.strip().split("|")
+                    ]
+
+                    ref_type, ref_type_created = RefType.objects.get_or_create(
+                        name=skill, type=RefType.SKILL
+                    )
                     if ref_type_created:
                         self.stdout.write(self.style.SUCCESS(f"> {ref_type} created"))
                     else:
-                        self.stdout.write(self.style.WARNING(f"> Skill RefType: {skill} already exists. Skipping creation..."))
+                        self.stdout.write(
+                            self.style.WARNING(
+                                f"> Skill RefType: {skill} already exists. Skipping creation..."
+                            )
+                        )
 
                     for alias_name in aliases:
                         new_alias, new_alias_created = Alias.objects.get_or_create(
-                            name=alias_name, ref_type=ref_type)
+                            name=alias_name, ref_type=ref_type
+                        )
                         if new_alias_created:
-                            self.stdout.write(self.style.SUCCESS(f"> Alias: {alias_name} created"))
+                            self.stdout.write(
+                                self.style.SUCCESS(f"> Alias: {alias_name} created")
+                            )
                         else:
-                            self.stdout.write(self.style.WARNING(f"> Alias: {alias_name} already exists. Skipping creation..."))
-
+                            self.stdout.write(
+                                self.style.WARNING(
+                                    f"> Alias: {alias_name} already exists. Skipping creation..."
+                                )
+                            )
 
         # Populate class types from wiki data
         if not options.get("skip_wiki_classes"):
@@ -406,12 +563,18 @@ class Command(BaseCommand):
             with open(class_data_path, encoding="utf-8") as file:
                 for line in file.readlines():
                     class_name = "[" + line.strip() + "]"
-                    ref_type, ref_type_created = RefType.objects.get_or_create(name=class_name, type=RefType.CLASS)
+                    ref_type, ref_type_created = RefType.objects.get_or_create(
+                        name=class_name, type=RefType.CLASS
+                    )
 
                     if ref_type_created:
                         self.stdout.write(self.style.SUCCESS(f"> {ref_type} created"))
                     else:
-                        self.stdout.write(self.style.WARNING(f"> Class RefType: {class_name} already exists. Skipping creation..."))
+                        self.stdout.write(
+                            self.style.WARNING(
+                                f"> Class RefType: {class_name} already exists. Skipping creation..."
+                            )
+                        )
 
         # Populate characters from wiki data
         if not options.get("skip_wiki_chars"):
@@ -421,35 +584,89 @@ class Command(BaseCommand):
                 try:
                     data = json.load(file)
                 except json.JSONDecodeError:
-                    self.stdout.write(self.style.ERROR(
-                        f"> Character data ({char_data_path}) could not be decoded"))
+                    self.stdout.write(
+                        self.style.ERROR(
+                            f"> Character data ({char_data_path}) could not be decoded"
+                        )
+                    )
                 else:
                     for name, char_data in data.items():
                         # Create Character RefType
                         ref_type, ref_type_created = RefType.objects.get_or_create(
-                            name=name, type=RefType.CHARACTER)
+                            name=name, type=RefType.CHARACTER
+                        )
                         if ref_type_created:
-                            self.stdout.write(self.style.SUCCESS(f"> Character RefType: {name} created"))
+                            self.stdout.write(
+                                self.style.SUCCESS(
+                                    f"> Character RefType: {name} created"
+                                )
+                            )
                         else:
-                            self.stdout.write(self.style.WARNING(f"> Character RefType: {name} already exists. Skipping creation..."))
+                            self.stdout.write(
+                                self.style.WARNING(
+                                    f"> Character RefType: {name} already exists. Skipping creation..."
+                                )
+                            )
 
                         # Create alias for Character first name
                         invalid_first_names = [
-                            "a", "an", "armored", "crusader", "demon", "drake",
-                            "dullahan", "eater", "elf", "emperor", "flying", "free",
-                            "frost", "gnoll", "goblin", "grand", "half-elf", "halfling",
-                            "harpy", "human", "king", "knight", "old", "oldest",
-                            "oracle", "purple", "queen", "selphid", "silent", "the",
-                            "twin", "twisted", "yellow", "wyvern"
+                            "a",
+                            "an",
+                            "armored",
+                            "crusader",
+                            "demon",
+                            "drake",
+                            "dullahan",
+                            "eater",
+                            "elf",
+                            "emperor",
+                            "flying",
+                            "free",
+                            "frost",
+                            "gnoll",
+                            "goblin",
+                            "grand",
+                            "half-elf",
+                            "halfling",
+                            "harpy",
+                            "human",
+                            "king",
+                            "knight",
+                            "old",
+                            "oldest",
+                            "oracle",
+                            "purple",
+                            "queen",
+                            "selphid",
+                            "silent",
+                            "the",
+                            "twin",
+                            "twisted",
+                            "yellow",
+                            "wyvern",
                         ]
                         name_split = name.strip().split(" ")
-                        if len(name_split) > 0 and name_split[0].lower() not in invalid_first_names and name_split[0] != name:
+                        if (
+                            len(name_split) > 0
+                            and name_split[0].lower() not in invalid_first_names
+                            and name_split[0] != name
+                        ):
                             try:
                                 Alias.objects.get(name=name_split[0])
-                                self.stdout.write(self.style.WARNING(f"> Alias: {name_split[0]} already exists. Skipping creation..."))
+                                self.stdout.write(
+                                    self.style.WARNING(
+                                        f"> Alias: {name_split[0]} already exists. Skipping creation..."
+                                    )
+                                )
                             except Alias.DoesNotExist:
-                                self.stdout.write(self.style.SUCCESS(f"> Alias: {name_split[0]} created"))
-                                Alias.objects.create(name=name_split[0], ref_type=ref_type)
+                                self.stdout.write(
+                                    self.style.SUCCESS(
+                                        f"> Alias: {name_split[0]} created"
+                                    )
+                                )
+                                Alias.objects.create(
+                                    name=name_split[0], ref_type=ref_type
+                                )
 
                         # Create aliases from Character wiki metadata
                         aliases = char_data.get("aliases")
@@ -457,11 +674,21 @@ class Command(BaseCommand):
                             for alias_name in char_data.get("aliases"):
                                 try:
                                     Alias.objects.get(name=alias_name)
-                                    self.stdout.write(self.style.WARNING(f"> Alias: {alias_name} already exists. Skipping creation..."))
+                                    self.stdout.write(
+                                        self.style.WARNING(
+                                            f"> Alias: {alias_name} already exists. Skipping creation..."
+                                        )
+                                    )
                                 except Alias.DoesNotExist:
-                                    self.stdout.write(self.style.SUCCESS(f"> Alias: {alias_name} created"))
-                                    Alias.objects.create(name=alias_name, ref_type=ref_type)
-                        
+                                    self.stdout.write(
+                                        self.style.SUCCESS(
+                                            f"> Alias: {alias_name} created"
+                                        )
+                                    )
+                                    Alias.objects.create(
+                                        name=alias_name, ref_type=ref_type
+                                    )
+
                         try:
                             first_href = char_data.get("first_href")
                             if first_href is not None:
@@ -474,22 +701,36 @@ class Command(BaseCommand):
                                 else:
                                     first_ref = Chapter.objects.get(
                                         # Account for existance or lack of "/" at end of the URI
-                                        Q(source_url__contains=endpoint) | Q(source_url__contains=endpoint + "/") | Q(source_url__contains=endpoint[:-1]))
+                                        Q(source_url__contains=endpoint)
+                                        | Q(source_url__contains=endpoint + "/")
+                                        | Q(source_url__contains=endpoint[:-1])
+                                    )
                             else:
                                 first_ref = None
                         except Chapter.DoesNotExist:
                             first_ref = None
-                        new_character, new_char_created = Character.objects.get_or_create(
+                        (
+                            new_character,
+                            new_char_created,
+                        ) = Character.objects.get_or_create(
                             ref_type=ref_type,
                             first_chapter_ref=first_ref,
                             wiki_uri=char_data.get("wiki_href"),
                             status=Character.parse_status_str(char_data.get("status")),
-                            species=Character.parse_species_str(char_data.get("species"))
+                            species=Character.parse_species_str(
+                                char_data.get("species")
+                            ),
                         )
                         if new_char_created:
-                            self.stdout.write(self.style.SUCCESS(f"> Character data: {name} created"))
+                            self.stdout.write(
+                                self.style.SUCCESS(f"> Character data: {name} created")
+                            )
                         else:
-                            self.stdout.write(self.style.WARNING(f"> Character data: {name} already exists. Skipping creation..."))
+                            self.stdout.write(
+                                self.style.WARNING(
+                                    f"> Character data: {name} already exists. Skipping creation..."
+                                )
+                            )
 
         # Populate locations from wiki data
         if not options.get("skip_wiki_locs"):
@@ -499,19 +740,29 @@ class Command(BaseCommand):
                 try:
                     char_data = json.load(file)
                 except json.JSONDecodeError:
-                    self.stdout.write(self.style.ERROR(
-                        f"> location data ({loc_data_path}) could not be decoded"))
+                    self.stdout.write(
+                        self.style.ERROR(
+                            f"> location data ({loc_data_path}) could not be decoded"
+                        )
+                    )
                 else:
                     for loc_name, char_data in char_data.items():
                         loc_url = char_data["url"]
-                        ref_type, ref_type_created = RefType.objects.get_or_create(name=loc_name, type=RefType.LOCATION, description=loc_url)
+                        ref_type, ref_type_created = RefType.objects.get_or_create(
+                            name=loc_name, type=RefType.LOCATION, description=loc_url
+                        )
                         if ref_type_created:
                             self.stdout.write(
-                                self.style.SUCCESS(f"> Location RefType: {loc_name} created"))
+                                self.style.SUCCESS(
+                                    f"> Location RefType: {loc_name} created"
+                                )
+                            )
                         else:
                             self.stdout.write(
-                                self.style.WARNING(f"> Location RefType: {loc_name} already exists. Skipping creation..."))
-
+                                self.style.WARNING(
+                                    f"> Location RefType: {loc_name} already exists. Skipping creation..."
+                                )
+                            )
 
         def detect_textref_color(text_ref) -> str | None:
             # Detect TextRef color
@@ -520,9 +771,17 @@ class Command(BaseCommand):
                     print(f"Found color span in '{text_ref.context}'")
                     i: int = text_ref.context.index("color:")
                     try:
-                        rgb_hex: str = text_ref.context[i+text_ref.context[i:].index("#")+1:i+text_ref.context[i:].index(">") - 1].upper()
+                        rgb_hex: str = text_ref.context[
+                            i
+                            + text_ref.context[i:].index("#")
+                            + 1 : i
+                            + text_ref.context[i:].index(">")
+                            - 1
+                        ].upper()
                     except ValueError:
-                        self.stdout.write("Color span found but colored text is outside the current context range.")
+                        self.stdout.write(
+                            "Color span found but colored text is outside the current context range."
+                        )
                         return None
                     matching_colors: QuerySet = Color.objects.filter(rgb=rgb_hex)
                     if len(matching_colors) == 1:
@@ -530,89 +789,138 @@ class Command(BaseCommand):
                     else:
                         if options.get("skip_textref_color_select"):
                             self.stdout.write(
-                                self.style.WARNING(f"> TextRef color selection disabled. Skipping {ref_type.name}..."))
+                                self.style.WARNING(
+                                    f"> TextRef color selection disabled. Skipping {ref_type.name}..."
+                                )
+                            )
                             return None
 
-                        self.stdout.write(f"Unable to automatically select color for TextRef: {text_ref}")
+                        self.stdout.write(
+                            f"Unable to automatically select color for TextRef: {text_ref}"
+                        )
                         sel: int = 0
                         for i, col in enumerate(matching_colors):
                             self.stdout.write(f"{i}: {col}")
                         skip = False
                         while True:
                             try:
-                                sel = prompt("Select color (leave empty to skip): ", options.get("prompt_sound"))
+                                sel = prompt(
+                                    "Select color (leave empty to skip): ",
+                                    options.get("prompt_sound"),
+                                )
                                 if sel.strip() == "":
                                     skip = True
                                     break
 
                                 sel = int(sel)
                             except ValueError:
-                                self.stdout.write("Invalid selection. Please try again.")
+                                self.stdout.write(
+                                    "Invalid selection. Please try again."
+                                )
                                 continue
                             else:
                                 if sel < len(matching_colors):
                                     break
-                                self.stdout.write("Invalid selection. Please try again.")
+                                self.stdout.write(
+                                    "Invalid selection. Please try again."
+                                )
 
                         if skip:
                             self.stdout.write(
-                                self.style.WARNING(f"> No color selection provided. Skipping {text_ref.text}..."))
+                                self.style.WARNING(
+                                    f"> No color selection provided. Skipping {text_ref.text}..."
+                                )
+                            )
                             return None
-                            
+
                         return matching_colors[i]
                 except IndexError:
                     print("Can't get color. Invalid TextRef context index")
                     raise
                 except Color.DoesNotExist:
-                    print("Can't get color. There is no existing Color for rgb={rgb_hex}")
+                    print(
+                        "Can't get color. There is no existing Color for rgb={rgb_hex}"
+                    )
                     raise
                 except KeyboardInterrupt as exc:
                     print("")
-                    raise CommandError("Build interrupted with Ctrl-C (Keyboard Interrupt).") from exc
+                    raise CommandError(
+                        "Build interrupted with Ctrl-C (Keyboard Interrupt)."
+                    ) from exc
                 except EOFError as exc:
                     print("")
                     raise CommandError("Build interrupted with Ctrl-D (EOF).") from exc
 
-
         def populate_chapter(book: Book, src_path: Path, chapter_num: int):
             src_chapter: SrcChapter = SrcChapter(src_path)
             if src_chapter.metadata is None:
-                self.stdout.write(self.style.SUCCESS(f"> Missing metadata for Chapter: {src_chapter.title}. Skipping..."))
+                self.stdout.write(
+                    self.style.SUCCESS(
+                        f"> Missing metadata for Chapter: {src_chapter.title}. Skipping..."
+                    )
+                )
                 return
-            
+
+            # TODO: Fix this DB call to guarantee it won't create a new chapter
+            # if a chapter with the same chapter title or source_url already exists
+            # the `number` parameter may change if new chapters are added earlier in the
+            # ToC (like for rewrites) or if they are deleted/condensed
             chapter, ref_type_updated = Chapter.objects.update_or_create(
                 number=chapter_num,
-                defaults= {
+                defaults={
                     "number": chapter_num,
                     "title": src_chapter.title,
                     "book": book,
                     "is_interlude": "interlude" in src_chapter.title.lower(),
                     "source_url": src_chapter.metadata.get("url", ""),
-                    "post_date": dt.fromisoformat(src_chapter.metadata.get("pub_time", dt.now().isoformat())),
-                    "last_update": dt.fromisoformat(src_chapter.metadata.get("mod_time", dt.now().isoformat())),
-                    "download_date": dt.fromisoformat(src_chapter.metadata.get("dl_time", dt.now().isoformat())),
+                    "post_date": dt.fromisoformat(
+                        src_chapter.metadata.get("pub_time", dt.now().isoformat())
+                    ),
+                    "last_update": dt.fromisoformat(
+                        src_chapter.metadata.get("mod_time", dt.now().isoformat())
+                    ),
+                    "download_date": dt.fromisoformat(
+                        src_chapter.metadata.get("dl_time", dt.now().isoformat())
+                    ),
                     "word_count": src_chapter.metadata.get("word_count", 0),
-                    "authors_note_word_count": src_chapter.metadata.get("authors_note_word_count", 0)
-                }
+                    "authors_note_word_count": src_chapter.metadata.get(
+                        "authors_note_word_count", 0
+                    ),
+                },
             )
 
             if ref_type_updated:
                 self.stdout.write(self.style.SUCCESS(f"> Chapter created: {chapter}"))
             else:
-                self.stdout.write(self.style.WARNING(
-                    f"> Chapter \"{src_chapter.title}\" already exists. Chapter updated."))
+                self.stdout.write(
+                    self.style.WARNING(
+                        f'> Chapter "{src_chapter.title}" already exists. Chapter updated.'
+                    )
+                )
 
             if options.get("skip_text_refs"):
                 return
 
             # Populate TextRefs
-            character_names = itertools.chain(*[
-                [char.ref_type.name, *[alias.name for alias in Alias.objects.filter(ref_type=char.ref_type)]] 
-                for char in Character.objects.filter(
-                    Q(first_chapter_ref__number__lte=chapter_num) | Q(first_chapter_ref=None))
-            ])
-            location_names = [x.name for x in RefType.objects.filter(type=RefType.LOCATION)]
-            names=itertools.chain(character_names, location_names)
+            character_names = itertools.chain(
+                *[
+                    [
+                        char.ref_type.name,
+                        *[
+                            alias.name
+                            for alias in Alias.objects.filter(ref_type=char.ref_type)
+                        ],
+                    ]
+                    for char in Character.objects.filter(
+                        Q(first_chapter_ref__number__lte=chapter_num)
+                        | Q(first_chapter_ref=None)
+                    )
+                ]
+            )
+            location_names = [
+                x.name for x in RefType.objects.filter(type=RefType.LOCATION)
+            ]
+            names = itertools.chain(character_names, location_names)
             for text_ref in src_chapter.gen_text_refs(names=names):
                 print(f"{chapter.number} - {text_ref}")
 
@@ -623,10 +931,12 @@ class Command(BaseCommand):
                         chapter=chapter,
                         line_number=text_ref.line_number,
                         start_column=text_ref.start_column,
-                        end_column = text_ref.end_column,
-                        context_offset = text_ref.context_offset,
+                        end_column=text_ref.end_column,
+                        context_offset=text_ref.context_offset,
                     )
-                    self.stdout.write(self.style.WARNING(f"> TextRef already exists. Skipping..."))
+                    self.stdout.write(
+                        self.style.WARNING(f"> TextRef already exists. Skipping...")
+                    )
                     continue
                 except TextRef.DoesNotExist:
                     ref_type = get_or_create_ref_type(text_ref)
@@ -643,9 +953,9 @@ class Command(BaseCommand):
                     chapter=chapter,
                     line_number=text_ref.line_number,
                     start_column=text_ref.start_column,
-                    end_column = text_ref.end_column,
-                    context_offset = text_ref.context_offset,
-                    defaults= {
+                    end_column=text_ref.end_column,
+                    context_offset=text_ref.context_offset,
+                    defaults={
                         "text": text_ref.text,
                         "chapter": chapter,
                         "type": ref_type,
@@ -654,29 +964,39 @@ class Command(BaseCommand):
                         "start_column": text_ref.start_column,
                         "end_column": text_ref.end_column,
                         "context_offset": text_ref.context_offset,
-                    }
+                    },
                 )
                 if ref_type_created:
-                    self.stdout.write(self.style.SUCCESS(f"> TextRef: {text_ref.text} created"))
+                    self.stdout.write(
+                        self.style.SUCCESS(f"> TextRef: {text_ref.text} created")
+                    )
                 else:
                     self.stdout.write(
-                        self.style.WARNING(f"> TextRef: {text_ref.text} @line {text_ref.line_number} updated...")
+                        self.style.WARNING(
+                            f"> TextRef: {text_ref.text} @line {text_ref.line_number} updated..."
+                        )
                     )
-        
+
         # Populate individual Chapter by ID number
         def populate_chapter_by_id(chapter_id: int):
             try:
                 chapter = Chapter.objects.get(number=chapter_id)
-                self.stdout.write(f"\nPopulating chapter data for chapter (id={chapter_id}): {chapter.title} ...")
+                self.stdout.write(
+                    f"\nPopulating chapter data for chapter (id={chapter_id}): {chapter.title} ..."
+                )
                 chapter_dir = Path(glob(f"./data/*/*/*/{chapter.title}")[0])
                 populate_chapter(chapter.book, chapter_dir, chapter_id)
             except Chapter.DoesNotExist:
                 self.stdout.write(
-                    self.style.WARNING(f"> Chapter (id) {chapter_id} does not exist in database. Skipping...")
+                    self.style.WARNING(
+                        f"> Chapter (id) {chapter_id} does not exist in database. Skipping..."
+                    )
                 )
             except IndexError:
                 self.stdout.write(
-                    self.style.WARNING(f"> Chapter (id): {chapter_id} source file does not exist. Skipping...")
+                    self.style.WARNING(
+                        f"> Chapter (id): {chapter_id} source file does not exist. Skipping..."
+                    )
                 )
             return
 
@@ -690,13 +1010,14 @@ class Command(BaseCommand):
             try:
                 start, end = [int(x) for x in chapter_id_range.split(",")]
             except ValueError as exc:
-                raise CommandError(f"Invalid chapter ID range provided: {chapter_id_range}.") from exc
+                raise CommandError(
+                    f"Invalid chapter ID range provided: {chapter_id_range}."
+                ) from exc
 
             for i in range(start, end):
                 populate_chapter_by_id(i)
 
             return
-
 
         # Populate Volumes
         self.stdout.write("\nPopulating chapter data by volume...")
@@ -708,23 +1029,31 @@ class Command(BaseCommand):
         chapter_num = 0
         for (vol_title, vol_num) in volumes:
             src_vol: SrcVolume = SrcVolume(Path(vol_root, vol_title))
-            volume, ref_type_created = Volume.objects.get_or_create(title=src_vol.title, number=vol_num)
+            volume, ref_type_created = Volume.objects.get_or_create(
+                title=src_vol.title, number=vol_num
+            )
             if ref_type_created:
                 self.stdout.write(self.style.SUCCESS(f"> Volume created: {volume}"))
             else:
                 self.stdout.write(
-                    self.style.WARNING(f"> Record for {src_vol.title} already exists. Skipping creation...")
+                    self.style.WARNING(
+                        f"> Record for {src_vol.title} already exists. Skipping creation..."
+                    )
                 )
 
             # Populate Books
             for (book_num, book_title) in enumerate(src_vol.books):
                 src_book: SrcBook = SrcBook(Path(src_vol.path, book_title))
-                book, book_created = Book.objects.get_or_create(title=book_title, number=book_num, volume=volume)
+                book, book_created = Book.objects.get_or_create(
+                    title=book_title, number=book_num, volume=volume
+                )
                 if book_created:
                     self.stdout.write(self.style.SUCCESS(f"> Book created: {book}"))
                 else:
                     self.stdout.write(
-                        self.style.WARNING(f"> Record for {book_title} already exists. Skipping creation...")
+                        self.style.WARNING(
+                            f"> Record for {book_title} already exists. Skipping creation..."
+                        )
                     )
                 # Populate Chapters
                 for chapter_title in src_book.chapters:

@@ -6,16 +6,19 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('stats', '0011_textref_key'),
+        ("stats", "0011_textref_key"),
     ]
 
     operations = [
         migrations.RemoveConstraint(
-            model_name='textref',
-            name='key',
+            model_name="textref",
+            name="key",
         ),
         migrations.AddConstraint(
-            model_name='textref',
-            constraint=models.UniqueConstraint(fields=('text', 'chapter', 'line_number', 'start_column', 'end_column'), name='key'),
+            model_name="textref",
+            constraint=models.UniqueConstraint(
+                fields=("text", "chapter", "line_number", "start_column", "end_column"),
+                name="key",
+            ),
         ),
     ]

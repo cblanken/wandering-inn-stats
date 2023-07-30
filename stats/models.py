@@ -1,7 +1,9 @@
 from django.db import models
 
+
 class ColorCategory(models.Model):
     """Model linking Colors to a their corresponding categories"""
+
     name = models.CharField(max_length=50, unique=True)
 
     class Meta:
@@ -10,9 +12,11 @@ class ColorCategory(models.Model):
     def __str__(self):
         return f"(ColorCategory: {self.name})"
 
+
 class Color(models.Model):
     """Model for colored text"""
-    #TODO: add rgb regex constraint
+
+    # TODO: add rgb regex constraint
     rgb = models.CharField(max_length=8)
     category = models.ForeignKey(ColorCategory, on_delete=models.CASCADE)
 
@@ -21,6 +25,7 @@ class Color(models.Model):
 
     def __str__(self):
         return f"(Color: {self.category.name}: {self.rgb})"
+
 
 class Volume(models.Model):
     "Model for volumes"
@@ -34,6 +39,7 @@ class Volume(models.Model):
     def __str__(self):
         return f"(Volume: {self.title}, Summary: {str(self.summary)[:30]}...)"
 
+
 class Book(models.Model):
     "Mode for books"
     number = models.PositiveBigIntegerField()
@@ -44,11 +50,14 @@ class Book(models.Model):
     class Meta:
         ordering = ["volume", "number"]
         constraints = [
-            models.UniqueConstraint(fields=["volume", "title"], name="unique_volume_and_title")
+            models.UniqueConstraint(
+                fields=["volume", "title"], name="unique_volume_and_title"
+            )
         ]
 
     def __str__(self):
         return f"(Book: {self.title}, Summary: {str(self.summary)[:30]})"
+
 
 class Chapter(models.Model):
     "Model for book chapters"
@@ -69,8 +78,10 @@ class Chapter(models.Model):
     def __str__(self) -> str:
         return f"(Chapter: {self.title}, URL: {self.source_url})"
 
+
 class RefType(models.Model):
     """Reference keywords / phrases"""
+
     CHARACTER = "CH"
     CLASS = "CL"
     CLASS_OBTAINED = "CO"
@@ -102,11 +113,16 @@ class RefType(models.Model):
         verbose_name_plural = "Ref Types"
         ordering = ["name"]
         constraints = [
-            models.UniqueConstraint(fields=["name", "type"], name="unique_name_and_type")
+            models.UniqueConstraint(
+                fields=["name", "type"], name="unique_name_and_type"
+            )
         ]
 
     def __str__(self):
-        return f"(RefType: {self.name} - Type: {self.type}, is_divine: {self.is_divine})"
+        return (
+            f"(RefType: {self.name} - Type: {self.type}, is_divine: {self.is_divine})"
+        )
+
 
 class Character(models.Model):
     """Character data"""
@@ -381,8 +397,10 @@ class Character(models.Model):
     def __str__(self) -> str:
         return f"(Character: {self.ref_type.name}, Status: {self.status}, Species: {self.species})"
 
+
 class Alias(models.Model):
     """RefType aliases / alternate names"""
+
     name = models.CharField(unique=True, max_length=100)
     ref_type = models.ForeignKey(RefType, on_delete=models.CASCADE)
 
@@ -393,8 +411,10 @@ class Alias(models.Model):
     def __str__(self) -> str:
         return f"(Alias: {self.name} - RefType: {self.ref_type})"
 
+
 class TextRef(models.Model):
     """Instances of Ref(s) found in text"""
+
     text = models.TextField()
     chapter = models.ForeignKey(Chapter, on_delete=models.CASCADE)
     type = models.ForeignKey(RefType, on_delete=models.CASCADE)
@@ -407,9 +427,11 @@ class TextRef(models.Model):
     class Meta:
         verbose_name_plural = "Text Refs"
         constraints = [
-            models.UniqueConstraint(name="key", fields=[
-                "text", "chapter", "line_number", "start_column", "end_column"
-            ])
+            models.UniqueConstraint(
+                name="key",
+                fields=["text", "chapter", "line_number", "start_column", "end_column"],
+            )
         ]
+
     def __str__(self):
         return f"(TextRef: {self.text} - type: {self.type}, line: {self.line_number:>5}, start: {self.start_column:>4}, end: {self.end_column:>4})"
