@@ -102,6 +102,9 @@ class Chapter:
         src_path = Path(path, f"{self.title}.html")
         self.src_path: Path = src_path if src_path.exists() else None
 
+        with open(self.src_path, "r", encoding="utf-8") as file:
+            self.lines = file.readlines()
+
         txt_path = Path(path, f"{self.title}.txt")
         self.txt_path: Path = txt_path if txt_path.exists() else None
 
@@ -115,10 +118,15 @@ class Chapter:
             Pattern.CLASS_OBTAINED,
             Pattern.SPELL_OBTAINED,
         )
-        self.all_bracket_refs: Generator[TextRef] = self.gen_text_refs()
+        self.all_bracket_refs: Generator[TextRef] = [
+            self.gen_text_refs(i) for i in range(len(self.lines))
+        ]
 
     def gen_text_refs(
-        self, names: any[str] = None, context_len: int = 50
+        self,
+        line_num: int,
+        names: any[str] = None,
+        context_len: int = 50,
     ) -> Generator[TextRef]:
         """Return  TextRef(s) that match the regex for the given regex patterns
         and other arguments
@@ -127,9 +135,6 @@ class Chapter:
             names (str): iterable of characters, locations, items, etc.
 
         """
-        with open(self.src_path, "r", encoding="utf-8") as file:
-            lines = file.readlines()
-
         patterns_by_name = {
             name: Pattern._or(
                 re.compile(r"(^|\W|[,.\?!][\W]?)" + name + r"(\W|[,.\?!]\W?)"),
@@ -138,32 +143,31 @@ class Chapter:
             for name in names
         }
 
-        for line_number, line in enumerate(lines):
-            # Yield any matches for bracketed types
-            for match in re.finditer(self.__bracket_pattern, line):
-                yield TextRef(
-                    match.group(),
-                    match.string,
-                    line_number,
-                    match.start(),
-                    match.end(),
-                    context_len,
-                )
+        # Yield any matches for bracketed types
+        for match in re.finditer(self.__bracket_pattern, self.lines[line_num]):
+            yield TextRef(
+                match.group(),
+                match.string,
+                line_num,
+                match.start(),
+                match.end(),
+                context_len,
+            )
 
-            # TODO: selection prompt for aliases with multiple matches
-            # or if an alias matches a common word
-            if names is not None:
-                # Yield any matches for named references such as characters, locations, items, etc.
-                for name, pattern in patterns_by_name.items():
-                    for match in re.finditer(pattern, line):
-                        yield TextRef(
-                            name,
-                            line,
-                            line_number,
-                            match.start(),
-                            match.end(),
-                            context_len,
-                        )
+        # TODO: selection prompt for aliases with multiple matches
+        # or if an alias matches a common word
+        if names is not None:
+            # Yield any matches for named references such as characters, locations, items, etc.
+            for name, pattern in patterns_by_name.items():
+                for match in re.finditer(pattern, self.lines[line_num]):
+                    yield TextRef(
+                        name,
+                        self.lines[line_num],
+                        line_num,
+                        match.start(),
+                        match.end(),
+                        context_len,
+                    )
 
     def print_bracket_refs(self):
         """Print TextRef(s) for chapter"""

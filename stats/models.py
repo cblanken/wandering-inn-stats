@@ -41,7 +41,7 @@ class Volume(models.Model):
 
 
 class Book(models.Model):
-    "Mode for books"
+    "Model for books"
     number = models.PositiveBigIntegerField()
     title = models.CharField(max_length=50)
     volume = models.ForeignKey(Volume, on_delete=models.CASCADE)
@@ -412,26 +412,43 @@ class Alias(models.Model):
         return f"(Alias: {self.name} - RefType: {self.ref_type})"
 
 
+class ChapterLine(models.Model):
+    """Chapter text content by line"""
+
+    chapter = models.ForeignKey(Chapter, on_delete=models.CASCADE)
+    line_number = models.PositiveIntegerField()
+    text = models.TextField()
+
+    class Meta:
+        verbose_name_plural = "Chapter Lines"
+        ordering = ["chapter", "line_number"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["chapter", "line_number"], name="unique_chapter_and_line"
+            )
+        ]
+
+    def __str__(self):
+        return f"(Chapter: ({self.chapter.number}) {self.chapter.title}, Line: {self.line_number}, Text: {self.text})"
+
+
 class TextRef(models.Model):
     """Instances of Ref(s) found in text"""
 
-    text = models.TextField()
-    chapter = models.ForeignKey(Chapter, on_delete=models.CASCADE)
+    chapter_line = models.ForeignKey(ChapterLine, on_delete=models.CASCADE)
     type = models.ForeignKey(RefType, on_delete=models.CASCADE)
     color = models.ForeignKey(Color, on_delete=models.PROTECT, null=True)
-    line_number = models.PositiveIntegerField()
     start_column = models.PositiveIntegerField()
     end_column = models.PositiveIntegerField()
-    context_offset = models.PositiveBigIntegerField(default=50)
 
     class Meta:
         verbose_name_plural = "Text Refs"
         constraints = [
             models.UniqueConstraint(
                 name="key",
-                fields=["text", "chapter", "line_number", "start_column", "end_column"],
+                fields=["chapter_line", "start_column", "end_column"],
             )
         ]
 
     def __str__(self):
-        return f"(TextRef: {self.text} - type: {self.type}, line: {self.line_number:>5}, start: {self.start_column:>4}, end: {self.end_column:>4})"
+        return f"(TextRef: {self.type}, line: {self.chapter_line.line_number:>5}, start: {self.start_column:>4}, end: {self.end_column:>4})"

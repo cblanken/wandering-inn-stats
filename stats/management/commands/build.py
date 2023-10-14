@@ -11,6 +11,7 @@ from django.core.management.base import BaseCommand, CommandError
 from django.db.models import Q
 from django.db.models.query import QuerySet
 from stats.models import (
+    ChapterLine,
     Color,
     ColorCategory,
     Chapter,
@@ -301,8 +302,8 @@ class Command(BaseCommand):
 
         self.stdout.write("Updating DB...")
 
-        def get_or_create_ref_type(text_ref: TextRef) -> RefType:
-            # Check for existing RefType and create if necessary
+        def get_or_create_ref_type(text_ref: SrcTextRef) -> RefType:
+            # Check for existing RefType of TextRef and create if necessary
             while True:  # loop for retries from select RefType prompt
                 try:
                     ref_type = RefType.objects.get(name=text_ref.text)
@@ -901,7 +902,7 @@ class Command(BaseCommand):
             if options.get("skip_text_refs"):
                 return
 
-            # Populate TextRefs
+            # Compile character names for TextRef search
             character_names = itertools.chain(
                 *[
                     [
@@ -917,65 +918,73 @@ class Command(BaseCommand):
                     )
                 ]
             )
+
+            # Compile location names for TextRef search
             location_names = [
                 x.name for x in RefType.objects.filter(type=RefType.LOCATION)
             ]
             names = itertools.chain(character_names, location_names)
-            for text_ref in src_chapter.gen_text_refs(names=names):
-                print(f"{chapter.number} - {text_ref}")
 
-                # Check for existing TextRef
-                try:
-                    TextRef.objects.get(
-                        text=text_ref.text,
-                        chapter=chapter,
-                        line_number=text_ref.line_number,
+            # Populate TextRefs
+            for i in range(len(src_chapter.lines)):
+
+                # Create ContentLine if it doesn't already exist
+                chapter_line, created = ChapterLine.objects.get_or_create(
+                    chapter=chapter, line_number=i, text=src_chapter.lines[i]
+                )
+
+                if created:
+                    self.stdout.write(self.style.SUCCESS(f"> Creating line {i:>3}..."))
+
+                text_refs = src_chapter.gen_text_refs(i, names)
+
+                for text_ref in text_refs:
+                    # Check for existing TextRef
+                    print(f"{chapter.number} - {text_ref}")
+                    try:
+                        TextRef.objects.get(
+                            chapter_line=chapter_line,
+                            start_column=text_ref.start_column,
+                            end_column=text_ref.end_column,
+                        )
+                        self.stdout.write(
+                            self.style.WARNING(f"> TextRef already exists. Skipping...")
+                        )
+                        continue
+                    except TextRef.DoesNotExist:
+                        ref_type = get_or_create_ref_type(text_ref)
+
+                        # RefType creation could not complete or was skipped
+                        if ref_type is None:
+                            continue
+
+                    color = detect_textref_color(text_ref)
+
+                    # Create TextRef
+                    text_ref, ref_type_created = TextRef.objects.update_or_create(
+                        chapter_line=chapter_line,
                         start_column=text_ref.start_column,
                         end_column=text_ref.end_column,
-                        context_offset=text_ref.context_offset,
+                        defaults={
+                            "chapter_line": chapter_line,
+                            "type": ref_type,
+                            "color": color,
+                            "start_column": text_ref.start_column,
+                            "end_column": text_ref.end_column,
+                        },
                     )
-                    self.stdout.write(
-                        self.style.WARNING(f"> TextRef already exists. Skipping...")
-                    )
-                    continue
-                except TextRef.DoesNotExist:
-                    ref_type = get_or_create_ref_type(text_ref)
-
-                    # RefType creation could not complete or was skipped
-                    if ref_type is None:
-                        continue
-
-                color = detect_textref_color(text_ref)
-
-                # Create TextRef
-                text_ref, ref_type_created = TextRef.objects.update_or_create(
-                    text=text_ref.text,
-                    chapter=chapter,
-                    line_number=text_ref.line_number,
-                    start_column=text_ref.start_column,
-                    end_column=text_ref.end_column,
-                    context_offset=text_ref.context_offset,
-                    defaults={
-                        "text": text_ref.text,
-                        "chapter": chapter,
-                        "type": ref_type,
-                        "color": color,
-                        "line_number": text_ref.line_number,
-                        "start_column": text_ref.start_column,
-                        "end_column": text_ref.end_column,
-                        "context_offset": text_ref.context_offset,
-                    },
-                )
-                if ref_type_created:
-                    self.stdout.write(
-                        self.style.SUCCESS(f"> TextRef: {text_ref.text} created")
-                    )
-                else:
-                    self.stdout.write(
-                        self.style.WARNING(
-                            f"> TextRef: {text_ref.text} @line {text_ref.line_number} updated..."
+                    if ref_type_created:
+                        self.stdout.write(
+                            self.style.SUCCESS(
+                                f"> TextRef: {text_ref.type.name} created"
+                            )
                         )
-                    )
+                    else:
+                        self.stdout.write(
+                            self.style.WARNING(
+                                f"> TextRef: {text_ref.type.name} @line {text_ref.chapter_line.line_number} updated..."
+                            )
+                        )
 
         # Populate individual Chapter by ID number
         def populate_chapter_by_id(chapter_id: int):
