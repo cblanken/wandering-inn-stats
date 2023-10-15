@@ -186,6 +186,9 @@ def character_charts():
         .annotate(char_instance_cnt=Count("type__name"))
     )
 
+    if len(character_text_refs) == 0:
+        return
+
     char_refs_count_fig = px.pie(
         character_text_refs,
         names="type__name",
@@ -308,6 +311,9 @@ def class_charts():
         .values("type__name")
         .annotate(class_instance_cnt=Count("type__name"))
     )
+
+    if len(class_refs) == 0:
+        return
 
     class_refs_count_fig = px.pie(
         class_refs,
