@@ -8,6 +8,7 @@ admin.site.register(Volume)
 
 # Text reference data
 admin.site.register(Alias)
+admin.site.register(ChapterLine)
 admin.site.register(Character)
 admin.site.register(Color)
 admin.site.register(ColorCategory)
