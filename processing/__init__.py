@@ -102,8 +102,11 @@ class Chapter:
         src_path = Path(path, f"{self.title}.html")
         self.src_path: Path = src_path if src_path.exists() else None
 
-        with open(self.src_path, "r", encoding="utf-8") as file:
-            self.lines = file.readlines()
+        if src_path.exists():
+            with open(self.src_path, "r", encoding="utf-8") as file:
+                self.lines = file.readlines()
+        else:
+            self.lines = []
 
         txt_path = Path(path, f"{self.title}.txt")
         self.txt_path: Path = txt_path if txt_path.exists() else None

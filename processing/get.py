@@ -352,7 +352,6 @@ def parse_chapter(response: requests.Response) -> dict[str]:
     i = 0
     while i < len(content_lines):
         if authors_note_re.match(content_lines[i].strip()):
-            # breakpoint()
             # Found start of Author's Note
             empty_line_cnt = 0
             for j, authors_note_line in enumerate(content_lines[i:]):
@@ -458,65 +457,39 @@ class TableOfContents:
 
         vol_elements = self.soup.select(".volume-wrapper")
 
-        def get_next_name_and_href_from_a(element: Tag):
+        def get_title_and_href_from_a_tag(element: Tag):
             """Return tuple of text and href from <a> tag
 
             Args:
                 element: an <a> Tag element
             """
-            chapter_a = element.find_next("a")
-            chapter_name = chapter_a.text
-            chapter_href = chapter_a.get("href")
+            # chapter_a = element.find_next("a")
+            chapter_name = element.text
+            chapter_href = element.get("href")
             return (chapter_name, chapter_href)
 
         volumes = OrderedDict()
         for vol_ele in vol_elements:
             vol_name = vol_ele.select_one(".volume-header").text.strip()
             volumes[vol_name] = OrderedDict()
+
             # Search for books
-            last_chapter_row = None
-            book_headings = vol_ele.select(".head-book-title")
-            if len(book_headings) > 0:
-                for heading in book_headings:
-                    book_name = heading.text
-                    volumes[vol_name][book_name] = OrderedDict()
-                    chapters = []
-                    # Walk up tree to table head
-                    table_head = heading.parent.parent
-                    for sibling in [
-                        x for x in table_head.next_siblings if isinstance(x, Tag)
-                    ]:
-                        row_classes = sibling.get("class")
-                        if "table-head" in row_classes:
-                            # Found a new Book heading, continue to next Book
-                            break
+            book_sections = vol_ele.select(".book-wrapper")
+            for section in book_sections:
+                # Check for book heading
+                heading_div = section.select_one(".book-header .head-book-title")
 
-                        last_chapter_row = sibling
+                # Use book title or default to "Unreleased" for sections without a released audiobook
+                book_name = heading_div.text if heading_div else "Unreleased"
 
-                        # Populate chapter for each book by book title if they exist
-                        chapter_name, chapter_href = get_next_name_and_href_from_a(
-                            sibling
-                        )
-                        volumes[vol_name][book_name][chapter_name] = chapter_href
+                volumes[vol_name][book_name] = OrderedDict()
 
-            # Lump any REMAINING chapters in Volume under "Unreleased" Book
-            if last_chapter_row is None:
-                # No Books found -> lump ALL chapters into "Unreleased"
-                volumes[vol_name]["Unreleased"] = OrderedDict()
-                for chapter in vol_ele.select(".chapter-entry"):
-                    chapter_name, chapter_href = get_next_name_and_href_from_a(chapter)
-                    volumes[vol_name]["Unreleased"][chapter_name] = chapter_href
-            else:
-                # Start from last visited Chapter row
-                remaining_chapters = list(last_chapter_row.next_siblings)
-                if len(remaining_chapters) == 0:
-                    # No remeining chapters to populate "Unreleased"
-                    continue
+                chapters = section.select(".book-body a")
 
-                volumes[vol_name]["Unreleased"] = OrderedDict()
-                for sibling in remaining_chapters:
-                    chapter_name, chapter_href = get_next_name_and_href_from_a(sibling)
-                    volumes[vol_name]["Unreleased"][chapter_name] = chapter_href
+                # Populate chapters for each book by title
+                for chapter in chapters:
+                    chapter_name, chapter_href = get_title_and_href_from_a_tag(chapter)
+                    volumes[vol_name][book_name][chapter_name] = chapter_href
 
         return volumes
 
