@@ -128,7 +128,7 @@ class Chapter:
     def gen_text_refs(
         self,
         line_num: int,
-        names: any[str] = None,
+        patterns_by_name: dict[str, Pattern] = None,
         context_len: int = 50,
     ) -> Generator[TextRef]:
         """Return  TextRef(s) that match the regex for the given regex patterns
@@ -138,13 +138,6 @@ class Chapter:
             names (str): iterable of characters, locations, items, etc.
 
         """
-        patterns_by_name = {
-            name: Pattern._or(
-                re.compile(r"(^|\W|[,.\?!][\W]?)" + name + r"(\W|[,.\?!]\W?)"),
-                re.compile(r"(^|\W|[,.\?!][\W]?)" + name.upper() + r"(\W|[,.\?!]\W?)"),
-            )
-            for name in names
-        }
 
         # Yield any matches for bracketed types
         for match in re.finditer(self.__bracket_pattern, self.lines[line_num]):
@@ -159,18 +152,17 @@ class Chapter:
 
         # TODO: selection prompt for aliases with multiple matches
         # or if an alias matches a common word
-        if names is not None:
-            # Yield any matches for named references such as characters, locations, items, etc.
-            for name, pattern in patterns_by_name.items():
-                for match in re.finditer(pattern, self.lines[line_num]):
-                    yield TextRef(
-                        name,
-                        self.lines[line_num],
-                        line_num,
-                        match.start(),
-                        match.end(),
-                        context_len,
-                    )
+        # Yield any matches for named references such as characters, locations, items, etc.
+        for name, pattern in patterns_by_name.items():
+            for match in re.finditer(pattern, self.lines[line_num]):
+                yield TextRef(
+                    name,
+                    self.lines[line_num],
+                    line_num,
+                    match.start(),
+                    match.end(),
+                    context_len,
+                )
 
     def print_bracket_refs(self):
         """Print TextRef(s) for chapter"""

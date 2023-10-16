@@ -27,6 +27,7 @@ from processing import (
     Book as SrcBook,
     Chapter as SrcChapter,
     TextRef as SrcTextRef,
+    Pattern,
     get_metadata,
 )
 from playsound import playsound, PlaysoundException
@@ -925,6 +926,16 @@ class Command(BaseCommand):
             ]
             names = itertools.chain(character_names, location_names)
 
+            patterns_by_name = {
+                name: Pattern._or(
+                    re.compile(r"(^|\W|[,.\?!][\W]?)" + name + r"(\W|[,.\?!]\W?)"),
+                    re.compile(
+                        r"(^|\W|[,.\?!][\W]?)" + name.upper() + r"(\W|[,.\?!]\W?)"
+                    ),
+                )
+                for name in names
+            }
+
             # Populate TextRefs
             for i in range(len(src_chapter.lines)):
 
@@ -936,7 +947,9 @@ class Command(BaseCommand):
                 if created:
                     self.stdout.write(self.style.SUCCESS(f"> Creating line {i:>3}..."))
 
-                text_refs = src_chapter.gen_text_refs(i, names)
+                text_refs = src_chapter.gen_text_refs(
+                    i, patterns_by_name=patterns_by_name
+                )
 
                 for text_ref in text_refs:
                     # Check for existing TextRef
