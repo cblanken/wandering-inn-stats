@@ -5,6 +5,7 @@ from .models import *
 class ChapterAdmin(admin.ModelAdmin):
     list_display = ["title", "number", "word_count", "post_date", "is_interlude"]
     list_filter = ["is_interlude", "book__volume__title", "book__title"]
+    search_fields = ["title", "source_url"]
 
 
 class BookAdmin(admin.ModelAdmin):
@@ -29,10 +30,13 @@ class CharacterAdmin(admin.ModelAdmin):
     list_display = ["ref_type", "species", "first_chapter_ref", "wiki_uri"]
     list_filter = ["status", "species"]
     search_fields = ["ref_type__name"]
+    autocomplete_fields = ["ref_type", "first_chapter_ref"]
+    ordering = ["ref_type__name"]
 
 
 class ColorAdmin(admin.ModelAdmin):
     list_display = ["category", "rgb"]
+    ordering = ["category__name"]
 
 
 class ColorCategoryAdmin(admin.ModelAdmin):
@@ -42,15 +46,17 @@ class ColorCategoryAdmin(admin.ModelAdmin):
 class RefTypeAdmin(admin.ModelAdmin):
     list_display = ["name", "type", "description"]
     search_fields = ["name"]
+    radio_fields = {"type": admin.VERTICAL}
 
 
 class TextRefAdmin(admin.ModelAdmin):
     list_display = ["type", "color", "start_column", "end_column", "chapter_line"]
     list_filter = ["color__category__name", "chapter_line__chapter__title"]
     search_fields = ["type__name"]
+    raw_id_fields = ["chapter_line"]
+    autocomplete_fields = ["type"]
 
 
-# Model registrations
 # Organizational data
 admin.site.register(Chapter, ChapterAdmin)
 admin.site.register(Book, BookAdmin)

@@ -75,7 +75,7 @@ class Chapter(models.Model):
     book = models.ForeignKey(Book, on_delete=models.CASCADE)
 
     class Meta:
-        ordering = ["book", "number"]
+        ordering = ["number"]
 
     def __str__(self) -> str:
         return f"(Chapter: {self.title}, URL: {self.source_url})"
@@ -445,6 +445,7 @@ class TextRef(models.Model):
 
     class Meta:
         verbose_name_plural = "Text Refs"
+        ordering = ["chapter_line__chapter"]
         constraints = [
             models.UniqueConstraint(
                 name="key",
