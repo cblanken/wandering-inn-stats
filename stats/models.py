@@ -4,7 +4,7 @@ from django.db import models
 class ColorCategory(models.Model):
     """Model linking Colors to a their corresponding categories"""
 
-    name = models.CharField(max_length=50, unique=True)
+    name = models.CharField(max_length=50, unique=True, verbose_name="Color")
 
     class Meta:
         verbose_name_plural = "Color Categories"
@@ -18,7 +18,9 @@ class Color(models.Model):
 
     # TODO: add rgb regex constraint
     rgb = models.CharField(max_length=8)
-    category = models.ForeignKey(ColorCategory, on_delete=models.CASCADE)
+    category = models.ForeignKey(
+        ColorCategory, on_delete=models.CASCADE, verbose_name="Color Category"
+    )
 
     class Meta:
         ordering = ["rgb"]
@@ -29,8 +31,8 @@ class Color(models.Model):
 
 class Volume(models.Model):
     "Model for volumes"
-    number = models.PositiveIntegerField(unique=True)
-    title = models.CharField(max_length=50, unique=True)
+    number = models.PositiveIntegerField(unique=True, verbose_name="Volume Number")
+    title = models.CharField(max_length=50, unique=True, verbose_name="Volume Title")
     summary = models.TextField(default="")
 
     class Meta:
@@ -42,8 +44,8 @@ class Volume(models.Model):
 
 class Book(models.Model):
     "Model for books"
-    number = models.PositiveBigIntegerField()
-    title = models.CharField(max_length=50)
+    number = models.PositiveBigIntegerField(verbose_name="Book Number")
+    title = models.CharField(max_length=50, verbose_name="Book Title")
     volume = models.ForeignKey(Volume, on_delete=models.CASCADE)
     summary = models.TextField(default="")
 
@@ -62,7 +64,7 @@ class Book(models.Model):
 class Chapter(models.Model):
     "Model for book chapters"
     number = models.PositiveBigIntegerField()
-    title = models.CharField(max_length=50)
+    title = models.CharField(max_length=50, verbose_name="Chapter Title")
     is_interlude = models.BooleanField()
     source_url = models.URLField()
     post_date = models.DateTimeField()
