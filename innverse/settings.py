@@ -47,9 +47,11 @@ INSTALLED_APPS = [
     "theme",
     "django_browser_reload",
     "pattern_library",
+    "debug_toolbar",
 ]
 
 MIDDLEWARE = [
+    "debug_toolbar.middleware.DebugToolbarMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -65,7 +67,10 @@ ROOT_URLCONF = "innverse.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [Path(BASE_DIR, "innverse/core/templates/patterns")],
+        "DIRS": [
+            Path(BASE_DIR, "innverse/core/templates/patterns"),
+            Path(BASE_DIR, "innverse/core/templates/admin"),
+        ],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
