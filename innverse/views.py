@@ -30,7 +30,15 @@ def magic(request):
 
 
 def search(request):
-    return render(request, "pages/search.html")
+    if request.method == "GET":
+        print(request.GET)
+        context = {
+            "type": request.GET.get("type"),
+            "query": request.GET.get("query", ""),
+        }
+        return render(request, "pages/search.html", context)
+    else:
+        return render(request, "pages/search.html")
 
 
 @cache_page(60 * 60 * 24)
