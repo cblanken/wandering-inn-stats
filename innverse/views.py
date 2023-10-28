@@ -1,7 +1,10 @@
-from django.shortcuts import render
+from django.db.models import Q
 from django.http import HttpResponse
+from django.shortcuts import render
 from django.views.decorators.cache import cache_page
 from stats.charts import word_count_charts, character_charts, class_charts
+from stats.models import RefType, TextRef
+from .forms import SearchForm
 
 
 @cache_page(60)
@@ -31,12 +34,26 @@ def magic(request):
 
 def search(request):
     if request.method == "GET":
-        print(request.GET)
-        context = {
-            "type": request.GET.get("type"),
-            "query": request.GET.get("query", ""),
-        }
-        return render(request, "pages/search.html", context)
+        form = SearchForm(request.GET)
+        print("DATA", form.data)
+
+        if form.is_valid():
+            context = {
+                "type": form.cleaned_data.get("type"),
+                "query": form.cleaned_data.get("query"),
+            }
+
+            # Query TextRefs per form parameters
+            table_data = TextRef.objects.filter(
+                Q(type__type=context.get("type"))
+                & Q(chapter_line__text__contains=context.get("query"))
+            )
+
+            context["table_data"] = table_data
+            return render(request, "pages/search.html", context)
+        else:
+            # Form data not valid
+            return render(request, "pages/search.html")
     else:
         return render(request, "pages/search.html")
 

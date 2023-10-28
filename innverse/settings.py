@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     "django_browser_reload",
     "pattern_library",
     "debug_toolbar",
+    "django_tables2",
 ]
 
 MIDDLEWARE = [
