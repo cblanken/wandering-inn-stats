@@ -2,8 +2,10 @@ from django.db.models import Q
 from django.http import HttpResponse
 from django.shortcuts import render
 from django.views.decorators.cache import cache_page
+from django_tables2 import SingleTableView, LazyPaginator
 from stats.charts import word_count_charts, character_charts, class_charts
 from stats.models import RefType, TextRef
+from .tables import TextRefTable
 from .forms import SearchForm
 
 
@@ -32,6 +34,11 @@ def magic(request):
     return render(request, "pages/magic.html")
 
 
+class TextRefView(SingleTableView):
+    model = TextRef
+    table_class = TextRefTable
+
+
 def search(request):
     if request.method == "GET":
         form = SearchForm(request.GET)
@@ -49,7 +56,11 @@ def search(request):
                 & Q(chapter_line__text__contains=context.get("query"))
             )
 
-            context["table_data"] = table_data
+            # print("TABLE DATA", table_data)
+            table = TextRefTable(table_data)
+            table.paginate(page=request.GET.get("page", 1), per_page=10)
+            # print("TABLE", table)
+            context["table"] = table
             return render(request, "pages/search.html", context)
         else:
             # Form data not valid
