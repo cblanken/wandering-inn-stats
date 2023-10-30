@@ -9,42 +9,44 @@
 <div class="table-container w-full">
   {% block pagination %}
     {% if table.page and table.paginator.num_pages > 1 %}
-    <section class="pagination flex gap-4 m-4">
-      {% if table.page.has_previous %}
-        {% block pagination.previous %}
-          <div class="previous hover:underline underline-offset-8">
-            <a href="{% querystring table.prefixed_page_field=table.page.previous_page_number %}">
-              {% trans 'previous' %}
-            </a>
-          </div>
-          <span class="text-hl-tertiary">|</span>
-        {% endblock pagination.previous %}
-      {% endif %}
-      {% if table.page.has_previous or table.page.has_next %}
-      {% block pagination.range %}
-        {% for p in table.page|table_page_range:table.paginator %}
-          <div {% if p == table.page.number %}class="active text-hl-primary underline underline-offset-8"{% endif %}>
-            {% if p == '...' %}
-              <a href="#">{{ p }}</a>
-            {% else %}
-              <a class="hover:underline underline-offset-8" href="{% querystring table.prefixed_page_field=p %}">
-                {{ p }}
+    <section class="pagination justify-between flex">
+      <div class="flex gap-4 my-2 px-4 py-1">
+        {% if table.page.has_previous or table.page.has_next %}
+        {% block pagination.range %}
+          {% for p in table.page|table_page_range:table.paginator %}
+            <div {% if p == table.page.number %}class="active text-hl-primary underline underline-offset-8"{% endif %}>
+              {% if p == '...' %}
+                <a href="#">{{ p }}</a>
+              {% else %}
+                <a class="hover:underline underline-offset-8" href="{% querystring table.prefixed_page_field=p %}">
+                  {{ p }}
+                </a>
+              {% endif %}
+              </div>
+          {% endfor %}
+        {% endblock pagination.range %}
+        {% endif %}
+      </div>
+      <div class="flex font-mono my-2 border rounded-md">
+        {% if table.page.has_previous %}
+          {% block pagination.previous %}
+            <button class="{% if table.page.has_next%}border-r{% endif %} px-2 previous hover:font-extrabold">
+              <a href="{% querystring table.prefixed_page_field=table.page.previous_page_number %}">
+                {% trans '< Previous' %}
               </a>
-            {% endif %}
-            </div>
-        {% endfor %}
-      {% endblock pagination.range %}
-      {% endif %}
-      {% if table.page.has_next %}
-        <span class="text-hl-tertiary">|</span>
-        {% block pagination.next %}
-          <div class="next hover:underline underline-offset-8 flex items-center gap-2">
-            <a href="{% querystring table.prefixed_page_field=table.page.next_page_number %}">
-              {% trans 'next' %}
-            </a>
-          </div>
-        {% endblock pagination.next %}
-      {% endif %}
+            </button>
+          {% endblock pagination.previous %}
+        {% endif %}
+        {% if table.page.has_next %}
+          {% block pagination.next %}
+            <button class="{% if table.page.has_previous%}border-l{% endif %} px-2 next hover:font-extrabold">
+              <a href="{% querystring table.prefixed_page_field=table.page.next_page_number %}">
+                {% trans 'Next >' %}
+              </a>
+            </button>
+          {% endblock pagination.next %}
+        {% endif %}
+      <div>
     </section>
     {% endif %}
   {% endblock pagination %}
