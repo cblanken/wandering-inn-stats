@@ -4,4 +4,5 @@ from stats.models import RefType
 
 class SearchForm(forms.Form):
     type = forms.ChoiceField(label="Type", choices=RefType.TYPES)
-    query = forms.CharField(label="Query", max_length=100)
+    type_query = forms.CharField(label="Type Query", max_length=50, required=False)
+    text_query = forms.CharField(label="Text Query", max_length=100, required=False)

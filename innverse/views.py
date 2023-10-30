@@ -42,29 +42,28 @@ class TextRefView(SingleTableView):
 def search(request):
     if request.method == "GET":
         form = SearchForm(request.GET)
-        print("DATA", form.data)
 
         if form.is_valid():
             context = {
                 "type": form.cleaned_data.get("type"),
-                "query": form.cleaned_data.get("query"),
+                "type_query": form.cleaned_data.get("type_query"),
+                "text_query": form.cleaned_data.get("text_query"),
             }
 
             # Query TextRefs per form parameters
             table_data = TextRef.objects.filter(
                 Q(type__type=context.get("type"))
-                & Q(chapter_line__text__contains=context.get("query"))
+                & Q(type__name__icontains=context.get("type_query"))
+                & Q(chapter_line__text__icontains=context.get("text_query"))
             )
 
-            # print("TABLE DATA", table_data)
             table = TextRefTable(table_data)
             table.paginate(page=request.GET.get("page", 1), per_page=10)
-            # print("TABLE", table)
             context["table"] = table
             return render(request, "pages/search.html", context)
         else:
             # Form data not valid
-            return render(request, "pages/search.html")
+            return render(request, "pages/search_error.html")
     else:
         return render(request, "pages/search.html")
 

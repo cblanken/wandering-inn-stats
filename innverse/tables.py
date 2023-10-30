@@ -9,14 +9,13 @@ class TextRefTable(tables.Table):
     ref_name = tables.Column(accessor="type__name")
     text = tables.Column(accessor="chapter_line__text")
     chapter_url = tables.Column(
-        accessor="chapter_line__chapter__source_url", verbose_name="Source"
+        accessor="chapter_line__chapter__source_url", verbose_name="Chapter Source"
     )
 
     class Meta:
         model = TextRef
         template_name = "tables/search_table.html"
         fields = ("ref_name", "text", "chapter_url")
-        # attrs = {"class": ""}
 
     def render_chapter_url(self, record, value):
         # Using the full text or a strict character counts appears to run into issues when linking
@@ -27,7 +26,7 @@ class TextRefTable(tables.Table):
         return render_to_string(
             "patterns/atoms/link/link.html",
             context={
-                "text": "LINK",
+                "text": f"{record.chapter_line.chapter.title}",
                 "href": f"{source_url_with_fragment}",
                 "external": True,
             },
