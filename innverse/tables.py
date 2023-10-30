@@ -12,13 +12,27 @@ class TextRefTable(tables.Table):
         accessor="chapter_line__chapter__source_url", verbose_name="Chapter Source"
     )
 
+    # aliases = [a.name for a in Alias.objects.filter(ref_type__name=ref_name)]
+
     class Meta:
         model = TextRef
         template_name = "tables/search_table.html"
         fields = ("ref_name", "text", "chapter_url")
 
+    def render_text(self, record):
+        name = record.type.name
+        text = record.chapter_line.text
+        first = text[: record.start_column]
+        highlight = text[record.start_column : record.end_column]
+        last = text[record.end_column :]
+
+        return render_to_string(
+            "patterns/atoms/search_result_line/search_result_line.html",
+            context={"first": first, "highlight": highlight, "last": last},
+        )
+
     def render_chapter_url(self, record, value):
-        # Using the full text or a strict character counts appears to run into issues when linking
+        # Using the full text or a strict character count appears to run into issues when linking
         # with a TextFragment, either with too long URLs or unfinished words
         # Fill fragment with next ~8 words
         source_url_with_fragment = f'{value}#:~:text={" ".join(strip_tags(record.chapter_line.text).split(" ")[:8])}'
