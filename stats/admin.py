@@ -45,6 +45,7 @@ class ColorCategoryAdmin(admin.ModelAdmin):
 
 class RefTypeAdmin(admin.ModelAdmin):
     list_display = ["name", "type", "description"]
+    list_filter = ["type"]
     search_fields = ["name"]
     radio_fields = {"type": admin.VERTICAL}
 
