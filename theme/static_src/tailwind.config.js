@@ -59,6 +59,7 @@ module.exports = {
                 "text-primary": "#e8e9ebff",
                 "text-secondary": "#e0dfd5ff",
                 "text-tertiary": "#e6cea7ff",
+                "text-disabled": "#a68e77ff",
                 "hl-primary": "#ef6461ff",
                 "hl-secondary": "#ea8c62ff",
                 "hl-tertiary": "#e4b363ff",
