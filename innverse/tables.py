@@ -1,6 +1,6 @@
 from django.utils.html import format_html, escape, strip_tags
 from django.template.loader import render_to_string
-from urllib.parse import urlencode
+from urllib.parse import quote
 import django_tables2 as tables
 from stats.models import TextRef
 
@@ -35,7 +35,7 @@ class TextRefTable(tables.Table):
         # Using the full text or a strict character count appears to run into issues when linking
         # with a TextFragment, either with too long URLs or unfinished words
         # Fill fragment with next ~8 words
-        source_url_with_fragment = f'{value}#:~:text={" ".join(strip_tags(record.chapter_line.text).split(" ")[:8])}'
+        source_url_with_fragment = f'{value}#:~:text={quote(" ".join(strip_tags(record.chapter_line.text).split(" ")[:8]))}'
 
         return render_to_string(
             "patterns/atoms/link/link.html",
