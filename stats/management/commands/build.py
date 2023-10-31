@@ -716,7 +716,7 @@ class Command(BaseCommand):
                             new_char_created,
                         ) = Character.objects.get_or_create(
                             ref_type=ref_type,
-                            first_chapter_ref=first_ref,
+                            first_chapter_appearance=first_ref,
                             wiki_uri=char_data.get("wiki_href"),
                             status=Character.parse_status_str(char_data.get("status")),
                             species=Character.parse_species_str(
@@ -921,6 +921,9 @@ class Command(BaseCommand):
             )
 
             # Compile location names for TextRef search
+
+            # TODO: use location aliases like above for the Characters and
+            # filter by first reference
             location_names = [
                 x.name for x in RefType.objects.filter(type=RefType.LOCATION)
             ]

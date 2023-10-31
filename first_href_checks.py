@@ -11,7 +11,7 @@ def get_char_missing_first_href():
             )
             for i, (name, meta) in enumerate(data.items()):
                 char = Character.objects.get(ref_type__name=name)
-                if char.first_chapter_ref == None:
+                if char.first_chapter_appearance == None:
                     href = meta.get("first_href", "")
                     char_refs = TextRef.objects.filter(type__name=name).order_by(
                         "chapter__number"

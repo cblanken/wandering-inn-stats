@@ -258,7 +258,9 @@ class Character(models.Model):
     ]
 
     ref_type = models.ForeignKey(RefType, on_delete=models.CASCADE)
-    first_chapter_ref = models.ForeignKey(Chapter, on_delete=models.CASCADE, null=True)
+    first_chapter_appearance = models.ForeignKey(
+        Chapter, on_delete=models.CASCADE, null=True
+    )
     wiki_uri = models.URLField(null=True)
     status = models.CharField(max_length=2, choices=STATUSES, null=True)
     species = models.CharField(max_length=2, choices=SPECIES, null=True)

@@ -27,10 +27,10 @@ class ChapterLineAdmin(admin.ModelAdmin):
 
 
 class CharacterAdmin(admin.ModelAdmin):
-    list_display = ["ref_type", "species", "first_chapter_ref", "wiki_uri"]
+    list_display = ["ref_type", "species", "first_chapter_appearance", "wiki_uri"]
     list_filter = ["status", "species"]
     search_fields = ["ref_type__name"]
-    autocomplete_fields = ["ref_type", "first_chapter_ref"]
+    autocomplete_fields = ["ref_type", "first_chapter_appearance"]
     ordering = ["ref_type__name"]
 
 
