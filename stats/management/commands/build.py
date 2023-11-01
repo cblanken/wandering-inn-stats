@@ -2,14 +2,11 @@ from datetime import datetime as dt
 from glob import glob
 import itertools
 import json
-import logging
-from pprint import pprint
 from pathlib import Path
 import re
 from django.core.management.base import BaseCommand, CommandError
 from django.db.models import Q
 from django.db.models.query import QuerySet
-from playsound import playsound, PlaysoundException
 from stats.models import (
     ChapterLine,
     Color,
@@ -247,6 +244,24 @@ class Command(BaseCommand):
                 elif spell_obtained_pattern.match(text_ref.text):
                     new_type = RefType.SPELL_OBTAINED
                 else:
+                    # Check for any bracketed Character references or Aliases from
+                    # text messages or message scrolls like
+                    # For example: [batman]
+                    if text_ref.is_bracketed:
+                        for name in [
+                            x.name
+                            for x in itertools.chain(
+                                *[
+                                    RefType.objects.filter(type=RefType.CHARACTER),
+                                    Alias.objects.filter(
+                                        ref_type__type=RefType.CHARACTER
+                                    ),
+                                ]
+                            )
+                        ]:
+                            if text_ref.text[1:-1].lower() == name.lower():
+                                return None
+
                     # Prompt user to select TextRef type
                     if options.get("skip_reftype_select"):
                         new_type = None
