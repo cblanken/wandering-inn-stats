@@ -213,7 +213,7 @@ def character_charts():
 
     char_counts_per_chapter = [
         (
-            Character.objects.filter(first_chapter_ref__number__lt=i).aggregate(
+            Character.objects.filter(first_chapter_appearance__number__lt=i).aggregate(
                 chapter_cnt_per=Count("ref_type")
             )["chapter_cnt_per"]
         )
