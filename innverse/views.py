@@ -58,7 +58,11 @@ def search(request):
             )
 
             table = TextRefTable(table_data)
-            table.paginate(page=request.GET.get("page", 1), per_page=10)
+            try:
+                table.paginate(page=request.GET.get("page", 1), per_page=20)
+            except:
+                return render(request, "pages/search_error.html")
+
             context["table"] = table
             return render(request, "pages/search.html", context)
         else:
