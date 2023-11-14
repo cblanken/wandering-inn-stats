@@ -742,40 +742,43 @@ class Command(BaseCommand):
                 return
 
             # Compile character names for TextRef search
-            character_names = itertools.chain(
-                *[
+            # NOTE: names and aliases containing a '(' are filtered out to prevent
+            # interference when compiling the regex to match TextRefs
+            character_patterns = [
+                "|".join(
                     [
                         char.ref_type.name,
                         *[
                             alias.name
                             for alias in Alias.objects.filter(ref_type=char.ref_type)
+                            if "(" not in alias.name
                         ],
                     ]
-                    for char in Character.objects.filter(
-                        Q(first_chapter_appearance__number__lte=chapter_num)
-                        | Q(first_chapter_appearance=None)
-                    )
-                ]
-            )
+                )
+                for char in Character.objects.all()
+                if "(" not in char.ref_type.name
+            ]
 
             # Compile location names for TextRef search
-
-            # TODO: use location aliases like above for the Characters and
-            # filter by first reference
+            # TODO: rework into pattern groups per name e.g. { Name: "Name|Alias1|Alias2" }
+            # TODO: use location aliases like above for the Characters
             location_names = [
                 x.name for x in RefType.objects.filter(type=RefType.LOCATION)
             ]
-            names = itertools.chain(character_names, location_names)
 
-            patterns_by_name = {
-                name: Pattern._or(
-                    re.compile(r"(^|\W|[,.\?!][\W]?)" + name + r"(\W|[,.\?!]\W?)"),
-                    re.compile(
-                        r"(^|\W|[,.\?!][\W]?)" + name.upper() + r"(\W|[,.\?!]\W?)"
-                    ),
-                )
-                for name in names
-            }
+            # Compile item/artifact names for TextRef search
+            # TODO: add item/artifact names
+            prefix = r"[>\W]"
+            suffix = r"[<\W\.\?,!]"
+            compiled_patterns = Pattern._or(
+                [
+                    re.compile(f"{pattern}")
+                    for pattern in itertools.chain(character_patterns)
+                    if "(" not in pattern
+                ],
+                prefix=prefix,
+                suffix=suffix,
+            )
 
             # Populate TextRefs
             for i in range(len(src_chapter.lines)):
@@ -789,7 +792,7 @@ class Command(BaseCommand):
                     self.stdout.write(self.style.SUCCESS(f"> Creating line {i:>3}..."))
 
                 text_refs = src_chapter.gen_text_refs(
-                    i, patterns_by_name=patterns_by_name
+                    i, extra_patterns=compiled_patterns
                 )
 
                 for text_ref in text_refs:

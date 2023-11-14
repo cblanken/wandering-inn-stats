@@ -20,15 +20,21 @@ class Pattern:
     SPELL_OBTAINED = re.compile(r"\[[Ss]pell" + OBTAINED_SUFFIX)
 
     @staticmethod
-    def _or(*patterns: re.Pattern):
+    def _or(patterns: tuple[re.Pattern], prefix="", suffix="") -> re.Pattern:
         if len(patterns) == 1:
             return patterns[0]
 
-        new_pattern = re.compile("|".join([p.pattern for p in patterns]))
+        new_pattern = re.compile(
+            prefix
+            + r"(?P<or_center>"
+            + "|".join([f"({p.pattern})" for p in patterns])
+            + r")"
+            + suffix
+        )
         return new_pattern
 
     @staticmethod
-    def _and(*patterns: Pattern):
+    def _and(patterns: Pattern):
         # TODO: implement for combining Pattern with AND
         pass
 
@@ -116,27 +122,31 @@ class Chapter:
         self.metadata = get_metadata(self.path) if meta_path.exists() else None
 
         self.__bracket_pattern = Pattern._or(
-            Pattern.ALL_MAGIC_WORDS,
-            Pattern.SKILL_OBTAINED,
-            Pattern.CLASS_OBTAINED,
-            Pattern.SPELL_OBTAINED,
+            [
+                Pattern.ALL_MAGIC_WORDS,
+                Pattern.SKILL_OBTAINED,
+                Pattern.CLASS_OBTAINED,
+                Pattern.SPELL_OBTAINED,
+            ]
         )
-        self.all_bracket_refs: Generator[TextRef] = [
+        self.all_bracket_ref_gens_by_line: Generator[Generator[TextRef]] = [
             self.gen_text_refs(i) for i in range(len(self.lines))
         ]
 
     def gen_text_refs(
         self,
         line_num: int,
-        patterns_by_name: dict[str, Pattern] = None,
+        extra_patterns: list[str] = None,
         context_len: int = 50,
     ) -> Generator[TextRef]:
         """Return  TextRef(s) that match the regex for the given regex patterns
         and other arguments
 
         Args:
-            names (str): iterable of characters, locations, items, etc.
-
+            line_num (int): line of Chapter
+            extra_patterns (list): list of additional TextRef regex patterns e.g. characters,
+                locations, items, etc. and their aliases
+            context_len (int): number characters to capture that are surrounding a TextRef
         """
 
         # Yield any matches for bracketed types
@@ -153,14 +163,14 @@ class Chapter:
         # TODO: selection prompt for aliases with multiple matches
         # or if an alias matches a common word
         # Yield any matches for named references such as characters, locations, items, etc.
-        for name, pattern in patterns_by_name.items():
-            for match in re.finditer(pattern, self.lines[line_num]):
+        if extra_patterns:
+            for match in re.finditer(extra_patterns, self.lines[line_num]):
                 yield TextRef(
-                    name,
+                    match.groupdict()["or_center"],
                     self.lines[line_num],
                     line_num,
-                    match.start(),
-                    match.end(),
+                    match.start(1),
+                    match.end(1),
                     context_len,
                 )
 
@@ -171,8 +181,9 @@ class Chapter:
         print("=" * len(headline))
         print(headline)
         print("=" * len(headline))
-        for ref in self.all_bracket_refs:
-            print(ref)
+        for ref_gen in self.all_bracket_ref_gens_by_line:
+            for text_ref in ref_gen:
+                print(text_ref)
 
     def __str__(self):
         return f"{self.title}: {self.path}"
