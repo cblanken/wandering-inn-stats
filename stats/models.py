@@ -402,6 +402,42 @@ class Character(models.Model):
         return f"(Character: {self.ref_type.name}, Status: {self.status}, Species: {self.species})"
 
 
+class Item(models.Model):
+    ref_type = models.ForeignKey(RefType, on_delete=models.CASCADE)
+    first_chapter_ref = models.ForeignKey(Chapter, on_delete=models.CASCADE, null=True)
+    wiki_uri = models.URLField(null=True)
+
+    def __str__(self) -> str:
+        return f"(Item: {self.ref_type.name}, Wiki: {self.wiki_uri})"
+
+
+class Location(models.Model):
+    ref_type = models.ForeignKey(RefType, on_delete=models.CASCADE)
+    first_chapter_ref = models.ForeignKey(Chapter, on_delete=models.CASCADE, null=True)
+    wiki_uri = models.URLField(null=True)
+
+    def __str__(self) -> str:
+        return f"(Location: {self.ref_type.name}, Wiki: {self.wiki_uri})"
+
+
+class Skill(models.Model):
+    ref_type = models.ForeignKey(RefType, on_delete=models.CASCADE)
+    first_chapter_ref = models.ForeignKey(Chapter, on_delete=models.CASCADE, null=True)
+    wiki_uri = models.URLField(null=True)
+
+    def __str__(self) -> str:
+        return f"(Skill: {self.ref_type.name}, Wiki: {self.wiki_uri})"
+
+
+class Spell(models.Model):
+    ref_type = models.ForeignKey(RefType, on_delete=models.CASCADE)
+    first_chapter_ref = models.ForeignKey(Chapter, on_delete=models.CASCADE, null=True)
+    wiki_uri = models.URLField(null=True)
+
+    def __str__(self) -> str:
+        return f"(Spell: {self.ref_type.name}, Wiki: {self.wiki_uri})"
+
+
 class Alias(models.Model):
     """RefType aliases / alternate names"""
 
