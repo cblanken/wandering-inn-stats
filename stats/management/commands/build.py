@@ -18,6 +18,7 @@ from stats.models import (
     RefType,
     Alias,
     Character,
+    Location,
 )
 from processing import (
     Volume as SrcVolume,
@@ -124,7 +125,7 @@ class Command(BaseCommand):
         self.stdout.write("Updating DB...")
 
         def get_or_create_ref_type(text_ref: SrcTextRef) -> RefType:
-            # Check for existing RefType of TextRef and create if necessary
+            """Check for existing RefType of TextRef and create if necessary"""
             while True:  # loop for retries from select RefType prompt
                 try:
                     ref_type = RefType.objects.get(name=text_ref.text)
@@ -549,6 +550,7 @@ class Command(BaseCommand):
                                 first_ref = None
                         except Chapter.DoesNotExist:
                             first_ref = None
+
                         (
                             new_character,
                             new_char_created,
@@ -578,7 +580,7 @@ class Command(BaseCommand):
             loc_data_path = Path(options["data_path"], "locations.json")
             with open(loc_data_path, encoding="utf-8") as file:
                 try:
-                    char_data = json.load(file)
+                    loc_data = json.load(file)
                 except json.JSONDecodeError:
                     self.stdout.write(
                         self.style.ERROR(
@@ -586,8 +588,8 @@ class Command(BaseCommand):
                         )
                     )
                 else:
-                    for loc_name, char_data in char_data.items():
-                        loc_url = char_data["url"]
+                    for loc_name, loc_data in loc_data.items():
+                        loc_url = loc_data["url"]
                         ref_type, ref_type_created = RefType.objects.get_or_create(
                             name=loc_name, type=RefType.LOCATION, description=loc_url
                         )
@@ -601,6 +603,26 @@ class Command(BaseCommand):
                             self.stdout.write(
                                 self.style.WARNING(
                                     f"> Location RefType: {loc_name} already exists. Skipping creation..."
+                                )
+                            )
+
+                        (
+                            new_location,
+                            new_location_created,
+                        ) = Location.objects.get_or_create(
+                            ref_type=ref_type,
+                            wiki_uri=loc_data.get("url"),
+                        )
+                        if new_location_created:
+                            self.stdout.write(
+                                self.style.SUCCESS(
+                                    f"> Location data: {loc_name} created"
+                                )
+                            )
+                        else:
+                            self.stdout.write(
+                                self.style.WARNING(
+                                    f"> Location data: {loc_name} already exists. Skipping creation..."
                                 )
                             )
 
@@ -745,25 +767,14 @@ class Command(BaseCommand):
             # NOTE: names and aliases containing a '(' are filtered out to prevent
             # interference when compiling the regex to match TextRefs
             character_patterns = [
-                "|".join(
-                    [
-                        char.ref_type.name,
-                        *[
-                            alias.name
-                            for alias in Alias.objects.filter(ref_type=char.ref_type)
-                            if "(" not in alias.name
-                        ],
-                    ]
-                )
+                "|".join(build_reftype_pattern(char))
                 for char in Character.objects.all()
                 if "(" not in char.ref_type.name
             ]
 
             # Compile location names for TextRef search
-            # TODO: rework into pattern groups per name e.g. { Name: "Name|Alias1|Alias2" }
-            # TODO: use location aliases like above for the Characters
-            location_names = [
-                x.name for x in RefType.objects.filter(type=RefType.LOCATION)
+            location_patterns = [
+                "|".join(build_reftype_pattern(loc)) for loc in Location.objects.all()
             ]
 
             # Compile item/artifact names for TextRef search
@@ -773,7 +784,9 @@ class Command(BaseCommand):
             compiled_patterns = Pattern._or(
                 [
                     re.compile(f"{pattern}")
-                    for pattern in itertools.chain(character_patterns)
+                    for pattern in itertools.chain(
+                        character_patterns, location_patterns
+                    )
                     if "(" not in pattern
                 ],
                 prefix=prefix,

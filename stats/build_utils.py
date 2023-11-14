@@ -7,8 +7,28 @@ from django.db.models import Q
 from django.db.models.query import QuerySet
 from playsound import playsound, PlaysoundException
 from stats.models import (
+    Alias,
     RefType,
 )
+from typing import Protocol
+
+
+class RefTypeHolder(Protocol):
+    @property
+    def ref_type(self) -> RefType:
+        ...
+
+
+def build_reftype_pattern(ref: RefTypeHolder):
+    """Create an OR'ed regex of a Reftype's name and its aliases"""
+    return [
+        ref.ref_type.name,
+        *[
+            alias.name
+            for alias in Alias.objects.filter(ref_type=ref.ref_type)
+            if "(" not in alias.name
+        ],
+    ]
 
 
 class COLOR_CATEGORY(Enum):

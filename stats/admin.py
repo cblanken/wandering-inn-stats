@@ -50,6 +50,11 @@ class RefTypeAdmin(admin.ModelAdmin):
     radio_fields = {"type": admin.VERTICAL}
 
 
+class LocationAdmin(admin.ModelAdmin):
+    list_display = ["ref_type", "wiki_uri", "first_chapter_ref"]
+    search_fields = ["ref_type__name"]
+
+
 class TextRefAdmin(admin.ModelAdmin):
     list_display = ["type", "color", "start_column", "end_column", "chapter_line"]
     list_filter = ["color__category__name", "chapter_line__chapter__title"]
@@ -66,8 +71,11 @@ admin.site.register(Volume, VolumeAdmin)
 # Text reference data
 admin.site.register(Alias, AliasAdmin)
 admin.site.register(ChapterLine, ChapterLineAdmin)
-admin.site.register(Character, CharacterAdmin)
 admin.site.register(Color, ColorAdmin)
 admin.site.register(ColorCategory, ColorCategoryAdmin)
 admin.site.register(RefType, RefTypeAdmin)
 admin.site.register(TextRef, TextRefAdmin)
+
+# Wiki data objects
+admin.site.register(Character, CharacterAdmin)
+admin.site.register(Location, LocationAdmin)
