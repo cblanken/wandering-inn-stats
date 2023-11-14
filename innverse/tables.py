@@ -35,7 +35,23 @@ class TextRefTable(tables.Table):
         # Using the full text or a strict character count appears to run into issues when linking
         # with a TextFragment, either with too long URLs or unfinished words
         # Fill fragment with next ~8 words
-        source_url_with_fragment = f'{value}#:~:text={quote(" ".join(strip_tags(record.chapter_line.text).split(" ")[:8]))}'
+        offset = 25
+        fragment_start = (
+            record.start_column - offset if record.start_column > offset else 0
+        )
+        fragment_end = (
+            record.end_column + offset
+            if len(record.chapter_line.text) > record.end_column + offset
+            else len(record.chapter_line.text) - 1
+        )
+        front_word_cutoff_cnt = 0 if fragment_start == 0 else 1
+        end_word_cutoff_cnt = (
+            len(record.chapter_line.text)
+            if fragment_end == len(record.chapter_line.text) - 1
+            else -1
+        )
+
+        source_url_with_fragment = f'{value}#:~:text={quote(" ".join(strip_tags(record.chapter_line.text[fragment_start:fragment_end]).split(" ")[front_word_cutoff_cnt:end_word_cutoff_cnt]))}'
 
         return render_to_string(
             "patterns/atoms/link/link.html",
