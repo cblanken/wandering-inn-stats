@@ -1,5 +1,8 @@
-<nav class="bg-bg-secondary sticky top-0 flex flex-col font-heading h-screen justify-between p-4  text-text-primary text-3xl">
-    <ul class="flex flex-col gap-4 m-4 p-4 text-5xl uppercase">
+<nav class= "bg-bg-secondary sticky top-0 flex flex-col font-heading h-screen justify-between p-4  text-text-primary text-3xl">
+    <button id="nav-fold-btn" class="absolute top-0 right-0">
+        <i class="nav-icon w-8 h-8" data-feather="chevron-left"></i>
+    </button>
+    <ul class="flex flex-col gap-4 m-2 p-4 text-5xl uppercase">
         {% include "patterns/atoms/sidebar_nav/sidebar_nav_element.html" with title="Overview" feather_icon="home" target_href="/overview" %}
         {% include "patterns/atoms/sidebar_nav/sidebar_nav_element.html" with title="Characters" feather_icon="users" target_href="/characters" %}
         {% include "patterns/atoms/sidebar_nav/sidebar_nav_element.html" with title="Classes" feather_icon="star" target_href="/classes" %}
@@ -13,3 +16,65 @@
         {% include "patterns/atoms/sidebar_nav/sidebar_nav_element.html" with title="Settings" feather_icon="settings" target_href="/settings" %}
     </ul>
 </nav>
+<script>
+    let nav = document.querySelector("nav");
+    let nav_titles = document.querySelectorAll(".nav-title")
+
+    function replace_fold_icon(feather_name) {
+        let nav_fold_btn = document.querySelector("#nav-fold-btn")
+
+        let icon = document.createElement("i")
+        icon.setAttribute("data-feather", feather_name)
+        icon.classList.add("nav-icon", "w-8", "h-8")
+
+        nav_fold_btn.replaceChild(icon, nav_fold_btn.firstElementChild);
+        feather.replace()
+    }
+
+    function fold_nav() {
+        nav.classList.add("w-24");
+        nav_titles.forEach(title => {
+            title.classList.add("hidden");
+        })
+
+        nav_groups = document.querySelectorAll("nav > ul")
+        nav_groups.forEach(group => {
+            group.classList.add("items-center");
+        })
+
+        replace_fold_icon("chevron-right")
+    }
+
+    function unfold_nav() {
+        nav.classList.remove("w-24")
+        nav_titles.forEach(title => {
+            title.classList.remove("hidden");
+        })
+
+        nav_groups = document.querySelectorAll("nav > ul")
+        nav_groups.forEach(group => {
+            group.classList.remove("items-center");
+        })
+
+        replace_fold_icon("chevron-left")
+    }
+
+    // Fold per setting in localStorage
+    let is_nav_folded = localStorage.getItem("nav_folded");
+    if (is_nav_folded === "true") {
+        fold_nav()
+    }
+
+    // Add fold click event
+    let nav_fold_btn = document.querySelector("#nav-fold-btn")
+    nav_fold_btn.addEventListener("click", (e) => {
+        if (localStorage.getItem("nav_folded") === "true") {
+            localStorage.setItem("nav_folded", false);
+            unfold_nav()
+        } else {
+            localStorage.setItem("nav_folded", true);
+            fold_nav()
+        }
+    })
+
+</script>
