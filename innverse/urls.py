@@ -1,10 +1,11 @@
 from django.contrib import admin
 from django.apps import apps
 from django.urls import path, include
+
 from . import views
 
 urlpatterns = [
-    path("", views.overview, name="overview"),
+    path("overview", views.overview, name="overview"),
     path("characters", views.characters, name="characters"),
     path("classes", views.classes),
     path("skills", views.skills),
