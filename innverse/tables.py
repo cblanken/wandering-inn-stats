@@ -12,8 +12,6 @@ class TextRefTable(tables.Table):
         accessor="chapter_line__chapter__source_url", verbose_name="Chapter Source"
     )
 
-    # aliases = [a.name for a in Alias.objects.filter(ref_type__name=ref_name)]
-
     class Meta:
         model = TextRef
         template_name = "tables/search_table.html"
@@ -34,7 +32,6 @@ class TextRefTable(tables.Table):
     def render_chapter_url(self, record, value):
         # Using the full text or a strict character count appears to run into issues when linking
         # with a TextFragment, either with too long URLs or unfinished words
-        # Fill fragment with next ~8 words
         offset = 25
         fragment_start = (
             record.start_column - offset if record.start_column > offset else 0
