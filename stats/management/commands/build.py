@@ -124,9 +124,53 @@ class Command(BaseCommand):
 
         self.stdout.write("Updating DB...")
 
+        MANUAL_REFTYPE_DISAMBIGUATION_LIST = [
+            "archer",
+            "butler",
+            "cat",
+            "chieftan",
+            "crimson",
+            "crusader",
+            "doctor",
+            "eater",
+            "falcon",
+            "first",
+            "fool",
+            "frost",
+            "grandfather",
+            "grandmother",
+            "grass",
+            "oldest",
+            "pawn",
+            "ram",
+            "red",
+            "seer",
+            "silver",
+            "sky",
+            "spider",
+            "sunburst",
+            "that drake",
+            "twin",
+        ]
+
         def get_or_create_ref_type(text_ref: SrcTextRef) -> RefType:
             """Check for existing RefType of TextRef and create if necessary"""
             while True:  # loop for retries from select RefType prompt
+
+                if text_ref.text.lower() in MANUAL_REFTYPE_DISAMBIGUATION_LIST:
+                    # Prompt user to continue
+                    ans = prompt(
+                        f'> "{text_ref.text}" matches a name in [MANUAL DISAMBIGUATION LIST]. Skip (default) TextRef? (y/n): ',
+                        sound=True,
+                    )
+
+                    # Skip by default
+                    if ans.lower() == "y" or len(ans) == 0:
+                        self.stdout.write(
+                            self.style.WARNING(f"> {text_ref.text} skipped...")
+                        )
+                        return None
+
                 try:
                     ref_type = RefType.objects.get(name=text_ref.text)
                     self.stdout.write(
