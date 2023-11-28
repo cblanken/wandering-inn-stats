@@ -10,7 +10,18 @@ from .forms import SearchForm
 
 @cache_page(60)
 def overview(request):
-    return render(request, "pages/overview.html", word_count_charts())
+
+    context = {
+        "plot_groups": {
+            "word_counts": {
+                "plots": word_count_charts()["plots"],
+                "selected_param": "word_count_tab",
+                "selected": int(request.GET.get("word_count_tab", 0)),
+            }
+        }
+    }
+
+    return render(request, "pages/overview.html", context)
 
 
 @cache_page(60)
@@ -88,5 +99,6 @@ def about(request):
     return render(request, "pages/about.html")
 
 
+@cache_page(60 * 60 * 24)
 def settings(request):
     return render(request, "pages/settings.html")

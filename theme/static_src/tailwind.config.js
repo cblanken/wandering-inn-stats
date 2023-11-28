@@ -50,7 +50,8 @@ module.exports = {
         extend: {
             fontFamily: {
                 heading: ['Amatic SC', 'cursive'],
-                para: ['Andika', 'sans']
+                subheading: ['Cambria', 'serif'],
+                para: ['Andika', 'sans'],
             },
             colors: {
                 "bg-primary": "#262b2cff",

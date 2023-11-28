@@ -168,9 +168,9 @@ def word_count_charts():
     return {
         "plots": {
             "Word Counts by Chapter": chapter_wc_html,
-            "Word Counts by Author's Note": chapter_authors_wc_html,
-            "Word Counts by Book": book_wc_html,
             "Word Counts by Volume": volume_wc_html,
+            "Word Counts by Book": book_wc_html,
+            # "Word Counts by Author's Note": chapter_authors_wc_html,
         },
         "page_title": "Word Counts",
     }
