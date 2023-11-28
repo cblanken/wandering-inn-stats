@@ -8,7 +8,6 @@ from .tables import TextRefTable
 from .forms import SearchForm
 
 
-@cache_page(60)
 def overview(request):
 
     context = {
@@ -26,7 +25,16 @@ def overview(request):
 
 @cache_page(60)
 def characters(request):
-    return render(request, "pages/characters.html", character_charts())
+    context = {
+        "plot_groups": {
+            "word_counts": {
+                "plots": character_charts()["plots"],
+                "selected_param": "word_count_tab",
+                "selected": int(request.GET.get("character_stat_tab", 0)),
+            }
+        }
+    }
+    return render(request, "pages/characters.html", context)
 
 
 @cache_page(60)
