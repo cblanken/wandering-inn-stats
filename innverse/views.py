@@ -8,6 +8,7 @@ from .tables import TextRefTable
 from .forms import SearchForm
 
 
+@cache_page(60 * 60 * 24)
 def overview(request):
 
     context = {
@@ -23,7 +24,7 @@ def overview(request):
     return render(request, "pages/overview.html", context)
 
 
-@cache_page(60)
+@cache_page(60 * 60 * 24)
 def characters(request):
     context = {
         "plot_groups": {
@@ -37,17 +38,17 @@ def characters(request):
     return render(request, "pages/characters.html", context)
 
 
-@cache_page(60)
+@cache_page(60 * 60 * 24)
 def classes(request):
     return render(request, "pages/classes.html", class_charts())
 
 
-@cache_page(60)
+@cache_page(60 * 60 * 24)
 def skills(request):
     return render(request, "pages/skills.html")
 
 
-@cache_page(60)
+@cache_page(60 * 60 * 24)
 def magic(request):
     return render(request, "pages/magic.html")
 
