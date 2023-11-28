@@ -5,8 +5,8 @@ from django.urls import path, include
 from . import views
 
 urlpatterns = [
-    path("overview", views.overview, name="overview"),
-    path("characters", views.characters, name="characters"),
+    path("overview", views.overview),
+    path("characters", views.characters),
     path("classes", views.classes),
     path("skills", views.skills),
     path("magic", views.magic),
