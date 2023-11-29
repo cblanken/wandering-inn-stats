@@ -10,7 +10,6 @@ from .forms import SearchForm
 
 @cache_page(60 * 60 * 24)
 def overview(request):
-
     context = {
         "plot_groups": {
             "word_counts": {
@@ -30,8 +29,8 @@ def characters(request):
         "plot_groups": {
             "word_counts": {
                 "plots": character_charts()["plots"],
-                "selected_param": "word_count_tab",
-                "selected": int(request.GET.get("character_stat_tab", 0)),
+                "selected_param": "character_count_tab",
+                "selected": int(request.GET.get("character_count_tab", 0)),
             }
         }
     }
@@ -40,7 +39,16 @@ def characters(request):
 
 @cache_page(60 * 60 * 24)
 def classes(request):
-    return render(request, "pages/classes.html", class_charts())
+    context = {
+        "plot_groups": {
+            "word_counts": {
+                "plots": class_charts()["plots"],
+                "selected_param": "class_count_tab",
+                "selected": int(request.GET.get("class_count_tab", 0)),
+            }
+        }
+    }
+    return render(request, "pages/classes.html", context)
 
 
 @cache_page(60 * 60 * 24)
