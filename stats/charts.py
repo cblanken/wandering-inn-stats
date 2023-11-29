@@ -153,7 +153,7 @@ def word_count_charts():
     )
     volume_wc_fig.update_traces(
         customdata=np.stack((volume_wc_data.values_list("title"),), axis=-1),
-        hovertemplate="<b>volume</b>: %{x}<br>"
+        hovertemplate="<b>Volume</b>: %{x}<br>"
         + "<b>Chapter</b>: %{customdata[0]}<br>"
         + "<b>Word Count</b>: %{y}"
         + "<extra></extra>",
@@ -199,7 +199,7 @@ def character_charts():
             axis=-1,
         ),
         hovertemplate="<b>Character</b>: %{customdata[0][0]}<br>"
-        + "<b>Character Ref Count</b>: %{customdata[0][1]}"
+        + "<b>Reference Count</b>: %{customdata[0][1]}"
         + "<extra></extra>",
     )
     char_refs_count_html = char_refs_count_fig.to_html(
@@ -246,10 +246,24 @@ def character_charts():
 
     # Character data counts
     characters = (
-        Character.objects.all().annotate(
-            species_cnt=Count("species"), status_cnt=Count("status")
+        Character.objects.all()
+        .annotate(
+            species_cnt=Count("species"),
+            status_cnt=Count("status"),
         )
-    ).values()
+        .values()
+    )
+
+    # TODO: make this more robust and performant
+    # currently scans Character.SPECIES choices tuple to match human-readable string
+    for c in characters:
+        c["species"] = Character.SPECIES[
+            [x[0] for x in Character.SPECIES].index(c["species"])
+        ][1]
+        c["status"] = Character.STATUSES[
+            [x[0] for x in Character.STATUSES].index(c["status"])
+        ][1]
+        print(c)
 
     # Character counts by species
     chars_by_species_fig = px.pie(
@@ -316,6 +330,16 @@ def class_charts():
 
     class_refs_count_fig.update_layout(DEFAULT_LAYOUT)
     class_refs_count_fig.update_traces(textposition="inside")
+    class_refs_count_fig.update_traces(
+        textposition="inside",
+        customdata=np.stack(
+            (class_refs.values_list("type__name", "class_instance_cnt"),),
+            axis=-1,
+        ),
+        hovertemplate="<b>Class</b>: %{customdata[0][0]}<br>"
+        + "<b>Reference Count</b>: %{customdata[0][1]}"
+        + "<extra></extra>",
+    )
 
     class_refs_count_html = class_refs_count_fig.to_html(
         full_html=False, include_plotlyjs=False
