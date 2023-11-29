@@ -36,7 +36,6 @@ def word_count_charts():
         x="number",
         y="word_count",
         template=DEFAULT_PLOTLY_TEMPLATE,
-        title="Word Count Per Chapter",
         hover_data=["title", "number", "word_count", "post_date"],
         trendline="ols",
         trendline_color_override="#FF8585",
@@ -75,7 +74,6 @@ def word_count_charts():
         x="number",
         y="authors_note_word_count",
         template=DEFAULT_PLOTLY_TEMPLATE,
-        title="Word Count Per Author's Note",
         hover_data=["title", "number", "authors_note_word_count"],
     )
 
@@ -113,7 +111,6 @@ def word_count_charts():
         y="word_count",
         color="book",
         template=DEFAULT_PLOTLY_TEMPLATE,
-        title="Word Count Per Book",
         color_continuous_scale=px.colors.qualitative.Vivid,
     )
     book_wc_fig.update_layout(
@@ -145,7 +142,6 @@ def word_count_charts():
         y="word_count",
         color="book__volume",
         template=DEFAULT_PLOTLY_TEMPLATE,
-        title="Word Count Per Volume",
         color_continuous_scale=px.colors.qualitative.Vivid,
     )
     volume_wc_fig.update_layout(
@@ -194,7 +190,6 @@ def character_charts():
         names="type__name",
         values="char_instance_cnt",
         template=DEFAULT_PLOTLY_TEMPLATE,
-        title="Character Reference Counts",
     )
     char_refs_count_fig.update_layout(DEFAULT_LAYOUT)
     char_refs_count_fig.update_traces(
@@ -230,7 +225,6 @@ def character_charts():
         x="Chapter",
         y="Character Count",
         template=DEFAULT_PLOTLY_TEMPLATE,
-        title="Character Count Over Time",
     )
     char_counts_per_chapter_fig.update_layout(
         DEFAULT_LAYOUT,
@@ -263,7 +257,6 @@ def character_charts():
         names="species",
         values="species_cnt",
         template=DEFAULT_PLOTLY_TEMPLATE,
-        title="Characters by Species",
     )
     chars_by_species_fig.update_layout(DEFAULT_LAYOUT)
     chars_by_species_fig.update_traces(
@@ -285,7 +278,6 @@ def character_charts():
         names="status",
         values="status_cnt",
         template=DEFAULT_PLOTLY_TEMPLATE,
-        title="Characters by Status",
     )
     chars_by_status_fig.update_layout(DEFAULT_LAYOUT)
     chars_by_status_fig.update_traces(textposition="inside")
@@ -320,7 +312,6 @@ def class_charts():
         names="type__name",
         values="class_instance_cnt",
         template=DEFAULT_PLOTLY_TEMPLATE,
-        title="Class TextRefCounts",
     )
 
     class_refs_count_fig.update_layout(DEFAULT_LAYOUT)
