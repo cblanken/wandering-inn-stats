@@ -2,15 +2,16 @@ from enum import Enum
 from pathlib import Path
 from pprint import pprint
 from pathlib import Path
+from sys import stderr
 from django.core.management.base import BaseCommand, CommandError
 from django.db.models import Q
 from django.db.models.query import QuerySet
-from playsound import playsound, PlaysoundException
 from stats.models import (
     Alias,
     RefType,
 )
 from typing import Protocol
+from subprocess import run, TimeoutExpired
 
 
 class RefTypeHolder(Protocol):
@@ -130,9 +131,13 @@ def match_ref_type(type_str) -> str:
 
 def prompt(s: str = "", sound: bool = False):
     if sound:
+        sound_filepath = Path("stats/sounds/alert.mp3")
         try:
-            playsound(Path("stats/sounds/alert.mp3"), block=False)
-        except PlaysoundException:
+            run(["mpg12", "-q", "--pitch", ".25", sound_filepath], timeout=1)
+        except OSError:
+            print(f"! - Alert sound file {sound_filepath} could not be played.")
+        except TimeoutExpired:
+            print("! - Alert sound player timed out", file=stderr)
             pass
 
     return input(s)
