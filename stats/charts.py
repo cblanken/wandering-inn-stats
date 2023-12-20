@@ -1,18 +1,17 @@
-from django.db.models import Count, F, Q, Sum, Value, Case, ExpressionWrapper
+from django.db.models import Count, F, Q, Sum, Value, Case, ExpressionWrapper, Min
 import plotly.express as px
 import numpy as np
 import pandas as pd
 from enum import Enum
 from .models import Chapter, RefType, TextRef, Character
 
-px.defaults.height = 800
 
 DEFAULT_PLOTLY_TEMPLATE = "plotly_dark"
-
+DEFAULT_HEIGHT = "calc(100vh - 110px)"
+DEFAULT_WIDTH = "calc(100vw - 420px)"
 
 DEFAULT_LAYOUT = {
     "font": {
-        # "color": "#e8e9eb",
         "family": "Courier New, mono",
         "size": 16,
     },
@@ -60,7 +59,12 @@ def word_count_charts():
         + "<extra></extra>",
     )
 
-    chapter_wc_html = chapter_wc_fig.to_html(full_html=False, include_plotlyjs=False)
+    chapter_wc_html = chapter_wc_fig.to_html(
+        full_html=False,
+        include_plotlyjs=False,
+        default_height=DEFAULT_HEIGHT,
+        default_width=DEFAULT_WIDTH,
+    )
 
     # Word counts per author's note
     chapter_wc_data = (
@@ -95,7 +99,10 @@ def word_count_charts():
     )
 
     chapter_authors_wc_html = chapter_authors_wc_fig.to_html(
-        full_html=False, include_plotlyjs=False
+        full_html=False,
+        include_plotlyjs=False,
+        default_height=DEFAULT_HEIGHT,
+        default_width=DEFAULT_WIDTH,
     )
 
     # Word counts grouped by book
@@ -129,7 +136,12 @@ def word_count_charts():
         + "<extra></extra>",
     )
 
-    book_wc_html = book_wc_fig.to_html(full_html=False, include_plotlyjs=False)
+    book_wc_html = book_wc_fig.to_html(
+        full_html=False,
+        include_plotlyjs=False,
+        default_height=DEFAULT_HEIGHT,
+        default_width=DEFAULT_WIDTH,
+    )
 
     # Word counts grouped by volume
     volume_wc_data = Chapter.objects.values(
@@ -159,7 +171,12 @@ def word_count_charts():
         + "<extra></extra>",
     )
 
-    volume_wc_html = volume_wc_fig.to_html(full_html=False, include_plotlyjs=False)
+    volume_wc_html = volume_wc_fig.to_html(
+        full_html=False,
+        include_plotlyjs=False,
+        default_height=DEFAULT_HEIGHT,
+        default_width=DEFAULT_WIDTH,
+    )
 
     return {
         "plots": {
@@ -203,23 +220,33 @@ def character_charts():
         + "<extra></extra>",
     )
     char_refs_count_html = char_refs_count_fig.to_html(
-        full_html=False, include_plotlyjs=False
+        full_html=False,
+        include_plotlyjs=False,
+        default_height=DEFAULT_HEIGHT,
+        default_width=DEFAULT_WIDTH,
     )
 
     char_counts_per_chapter = [
         (
-            Character.objects.filter(first_chapter_appearance__number__lt=i).aggregate(
-                chapter_cnt_per=Count("ref_type")
-            )["chapter_cnt_per"]
+            Character.objects.filter(
+                first_chapter_appearance__number__lt=num
+            ).aggregate(chapter_cnt_per=Count("ref_type"))["chapter_cnt_per"]
         )
-        for i in ([x.number for x in Chapter.objects.all()])
+        for num in ([c.number for c in Chapter.objects.all()])
     ]
 
     char_counts_per_chapter = [
         x for x in zip(range(len(char_counts_per_chapter)), char_counts_per_chapter)
     ]
 
+    unique_chars_over_time = (
+        TextRef.objects.filter(type__type="CH")
+        .values("type__name")
+        .annotate(first_ref=Min("chapter_line__chapter__number"))
+    )
     df = pd.DataFrame(char_counts_per_chapter, columns=["Chapter", "Character Count"])
+
+    # df = pd.DataFrame(char_counts_per_chapter, columns=["Chapter", "Character Count"])
     char_counts_per_chapter_fig = px.scatter(
         df,
         x="Chapter",
@@ -241,7 +268,10 @@ def character_charts():
         + "<extra></extra>"
     )
     char_counts_per_chapter_html = char_counts_per_chapter_fig.to_html(
-        full_html=False, include_plotlyjs=False
+        full_html=False,
+        include_plotlyjs=False,
+        default_height=DEFAULT_HEIGHT,
+        default_width=DEFAULT_WIDTH,
     )
 
     # Character data counts
@@ -283,7 +313,10 @@ def character_charts():
         + "<extra></extra>",
     )
     chars_by_species_html = chars_by_species_fig.to_html(
-        full_html=False, include_plotlyjs=False
+        full_html=False,
+        include_plotlyjs=False,
+        default_height=DEFAULT_HEIGHT,
+        default_width=DEFAULT_WIDTH,
     )
 
     # Character counts by status
@@ -296,7 +329,10 @@ def character_charts():
     chars_by_status_fig.update_layout(DEFAULT_LAYOUT)
     chars_by_status_fig.update_traces(textposition="inside")
     chars_by_status_html = chars_by_status_fig.to_html(
-        full_html=False, include_plotlyjs=False
+        full_html=False,
+        include_plotlyjs=False,
+        default_height=DEFAULT_HEIGHT,
+        default_width=DEFAULT_WIDTH,
     )
 
     return {
@@ -342,7 +378,10 @@ def class_charts():
     )
 
     class_refs_count_html = class_refs_count_fig.to_html(
-        full_html=False, include_plotlyjs=False
+        full_html=False,
+        include_plotlyjs=False,
+        default_height=DEFAULT_HEIGHT,
+        default_width=DEFAULT_WIDTH,
     )
 
     return {
