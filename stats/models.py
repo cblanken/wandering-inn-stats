@@ -1,4 +1,5 @@
 from django.db import models
+import re
 
 
 class ColorCategory(models.Model):
@@ -135,31 +136,53 @@ class Character(models.Model):
     # Species short-codes
     AGELUM = "AG"
     ANTINIUM = "AN"
+    ASHFIRE_BEE = "AB"
     BEASTKIN = "BK"
+    BEASTKIN_BEAR = "BB"
+    BEASTKIN_CAT = "BC"
+    BEASTKIN_DOG = "BD"
+    BEASTKIN_FALCON = "BF"
+    BEASTKIN_FOX = "BX"
+    BEASTKIN_JACKAL = "BJ"
+    BEASTKIN_OWL = "BO"
+    BEASTKIN_RABBIT = "BR"
+    BEASTKIN_RHINO = "BH"
+    BEASTKIN_SALAMANDER = "BS"
+    BEASTKIN_SQUIRREL = "BQ"
+    BEASTKIN_WOLF = "BW"
+    CAT = "CA"
     CENTAUR = "CT"
     CYCLOPS = "CY"
     DEMON = "DE"
+    DJINNI = "DJ"
     DRAGON = "DG"
     DRAKE = "DR"
     DROWNED_PEOPLE = "DP"
     DRYAD = "DY"
+    DWARF = "DW"
     DULLAHAN = "DU"
     ELF = "EL"
+    ELEMENTAL = "EM"
     FAE = "FA"
     FRAERLING = "FR"
     GARUDA = "GR"
     GAZER = "GA"
+    GIANT = "GI"
     GOBLIN = "GB"
+    GNOLL = "GN"
     GOD = "GO"
     GOLEM = "GM"
+    GRIFFIN = "GR"
     HALFLING = "HA"
     HALF_ELF = "HE"
     HALF_GAZER = "HG"
+    HALF_GIANT = "HI"
     HALF_TROLL = "HT"
     HARPY = "HR"
     HUMAN = "HU"
     KELPIES = "KE"
     KITSUNE = "KI"
+    LIVING_ARMOR = "LA"
     LIZARDFOLK = "LF"
     LIZARDFOLK_GORGON = "LG"
     LIZARDFOLK_INDISHEI = "LI"
@@ -172,11 +195,20 @@ class Character(models.Model):
     LIZARDFOLK_TASGIEL = "LT"
     LUCIFEN = "LU"
     MERFOLK = "ME"
+    MIMIC = "MM"
+    MIND = "MN"
     MINOTAUR = "MI"
     OGRE = "OG"
+    PEGASIS = "PG"
     PHOENIX = "PH"
+    RASKGHAR = "RG"
+    RAT = "RA"
+    REVENANT = "RE"
     SARIANT_LAMB = "SL"
+    SCORCHLING = "SH"
+    SEAMWALKER = "SW"
     SELPHID = "SE"
+    SLIME = "SL"
     SPIDERFOLK = "SF"
     STRING_PEOPLE = "SP"
     TITAN = "TI"
@@ -188,63 +220,98 @@ class Character(models.Model):
     WYRM = "WY"
     WYVERN = "WV"
 
-    SPECIES = [
-        (AGELUM, "Agelum"),
-        (ANTINIUM, "Antinium"),
-        (BEASTKIN, "Beastkin"),
-        (CENTAUR, "Centaur"),
-        (CYCLOPS, "Cyclops"),
-        (DEMON, "Demon"),
-        (DRAGON, "Dragon"),
-        (DROWNED_PEOPLE, "Drowned People"),
-        (DRAKE, "Drake"),
-        (DULLAHAN, "Dullahan"),
-        (DRYAD, "Dryad"),
-        (ELF, "Elf"),
-        (FAE, "Fae"),
-        (FRAERLING, "Fraerling"),
-        (GAZER, "Gazer"),
-        (GOBLIN, "Goblin"),
-        (GOLEM, "Golem"),
-        (GOD, "God"),
-        (GARUDA, "Garuda"),
-        (HALFLING, "Halfling"),
-        (HALF_ELF, "Half-Elf"),
-        (HALF_GAZER, "Half-Gazer"),
-        (HALF_TROLL, "Half-Troll"),
-        (HARPY, "Harpy"),
-        (HUMAN, "Human"),
-        (KELPIES, "Kelpies"),
-        (KITSUNE, "Kitsune"),
-        (LIZARDFOLK, "Lizardfolk"),
-        (LIZARDFOLK_GORGON, "Lizardfolk - Gorgon"),
-        (LIZARDFOLK_INDISHEI, "Lizardfolk - Indishei"),
-        (LIZARDFOLK_LAMIA, "Lizardfolk - Lamia"),
-        (LIZARDFOLK_MEDUSA, "Lizardfolk - Medusa"),
-        (LIZARDFOLK_NAGA, "Lizardfolk - Naga"),
-        (LIZARDFOLK_QUEXAL, "Lizardfolk - Quexal"),
-        (LIZARDFOLK_SCYLLA, "Lizardfolk - Scylla"),
-        (LIZARDFOLK_STAR_LAMIA, "Lizardfolk - Star Lamia"),
-        (LIZARDFOLK_TASGIEL, "Lizardfolk - Tasgiel"),
-        (LUCIFEN, "Lucifen"),
-        (MERFOLK, "Merfolk"),
-        (MINOTAUR, "Minotaur"),
-        (OGRE, "Ogre"),
-        (PHOENIX, "Phoenix"),
-        (SELPHID, "Selphid"),
-        (SPIDERFOLK, "Spiderfolk"),
-        (SARIANT_LAMB, "Sariant Lamb"),
-        (STRING_PEOPLE, "String People"),
-        (TITAN, "Titan"),
-        (TROLL, "Troll"),
-        (TREANT, "Treant"),
-        (UNDEAD, "Undead"),
-        (UNICORN, "Unicorn"),
-        (VAMPIRE, "Vampire"),
-        (WYVERN, "Wyvern"),
-        (WYRM, "Wyrm"),
-        (UNKNOWN, "Unknown"),
+    # fmt: off
+    SPECIES_DATA: tuple[str, str, re.Pattern] = [
+        (AGELUM, "Agelum", re.compile(r"[Aa]gelum")),
+        (ANTINIUM, "Antinium", re.compile(r"[Aa]ntinium")),
+        (ASHFIRE_BEE, "Ashfire Bee", re.compile(r"[Aa]shfire[-\s]?[Bb]ee")),
+        (BEASTKIN, "Beastkin", re.compile(r"[Bb]eastkin")),
+        (BEASTKIN_BEAR, "Beastkin - Bear", re.compile(r"[Bb]eastkin.*[Bb]ear")),
+        (BEASTKIN_CAT, "Beastkin - Cat", re.compile(r"[Bb]eastkin.*[Cc]at")),
+        (BEASTKIN_DOG, "Beastkin - Dog", re.compile(r"[Bb]eastkin.*[Dd]og")),
+        (BEASTKIN_FALCON, "Beastkin - Falcon", re.compile(r"[Bb]eastkin.*[Ff]alcon")),
+        (BEASTKIN_FOX, "Beastkin - Fox", re.compile(r"[Bb]eastkin.*[Ff]ox")),
+        (BEASTKIN_JACKAL, "Beastkin - Jackal", re.compile(r"[Bb]eastkin.*[Jj]ackal")),
+        (BEASTKIN_OWL, "Beastkin - Owl", re.compile(r"[Bb]eastkin.*[Oo]wl")),
+        (BEASTKIN_RABBIT, "Beastkin - Rabbit", re.compile(r"[Bb]eastkin.*[Rr]abbit")),
+        (BEASTKIN_RHINO, "Beastkin - Rhino", re.compile(r"[Bb]eastkin.*[Rr]hino.*")),
+        (BEASTKIN_SALAMANDER, "Beastkin - Salamander", re.compile(r"[Bb]eastkin.*[Ss]alamander")),
+        (BEASTKIN_SQUIRREL, "Beastkin - Squirrel", re.compile(r"[Bb]eastkin.*[Ss]quirrel")),
+        (BEASTKIN_WOLF, "Beastkin - Wolf", re.compile(r"[Bb]eastkin.*[Ww]olf")),
+        (CAT, "Cat", re.compile(r"[Cc]at")),
+        (CENTAUR, "Centaur", re.compile(r"[Cc]entaur")),
+        (CYCLOPS, "Cyclops", re.compile(r"[Cc]yclops")),
+        (DEMON, "Demon", re.compile(r"[Dd]emon.*")),
+        (DJINNI, "Djinni", re.compile(r"[Dd]jinn[i]?")),
+        (DRAGON, "Dragon", re.compile(r"[Dd]ragon.*")),
+        (DROWNED_PEOPLE, "Drowned People", re.compile(r"[Dd]rowned")),
+        (DRAKE, "Drake", re.compile(r"[Dd]rake")),
+        (DULLAHAN, "Dullahan", re.compile(r"[Dd]ullahan")),
+        (DRYAD, "Dryad", re.compile(r"[Dd]ryad")),
+        (DWARF, "Dwarf", re.compile(r"[Dd]warf")),
+        (ELF, "Elf", re.compile(r"^\s*[Ee]lf")),
+        (ELEMENTAL, "Elemental", re.compile(r"^\s*[Ee]lemental")),
+        (FAE, "Fae", re.compile(r"([Ff]ae|[Ff]airy)")),
+        (FRAERLING, "Fraerling", re.compile(r"[Ff]raerling")),
+        (GARUDA, "Garuda", re.compile(r"[Gg]aruda")),
+        (GAZER, "Gazer", re.compile(r"^\s*[Gg]azer")),
+        (GNOLL, "Gnoll", re.compile(r"[Gg]noll")),
+        (GIANT, "Giant", re.compile(r"^\s*[Gg]iant")),
+        (GOBLIN, "Goblin", re.compile(r"[Gg]oblin")),
+        (GOLEM, "Golem", re.compile(r"[Gg]olem")),
+        (GOD, "God", re.compile(r"[Gg]od")),
+        (GRIFFIN, "Griffin", re.compile(r"[Gg]riffin")),
+        (HALFLING, "Halfling", re.compile(r"[Hh]alfling")),
+        (HALF_ELF, "Half-Elf", re.compile(r"[Hh]alf[-]?[Ee]lf")),
+        (HALF_GAZER, "Half-Gazer", re.compile(r"[Hh]alf[-]?[Gg]azer")),
+        (HALF_GIANT, "Half-Giant", re.compile(r"[Hh]alf[-]?[Gg]iant")),
+        (HALF_TROLL, "Half-Troll", re.compile(r"[Hh]alf[-]?[Tt]roll")),
+        (HARPY, "Harpy", re.compile(r"[Hh]arp(y|ies)")),
+        (HUMAN, "Human", re.compile(r"[Hh]uman")),
+        (KELPIES, "Kelpies", re.compile(r"[Kk]elp(y|ies)")),
+        (KITSUNE, "Kitsune", re.compile(r"[Kk]itsune")),
+        (LIVING_ARMOR, "Living Armor", re.compile(r"[Ll]iving [Aa]rmor")),
+        (LIZARDFOLK_GORGON, "Lizardfolk - Gorgon", re.compile(r"[Gg]orgon")),
+        (LIZARDFOLK_INDISHEI, "Lizardfolk - Indishei", re.compile(r"[Ii]ndishei")),
+        (LIZARDFOLK_MEDUSA, "Lizardfolk - Medusa", re.compile(r"[Mm]edusa")),
+        (LIZARDFOLK_NAGA, "Lizardfolk - Naga", re.compile(r"[Nn]aga")),
+        (LIZARDFOLK_QUEXAL, "Lizardfolk - Quexal", re.compile(r"[Qq]uexal")),
+        (LIZARDFOLK_SCYLLA, "Lizardfolk - Scylla", re.compile(r"[Ss]cylla")),
+        (LIZARDFOLK_STAR_LAMIA, "Lizardfolk - Star Lamia", re.compile(r"[Ss]tar[\s]*[-]?[Ll]amia")),
+        (LIZARDFOLK_LAMIA, "Lizardfolk - Lamia", re.compile(r"[Ll]amia")),
+        (LIZARDFOLK_TASGIEL, "Lizardfolk - Tasgiel", re.compile(r"[Tt]asgiel")),
+        (LIZARDFOLK, "Lizardfolk", re.compile(r"[Ll]izard[-\s]?([Ff]olk|[Mm]an|[Ww]oman)")),
+        (LUCIFEN, "Lucifen", re.compile(r"[Ll]ucifen")),
+        (MERFOLK, "Merfolk", re.compile(r"[Mm]er[-]?([Ff]olk|[Mm]an|[Ww]oman)")),
+        (MIMIC, "Mimic", re.compile(r"[Mm]imic")),
+        (MIND, "Mind", re.compile(r"[Mm]ind")),
+        (MINOTAUR, "Minotaur", re.compile(r"[Mm]inotaur")),
+        (OGRE, "Ogre", re.compile(r"[Oo]gre")),
+        (PEGASIS, "Pegasis", re.compile(r"[Pp]egasis")),
+        (PHOENIX, "Phoenix", re.compile(r"[Pp]oenix")),
+        (RAT, "Rat", re.compile(r"[Rr]at")),
+        (RASKGHAR, "Raskghar", re.compile(r"[Rr]askghar")),
+        (REVENANT, "Revenant", re.compile(r"[Rr]evenant")),
+        (SARIANT_LAMB, "Sariant Lamb", re.compile(r"[Ss]ariant\s*[-]?[Ll]amb")),
+        (SCORCHLING, "Scorchling", re.compile(r"[Ss]corchling")),
+        (SEAMWALKER, "Seamwalker", re.compile(r"[Ss]eam[-]?[Ww]alker")),
+        (SELPHID, "Selphid", re.compile(r"[Ss]elphid")),
+        (SLIME, "Slime", re.compile(r"[Ss]lime")),
+        (SPIDERFOLK, "Spiderfolk", re.compile(r"[Ss]pider\s*[-]?[Ff]olk")),
+        (STRING_PEOPLE, "String People", re.compile(r"[Ss](titch|tring)")),
+        (TITAN, "Titan", re.compile(r"[Tt]itan")),
+        (TROLL, "Troll", re.compile(r"[Tt]roll")),
+        (TREANT, "Treant", re.compile(r"[Tt]reant")),
+        (UNDEAD, "Undead", re.compile(r"[Uu]ndead")),
+        (UNICORN, "Unicorn", re.compile(r"[Uu]nicorn")),
+        (VAMPIRE, "Vampire", re.compile(r"[Vv]ampire")),
+        (WYVERN, "Wyvern", re.compile(r"[Ww]yvern")),
+        (WYRM, "Wyrm", re.compile(r"[Ww]yrm")),
+        (UNKNOWN, "Unknown", re.compile(r"")),
     ]
+    # fmt: on
+
+    SPECIES = [(x[0], x[1]) for x in SPECIES_DATA]
 
     # Status short-codes
     ALIVE = "AL"
@@ -286,117 +353,11 @@ class Character(models.Model):
         if s is None:
             return Character.UNKNOWN
 
-        match s.strip().lower():
-            case "agelum":
-                return Character.AGELUM
-            case "antinium":
-                return Character.ANTINIUM
-            case "beastkin":
-                return Character.BEASTKIN
-            case "centaur":
-                return Character.CENTAUR
-            case "cyclops":
-                return Character.CYCLOPS
-            case "demon":
-                return Character.DEMON
-            case "dragon":
-                return Character.DRAGON
-            case "drowned":
-                return Character.DROWNED_PEOPLE
-            case "drake" | "oldblood drake":
-                return Character.DRAKE
-            case "dullahan":
-                return Character.DULLAHAN
-            case "dryad":
-                return Character.DRYAD
-            case "elf":
-                return Character.ELF
-            case "fae":
-                return Character.FAE
-            case "fraerling":
-                return Character.FRAERLING
-            case "gazer":
-                return Character.GAZER
-            case "goblin":
-                return Character.GOBLIN
-            case "golem":
-                return Character.GOLEM
-            case "god":
-                return Character.GOD
-            case "garuda":
-                return Character.GARUDA
-            case "halfling":
-                return Character.HALFLING
-            case "half-elf":
-                return Character.HALF_ELF
-            case "half-gazer":
-                return Character.HALF_GAZER
-            case "harpy":
-                return Character.HARPY
-            case "half-troll":
-                return Character.HALF_TROLL
-            case "human":
-                return Character.HUMAN
-            case "kelpies" | "kelpy":
-                return Character.KELPIES
-            case "kitsune":
-                return Character.KITSUNE
-            case "lizardfolk" | "lizard-folk":
-                return Character.LIZARDFOLK
-            case "lizardfolk (gorgon)" | "gorgon":
-                return Character.LIZARDFOLK_GORGON
-            case "lizardfolk (indishei)" | "indishei":
-                return Character.LIZARDFOLK_INDISHEI
-            case "lizardfolk (lamia)" | "lamia":
-                return Character.LIZARDFOLK_LAMIA
-            case "lizardfolk (medusa)" | "medusa":
-                return Character.LIZARDFOLK_MEDUSA
-            case "lizardfolk (naga)" | "naga":
-                return Character.LIZARDFOLK_NAGA
-            case "lizardfolk (quexal)" | "quexal":
-                return Character.LIZARDFOLK_QUEXAL
-            case "lizardfolk (scylla)" | "scylla":
-                return Character.LIZARDFOLK_SCYLLA
-            case "lizardfolk (star lamia)" | "star lamia" | "star-lamia":
-                return Character.LIZARDFOLK_STAR_LAMIA
-            case "lizardfolk (tasgiel)" | "tasgiel":
-                return Character.LIZARDFOLK_TASGIEL
-            case "lucifen":
-                return Character.LUCIFEN
-            case "merfolk":
-                return Character.MERFOLK
-            case "minotaur":
-                return Character.MINOTAUR
-            case "ogre":
-                return Character.OGRE
-            case "phoenix":
-                return Character.PHOENIX
-            case "selphid":
-                return Character.SELPHID
-            case "spiderfolk" | "spider-folk":
-                return Character.SPIDERFOLK
-            case "sariant lamb" | "sariant":
-                return Character.SARIANT_LAMB
-            case "string people" | "string person" | "string-person":
-                return Character.STRING_PEOPLE
-            case "titan":
-                return Character.TITAN
-            case "troll":
-                return Character.TROLL
-            case "treant":
-                return Character.TREANT
-            case "undead":
-                return Character.UNDEAD
-            case "unicorn":
-                return Character.UNICORN
-            case "vampire":
-                return Character.VAMPIRE
-            case "wyvern":
-                return Character.WYVERN
-            case "wyrm":
-                return Character.WYRM
-            case _:
-                return Character.UNKNOWN
+        for species in Character.SPECIES_DATA:
+            if species[2].search(s):
+                return species[0]
+
+        return Character.UNKNOWN
 
     def __str__(self) -> str:
         return f"(Character: {self.ref_type.name}, Status: {self.status}, Species: {self.species})"
