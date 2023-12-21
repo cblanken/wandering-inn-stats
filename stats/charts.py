@@ -1,4 +1,4 @@
-from django.db.models import Count, F, Q, Sum, Value, Case, ExpressionWrapper, Min
+from django.db.models import Count, F, Q, Sum, Value, Case, ExpressionWrapper, Min, Max
 import plotly.express as px
 import numpy as np
 import pandas as pd
@@ -7,7 +7,7 @@ from .models import Chapter, RefType, TextRef, Character
 
 
 DEFAULT_PLOTLY_TEMPLATE = "plotly_dark"
-DEFAULT_HEIGHT = "calc(100vh - 110px)"
+DEFAULT_HEIGHT = "calc(100vh - 120px)"
 DEFAULT_WIDTH = "calc(100vw - 420px)"
 
 DEFAULT_LAYOUT = {
@@ -228,22 +228,21 @@ def character_charts():
 
     char_counts_per_chapter = [
         (
-            Character.objects.filter(
-                first_chapter_appearance__number__lt=num
-            ).aggregate(chapter_cnt_per=Count("ref_type"))["chapter_cnt_per"]
+            num,
+            TextRef.objects.filter(
+                Q(chapter_line__chapter__number=num) & Q(type__type="CH")
+            )
+            .values("type__name")
+            .annotate(cnt=Count("type__name"))
+            .count(),
         )
-        for num in ([c.number for c in Chapter.objects.all()])
+        for num in range(
+            TextRef.objects.values().aggregate(
+                max=Max("chapter_line__chapter__number")
+            )["max"]
+        )
     ]
 
-    char_counts_per_chapter = [
-        x for x in zip(range(len(char_counts_per_chapter)), char_counts_per_chapter)
-    ]
-
-    unique_chars_over_time = (
-        TextRef.objects.filter(type__type="CH")
-        .values("type__name")
-        .annotate(first_ref=Min("chapter_line__chapter__number"))
-    )
     df = pd.DataFrame(char_counts_per_chapter, columns=["Chapter", "Character Count"])
 
     # df = pd.DataFrame(char_counts_per_chapter, columns=["Chapter", "Character Count"])
@@ -293,7 +292,7 @@ def character_charts():
         c["status"] = Character.STATUSES[
             [x[0] for x in Character.STATUSES].index(c["status"])
         ][1]
-        print(c)
+        # print(c)
 
     # Character counts by species
     chars_by_species_fig = px.pie(
@@ -338,7 +337,7 @@ def character_charts():
     return {
         "plots": {
             "Character Reference Counts": char_refs_count_html,
-            "Character Counts Per Chapter": char_counts_per_chapter_html,
+            "Unique Characters Per Chapter": char_counts_per_chapter_html,
             "Character Species Counts": chars_by_species_html,
             "Character Status Counts": chars_by_status_html,
         },
