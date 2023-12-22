@@ -307,8 +307,8 @@ def character_charts():
         customdata=np.stack(
             (characters.values_list("species_cnt", "status_cnt"),), axis=-1
         ),
-        hovertemplate="<b>Character Count</b>: %{label}<br>"
-        + "<b>Total Characters</b>: %{value}"
+        hovertemplate="<b>Species</b>: %{label}<br>"
+        + "<b>Characters</b>: %{value}"
         + "<extra></extra>",
     )
     chars_by_species_html = chars_by_species_fig.to_html(
@@ -326,7 +326,13 @@ def character_charts():
         template=DEFAULT_PLOTLY_TEMPLATE,
     )
     chars_by_status_fig.update_layout(DEFAULT_LAYOUT)
-    chars_by_status_fig.update_traces(textposition="inside")
+    chars_by_status_fig.update_traces(
+        textposition="inside",
+        customdata=np.stack((characters.values_list("status", "status_cnt"),), axis=-1),
+        hovertemplate="<b>Status</b>: %{label}<br>"
+        + "<b>Characters</b>: %{value}"
+        + "<extra></extra>",
+    )
     chars_by_status_html = chars_by_status_fig.to_html(
         full_html=False,
         include_plotlyjs=False,
