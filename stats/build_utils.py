@@ -1,17 +1,13 @@
+"""Utility functions and classes for build script"""
 from enum import Enum
 from pathlib import Path
 from pprint import pprint
-from pathlib import Path
 from sys import stderr
-from django.core.management.base import BaseCommand, CommandError
-from django.db.models import Q
-from django.db.models.query import QuerySet
-from stats.models import (
-    Alias,
-    RefType,
-)
-from typing import Protocol
 from subprocess import run, TimeoutExpired
+from typing import Protocol
+from django.core.management.base import CommandError
+from django.db.models.query import QuerySet
+from stats.models import Alias, RefType
 
 
 class RefTypeHolder(Protocol):
@@ -59,7 +55,9 @@ class COLOR_CATEGORY(Enum):
     PLAIN = "Normal appearing text to overwrite link text color"
 
 
-COLORS: tuple[tuple] = (
+Color = tuple[str, COLOR_CATEGORY]
+
+COLORS: list[Color] = [
     ("0C0E0E", COLOR_CATEGORY.INVISIBLE),
     ("00CCFF", COLOR_CATEGORY.SIREN_WATER),
     ("3366FF", COLOR_CATEGORY.CERIA_COLD),
@@ -89,10 +87,10 @@ COLORS: tuple[tuple] = (
     ("787878", COLOR_CATEGORY.DARKNESS),
     ("333333", COLOR_CATEGORY.DARKNESS),
     ("B7B7B7", COLOR_CATEGORY.PLAIN),
-)
+]
 
 
-def select_color_type(rgb_hex: str) -> COLOR_CATEGORY:
+def select_color_type(rgb_hex: str) -> Color | None:
     """Interactive selection of ColorCategory"""
     colors = list(filter(lambda x: x[0] == rgb_hex.upper(), COLORS))
     if len(colors) == 0:
@@ -113,7 +111,7 @@ def select_color_type(rgb_hex: str) -> COLOR_CATEGORY:
                 continue
 
 
-def match_ref_type(type_str) -> str:
+def match_ref_type(type_str) -> str | None:
     try:
         matches = list(
             filter(lambda rt: rt[0] == type_str.strip()[:2].upper(), RefType.TYPES)
@@ -125,7 +123,9 @@ def match_ref_type(type_str) -> str:
 
     except ValueError:
         # No match found
-        # breakpoint()
+        pass
+        return None
+    else:
         return None
 
 
@@ -143,7 +143,7 @@ def prompt(s: str = "", sound: bool = False):
     return input(s)
 
 
-def select_ref_type(sound: bool = False) -> str:
+def select_ref_type(sound: bool = False) -> str | None:
     """Interactive classification of TextRef type"""
     try:
         while True:
@@ -176,11 +176,11 @@ def select_ref_type(sound: bool = False) -> str:
         raise CommandError("Build interrupted with Ctrl-D (EOF).") from exc
 
 
-def select_ref_type_from_qs(query_set: QuerySet[RefType], sound: bool = False) -> str:
+def select_ref_type_from_qs(qs: QuerySet[RefType], sound: bool = False) -> str | None:
     """Interactive selection of an existing set of RefType(s)"""
     try:
         while True:
-            for i, ref_type in enumerate(query_set):
+            for i, ref_type in enumerate(qs):
                 print(f"{i}: {ref_type.name} - {match_ref_type(ref_type.type)}")
 
             sel = prompt(
@@ -195,8 +195,8 @@ def select_ref_type_from_qs(query_set: QuerySet[RefType], sound: bool = False) -
             except ValueError:
                 sel = -1  # invalid selection
 
-            if sel >= 0 and sel < len(query_set):
-                return query_set[sel]
+            if sel >= 0 and sel < len(qs):
+                return qs[sel]
             else:
                 print("Invalid selection.")
                 yes_no = prompt("Try again (y/n): ", sound)
