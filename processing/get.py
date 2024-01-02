@@ -4,6 +4,7 @@ from datetime import datetime
 from pathlib import Path
 from itertools import chain
 import hashlib
+from sys import stderr
 import re
 import string
 import time
@@ -416,9 +417,9 @@ def save_file(filepath: Path, text: str, clobber: bool = False):
 
 
 class TableOfContents:
-    """Object to scrape the Table of Contents and methods to query for any needed info"""
+    """Table of Contents scraper to query for any needed info"""
 
-    def __init__(self, session: TorSession = None):
+    def __init__(self, session: TorSession | None = None):
         self.domain: str = "www.wanderinginn.com"
         self.url: str = f"https://{self.domain}/table-of-contents"
         if session:
@@ -426,17 +427,22 @@ class TableOfContents:
             self.response = session.get(self.url)
         else:
             self.response = requests.get(self.url, timeout=10)
+            print("Request for Table of Contents timed out!", file=stderr)
+
+        self.volume_data: OrderedDict[str, OrderedDict[str, str]] | None
 
         if self.response is None:
             self.soup = self.chapter_links = self.volume_data = None
+            print(
+                "Table of Contents could not be reached! ToC `volume_data` will be `None`",
+                file=stderr,
+            )
             return
 
-        # TODO: add check to not download chapter with password prompt / protected status
+        # TODO: add check to not download chapter with password prompt
         self.soup = BeautifulSoup(self.response.content, "html.parser")
         self.chapter_links = self.__get_chapter_links()
-        self.volume_data: OrderedDict[
-            str : OrderedDict[str:str]
-        ] = self.__get_volume_data()
+        self.volume_data = self.__get_volume_data()
 
     def __get_chapter_links(self) -> list[str]:
         """Scrape table of contents for a list of chapter links"""
@@ -448,14 +454,9 @@ class TableOfContents:
             for link in self.soup.select(".chapter-entry a")
         ]
 
-    def __get_volume_data(self) -> OrderedDict[str : OrderedDict[str:str]]:
-        """Return dictionary containing tuples (volume_title, chapter_indexes) by volume ID"""
-
-        volumes = OrderedDict()
-        if self.soup is None:
-            return volumes
-
-        vol_elements = self.soup.select(".volume-wrapper")
+    def __get_volume_data(self) -> OrderedDict[str, OrderedDict[str, str]]:
+        """Return dictionary containing tuples (volume_title, chapter_indexes)
+        by volume ID"""
 
         def get_title_and_href_from_a_tag(element: Tag):
             """Return tuple of text and href from <a> tag
@@ -467,6 +468,12 @@ class TableOfContents:
             chapter_name = element.text
             chapter_href = element.get("href")
             return (chapter_name, chapter_href)
+
+        volumes: OrderedDict[str, OrderedDict[str, str]] = OrderedDict()
+        if self.soup is None:
+            return volumes
+
+        vol_elements = self.soup.select(".volume-wrapper")
 
         volumes = OrderedDict()
         for vol_ele in vol_elements:
