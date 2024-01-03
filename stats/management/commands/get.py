@@ -1,7 +1,6 @@
 """Download command for wanderinginn.com"""
 import json
 from pathlib import Path
-from pprint import pprint
 import random
 import time
 from django.core.management.base import BaseCommand, CommandError
@@ -11,6 +10,7 @@ from processing import get
 class Command(BaseCommand):
     help = "Download Wandering Inn data including volumes, books, chapters, characters etc."
     last_download: float = 0.0
+    tor_session = get.TorSession()
 
     def add_arguments(self, parser):
         parser.add_argument("volume", nargs="?", type=str, help="Volume to download")
@@ -30,11 +30,11 @@ class Command(BaseCommand):
             "-j",
             "--jitter",
             action="store_true",
-            help="Randomized delay betweeen (0.5 to 1.5) times",
+            help="Randomized delay betweeen (0.5 to 1.5) times. By default, 5 seconds",
         )
         # TODO: update --jitter to use `const` argument type option
         parser.add_argument(
-            "-r", "--root", default="./data", help="Root path downloaded data"
+            "-r", "--root", default="./data", help="Root path of downloaded data"
         )
         parser.add_argument(
             "--volume_root",
@@ -78,11 +78,262 @@ class Command(BaseCommand):
             help="Download location information from wiki",
         )
 
-    def handle(self, *args, **options):
+    def save_file(
+        self,
+        text: str,
+        path: Path,
+        clobber: bool,
+        success_msg: str = "",
+        warn_msg: str = "",
+    ):
+        was_saved = get.save_file(path, text, clobber=clobber)
+
+        if was_saved:
+            if success_msg == "":
+                success_msg = f'"{path}" saved'
+            self.stdout.write("> ", ending="")
+            self.stdout.write(self.style.SUCCESS(success_msg))
+        else:
+            if warn_msg is None:
+                warn_msg = f'"{path}" could not be saved'
+            self.stdout.write("> ", ending="")
+            self.stdout.write(self.style.WARNING(warn_msg))
+
+        return was_saved
+
+    def download_wiki_info(self, options: dict[str, str]):
+        root_path = options.get("root")
+        if root_path is None:
+            return
+
+        # Get class info
+        if options.get("classes"):
+            self.stdout.write("Downloading class information...")
+            classes = self.tor_session.get_class_list()
+
+            class_data_path = Path(root_path, "classes.txt")
+            self.save_file(
+                text="\n".join(classes),
+                path=class_data_path,
+                clobber=bool(options.get("clobber")),
+                success_msg=f"Character data saved to {class_data_path}",
+                warn_msg=f"{class_data_path} already exists. Not saving...",
+            )
+
+        # Get skill info
+        if options.get("skills"):
+            self.stdout.write("Downloading skill information...")
+            skills = self.tor_session.get_skill_list()
+
+            skill_data_path = Path(root_path, "skills.txt")
+            self.save_file(
+                text="\n".join(skills),
+                path=skill_data_path,
+                clobber=bool(options.get("clobber")),
+                success_msg=f"Character data saved to {skill_data_path}",
+                warn_msg=f"{skill_data_path} already exists. Not saving...",
+            )
+
+        # Get spell info
+        if options.get("spells"):
+            self.stdout.write("Downloading spell information...")
+            spells = self.tor_session.get_spell_list()
+
+            spell_data_path = Path(root_path, "spells.txt")
+            self.save_file(
+                text="\n".join(spells),
+                path=spell_data_path,
+                clobber=bool(options.get("clobber")),
+                success_msg=f"Spell data saved to {spell_data_path}",
+                warn_msg=f"{spell_data_path} already exists. Not saving...",
+            )
+
+        # Get location info
+        if options.get("locs"):
+            self.stdout.write("Downloading location information...")
+            locs_by_alpha = self.tor_session.get_all_locations_by_alpha()
+            data = {}
+            for locs in locs_by_alpha.values():
+                for loc in locs.items():
+                    data[loc[0]] = {"url": loc[1]}
+
+            loc_data_path = Path(root_path, "locations.json")
+            self.save_file(
+                text=json.dumps(data, sort_keys=True, indent=4),
+                path=loc_data_path,
+                clobber=bool(options.get("clobber")),
+                success_msg=f"Location data saved to {loc_data_path}",
+                warn_msg=f"{loc_data_path} already exists. Not saving...",
+            )
+
+        # Get character info
+        if options.get("chars"):
+            self.stdout.write("Downloading character information...")
+            data = self.tor_session.get_all_character_data()
+
+            char_data_path = Path(root_path, "characters.json")
+            self.save_file(
+                text=json.dumps(data, sort_keys=True, indent=4),
+                path=char_data_path,
+                clobber=bool(options.get("clobber")),
+                success_msg=f"Character data saved to {char_data_path}",
+                warn_msg=f"{char_data_path} already exists. Not saving...",
+            )
+
+    def download_chapter(
+        self,
+        toc,
+        options,
+        volume_title: str,
+        book_title: str,
+        chapter_title: str,
+        chapter_path: Path,
+    ):
+        try:
+            chapter_href = toc.volume_data[volume_title][book_title][chapter_title]
+        except KeyError as exc:
+            self.stdout.write(self.style.WARNING(f"Could not find {exc}"))
+            return
+
+        # Throttle chapter downloads
+        delay = options.get("request_delay")
+        if options.get("jitter"):
+            delay *= random.uniform(0.5, 1.5)
+        while time.time() < self.last_download + delay:
+            time.sleep(0.1)
+
+        # Download chapter
+        chapter_path.mkdir(parents=True, exist_ok=True)
+        src_path = Path(chapter_path, f"{chapter_title}.html")
+        txt_path = Path(chapter_path, f"{chapter_title}.txt")
+        authors_note_path = Path(chapter_path, f"{chapter_title}_authors_note.txt")
+        meta_path = Path(chapter_path, "metadata.json")
+
+        if (
+            not options.get("clobber")
+            and src_path.exists()
+            and txt_path.exists()
+            and meta_path.exists()
+        ):
+            self.stdout.write(
+                self.style.NOTICE(
+                    f'> All chapter files exist for chapter: "{chapter_title}". Skipping...'
+                )
+            )
+            return
+
+        self.stdout.write(f"Downloading {chapter_href}")
+        chapter_response = self.tor_session.get(chapter_href)
+        if chapter_response is None:
+            self.stdout.write(self.style.WARNING("! Chapter could not be downloaded!"))
+            self.stdout.write(f"Skipping download for {chapter_title} → {chapter_href}")
+            self.tor_session.reset_tries()
+            return
+
+        data = get.parse_chapter(chapter_response)
+
+        if (
+            data.get("html") is None
+            or data.get("text") is None
+            or data.get("metadata") is None
+        ):
+            self.stdout.write(self.style.WARNING("Some data could not be parsed from:"))
+            self.stdout.write(f"HTTP Response:\n {chapter_response}")
+            self.stdout.write(f"Skipping download for {chapter_title} → {chapter_href}")
+            return
+
+        # Save metadata
+        self.save_file(
+            text=json.dumps(data["metadata"], sort_keys=True, indent=4),
+            path=meta_path,
+            clobber=bool(options.get("clobber")),
+            success_msg=f'"{chapter_title}" metadata saved to {meta_path}',
+            warn_msg=f"{meta_path} already exists. Not saving...",
+        )
+
+        if options.get("metadata_only"):
+            return
+
+        # Save source HTML
+        self.save_file(
+            text=data["html"],
+            path=src_path,
+            clobber=bool(options.get("clobber")),
+            success_msg=f'"{chapter_title}" html saved to {src_path}',
+            warn_msg=f"{src_path} already exists. Not saving...",
+        )
+
+        # Save text
+        self.save_file(
+            text=data["text"],
+            path=txt_path,
+            clobber=bool(options.get("clobber")),
+            success_msg=f'"{chapter_title}" text saved to {txt_path}',
+            warn_msg=f"{txt_path} already exists. Not saving...",
+        )
+
+        # Save author's note
+        self.save_file(
+            text=data["authors_note"],
+            path=authors_note_path,
+            clobber=bool(options.get("clobber")),
+            success_msg=f'"{chapter_title}" text saved to {authors_note_path}',
+            warn_msg=f"{authors_note_path} already exists. Not saving...",
+        )
+
+        self.last_download = time.time()
+
+    def download_book(
+        self, toc, options, volume_title: str, book_title: str, book_path: Path
+    ):
+        book_path.mkdir(parents=True, exist_ok=True)
+        chapters = toc.volume_data[volume_title][book_title]
+
+        # Save metadata
+        metadata: dict = {
+            "title": book_title,
+            "chapters": {k: i for (i, (k, _)) in enumerate(chapters.items())},
+        }
+        meta_path = Path(book_path, "metadata.json")
+        self.save_file(
+            text=json.dumps(metadata, sort_keys=True, indent=4),
+            path=meta_path,
+            clobber=bool(options.get("clobber")),
+            success_msg=f'"{book_title}" metadata saved to {meta_path}',
+            warn_msg=f"{meta_path} already exists. Not saving...",
+        )
+
+        for chapter_title in chapters:
+            chapter_path = Path(book_path, chapter_title)
+            self.download_chapter(
+                toc, options, volume_title, book_title, chapter_title, chapter_path
+            )
+
+    def download_volume(self, toc, options, volume_title: str, volume_path: Path):
+        volume_path.mkdir(parents=True, exist_ok=True)
+        books = toc.volume_data[volume_title]
+
+        # Save metadata
+        metadata: dict = {
+            "title": volume_title,
+            "books": {k: i for (i, (k, _)) in enumerate(books.items())},
+        }
+        meta_path = Path(volume_path, "metadata.json")
+        self.save_file(
+            text=json.dumps(metadata, sort_keys=True, indent=4),
+            path=meta_path,
+            clobber=bool(options.get("clobber")),
+            success_msg=f'"{volume_title}" metadata saved to {meta_path}',
+            warn_msg=f"{meta_path} already exists. Not saving...",
+        )
+
+        for book_title in books:
+            book_path = Path(volume_path, book_title)
+            self.download_book(toc, options, volume_title, book_title, book_path)
+
+    def handle(self, *args, **options) -> None:
         # TODO: fix Keyboard Exception not working
-        tor_session = get.TorSession()
-        self.stdout.write("Connecting to Tor session...")
-        toc = get.TableOfContents(tor_session)
+        toc = get.TableOfContents(self.tor_session)
         if len(toc.volume_data) == 0:
             self.stdout.write(
                 self.style.WARNING(
@@ -91,197 +342,48 @@ class Command(BaseCommand):
             )
         self.last_download: int = 0
 
-        def save_file(
-            text: str, path: Path, success_msg: str = None, warn_msg: str = None
-        ):
-            was_saved = get.save_file(path, text, clobber=options.get("clobber"))
-
-            if was_saved:
-                if success_msg is None:
-                    success_msg = f'"{path}" saved'
-                self.stdout.write("> ", ending="")
-                self.stdout.write(self.style.SUCCESS(success_msg))
-            else:
-                if warn_msg is None:
-                    warn_msg = f'"{path}" could not be saved'
-                self.stdout.write("> ", ending="")
-                self.stdout.write(self.style.WARNING(warn_msg))
-
-            return was_saved
-
         def download_last_chapter():
             # TODO
             pass
 
-        def download_chapter(
-            volume_title: str, book_title: str, chapter_title: str, chapter_path: Path
-        ):
-            try:
-                chapter_href = toc.volume_data[volume_title][book_title][chapter_title]
-            except KeyError as exc:
-                self.stdout.write(self.style.WARNING(f"Could not find {exc}"))
-                return
-
-            # Throttle chapter downloads
-            delay = options.get("request_delay")
-            if options.get("jitter"):
-                delay *= random.uniform(0.5, 1.5)
-            while time.time() < self.last_download + delay:
-                time.sleep(0.1)
-
-            # Download chapter
-            chapter_path.mkdir(parents=True, exist_ok=True)
-            src_path = Path(chapter_path, f"{chapter_title}.html")
-            txt_path = Path(chapter_path, f"{chapter_title}.txt")
-            authors_note_path = Path(chapter_path, f"{chapter_title}_authors_note.txt")
-            meta_path = Path(chapter_path, "metadata.json")
-
-            if (
-                not options.get("clobber")
-                and src_path.exists()
-                and txt_path.exists()
-                and meta_path.exists()
-            ):
-                self.stdout.write(
-                    self.style.NOTICE(
-                        f'> All chapter files exist for chapter: "{chapter_title}". Skipping...'
-                    )
-                )
-                return
-
-            self.stdout.write(f"Downloading {chapter_href}")
-            chapter_response = tor_session.get(chapter_href)
-            if chapter_response is None:
-                self.stdout.write(
-                    self.style.WARNING("! Chapter could not be downloaded!")
-                )
-                self.stdout.write(
-                    f"Skipping download for {chapter_title} → {chapter_href}"
-                )
-                tor_session.reset_tries()
-                return
-
-            data = get.parse_chapter(chapter_response)
-
-            if (
-                data.get("html") is None
-                or data.get("text") is None
-                or data.get("metadata") is None
-            ):
-                self.stdout.write(
-                    self.style.WARNING("Some data could not be parsed from:")
-                )
-                self.stdout.write(f"HTTP Response:\n {chapter_response}")
-                self.stdout.write(
-                    f"Skipping download for {chapter_title} → {chapter_href}"
-                )
-                return
-
-            # Save metadata
-            save_file(
-                text=json.dumps(data["metadata"], sort_keys=True, indent=4),
-                path=meta_path,
-                success_msg=f'"{chapter_title}" metadata saved to {meta_path}',
-                warn_msg=f"{meta_path} already exists. Not saving...",
-            )
-
-            if options.get("metadata_only"):
-                return
-
-            # Save source HTML
-            save_file(
-                text=data["html"],
-                path=src_path,
-                success_msg=f'"{chapter_title}" html saved to {src_path}',
-                warn_msg=f"{src_path} already exists. Not saving...",
-            )
-
-            # Save text
-            save_file(
-                text=data["text"],
-                path=txt_path,
-                success_msg=f'"{chapter_title}" text saved to {txt_path}',
-                warn_msg=f"{txt_path} already exists. Not saving...",
-            )
-
-            # Save author's note
-            save_file(
-                text=data["authors_note"],
-                path=authors_note_path,
-                success_msg=f'"{chapter_title}" text saved to {authors_note_path}',
-                warn_msg=f"{authors_note_path} already exists. Not saving...",
-            )
-
-            self.last_download = time.time()
-
-        def download_book(volume_title: str, book_title: str, book_path: Path):
-            book_path.mkdir(parents=True, exist_ok=True)
-            chapters = toc.volume_data[volume_title][book_title]
-
-            # Save metadata
-            metadata: dict = {
-                "title": book_title,
-                "chapters": {k: i for (i, (k, _)) in enumerate(chapters.items())},
-            }
-            meta_path = Path(book_path, "metadata.json")
-            save_file(
-                text=json.dumps(metadata, sort_keys=True, indent=4),
-                path=meta_path,
-                success_msg=f'"{book_title}" metadata saved to {meta_path}',
-                warn_msg=f"{meta_path} already exists. Not saving...",
-            )
-
-            for chapter_title in chapters:
-                chapter_path = Path(book_path, chapter_title)
-                download_chapter(volume_title, book_title, chapter_title, chapter_path)
-
-        def download_volume(volume_title: str, volume_path: Path):
-            volume_path.mkdir(parents=True, exist_ok=True)
-            books = toc.volume_data[volume_title]
-
-            # Save metadata
-            metadata: dict = {
-                "title": volume_title,
-                "books": {k: i for (i, (k, _)) in enumerate(books.items())},
-            }
-            meta_path = Path(volume_path, "metadata.json")
-            save_file(
-                text=json.dumps(metadata, sort_keys=True, indent=4),
-                path=meta_path,
-                success_msg=f'"{volume_title}" metadata saved to {meta_path}',
-                warn_msg=f"{meta_path} already exists. Not saving...",
-            )
-
-            for book_title in books:
-                book_path = Path(volume_path, book_title)
-                download_book(volume_title, book_title, book_path)
-
-        # TODO: add option to diff previous table of contents to check for changes and
-        # only get the latest posted volumes/chapters
+        # TODO: add option to diff previous table of contents to check for
+        # changes and only get the latest posted volumes/chapters
         try:
             if toc.response is None:
                 raise CommandError(
                     f"The table of contents ({toc.url}) could not be downloaded.\nCheck your network connection and confirm the host hasn't been IP blocked."
                 )
 
-            v_title = options.get("volume")
-            b_title = options.get("book")
-            c_title = options.get("chapter")
+            v_title: str = options.get("volume", "")
+            b_title: str = options.get("book", "")
+            c_title: str = options.get("chapter", "")
 
-            volume_root = Path(options.get("root"), options.get("volume_root"))
+            root = Path(options.get("root", ""))
+            volume_root = options.get("volume_root", "")
+
+            if root == "" or volume_root == "":
+                raise CommandError(
+                    f"An invalid `root` {root} or `volume root` {volume_root} was provided."
+                )
+
+            root = Path(root)
+            root.mkdir(exist_ok=True)
+
+            volume_root = Path(root, volume_root)
             volume_root.mkdir(exist_ok=True)
 
             # Get volumes/books/chapters
             if options.get("all"):
                 # Save metadata
-                metadata: dict = {
+                metadata = {
                     "title": "The Wandering Inn",
                     "volumes": {k: i for i, k in enumerate(toc.volume_data)},
                 }
                 meta_path = Path(volume_root, "metadata.json")
-                save_file(
+                self.save_file(
                     text=json.dumps(metadata, sort_keys=True, indent=4),
                     path=meta_path,
+                    clobber=bool(options.get("clobber")),
                     success_msg=f"Volumes metadata saved to {meta_path}",
                     warn_msg=f"{meta_path} already exists. Not saving...",
                 )
@@ -292,90 +394,21 @@ class Command(BaseCommand):
                 ):
                     # TODO: check for empty volume_title
                     volume_path = Path(volume_root, f"{volume_title}")
-                    download_volume(volume_title, volume_path)
-            elif options.get("chapter"):
+                    self.download_volume(toc, options, volume_title, volume_path)
+            elif c_title:
                 # Download selected chapter
                 path = Path(volume_root, v_title, b_title, c_title)
-                download_chapter(v_title, b_title, c_title, path)
-            elif options.get("book"):
+                self.download_chapter(toc, options, v_title, b_title, c_title, path)
+            elif b_title:
                 # Download selected book
                 path = Path(volume_root, v_title, b_title)
-                download_book(v_title, b_title, path)
-            elif options.get("volume"):
+                self.download_book(toc, options, v_title, b_title, path)
+            elif v_title:
                 # Download selected volume
                 path = Path(volume_root, v_title)
-                download_volume(v_title, path)
+                self.download_volume(toc, options, v_title, path)
 
-            # TODO: refactor common meta data download code into function
-
-            # Get class info
-            if options.get("classes"):
-                self.stdout.write("Downloading class information...")
-                classes = tor_session.get_class_list()
-
-                class_data_path = Path(options.get("root"), "classes.txt")
-                save_file(
-                    text="\n".join(classes),
-                    path=class_data_path,
-                    success_msg=f"Character data saved to {class_data_path}",
-                    warn_msg=f"{class_data_path} already exists. Not saving...",
-                )
-
-            # Get skill info
-            if options.get("skills"):
-                self.stdout.write("Downloading skill information...")
-                skills = tor_session.get_skill_list()
-
-                skill_data_path = Path(options.get("root"), "skills.txt")
-                save_file(
-                    text="\n".join(skills),
-                    path=skill_data_path,
-                    success_msg=f"Character data saved to {skill_data_path}",
-                    warn_msg=f"{skill_data_path} already exists. Not saving...",
-                )
-
-            # Get spell info
-            if options.get("spells"):
-                self.stdout.write("Downloading spell information...")
-                spells = tor_session.get_spell_list()
-
-                spell_data_path = Path(options.get("root"), "spells.txt")
-                save_file(
-                    text="\n".join(spells),
-                    path=spell_data_path,
-                    success_msg=f"Spell data saved to {spell_data_path}",
-                    warn_msg=f"{spell_data_path} already exists. Not saving...",
-                )
-
-            # Get character info
-            if options.get("chars"):
-                self.stdout.write("Downloading character information...")
-                data = tor_session.get_all_character_data()
-
-                char_data_path = Path(options.get("root"), "characters.json")
-                save_file(
-                    text=json.dumps(data, sort_keys=True, indent=4),
-                    path=char_data_path,
-                    success_msg=f"Character data saved to {char_data_path}",
-                    warn_msg=f"{char_data_path} already exists. Not saving...",
-                )
-
-            # Get location info
-            if options.get("locs"):
-                self.stdout.write("Downloading location information...")
-                locs_by_alpha = tor_session.get_all_locations_by_alpha()
-                data = {}
-                for locs in locs_by_alpha.values():
-                    for loc in locs.items():
-                        data[loc[0]] = {"url": loc[1]}
-
-                loc_data_path = Path(options.get("root"), "locations.json")
-                save_file(
-                    text=json.dumps(data, sort_keys=True, indent=4),
-                    path=loc_data_path,
-                    success_msg=f"Location data saved to {loc_data_path}",
-                    warn_msg=f"{loc_data_path} already exists. Not saving...",
-                )
+            self.download_wiki_info(options)
 
         except KeyboardInterrupt as exc:
             # TODO: file / partial download cleanup

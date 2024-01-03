@@ -38,20 +38,21 @@ class TorSession:
     def __init__(
         self, proxy_ip: str = "127.0.0.1", proxy_port: int = 9050, max_tries: int = 10
     ):
+        print("> Connecting to Tor session...")
         self.__session = requests.session()
         self.__proxy_port = proxy_port
         self.set_tor_proxy(proxy_ip)
         self.__tries = 0  # resets after a sucessful chapter download
         self.__max_tries = max_tries
 
-    def get(self, url) -> requests.Response:
+    def get(self, url, timeout=10) -> requests.Response:
         resp = None
         while self.__tries < self.__max_tries:
             resp = self.__session.get(
                 url=url,
                 headers={"User-Agent": UserAgent().random},
                 allow_redirects=True,
-                timeout=10,
+                timeout=timeout,
             )
             if resp.status_code >= 400 and resp.status_code <= 499:
                 self.__tries += 1
@@ -429,10 +430,11 @@ class TableOfContents:
             self.response = requests.get(self.url, timeout=10)
             print("Request for Table of Contents timed out!", file=stderr)
 
-        self.volume_data: OrderedDict[str, OrderedDict[str, str]] | None
+        self.volume_data: OrderedDict[str, OrderedDict[str, str]]
 
         if self.response is None:
-            self.soup = self.chapter_links = self.volume_data = None
+            self.soup = self.chapter_links = None
+            self.volume_data = OrderedDict()
             print(
                 "Table of Contents could not be reached! ToC `volume_data` will be `None`",
                 file=stderr,
