@@ -129,16 +129,15 @@ def match_ref_type(type_str) -> str | None:
         return None
 
 
-def prompt(s: str = "", sound: bool = False):
+def prompt(s: str = "", sound: bool = False) -> str:
     if sound:
         sound_filepath = Path("stats/sounds/alert.mp3")
         try:
-            run(["mpg12", "-q", "--pitch", ".25", sound_filepath], timeout=1)
-        except OSError:
-            print(f"! - Alert sound file {sound_filepath} could not be played.")
+            run(["mpg123", "-q", sound_filepath], timeout=1.5)
+        except OSError as e:
+            print(f"! - Alert sound file {sound_filepath} could not be played. {e}")
         except TimeoutExpired:
-            print("! - Alert sound player timed out", file=stderr)
-            pass
+            print("! - Alert sound player timed out")
 
     return input(s)
 
@@ -176,27 +175,30 @@ def select_ref_type(sound: bool = False) -> str | None:
         raise CommandError("Build interrupted with Ctrl-D (EOF).") from exc
 
 
-def select_ref_type_from_qs(qs: QuerySet[RefType], sound: bool = False) -> str | None:
+def select_ref_type_from_qs(
+    qs: QuerySet[RefType], sound: bool = False
+) -> RefType | None:
     """Interactive selection of an existing set of RefType(s)"""
     try:
         while True:
             for i, ref_type in enumerate(qs):
                 print(f"{i}: {ref_type.name} - {match_ref_type(ref_type.type)}")
 
-            sel = prompt(
+            sel: str = prompt(
                 f"Select one of the RefType(s) from the above options (leave empty to skip): ",
                 sound,
             )
 
             if sel.strip() == "":
                 return None  # skip without confirmation
-            try:
-                sel = int(sel)
-            except ValueError:
-                sel = -1  # invalid selection
 
-            if sel >= 0 and sel < len(qs):
-                return qs[sel]
+            try:
+                sel_i = int(sel)
+            except ValueError:
+                sel_i = -1  # invalid selection
+
+            if sel_i >= 0 and sel_i < len(qs):
+                return qs[sel_i]
             else:
                 print("Invalid selection.")
                 yes_no = prompt("Try again (y/n): ", sound)
