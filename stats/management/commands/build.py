@@ -523,6 +523,8 @@ class Command(BaseCommand):
                     # RefType creation could not complete or was skipped
                     if ref_type is None:
                         continue
+                except KeyboardInterrupt as e:
+                    raise e
 
                 color = self.detect_textref_color(options, text_ref)
 
@@ -889,99 +891,104 @@ class Command(BaseCommand):
         return None
 
     def handle(self, *args, **options) -> None:
-        if options.get("skip_wiki_all"):
-            options["skip_wiki_chars"] = True
-            options["skip_wiki_locs"] = True
-            options["skip_wiki_spells"] = True
-            options["skip_wiki_classes"] = True
-            options["skip_wiki_skills"] = True
+        try:
+            if options.get("skip_wiki_all"):
+                options["skip_wiki_chars"] = True
+                options["skip_wiki_locs"] = True
+                options["skip_wiki_spells"] = True
+                options["skip_wiki_classes"] = True
+                options["skip_wiki_skills"] = True
 
-        # Check config files
-        config_root = Path(options.get("config_dir", "config"))
+            # Check config files
+            config_root = Path(options.get("config_dir", "config"))
 
-        # Disambiguation configs
-        options["disambiguation_list"] = self.read_config_file(
-            Path(config_root, "disambiguation.cfg")
-        )
-        options["disambiguation_exceptions"] = self.read_config_file(
-            Path(config_root, "disambiguation_exceptions.cfg")
-        )
-
-        self.stdout.write("Building DB...")
-
-        # Build from static data
-        self.build_color_categories()
-        self.build_colors()
-
-        # Build wiki data
-        if not options.get("skip_wiki_spells"):
-            self.build_spells(Path(options["data_path"], "spells.txt"))
-        if not options.get("skip_wiki_skills"):
-            self.build_skills(Path(options["data_path"], "skills.txt"))
-        if not options.get("skip_wiki_chars"):
-            self.build_characters(Path(options["data_path"], "characters.json"))
-        if not options.get("skip_wiki_classes"):
-            self.build_classes(Path(options["data_path"], "classes.txt"))
-        if not options.get("skip_wiki_locs"):
-            self.build_locations(Path(options["data_path"], "locations.json"))
-
-        chapter_id = options.get("chapter_id")
-        if chapter_id is not None:
-            self.build_chapter_by_id(options, chapter_id)
-            return
-
-        chapter_id_range = options.get("chapter_id_range")
-        if chapter_id_range is not None:
-            try:
-                start, end = [int(x) for x in chapter_id_range.split(",")]
-            except ValueError as exc:
-                raise CommandError(
-                    f"Invalid chapter ID range provided: {chapter_id_range}."
-                ) from exc
-
-            for i in range(start, end):
-                self.build_chapter_by_id(options, i)
-
-            return
-
-        # Build volumes
-        self.stdout.write("\nPopulating chapter data by volume...")
-        vol_root = Path(options["data_path"], "volumes")
-        meta_path = Path(vol_root)
-        volumes_metadata = get_metadata(meta_path)
-        volumes = sorted(list(volumes_metadata["volumes"].items()), key=lambda x: x[1])
-
-        chapter_num = 0
-        for vol_title, vol_num in volumes:
-            src_vol: SrcVolume = SrcVolume(Path(vol_root, vol_title))
-            volume, ref_type_created = Volume.objects.get_or_create(
-                title=src_vol.title, number=vol_num
+            # Disambiguation configs
+            options["disambiguation_list"] = self.read_config_file(
+                Path(config_root, "disambiguation.cfg")
             )
-            if ref_type_created:
-                self.stdout.write(self.style.SUCCESS(f"> Volume created: {volume}"))
-            else:
-                self.stdout.write(
-                    self.style.WARNING(
-                        f"> Record for {src_vol.title} already exists. Skipping creation..."
-                    )
-                )
+            options["disambiguation_exceptions"] = self.read_config_file(
+                Path(config_root, "disambiguation_exceptions.cfg")
+            )
 
-            # Build books
-            for book_num, book_title in enumerate(src_vol.books):
-                src_book: SrcBook = SrcBook(Path(src_vol.path, book_title))
-                book, book_created = Book.objects.get_or_create(
-                    title=book_title, number=book_num, volume=volume
+            self.stdout.write("Building DB...")
+
+            # Build from static data
+            self.build_color_categories()
+            self.build_colors()
+
+            # Build wiki data
+            if not options.get("skip_wiki_spells"):
+                self.build_spells(Path(options["data_path"], "spells.txt"))
+            if not options.get("skip_wiki_skills"):
+                self.build_skills(Path(options["data_path"], "skills.txt"))
+            if not options.get("skip_wiki_chars"):
+                self.build_characters(Path(options["data_path"], "characters.json"))
+            if not options.get("skip_wiki_classes"):
+                self.build_classes(Path(options["data_path"], "classes.txt"))
+            if not options.get("skip_wiki_locs"):
+                self.build_locations(Path(options["data_path"], "locations.json"))
+
+            chapter_id = options.get("chapter_id")
+            if chapter_id is not None:
+                self.build_chapter_by_id(options, chapter_id)
+                return
+
+            chapter_id_range = options.get("chapter_id_range")
+            if chapter_id_range is not None:
+                try:
+                    start, end = [int(x) for x in chapter_id_range.split(",")]
+                except ValueError as exc:
+                    raise CommandError(
+                        f"Invalid chapter ID range provided: {chapter_id_range}."
+                    ) from exc
+
+                for i in range(start, end):
+                    self.build_chapter_by_id(options, i)
+
+                return
+
+            # Build volumes
+            self.stdout.write("\nPopulating chapter data by volume...")
+            vol_root = Path(options["data_path"], "volumes")
+            meta_path = Path(vol_root)
+            volumes_metadata = get_metadata(meta_path)
+            volumes = sorted(
+                list(volumes_metadata["volumes"].items()), key=lambda x: x[1]
+            )
+
+            chapter_num = 0
+            for vol_title, vol_num in volumes:
+                src_vol: SrcVolume = SrcVolume(Path(vol_root, vol_title))
+                volume, ref_type_created = Volume.objects.get_or_create(
+                    title=src_vol.title, number=vol_num
                 )
-                if book_created:
-                    self.stdout.write(self.style.SUCCESS(f"> Book created: {book}"))
+                if ref_type_created:
+                    self.stdout.write(self.style.SUCCESS(f"> Volume created: {volume}"))
                 else:
                     self.stdout.write(
                         self.style.WARNING(
-                            f"> Record for {book_title} already exists. Skipping creation..."
+                            f"> Record for {src_vol.title} already exists. Skipping creation..."
                         )
                     )
-                # Build chapters
-                for chapter_title in src_book.chapters:
-                    path = Path(src_book.path, chapter_title)
-                    self.build_chapter(options, book, path, chapter_num)
-                    chapter_num += 1
+
+                # Build books
+                for book_num, book_title in enumerate(src_vol.books):
+                    src_book: SrcBook = SrcBook(Path(src_vol.path, book_title))
+                    book, book_created = Book.objects.get_or_create(
+                        title=book_title, number=book_num, volume=volume
+                    )
+                    if book_created:
+                        self.stdout.write(self.style.SUCCESS(f"> Book created: {book}"))
+                    else:
+                        self.stdout.write(
+                            self.style.WARNING(
+                                f"> Record for {book_title} already exists. Skipping creation..."
+                            )
+                        )
+                    # Build chapters
+                    for chapter_title in src_book.chapters:
+                        path = Path(src_book.path, chapter_title)
+                        self.build_chapter(options, book, path, chapter_num)
+                        chapter_num += 1
+        except KeyboardInterrupt as exc:
+            raise CommandError("Build stop. Keyboard interrupt received.") from exc
