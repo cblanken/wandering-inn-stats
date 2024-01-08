@@ -52,6 +52,13 @@ class Command(BaseCommand):
                 This includes volumes, books, chapters, characters, etc.",
         )
         parser.add_argument(
+            "--config-dir",
+            type=str,
+            default="config",
+            help="Directory in file system where config files are saved to disk. \
+                This includes disambiguation.cfg, ...",
+        )
+        parser.add_argument(
             "-i",
             "--ignore-missing-chapter-metadata",
             action="store_true",
@@ -119,44 +126,15 @@ class Command(BaseCommand):
             default=None,
             help="Download a range of chapters by ID number",
         )
-        # TODO: add (-u) option for updating existing records
-
-    MANUAL_REFTYPE_DISAMBIGUATION_LIST = [
-        "archer",
-        "butler",
-        "cat",
-        "chieftan",
-        "crimson",
-        "crusader",
-        "doctor",
-        "eater",
-        "falcon",
-        "first",
-        "fool",
-        "frost",
-        "grandfather",
-        "grandmother",
-        "grass",
-        "oldest",
-        "pawn",
-        "ram",
-        "red",
-        "seer",
-        "silver",
-        "sky",
-        "spider",
-        "sunburst",
-        "that drake",
-        "twin",
-    ]
 
     def get_or_create_ref_type(self, options, text_ref: SrcTextRef) -> RefType | None:
         """Check for existing RefType of TextRef and create if necessary"""
         while True:  # loop for retries from select RefType prompt
-            if text_ref.text.lower() in self.MANUAL_REFTYPE_DISAMBIGUATION_LIST:
+            # Ensure textref did not detect a innocuous word from the disambiguation list
+            if text_ref.text.lower() in options["disambiguation_list"]:
                 # Prompt user to continue
                 ans = prompt(
-                    f'> "{text_ref.text}" matches a name in [MANUAL DISAMBIGUATION LIST]. Skip (default) TextRef? (y/n): ',
+                    f'> "{text_ref.text}" matches a name in [DISAMBIGUATION LIST]. Skip (default) TextRef? (y/n): ',
                     sound=True,
                 )
 
@@ -169,6 +147,7 @@ class Command(BaseCommand):
 
             try:
                 ref_type = RefType.objects.get(name=text_ref.text)
+
                 self.stdout.write(
                     self.style.WARNING(
                         f"> RefType: {text_ref.text} already exists. Skipping creation..."
@@ -702,6 +681,7 @@ class Command(BaseCommand):
                     invalid_first_names = [
                         "a",
                         "an",
+                        "archer",
                         "armored",
                         "crusader",
                         "demon",
@@ -710,12 +690,14 @@ class Command(BaseCommand):
                         "eater",
                         "elf",
                         "emperor",
+                        "first",
                         "flying",
                         "free",
                         "frost",
                         "gnoll",
                         "goblin",
                         "grand",
+                        "grass",
                         "half-elf",
                         "halfling",
                         "harpy",
@@ -729,6 +711,7 @@ class Command(BaseCommand):
                         "queen",
                         "selphid",
                         "silent",
+                        "silver",
                         "the",
                         "twin",
                         "twisted",
@@ -878,13 +861,31 @@ class Command(BaseCommand):
                             )
                         )
 
-    def handle(self, *args, **options):
+    def handle(self, *args, **options) -> None:
         if options.get("skip_wiki_all"):
             options["skip_wiki_chars"] = True
             options["skip_wiki_locs"] = True
             options["skip_wiki_spells"] = True
             options["skip_wiki_classes"] = True
             options["skip_wiki_skills"] = True
+
+        # Check config files
+        config_root = Path(options.get("config_dir", "config"))
+
+        # Disambiguation list
+        filename = "disambiguation.cfg"
+        p = Path(config_root, filename)
+        if p.exists():
+            try:
+                with p.open("r", encoding="utf-8") as f:
+                    names = [x.strip().lower() for x in f.readlines() if x[0] != "#"]
+                    options["disambiguation_list"] = names
+            except OSError as e:
+                self.stdout.write(
+                    self.style.ERROR(
+                        f"Could not read disambiguation.cfg config file! {e}"
+                    )
+                )
 
         self.stdout.write("Updating DB...")
 
