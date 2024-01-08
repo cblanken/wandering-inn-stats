@@ -131,7 +131,17 @@ class Command(BaseCommand):
         """Check for existing RefType of TextRef and create if necessary"""
         while True:  # loop for retries from select RefType prompt
             # Ensure textref did not detect a innocuous word from the disambiguation list
-            if text_ref.text.lower() in options["disambiguation_list"]:
+            if text_ref.text in options["disambiguation_list"]:
+                for exception in options["disambiguation_exceptions"]:
+                    pattern = re.compile(exception)
+                    if pattern.search(text_ref.line_text):
+                        self.stdout.write(
+                            self.style.WARNING(
+                                f"> {exception} is in disambiguation exceptions list. Skipping..."
+                            )
+                        )
+                        return None
+
                 # Prompt user to continue
                 ans = prompt(
                     f'> "{text_ref.text}" matches a name in [DISAMBIGUATION LIST]. Skip (default) TextRef? (y/n): ',
@@ -861,6 +871,23 @@ class Command(BaseCommand):
                             )
                         )
 
+    def read_config_file(self, p: Path) -> list[str] | None:
+        if p.exists():
+            try:
+                with p.open("r", encoding="utf-8") as f:
+                    # Lines starting with '#' act as comments
+                    return [x.strip() for x in f.readlines() if x[0] != "#"]
+            except OSError as e:
+                self.stdout.write(
+                    self.style.ERROR(
+                        f"Could not read disambiguation.cfg config file! {e}"
+                    )
+                )
+
+                return None
+
+        return None
+
     def handle(self, *args, **options) -> None:
         if options.get("skip_wiki_all"):
             options["skip_wiki_chars"] = True
@@ -872,22 +899,15 @@ class Command(BaseCommand):
         # Check config files
         config_root = Path(options.get("config_dir", "config"))
 
-        # Disambiguation list
-        filename = "disambiguation.cfg"
-        p = Path(config_root, filename)
-        if p.exists():
-            try:
-                with p.open("r", encoding="utf-8") as f:
-                    names = [x.strip().lower() for x in f.readlines() if x[0] != "#"]
-                    options["disambiguation_list"] = names
-            except OSError as e:
-                self.stdout.write(
-                    self.style.ERROR(
-                        f"Could not read disambiguation.cfg config file! {e}"
-                    )
-                )
+        # Disambiguation configs
+        options["disambiguation_list"] = self.read_config_file(
+            Path(config_root, "disambiguation.cfg")
+        )
+        options["disambiguation_exceptions"] = self.read_config_file(
+            Path(config_root, "disambiguation_exceptions.cfg")
+        )
 
-        self.stdout.write("Updating DB...")
+        self.stdout.write("Building DB...")
 
         # Build from static data
         self.build_color_categories()
