@@ -145,7 +145,7 @@ class Command(BaseCommand):
                 # Prompt user to continue
                 ans = prompt(
                     f'> "{text_ref.text}" matches a name in [DISAMBIGUATION LIST]. Skip (default) TextRef? (y/n): ',
-                    sound=True,
+                    sound=options.get("prompt_sound"),
                 )
 
                 # Skip by default
