@@ -418,7 +418,7 @@ class Command(BaseCommand):
         src_chapter: SrcChapter = SrcChapter(src_path)
         if src_chapter.metadata is None:
             self.stdout.write(
-                self.style.SUCCESS(
+                self.style.WARNING(
                     f"> Missing metadata for Chapter: {src_chapter.title}. Skipping..."
                 )
             )
