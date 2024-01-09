@@ -6,9 +6,9 @@ from stats.models import TextRef
 
 
 class TextRefTable(tables.Table):
-    ref_name = tables.Column(accessor="type__name")
-    text = tables.Column(accessor="chapter_line__text")
-    chapter_url = tables.Column(
+    ref_name: str = tables.Column(accessor="type__name")
+    text: str = tables.Column(accessor="chapter_line__text")
+    chapter_url: str = tables.Column(
         accessor="chapter_line__chapter__source_url", verbose_name="Chapter Source"
     )
 
@@ -58,3 +58,9 @@ class TextRefTable(tables.Table):
                 "external": True,
             },
         )
+
+    def value_text(self, record) -> str:
+        return record.chapter_line.text
+
+    def value_chapter_url(self, record) -> str:
+        return record.chapter_line.chapter.source_url

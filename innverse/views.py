@@ -2,6 +2,8 @@ from django.db.models import Q
 from django.shortcuts import render
 from django.views.decorators.cache import cache_page
 from django_tables2 import SingleTableView, LazyPaginator
+from django_tables2.export.export import TableExport
+from django_tables2.export.views import ExportMixin
 from stats.charts import word_count_charts, character_charts, class_charts
 from stats.models import TextRef
 from .tables import TextRefTable
@@ -61,7 +63,7 @@ def magic(request):
     return render(request, "pages/magic.html")
 
 
-class TextRefView(SingleTableView):
+class TextRefTableView(ExportMixin, SingleTableView):
     model = TextRef
     table_class = TextRefTable
 
@@ -89,6 +91,12 @@ def search(request):
             )
 
             table = TextRefTable(table_data)
+
+            export_format = request.GET.get("_export", None)
+            if TableExport.is_valid_format(export_format):
+                exporter = TableExport(export_format, table)
+                return exporter.response(f"textrefs.{export_format}")
+
             try:
                 table.paginate(page=request.GET.get("page", 1), per_page=15)
             except:
