@@ -95,6 +95,7 @@ class RefType(models.Model):
     SKILL_OBTAINED = "SO"
     SPELL = "SP"
     SPELL_OBTAINED = "SB"
+    UNKNOWN = "UK"
     TYPES = [
         (CHARACTER, "Character"),
         (CLASS, "Class"),
@@ -106,11 +107,11 @@ class RefType(models.Model):
         (SKILL_OBTAINED, "Skill Obtained"),
         (SPELL, "Spell"),
         (SPELL_OBTAINED, "Spell Obtained"),
+        (UNKNOWN, "Doesn't fit an existing category"),
     ]
     name = models.CharField(max_length=120)
     type = models.CharField(max_length=2, choices=TYPES, null=True)
     description = models.CharField(max_length=120, default="")
-    is_divine = models.BooleanField(default=False)
 
     class Meta:
         verbose_name_plural = "Ref Types"
@@ -122,9 +123,7 @@ class RefType(models.Model):
         ]
 
     def __str__(self):
-        return (
-            f"(RefType: {self.name} - Type: {self.type}, is_divine: {self.is_divine})"
-        )
+        return f"(RefType: {self.name} - Type: {self.type})"
 
 
 class Character(models.Model):
