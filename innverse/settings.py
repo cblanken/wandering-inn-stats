@@ -17,12 +17,11 @@ from os import environ as env
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
-# TODO: read secret key from env
-SECRET_KEY = "django-insecure-pk3m*p7(m7#6tw-4zr)b4io1#76o(&-!h)wx-c5wk943#6mryc"
+SECRET_KEY = env.get("TWI_KEY")
+if SECRET_KEY is None:
+    raise Exception(
+        "The secret key ('TWI_KEY\") must be available in the environment to run this application!"
+    )
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
