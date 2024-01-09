@@ -3,10 +3,10 @@
 {% block title %}Search{% endblock %}
 {% block header_content %}
 <form class="p-2">
-  <section class="flex items-center font-para text-lg w-full">
+  <section class="flex items-center font-subheading text-lg w-full">
     {% include "patterns/molecules/search_bar/search_bar.html" %}
   </section>
-  <section id="timeline" class="font-para text-xl mt-2">
+  <section id="timeline" class="font-subheading text-xl mt-2">
     {% include "patterns/molecules/search_timeline/search_timeline.html" %}
   </section>
   {{ form.non_field_errors }}
@@ -19,15 +19,39 @@
 <section id="results-window" class="flex h-full">
   <section class="flex flex-col w-full p-2">
     <section class="flex h-full">
-      <div class="w-full">
-        <div class="border-bg-tertiary border-y-2 w-full flex justify-end">
-          <a class="button font-para p-2 text-lg flex items-center gap-2" target="_blank" href="{{ request.build_absolute_uri }}&_export=csv">
-            <span>Export table</span>
-            <i data-feather="download">Export</i>
-          </a>
-        </div>
+      <div class="w-full flex-col">
+        {% if request.GET.type %}
+          <div class="border-bg-tertiary border-y-2 w-full text-info flex justify-end">
+            <a class="button font-para p-2 text-lg flex items-center gap-2" target="_blank" href="{{ request.build_absolute_uri }}&_export=csv">
+              <span class="font-subheading">Download table</span>
+              <i data-feather="download">Download</i>
+            </a>
+          </div>
+        {% endif %}
         {% if table %}
           {% render_table table %}
+        {% endif %}
+        {% if not request.GET.type %}
+          <section class="font-para text-info w-full h-8 pl-4 pr-16">
+            <h2 class="flex items-center gap-2 mb-4 text-3xl">
+              <i class="w-7 h-7" data-feather="info"></i>
+              <div class="flex items-end">How to Search</div>
+            </h2>
+            <div class="text-xl">
+            <ul role="list" class="list-disc box-decoration-clone pl-8">
+              <li>Select a <em>type</em> of text reference to lookup from the first dropdown menu. They should be relatively self-explanatory.</li>
+              <li>Provide a <em>type query</em> in the text field to the right of the drop down. This will filter the <em>type</em> of references returned.
+                <ul class="pl-8 list-disc">
+                  <li class="">Queries are case-insensitive and allow any missing text to the left or right of the query. For example, a query with a <em>type</em> of &quot;Spell&quot; and a <em>type query</em> of &quot;fire&quot; would return results for any spells with &quot;fire&quot; in the name (with an uppercase or lowercase &quot;f&quot;).</li>
+                  <li>Note that character references are based on their primary name given from the {% include "patterns/atoms/link/link.html" with size="4" text="Wiki" href="https://twiki.shelter.moe" external=True %}, so make sure you are searching by that name and not one of their aliases.</li>
+                </ul>
+              </li>
+              <li>A search can be filtered further by providing a <em>text search query</em> which will filter the results based on the surrounding text of the references that are found.</li>
+              <li>By default, all chapters are searched, but the chapter range can be limited by selecting the desired chapters by name in the <b>First Chapter</b> and <b>Last Chapter</b> dropdown menus.
+              <li>Click the <b>Search</b> button.</li>
+            </ul>
+            </div>
+          </section>
         {% endif %}
       </div>
     </section>

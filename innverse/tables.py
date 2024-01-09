@@ -9,7 +9,7 @@ class TextRefTable(tables.Table):
     ref_name: str = tables.Column(accessor="type__name")
     text: str = tables.Column(accessor="chapter_line__text")
     chapter_url: str = tables.Column(
-        accessor="chapter_line__chapter__source_url", verbose_name="Chapter Source"
+        accessor="chapter_line__chapter__source_url", verbose_name="Chapter"
     )
 
     class Meta:
