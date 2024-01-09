@@ -88,6 +88,7 @@ def search(request):
                         "last_chapter"
                     )
                 )
+                & ~Q(color__isnull=form.cleaned_data.get("only_colored_refs"))
             )
 
             table = TextRefTable(table_data)

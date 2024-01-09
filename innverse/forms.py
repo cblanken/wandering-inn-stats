@@ -12,6 +12,7 @@ def get_chapters():
 
 
 select_input_tailwind_classes = "bg-bg-primary text-text-primary border-none"
+checkbox_tailwind_classes = "bg-bg-tertiary"
 
 
 class SearchForm(forms.Form):
@@ -38,4 +39,10 @@ class SearchForm(forms.Form):
         required=False,
         initial=MAX_CHAPTER_NUM + 1,
         widget=forms.Select(attrs={"class": select_input_tailwind_classes}),
+    )
+    only_colored_refs = forms.BooleanField(
+        label="Only colored refs",
+        required=False,
+        initial=False,
+        widget=forms.CheckboxInput(attrs={"class": checkbox_tailwind_classes}),
     )
