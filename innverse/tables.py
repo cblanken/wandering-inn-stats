@@ -1,4 +1,4 @@
-from django.utils.html import format_html, escape, strip_tags
+from django.utils.html import format_html, strip_tags
 from django.template.loader import render_to_string
 from urllib.parse import quote
 import django_tables2 as tables
@@ -20,9 +20,9 @@ class TextRefTable(tables.Table):
     def render_text(self, record):
         name = record.type.name
         text = record.chapter_line.text
-        first = text[: record.start_column]
+        first = strip_tags(text[: record.start_column])
         highlight = text[record.start_column : record.end_column]
-        last = text[record.end_column :]
+        last = strip_tags(text[record.end_column :])
 
         return render_to_string(
             "patterns/atoms/search_result_line/search_result_line.html",
@@ -60,7 +60,7 @@ class TextRefTable(tables.Table):
         )
 
     def value_text(self, record) -> str:
-        return record.chapter_line.text
+        return strip_tags(record.chapter_line.text)
 
     def value_chapter_url(self, record) -> str:
         return record.chapter_line.chapter.source_url
