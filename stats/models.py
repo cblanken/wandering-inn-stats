@@ -95,7 +95,7 @@ class RefType(models.Model):
     SKILL_OBTAINED = "SO"
     SPELL = "SP"
     SPELL_OBTAINED = "SB"
-    UNKNOWN = "UK"
+    INVALID = "IN"
     TYPES = [
         (CHARACTER, "Character"),
         (CLASS, "Class"),
@@ -107,7 +107,7 @@ class RefType(models.Model):
         (SKILL_OBTAINED, "Skill Obtained"),
         (SPELL, "Spell"),
         (SPELL_OBTAINED, "Spell Obtained"),
-        (UNKNOWN, "Doesn't fit an existing category"),
+        (INVALID, "Invalid category"),
     ]
     name = models.CharField(max_length=120)
     type = models.CharField(max_length=2, choices=TYPES, null=True)
@@ -443,7 +443,11 @@ class TextRef(models.Model):
 
     class Meta:
         verbose_name_plural = "Text Refs"
-        ordering = ["chapter_line__chapter"]
+        ordering = [
+            "chapter_line__chapter",
+            "chapter_line__line_number",
+            "start_column",
+        ]
         constraints = [
             models.UniqueConstraint(
                 name="key",
