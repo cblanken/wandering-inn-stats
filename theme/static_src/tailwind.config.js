@@ -67,6 +67,7 @@ module.exports = {
                 "accept": "#38c17f",
                 "cancel": "#f4425f",
                 "info": "#8492F4",
+                "warn": "#F7A71B",
             },
         },
     },

@@ -6,9 +6,7 @@ from enum import Enum
 from .models import Chapter, RefType, TextRef, Character
 
 
-DEFAULT_PLOTLY_TEMPLATE = "plotly_dark"
-DEFAULT_HEIGHT = "calc(100vh - 120px)"
-DEFAULT_WIDTH = "calc(100vw - 420px)"
+DEFAULT_PLOTLY_THEME = "plotly_dark"
 
 DEFAULT_LAYOUT = {
     "font": {
@@ -19,6 +17,8 @@ DEFAULT_LAYOUT = {
         "family": "Courier New, mono",
         "size": 32,
     },
+    "height": None,
+    "width": None,
 }
 
 
@@ -34,7 +34,7 @@ def word_count_charts():
         chapter_wc_data,
         x="number",
         y="word_count",
-        template=DEFAULT_PLOTLY_TEMPLATE,
+        template=DEFAULT_PLOTLY_THEME,
         hover_data=["title", "number", "word_count", "post_date"],
         trendline="ols",
         trendline_color_override="#FF8585",
@@ -62,8 +62,6 @@ def word_count_charts():
     chapter_wc_html = chapter_wc_fig.to_html(
         full_html=False,
         include_plotlyjs=False,
-        default_height=DEFAULT_HEIGHT,
-        default_width=DEFAULT_WIDTH,
     )
 
     # Word counts per author's note
@@ -77,7 +75,7 @@ def word_count_charts():
         chapter_wc_data,
         x="number",
         y="authors_note_word_count",
-        template=DEFAULT_PLOTLY_TEMPLATE,
+        template=DEFAULT_PLOTLY_THEME,
         hover_data=["title", "number", "authors_note_word_count"],
     )
 
@@ -101,8 +99,6 @@ def word_count_charts():
     chapter_authors_wc_html = chapter_authors_wc_fig.to_html(
         full_html=False,
         include_plotlyjs=False,
-        default_height=DEFAULT_HEIGHT,
-        default_width=DEFAULT_WIDTH,
     )
 
     # Word counts grouped by book
@@ -117,7 +113,7 @@ def word_count_charts():
         x="book__title",
         y="word_count",
         color="book",
-        template=DEFAULT_PLOTLY_TEMPLATE,
+        template=DEFAULT_PLOTLY_THEME,
         color_continuous_scale=px.colors.qualitative.Vivid,
     )
     book_wc_fig.update_layout(
@@ -139,8 +135,6 @@ def word_count_charts():
     book_wc_html = book_wc_fig.to_html(
         full_html=False,
         include_plotlyjs=False,
-        default_height=DEFAULT_HEIGHT,
-        default_width=DEFAULT_WIDTH,
     )
 
     # Word counts grouped by volume
@@ -153,7 +147,7 @@ def word_count_charts():
         x="book__volume__title",
         y="word_count",
         color="book__volume",
-        template=DEFAULT_PLOTLY_TEMPLATE,
+        template=DEFAULT_PLOTLY_THEME,
         color_continuous_scale=px.colors.qualitative.Vivid,
     )
     volume_wc_fig.update_layout(
@@ -174,8 +168,6 @@ def word_count_charts():
     volume_wc_html = volume_wc_fig.to_html(
         full_html=False,
         include_plotlyjs=False,
-        default_height=DEFAULT_HEIGHT,
-        default_width=DEFAULT_WIDTH,
     )
 
     return {
@@ -206,7 +198,7 @@ def character_charts():
         character_text_refs,
         names="type__name",
         values="char_instance_cnt",
-        template=DEFAULT_PLOTLY_TEMPLATE,
+        template=DEFAULT_PLOTLY_THEME,
     )
     char_refs_count_fig.update_layout(DEFAULT_LAYOUT)
     char_refs_count_fig.update_traces(
@@ -222,8 +214,6 @@ def character_charts():
     char_refs_count_html = char_refs_count_fig.to_html(
         full_html=False,
         include_plotlyjs=False,
-        default_height=DEFAULT_HEIGHT,
-        default_width=DEFAULT_WIDTH,
     )
 
     char_counts_per_chapter = [
@@ -250,7 +240,7 @@ def character_charts():
         df,
         x="Chapter",
         y="Character Count",
-        template=DEFAULT_PLOTLY_TEMPLATE,
+        template=DEFAULT_PLOTLY_THEME,
     )
     char_counts_per_chapter_fig.update_layout(
         DEFAULT_LAYOUT,
@@ -269,8 +259,6 @@ def character_charts():
     char_counts_per_chapter_html = char_counts_per_chapter_fig.to_html(
         full_html=False,
         include_plotlyjs=False,
-        default_height=DEFAULT_HEIGHT,
-        default_width=DEFAULT_WIDTH,
     )
 
     # Character data counts
@@ -299,7 +287,7 @@ def character_charts():
         characters,
         names="species",
         values="species_cnt",
-        template=DEFAULT_PLOTLY_TEMPLATE,
+        template=DEFAULT_PLOTLY_THEME,
     )
     chars_by_species_fig.update_layout(DEFAULT_LAYOUT)
     chars_by_species_fig.update_traces(
@@ -314,8 +302,6 @@ def character_charts():
     chars_by_species_html = chars_by_species_fig.to_html(
         full_html=False,
         include_plotlyjs=False,
-        default_height=DEFAULT_HEIGHT,
-        default_width=DEFAULT_WIDTH,
     )
 
     # Character counts by status
@@ -323,7 +309,7 @@ def character_charts():
         characters,
         names="status",
         values="status_cnt",
-        template=DEFAULT_PLOTLY_TEMPLATE,
+        template=DEFAULT_PLOTLY_THEME,
     )
     chars_by_status_fig.update_layout(DEFAULT_LAYOUT)
     chars_by_status_fig.update_traces(
@@ -336,8 +322,6 @@ def character_charts():
     chars_by_status_html = chars_by_status_fig.to_html(
         full_html=False,
         include_plotlyjs=False,
-        default_height=DEFAULT_HEIGHT,
-        default_width=DEFAULT_WIDTH,
     )
 
     return {
@@ -366,7 +350,7 @@ def class_charts():
         class_refs,
         names="type__name",
         values="class_instance_cnt",
-        template=DEFAULT_PLOTLY_TEMPLATE,
+        template=DEFAULT_PLOTLY_THEME,
     )
 
     class_refs_count_fig.update_layout(DEFAULT_LAYOUT)
@@ -385,8 +369,6 @@ def class_charts():
     class_refs_count_html = class_refs_count_fig.to_html(
         full_html=False,
         include_plotlyjs=False,
-        default_height=DEFAULT_HEIGHT,
-        default_width=DEFAULT_WIDTH,
     )
 
     return {
