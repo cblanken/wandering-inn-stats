@@ -1,6 +1,7 @@
 from django.contrib import admin
 from .models import *
 
+
 # Admin model settings
 class ChapterAdmin(admin.ModelAdmin):
     list_display = ["title", "number", "word_count", "post_date", "is_interlude"]
@@ -20,6 +21,7 @@ class AliasAdmin(admin.ModelAdmin):
     list_display = ["name", "ref_type"]
     list_filter = ["ref_type__type"]
     search_fields = ["name"]
+    autocomplete_fields = ["ref_type"]
 
 
 class ChapterLineAdmin(admin.ModelAdmin):
