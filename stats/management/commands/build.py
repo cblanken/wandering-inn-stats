@@ -182,7 +182,7 @@ class Command(BaseCommand):
                 if alias:
                     self.stdout.write(
                         self.style.WARNING(
-                            f"> Alias exists for RefType {text_ref.text} already. Skipping creation..."
+                            f'> Alias exists for {text_ref.text} already. Reftype="{alias.ref_type.name}". Skipping creation...'
                         )
                     )
                     return alias.ref_type
