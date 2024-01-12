@@ -67,6 +67,7 @@ class COLOR_CATEGORY(Enum):
     HERITAGE = "Heritage based skills/classes"
     XRN = "Xrn's various colored speech"
     MEMORY = "Memory based speech e.g. Velan"
+    GHOSTS = "Ghosts"
 
 
 Color = tuple[str, COLOR_CATEGORY]
@@ -181,6 +182,7 @@ COLORS: list[Color] = [
     # Other
     ("CBF2F3", COLOR_CATEGORY.HERITAGE),
     ("FFFF99", COLOR_CATEGORY.MEMORY),
+    ("BDD2DB", COLOR_CATEGORY.GHOSTS),
     # Darkness
     ("787878", COLOR_CATEGORY.DARKNESS),
     ("575757", COLOR_CATEGORY.DARKNESS),
