@@ -99,7 +99,10 @@ def search(request):
                 return exporter.response(f"textrefs.{export_format}")
 
             try:
-                table.paginate(page=request.GET.get("page", 1), per_page=15)
+                table.paginate(
+                    page=request.GET.get("page", 1),
+                    per_page=request.GET.get("page_size", 15),
+                )
             except:
                 return render(
                     request,

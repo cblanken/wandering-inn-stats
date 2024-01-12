@@ -13,6 +13,7 @@ def get_chapters():
 
 select_input_tailwind_classes = "bg-bg-primary text-text-primary border-none"
 checkbox_tailwind_classes = "bg-bg-tertiary"
+integer_input_tailwind_classes = "bg-bg-tertiary"
 
 
 class SearchForm(forms.Form):
@@ -39,6 +40,16 @@ class SearchForm(forms.Form):
         required=False,
         initial=MAX_CHAPTER_NUM + 1,
         widget=forms.Select(attrs={"class": select_input_tailwind_classes}),
+    )
+    page_size = forms.IntegerField(
+        label="Page size",
+        required=False,
+        initial=15,
+        min_value=10,
+        max_value=1000,
+        widget=forms.NumberInput(
+            attrs={"class": integer_input_tailwind_classes, "style": "width: 8rem"}
+        ),
     )
     only_colored_refs = forms.BooleanField(
         label="Only colored refs",
