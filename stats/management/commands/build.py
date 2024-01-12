@@ -494,6 +494,22 @@ class Command(BaseCommand):
 
         # Build TextRefs
         for i in range(len(src_chapter.lines)):
+            if (
+                src_chapter.lines[i].startswith("<img")
+                or src_chapter.lines[i].startswith("<div")
+                or src_chapter.lines[i].startswith("<p><a ")
+            ):
+                self.stdout.write(
+                    self.style.WARNING(
+                        f"> Line {i} begins with an '<img>' or '<div>' or '<p><a ' tag. Skipping..."
+                    )
+                )
+                continue
+            elif src_chapter.lines[i].strip() == "":
+                self.stdout.write(
+                    self.style.WARNING(f"> Line {i} is empty. Skipping...")
+                )
+
             # Create ContentLine if it doesn't already exist
             chapter_line, created = ChapterLine.objects.get_or_create(
                 chapter=chapter, line_number=i, text=src_chapter.lines[i]
