@@ -1,8 +1,8 @@
 from django.utils.html import format_html, strip_tags
 from django.template.loader import render_to_string
-from urllib.parse import quote
+from urllib.parse import quote, urlencode
 import django_tables2 as tables
-from stats.models import TextRef
+from stats.models import Character, RefType, TextRef
 
 
 class TextRefTable(tables.Table):
@@ -17,7 +17,31 @@ class TextRefTable(tables.Table):
         template_name = "tables/search_table.html"
         fields = ("ref_name", "text", "chapter_url")
 
-    def render_text(self, record):
+    # def render_ref_name(self, record):
+
+    def render_ref_name(self, record: TextRef):
+        if record.type.type == RefType.CHARACTER:
+            return render_to_string(
+                "patterns/atoms/link/link.html",
+                context={
+                    "text": f"{record.type.name}",
+                    "href": f"https://wiki.wanderinginn.com/{record.type.name}",
+                    "external": True,
+                },
+            )
+        elif record.type.type == RefType.CLASS:
+            return render_to_string(
+                "patterns/atoms/link/link.html",
+                context={
+                    "text": f"{record.type.name}",
+                    "href": f"https://wiki.wanderinginn.com/index.php?title=Special%3ASearch&search=Category%3AClasses+{record.type.name[1:-1]}",
+                    "external": True,
+                },
+            )
+        else:
+            return record.type.name
+
+    def render_text(self, record: TextRef):
         name = record.type.name
         text = record.chapter_line.text
         first = strip_tags(text[: record.start_column])
@@ -29,7 +53,7 @@ class TextRefTable(tables.Table):
             context={"first": first, "highlight": highlight, "last": last},
         )
 
-    def render_chapter_url(self, record, value):
+    def render_chapter_url(self, record: TextRef, value):
         # Using the full text or a strict character count appears to run into issues when linking
         # with a TextFragment, either with too long URLs or unfinished words
         offset = 25
