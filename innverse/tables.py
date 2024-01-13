@@ -17,8 +17,6 @@ class TextRefTable(tables.Table):
         template_name = "tables/search_table.html"
         fields = ("ref_name", "text", "chapter_url")
 
-    # def render_ref_name(self, record):
-
     def render_ref_name(self, record: TextRef):
         if record.type.type == RefType.CHARACTER:
             return render_to_string(
@@ -83,8 +81,11 @@ class TextRefTable(tables.Table):
             },
         )
 
-    def value_text(self, record) -> str:
+    def value_ref_name(self, record: TextRef) -> str:
+        return record.type.name
+
+    def value_text(self, record: TextRef) -> str:
         return strip_tags(record.chapter_line.text)
 
-    def value_chapter_url(self, record) -> str:
+    def value_chapter_url(self, record: TextRef) -> str:
         return record.chapter_line.chapter.source_url
