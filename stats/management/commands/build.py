@@ -306,6 +306,42 @@ class Command(BaseCommand):
             self.stdout.write(self.style.SUCCESS(f"> {new_ref_type} created"))
             return new_ref_type
 
+    def select_color_from_options(
+        self, matching_colors: QuerySet[Color], prompt_sound: bool
+    ) -> Color:
+        for i, col in enumerate(matching_colors):
+            self.stdout.write(f"{i}: {col}")
+        skip = False
+
+        sel: str
+        index: int
+        while True:
+            try:
+                sel = prompt(
+                    "Select color (leave empty to skip): ",
+                    prompt_sound,
+                )
+                if sel.strip() == "":
+                    skip = True
+                    break
+
+                index = int(sel)
+            except ValueError:
+                self.stdout.write("Invalid selection. Please try again.")
+                continue
+            else:
+                if index >= 0 and index < len(matching_colors):
+                    break
+                self.stdout.write("Invalid selection. Please try again.")
+
+        if skip:
+            self.stdout.write(
+                self.style.WARNING("> No color selection provided. Skipping...")
+            )
+            return None
+
+        return matching_colors[i]
+
     def detect_textref_color(self, options, text_ref) -> str | None:
         # Detect TextRef color
         if 'span style="color:' in text_ref.context:
@@ -313,18 +349,25 @@ class Command(BaseCommand):
                 print(f"Found color span in '{text_ref.context}'")
                 i: int = text_ref.context.index("color:")
                 try:
-                    rgb_hex: str = text_ref.context[
-                        i
-                        + text_ref.context[i:].index("#")
-                        + 1 : i
-                        + text_ref.context[i:].index(">")
-                        - 1
-                    ].upper()
+                    rgb_hex: str = (
+                        text_ref.context[
+                            i
+                            + text_ref.context[i:].index("#")
+                            + 1 : i
+                            + text_ref.context[i:].index(">")
+                            - 1
+                        ]
+                        .strip()
+                        .upper()
+                        .replace("#", "")
+                        .replace(";", "")
+                    )
                 except ValueError:
                     self.stdout.write(
                         "Color span found but colored text is outside the current context range."
                     )
                     return None
+
                 matching_colors: QuerySet = Color.objects.filter(rgb=rgb_hex)
                 if len(matching_colors) == 1:
                     return matching_colors[0]
@@ -332,7 +375,7 @@ class Command(BaseCommand):
                     if options.get("skip_textref_color_select"):
                         self.stdout.write(
                             self.style.WARNING(
-                                f"> TextRef color selection disabled. Skipping selection."
+                                "> TextRef color selection disabled. Skipping selection."
                             )
                         )
                         return None
@@ -340,40 +383,11 @@ class Command(BaseCommand):
                     self.stdout.write(
                         f"Unable to automatically select color for TextRef: {text_ref}"
                     )
-                    for i, col in enumerate(matching_colors):
-                        self.stdout.write(f"{i}: {col}")
-                    skip = False
 
-                    sel: str
-                    index: int
-                    while True:
-                        try:
-                            sel = prompt(
-                                "Select color (leave empty to skip): ",
-                                options.get("prompt_sound"),
-                            )
-                            if sel.strip() == "":
-                                skip = True
-                                break
+                    return self.select_color_from_options(
+                        matching_colors, options.get("prompt_sound")
+                    )
 
-                            index = int(sel)
-                        except ValueError:
-                            self.stdout.write("Invalid selection. Please try again.")
-                            continue
-                        else:
-                            if index >= 0 and index < len(matching_colors):
-                                break
-                            self.stdout.write("Invalid selection. Please try again.")
-
-                    if skip:
-                        self.stdout.write(
-                            self.style.WARNING(
-                                f"> No color selection provided. Skipping {text_ref.text}..."
-                            )
-                        )
-                        return None
-
-                    return matching_colors[i]
             except IndexError:
                 print("Can't get color. Invalid TextRef context index")
                 raise
@@ -480,6 +494,8 @@ class Command(BaseCommand):
 
         # Compile item/artifact names for TextRef search
         # TODO: add item/artifact names
+
+        # Build patterns for finding TextRefs
         prefix = r"[>\W]"
         suffix = r"[<\W\.\?,!]"
         compiled_patterns = Pattern._or(
@@ -530,7 +546,7 @@ class Command(BaseCommand):
                         end_column=text_ref.end_column,
                     )
                     self.stdout.write(
-                        self.style.WARNING(f"> TextRef already exists. Skipping...")
+                        self.style.WARNING("> TextRef already exists. Skipping...")
                     )
                     continue
                 except TextRef.DoesNotExist:

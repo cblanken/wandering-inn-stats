@@ -1,8 +1,6 @@
 """Utility functions and classes for build script"""
 from enum import Enum
 from pathlib import Path
-from pprint import pprint
-from sys import stderr
 from subprocess import run, TimeoutExpired
 from typing import Protocol
 from django.core.management.base import CommandError
@@ -194,27 +192,6 @@ COLORS: list[Color] = [
 ]
 
 
-def select_color_type(rgb_hex: str) -> Color | None:
-    """Interactive selection of ColorCategory"""
-    colors = list(filter(lambda x: x[0] == rgb_hex.upper(), COLORS))
-    if len(colors) == 0:
-        return None
-    elif len(colors) == 0:
-        return colors[0]
-    else:
-        print("Select color. Options include: ")
-        pprint(zip(range(len(colors)), colors))
-        while True:
-            try:
-                sel = int(input("Selection: "))
-                if sel >= len(colors):
-                    raise ValueError
-                return colors[sel]
-            except ValueError:
-                print("Invalid selection. Try again.")
-                continue
-
-
 def match_ref_type(type_str) -> str | None:
     try:
         matches = list(
@@ -289,7 +266,7 @@ def select_ref_type_from_qs(
                 print(f"{i}: {ref_type.name} - {match_ref_type(ref_type.type)}")
 
             sel: str = prompt(
-                f"Select one of the RefType(s) from the above options (leave empty to skip): ",
+                "Select one of the RefType(s) from the above options (leave empty to skip): ",
                 sound,
             )
 
