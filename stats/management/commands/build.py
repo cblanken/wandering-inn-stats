@@ -7,7 +7,7 @@ import re
 from django.core.management.base import BaseCommand, CommandError
 from django.db.models import Q
 from django.db.models.query import QuerySet
-from django.db.utils import DataError
+from django.db.utils import DataError, IntegrityError
 from django.utils.html import strip_tags
 from stats.models import (
     ChapterLine,
@@ -70,6 +70,16 @@ class Command(BaseCommand):
             "--skip-text-refs",
             action="store_true",
             help="Skip TextRef generation for each Chapter",
+        )
+        parser.add_argument(
+            "--skip-ref-chars",
+            action="store_true",
+            help="Skip Character TextRef checks",
+        )
+        parser.add_argument(
+            "--skip-ref-locs",
+            action="store_true",
+            help="Skip Location TextRef checks",
         )
         parser.add_argument(
             "--skip-wiki-chars",
@@ -147,6 +157,7 @@ class Command(BaseCommand):
 
     def get_or_create_ref_type(self, options, text_ref: SrcTextRef) -> RefType | None:
         """Check for existing RefType of TextRef and create if necessary"""
+        text_ref.text = strip_tags(text_ref.text)
         while True:  # loop for retries from select RefType prompt
             # Ensure textref did not detect a innocuous word from the disambiguation list
             if text_ref.text in options["disambiguation_list"]:
@@ -328,10 +339,17 @@ class Command(BaseCommand):
 
             # Create RefType
             try:
-                new_ref_type = RefType(name=strip_tags(text_ref.text), type=new_type)
+                new_ref_type = RefType(name=text_ref.text, type=new_type)
                 new_ref_type.save()
                 self.stdout.write(self.style.SUCCESS(f"> {new_ref_type} created"))
                 return new_ref_type
+            except IntegrityError as exc:
+                self.stdout.write(
+                    self.style.WARNING(
+                        f"> {strip_tags(text_ref.text)} already exists. Skipping..."
+                    )
+                )
+                return None
             except DataError as exc:
                 raise CommandError(
                     f"Failed to create RefType from {text_ref.text} and {new_type}."
@@ -437,7 +455,7 @@ class Command(BaseCommand):
         return None
 
     def build_chapter_by_id(self, options, chapter_id: int):
-        """Populate individual Chapter by ID"""
+        """Build individual Chapter by ID"""
         try:
             chapter = Chapter.objects.get(number=chapter_id)
             self.stdout.write(
@@ -512,16 +530,22 @@ class Command(BaseCommand):
         # Compile character names for TextRef search
         # NOTE: names and aliases containing a '(' are filtered out to prevent
         # interference when compiling the regex to match TextRefs
-        character_patterns = [
-            "|".join(build_reftype_pattern(char))
-            for char in Character.objects.all()
-            if "(" not in char.ref_type.name
-        ]
+        character_patterns = (
+            [
+                "|".join(build_reftype_pattern(char))
+                for char in Character.objects.all()
+                if "(" not in char.ref_type.name
+            ]
+            if not options.get("skip_ref_chars")
+            else []
+        )
 
         # Compile location names for TextRef search
-        location_patterns = [
-            "|".join(build_reftype_pattern(loc)) for loc in Location.objects.all()
-        ]
+        location_patterns = (
+            ["|".join(build_reftype_pattern(loc)) for loc in Location.objects.all()]
+            if not options.get("skip_ref_locs")
+            else []
+        )
 
         # Compile item/artifact names for TextRef search
         # TODO: add item/artifact names

@@ -21,6 +21,8 @@ class Pattern:
 
     @staticmethod
     def _or(patterns: tuple[re.Pattern], prefix="", suffix="") -> re.Pattern:
+        if len(patterns) == 0:
+            return None
         if len(patterns) == 1:
             return patterns[0]
 
