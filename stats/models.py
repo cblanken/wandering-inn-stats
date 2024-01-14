@@ -88,9 +88,11 @@ class RefType(models.Model):
     CHARACTER = "CH"
     CLASS = "CL"
     CLASS_UPDATE = "CO"
+    CONDITION = "CN"
     ITEM = "IT"
     LOCATION = "LO"
     MIRACLE = "MI"
+    MAGICAL_CHAT = "MC"
     SKILL = "SK"
     SKILL_UPDATE = "SO"
     SPELL = "SP"
@@ -100,9 +102,11 @@ class RefType(models.Model):
         (CHARACTER, "Character"),
         (CLASS, "Class"),
         (CLASS_UPDATE, "Class Update"),
-        (ITEM, "Item"),
+        (CONDITION, "Condition Update"),
+        (ITEM, "Items and Artifacts"),
         (LOCATION, "Location"),
         (MIRACLE, "Miracle"),
+        (MAGICAL_CHAT, "Magical Chat"),
         (SKILL, "Skill"),
         (SKILL_UPDATE, "Skill Update"),
         (SPELL, "Spell"),
