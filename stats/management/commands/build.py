@@ -7,6 +7,8 @@ import re
 from django.core.management.base import BaseCommand, CommandError
 from django.db.models import Q
 from django.db.models.query import QuerySet
+from django.db.utils import DataError
+from django.utils.html import strip_tags
 from stats.models import (
     ChapterLine,
     Color,
@@ -100,6 +102,11 @@ class Command(BaseCommand):
             help="Skip all wiki data build sections",
         )
         parser.add_argument(
+            "--skip-colors",
+            action="store_true",
+            help="Skip staticly defined Colors and ColorCategories",
+        )
+        parser.add_argument(
             "--skip-reftype-select",
             action="store_true",
             help="Skip RefType prompt for unknown RefTypes",
@@ -125,6 +132,12 @@ class Command(BaseCommand):
             type=str,
             default=None,
             help="Download a range of chapters by ID number",
+        )
+        parser.add_argument(
+            "--chapter-line-range",
+            type=str,
+            default=None,
+            help="Limit parsing to a range of chapter lines",
         )
 
     def get_or_create_ref_type(self, options, text_ref: SrcTextRef) -> RefType | None:
@@ -301,10 +314,15 @@ class Command(BaseCommand):
                 return None
 
             # Create RefType
-            new_ref_type = RefType(name=text_ref.text, type=new_type)
-            new_ref_type.save()
-            self.stdout.write(self.style.SUCCESS(f"> {new_ref_type} created"))
-            return new_ref_type
+            try:
+                new_ref_type = RefType(name=strip_tags(text_ref.text), type=new_type)
+                new_ref_type.save()
+                self.stdout.write(self.style.SUCCESS(f"> {new_ref_type} created"))
+                return new_ref_type
+            except DataError as exc:
+                raise CommandError(
+                    f"Failed to create RefType from {text_ref.text} and {new_type}."
+                ) from exc
 
     def select_color_from_options(
         self, matching_colors: QuerySet[Color], prompt_sound: bool
@@ -509,7 +527,26 @@ class Command(BaseCommand):
         )
 
         # Build TextRefs
-        for i in range(len(src_chapter.lines)):
+        line_range = options.get("chapter_line_range")
+        if line_range is None:
+            line_range = range(0, len(src_chapter.lines))
+        else:
+            try:
+                split = line_range.split(",")
+                if len(split[-1]) == 0 or split[-1].isspace():
+                    start = int(split[0])
+                    end = len(src_chapter.lines)
+                else:
+                    start, end = [int(x) for x in split]
+
+                print(f"start: {start}, end: {end}")
+                line_range = range(start, end)
+            except ValueError as exc:
+                raise CommandError(
+                    f"Invalid chapter line range provided: {line_range}"
+                ) from exc
+
+        for i in line_range:
             if (
                 src_chapter.lines[i].startswith("<img")
                 or src_chapter.lines[i].startswith("<div")
@@ -526,7 +563,7 @@ class Command(BaseCommand):
                     self.style.WARNING(f"> Line {i} is empty. Skipping...")
                 )
 
-            # Create ContentLine if it doesn't already exist
+            # Create ChapterLine if it doesn't already exist
             chapter_line, created = ChapterLine.objects.get_or_create(
                 chapter=chapter, line_number=i, text=src_chapter.lines[i]
             )
@@ -945,8 +982,9 @@ class Command(BaseCommand):
             self.stdout.write("Building DB...")
 
             # Build from static data
-            self.build_color_categories()
-            self.build_colors()
+            if not options.get("skip_colors"):
+                self.build_color_categories()
+                self.build_colors()
 
             # Build wiki data
             if not options.get("skip_wiki_spells"):
