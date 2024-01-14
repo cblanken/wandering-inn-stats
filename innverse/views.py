@@ -1,9 +1,8 @@
 from django.db.models import Q
 from django.shortcuts import render
 from django.views.decorators.cache import cache_page
-from django_tables2 import SingleTableView, LazyPaginator
 from django_tables2.export.export import TableExport
-from django_tables2.export.views import ExportMixin
+from pprint import pprint
 from stats.charts import word_count_charts, character_charts, class_charts
 from stats.models import TextRef
 from .tables import TextRefTable
@@ -63,11 +62,6 @@ def magic(request):
     return render(request, "pages/magic.html")
 
 
-class TextRefTableView(ExportMixin, SingleTableView):
-    model = TextRef
-    table_class = TextRefTable
-
-
 def search(request):
     if request.method == "GET" and bool(request.GET):
         form = SearchForm(request.GET.copy())
@@ -88,8 +82,10 @@ def search(request):
                         "last_chapter"
                     )
                 )
-                & ~Q(color__isnull=form.cleaned_data.get("only_colored_refs"))
             )
+
+            if form.cleaned_data.get("only_colored_refs"):
+                table_data = table_data.filter(color__isnull=False)
 
             table = TextRefTable(table_data)
 
