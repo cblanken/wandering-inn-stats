@@ -1,6 +1,7 @@
 """Utility functions and classes for build script"""
 from enum import Enum
 from pathlib import Path
+from pprint import pformat
 from subprocess import run, TimeoutExpired
 from typing import Protocol
 from django.core.management.base import CommandError
@@ -229,7 +230,7 @@ def select_ref_type(sound: bool = False) -> str | None:
     try:
         while True:
             sel = prompt(
-                f'Classify the above TextRef with {RefType.TYPES} (leave blank to skip OR use "r" to retry): ',
+                f'Classify the above TextRef with\n{pformat(RefType.TYPES)}\nleave blank to skip OR use "r" to retry: ',
                 sound,
             )
 

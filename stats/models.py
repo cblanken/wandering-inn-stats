@@ -87,27 +87,27 @@ class RefType(models.Model):
 
     CHARACTER = "CH"
     CLASS = "CL"
-    CLASS_OBTAINED = "CO"
+    CLASS_UPDATE = "CO"
     ITEM = "IT"
     LOCATION = "LO"
     MIRACLE = "MI"
     SKILL = "SK"
-    SKILL_OBTAINED = "SO"
+    SKILL_UPDATE = "SO"
     SPELL = "SP"
-    SPELL_OBTAINED = "SB"
-    INVALID = "IN"
+    SPELL_UPDATE = "SB"
+    UNDECIDED = "IN"
     TYPES = [
         (CHARACTER, "Character"),
         (CLASS, "Class"),
-        (CLASS_OBTAINED, "Class Obtained"),
+        (CLASS_UPDATE, "Class Update"),
         (ITEM, "Item"),
         (LOCATION, "Location"),
         (MIRACLE, "Miracle"),
         (SKILL, "Skill"),
-        (SKILL_OBTAINED, "Skill Obtained"),
+        (SKILL_UPDATE, "Skill Update"),
         (SPELL, "Spell"),
-        (SPELL_OBTAINED, "Spell Obtained"),
-        (INVALID, "Invalid category"),
+        (SPELL_UPDATE, "Spell Update"),
+        (UNDECIDED, "Undecided"),
     ]
     name = models.CharField(max_length=120)
     type = models.CharField(max_length=2, choices=TYPES, null=True)

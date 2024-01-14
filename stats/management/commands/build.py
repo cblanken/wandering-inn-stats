@@ -117,6 +117,11 @@ class Command(BaseCommand):
             help="Disable TextRef selection prompt for ambiguous TextRef colors",
         )
         parser.add_argument(
+            "--skip-disambiguation",
+            action="store_true",
+            help="Disable disambiguation checks for TextRefs from 'cfg/disambiguation.cfg'",
+        )
+        parser.add_argument(
             "--prompt-sound",
             action="store_true",
             help="Play short alert sound when build stops with a user prompt",
@@ -145,6 +150,14 @@ class Command(BaseCommand):
         while True:  # loop for retries from select RefType prompt
             # Ensure textref did not detect a innocuous word from the disambiguation list
             if text_ref.text in options["disambiguation_list"]:
+                if options.get("skip_disambiguation"):
+                    self.stdout.write(
+                        self.style.WARNING(
+                            f"> Disambiguation found but check is disabled (--skip-disambiguation). Skipping..."
+                        )
+                    )
+                    return None
+
                 for exception in options["disambiguation_exceptions"]:
                     pattern = re.compile(exception)
                     if pattern.search(text_ref.line_text):
@@ -274,15 +287,15 @@ class Command(BaseCommand):
             # intialize type for new RefType
 
             # Check for [Skill] or [Class] acquisition messages
-            skill_obtained_pattern = re.compile(r"^\[Skill.*[Oo]btained.*\]$")
-            spell_obtained_pattern = re.compile(r"^\[Spell.*[Oo]btained.*\]$")
-            class_obtained_pattern = re.compile(r"^\[.*Class\W[Oo]btained.*\]$")
-            if skill_obtained_pattern.match(text_ref.text):
-                new_type = RefType.SKILL_OBTAINED
-            elif class_obtained_pattern.match(text_ref.text):
-                new_type = RefType.CLASS_OBTAINED
-            elif spell_obtained_pattern.match(text_ref.text):
-                new_type = RefType.SPELL_OBTAINED
+            skill_update_pattern = re.compile(r"^\[Skill.*[Oo]btained.*\]$")
+            spell_update_pattern = re.compile(r"^\[Spell.*[Oo]btained.*\]$")
+            class_update_pattern = re.compile(r"^\[.*Class\W[Oo]btained.*\]$")
+            if skill_update_pattern.match(text_ref.text):
+                new_type = RefType.SKILL_UPDATE
+            elif class_update_pattern.match(text_ref.text):
+                new_type = RefType.CLASS_UPDATE
+            elif spell_update_pattern.match(text_ref.text):
+                new_type = RefType.SPELL_UPDATE
             else:
                 # Check for any bracketed Character references or Aliases from
                 # text messages or message scrolls like
@@ -547,14 +560,16 @@ class Command(BaseCommand):
                 ) from exc
 
         for i in line_range:
-            if (
-                src_chapter.lines[i].startswith("<img")
-                or src_chapter.lines[i].startswith("<div")
-                or src_chapter.lines[i].startswith("<p><a ")
-            ):
+            image_tag_pattern = re.compile(r".*(<a href)|(<img ).*")
+            if image_tag_pattern.match(src_chapter.lines[i]):
+                self.stdout.write(
+                    self.style.WARNING(f"> Line {i} contains an <img> tag. Skipping...")
+                )
+                continue
+            elif src_chapter.lines[i].startswith(r'<div class="entry-'):
                 self.stdout.write(
                     self.style.WARNING(
-                        f"> Line {i} begins with an '<img>' or '<div>' or '<p><a ' tag. Skipping..."
+                        f"> Line {i} is entry-content <div>. Skipping..."
                     )
                 )
                 continue

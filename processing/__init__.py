@@ -14,10 +14,10 @@ OBTAINED_SUFFIX = r".*[Oo]btained.?\]"
 class Pattern:
     """Text matching RE patterns for processing chapter text"""
 
-    ALL_MAGIC_WORDS = re.compile(r"\[(\w\,? ?)+\]")
-    SKILL_OBTAINED = re.compile(r"\[[Ss]kill" + OBTAINED_SUFFIX)
-    CLASS_OBTAINED = re.compile(r"\[.*[Cc]lass" + OBTAINED_SUFFIX)
-    SPELL_OBTAINED = re.compile(r"\[[Ss]pell" + OBTAINED_SUFFIX)
+    ALL_MAGIC_WORDS = re.compile(r"\[([^\s] ?)+?\]")
+    SKILL_UPDATED = re.compile(r"\[[Ss]kill" + OBTAINED_SUFFIX)
+    CLASS_UPDATED = re.compile(r"\[.*[Cc]lass" + OBTAINED_SUFFIX)
+    SPELL_UPDATED = re.compile(r"\[[Ss]pell" + OBTAINED_SUFFIX)
 
     @staticmethod
     def _or(patterns: tuple[re.Pattern], prefix="", suffix="") -> re.Pattern:
@@ -124,9 +124,9 @@ class Chapter:
         self.__bracket_pattern = Pattern._or(
             [
                 Pattern.ALL_MAGIC_WORDS,
-                Pattern.SKILL_OBTAINED,
-                Pattern.CLASS_OBTAINED,
-                Pattern.SPELL_OBTAINED,
+                Pattern.SKILL_UPDATED,
+                Pattern.CLASS_UPDATED,
+                Pattern.SPELL_UPDATED,
             ]
         )
         self.all_bracket_ref_gens_by_line: Generator[Generator[TextRef]] = [

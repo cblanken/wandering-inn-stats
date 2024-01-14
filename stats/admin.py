@@ -26,6 +26,9 @@ class AliasAdmin(admin.ModelAdmin):
 
 class ChapterLineAdmin(admin.ModelAdmin):
     list_display = ["chapter", "line_number", "text"]
+    list_filter = ["chapter__title"]
+    ordering = ["line_number"]
+    search_fields = ["text"]
 
 
 class CharacterAdmin(admin.ModelAdmin):
