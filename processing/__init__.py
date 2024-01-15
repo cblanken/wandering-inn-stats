@@ -1,6 +1,7 @@
 """Module for processing scraped chapter text"""
 from __future__ import annotations
 import re
+import regex
 import sys
 from collections import OrderedDict
 from enum import Enum, Flag, auto
@@ -14,19 +15,19 @@ OBTAINED_SUFFIX = r".*[Oo]btained.?\]"
 class Pattern:
     """Text matching RE patterns for processing chapter text"""
 
-    ALL_MAGIC_WORDS = re.compile(r"\[([^\s] ?)+?\]")
-    SKILL_UPDATED = re.compile(r"\[[Ss]kill" + OBTAINED_SUFFIX)
-    CLASS_UPDATED = re.compile(r"\[.*[Cc]lass" + OBTAINED_SUFFIX)
-    SPELL_UPDATED = re.compile(r"\[[Ss]pell" + OBTAINED_SUFFIX)
+    ALL_MAGIC_WORDS = regex.compile(r"\[(?>[^\[\]] ?|(?R))*\]")
+    SKILL_UPDATED = regex.compile(r"\[[Ss]kill" + OBTAINED_SUFFIX)
+    CLASS_UPDATED = regex.compile(r"\[.*[Cc]lass" + OBTAINED_SUFFIX)
+    SPELL_UPDATED = regex.compile(r"\[[Ss]pell" + OBTAINED_SUFFIX)
 
     @staticmethod
-    def _or(patterns: tuple[re.Pattern], prefix="", suffix="") -> re.Pattern:
+    def _or(patterns: tuple[regex.Pattern], prefix="", suffix="") -> regex.Pattern:
         if len(patterns) == 0:
             return None
         if len(patterns) == 1:
             return patterns[0]
 
-        new_pattern = re.compile(
+        new_pattern = regex.compile(
             prefix
             + r"(?P<or_center>"
             + "|".join([f"({p.pattern})" for p in patterns])
@@ -152,7 +153,7 @@ class Chapter:
         """
 
         # Yield any matches for bracketed types
-        for match in re.finditer(self.__bracket_pattern, self.lines[line_num]):
+        for match in regex.finditer(self.__bracket_pattern, self.lines[line_num]):
             yield TextRef(
                 match.group(),
                 match.string,
@@ -166,7 +167,7 @@ class Chapter:
         # or if an alias matches a common word
         # Yield any matches for named references such as characters, locations, items, etc.
         if extra_patterns:
-            for match in re.finditer(extra_patterns, self.lines[line_num]):
+            for match in regex.finditer(extra_patterns, self.lines[line_num]):
                 yield TextRef(
                     match.groupdict()["or_center"],
                     self.lines[line_num],

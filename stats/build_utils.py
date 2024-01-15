@@ -238,14 +238,15 @@ def select_ref_type(sound: bool = False) -> str | None:
                 return "retry"  # special case to retry RefType acquisition
             if sel.strip() == "":
                 return None  # skip without confirmation
-            if len(sel) < 2:
+
+            ref_type = match_ref_type(sel)
+            if ref_type is None:
                 print("Invalid selection.")
                 yes_no = prompt("Try again (y/n): ", sound)
                 if yes_no.lower() == "y":
                     continue
                 return None  # skip with confirmation
 
-            ref_type = match_ref_type(sel)
             return ref_type
 
     except KeyboardInterrupt as exc:

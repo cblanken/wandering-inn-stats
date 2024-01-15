@@ -4,6 +4,7 @@ import itertools
 import json
 from pathlib import Path
 import re
+import regex
 from django.core.management.base import BaseCommand, CommandError
 from django.db.models import Q
 from django.db.models.query import QuerySet
@@ -170,7 +171,7 @@ class Command(BaseCommand):
                     return None
 
                 for exception in options["disambiguation_exceptions"]:
-                    pattern = re.compile(exception)
+                    pattern = regex.compile(exception)
                     if pattern.search(text_ref.line_text):
                         self.stdout.write(
                             self.style.WARNING(
@@ -298,14 +299,34 @@ class Command(BaseCommand):
             # intialize type for new RefType
 
             # Check for [Skill] or [Class] acquisition messages
-            skill_update_pattern = re.compile(r"^\[Skill.*[Oo]btained.*\]$")
-            spell_update_pattern = re.compile(r"^\[Spell.*[Oo]btained.*\]$")
-            class_update_pattern = re.compile(r"^\[.*Class\W[Oo]btained.*\]$")
-            if skill_update_pattern.match(text_ref.text):
+            skill_obtained_pattern = regex.compile(
+                r"^\[Skill.*([Oo]btained|[Ll]earned).*\]$"
+            )
+            skill_change_pattern = regex.compile(r"^\[Skill [Cc]hange .*[.!]\]$")
+
+            class_obtained_pattern = regex.compile(r"^\[.*Class\W[Oo]btained.*\]$")
+            level_up_pattern = regex.compile(r"^\[.*[Ll]evel \d{1,2}.*[.!]\]$")
+            class_consolidation_pattern = regex.compile(
+                r"^\[Class [Cc]onsolidat.*[.!]\]$"
+            )
+            class_upgrade_pattern = regex.compile(
+                r"^\[Condition[s]? [Mm]et.*[Cc]lass[.!]\]$"
+            )
+
+            spell_obtained_pattern = regex.compile(r"^\[Spell.*[Oo]btained.*\]$")
+
+            if skill_obtained_pattern.match(
+                text_ref.text
+            ) or skill_change_pattern.match(text_ref.text):
                 new_type = RefType.SKILL_UPDATE
-            elif class_update_pattern.match(text_ref.text):
+            elif (
+                class_obtained_pattern.match(text_ref.text)
+                or level_up_pattern.match(text_ref.text)
+                or class_consolidation_pattern.match(text_ref.text)
+                or class_upgrade_pattern.match(text_ref.text)
+            ):
                 new_type = RefType.CLASS_UPDATE
-            elif spell_update_pattern.match(text_ref.text):
+            elif spell_obtained_pattern.match(text_ref.text):
                 new_type = RefType.SPELL_UPDATE
             else:
                 # Check for any bracketed Character references or Aliases from
@@ -555,7 +576,7 @@ class Command(BaseCommand):
         suffix = r"[<\W\.\?,!]"
         compiled_patterns = Pattern._or(
             [
-                re.compile(f"{pattern}")
+                regex.compile(f"{pattern}")
                 for pattern in itertools.chain(character_patterns, location_patterns)
                 if "(" not in pattern
             ],
@@ -584,13 +605,13 @@ class Command(BaseCommand):
                 ) from exc
 
         for i in line_range:
-            image_tag_pattern = re.compile(r".*(<a href)|(<img ).*")
+            image_tag_pattern = regex.compile(r".*(<a href)|(<img ).*")
             if image_tag_pattern.match(src_chapter.lines[i]):
                 self.stdout.write(
                     self.style.WARNING(f"> Line {i} contains an <img> tag. Skipping...")
                 )
                 continue
-            elif src_chapter.lines[i].startswith(r'<div class="entry-'):
+            elif src_chapter.lines[i].startswith(r"<div class="):
                 self.stdout.write(
                     self.style.WARNING(
                         f"> Line {i} is entry-content <div>. Skipping..."
