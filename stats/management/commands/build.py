@@ -3,7 +3,6 @@ from glob import glob
 import itertools
 import json
 from pathlib import Path
-import re
 import regex
 from django.core.management.base import BaseCommand, CommandError
 from django.db.models import Q
@@ -372,9 +371,12 @@ class Command(BaseCommand):
                 )
                 return None
             except DataError as exc:
-                raise CommandError(
-                    f"Failed to create RefType from {text_ref.text} and {new_type}."
-                ) from exc
+                self.stdout.write(
+                    self.style.WARNING(
+                        f'Failed to create RefType from {text_ref.text} and with RefType: "{new_type}". {exc}\nSkipping...'
+                    )
+                )
+                return None
 
     def select_color_from_options(
         self, matching_colors: QuerySet[Color], prompt_sound: bool
@@ -484,10 +486,10 @@ class Command(BaseCommand):
             )
             chapter_dir = Path(glob(f"./data/*/*/*/{chapter.title}")[0])
             self.build_chapter(options, chapter.book, chapter_dir, chapter_id)
-        except Chapter.DoesNotExist:
+        except Chapter.DoesNotExist as exc:
             self.stdout.write(
                 self.style.WARNING(
-                    f"> Chapter (id) {chapter_id} does not exist in database. Skipping..."
+                    f"> Chapter (id) {chapter_id} does not exist in database."
                 )
             )
         except IndexError:
