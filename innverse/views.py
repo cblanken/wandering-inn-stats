@@ -4,7 +4,7 @@ from django.views.decorators.cache import cache_page
 from django_tables2.export.export import TableExport
 from pprint import pprint
 from stats.charts import word_count_charts, character_charts, class_charts
-from stats.models import TextRef
+from stats.models import Chapter, TextRef
 from .tables import TextRefTable
 from .forms import SearchForm
 
@@ -64,7 +64,12 @@ def magic(request):
 
 def search(request):
     if request.method == "GET" and bool(request.GET):
-        form = SearchForm(request.GET.copy())
+        query = request.GET.copy()
+        query["first_chapter"] = query.get("first_chapter", 0)
+        query["last_chapter"] = query.get(
+            "last_chapter", int(Chapter.objects.all().order_by("-number")[0].number + 1)
+        )
+        form = SearchForm(query)
 
         if form.is_valid():
             # Query TextRefs per form parameters
@@ -79,7 +84,8 @@ def search(request):
                 )
                 & Q(
                     chapter_line__chapter__number__lte=form.cleaned_data.get(
-                        "last_chapter"
+                        "last_chapter",
+                        int(Chapter.objects.all().order_by("-number")[0].number),
                     )
                 )
             )

@@ -24,23 +24,27 @@ class SearchForm(forms.Form):
         widget=forms.Select(attrs={"class": select_input_tailwind_classes}),
     )
     type_query = forms.CharField(label="Type Query", max_length=50, required=False)
+
     text_query = forms.CharField(label="Text Query", max_length=100, required=False)
+
     first_chapter = forms.TypedChoiceField(
         label="First Chapter",
         choices=get_chapters,
         empty_value=8,
-        required=False,
+        required=True,
         initial=0,
         widget=forms.Select(attrs={"class": select_input_tailwind_classes}),
     )
+
     last_chapter = forms.TypedChoiceField(
         label="Last Chapter",
         choices=get_chapters,
         empty_value=MAX_CHAPTER_NUM,
-        required=False,
+        required=True,
         initial=MAX_CHAPTER_NUM + 1,
         widget=forms.Select(attrs={"class": select_input_tailwind_classes}),
     )
+
     page_size = forms.IntegerField(
         label="Page size",
         required=False,
