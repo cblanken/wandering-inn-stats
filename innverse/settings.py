@@ -12,6 +12,9 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 from os import environ as env
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -28,7 +31,7 @@ DEBUG = True
 if DEBUG:
     X_FRAME_OPTIONS = "SAMEORIGIN"  # get detailed error pages from pattern library
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
 
 
 # Application definition
@@ -94,10 +97,10 @@ DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
         "NAME": "innverse",
-        "USER": env.get("INNVERSE_DB_USER", "postgres"),
-        "PASSWORD": env.get("INNVERSE_DB_PASS", "password"),
-        "HOST": env.get("INNVERSE_DB_HOST", "127.0.0.1"),
-        "PORT": env.get("INNVERSE_DB_PORT", "5432"),
+        "USER": env.get("TWI_DB_USER", "postgres"),
+        "PASSWORD": env.get("TWI_DB_PASS", "password"),
+        "HOST": env.get("TWI_DB_HOST", "127.0.0.1"),
+        "PORT": env.get("TWI_DB_PORT", "5432"),
     }
 }
 
@@ -137,6 +140,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = "static/"
+STATIC_URL = "http://localhost:8080/static/"
+STATIC_ROOT = "/tmp/twi-stats/static/"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
