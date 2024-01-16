@@ -97,6 +97,7 @@ class RefType(models.Model):
     SKILL_UPDATE = "SO"
     SPELL = "SP"
     SPELL_UPDATE = "SB"
+    SYSTEM_GENERAL = "SG"
     UNDECIDED = "IN"
     TYPES = [
         (CHARACTER, "Character"),
@@ -111,9 +112,10 @@ class RefType(models.Model):
         (SKILL_UPDATE, "Skill Update"),
         (SPELL, "Spell"),
         (SPELL_UPDATE, "Spell Update"),
+        (SYSTEM_GENERAL, "System General"),
         (UNDECIDED, "Undecided"),
     ]
-    name = models.CharField(max_length=120)
+    name = models.CharField(max_length=300)
     type = models.CharField(max_length=2, choices=TYPES, null=True)
     description = models.CharField(max_length=120, default="")
 
