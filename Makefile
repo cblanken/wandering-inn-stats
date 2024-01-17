@@ -28,11 +28,16 @@ serve-static-files:
 
 .PHONY: run-dev
 run-dev:
-	$(MAKE) tailwind &
-	$(MAKE) serve-static-files &
+	$(MAKE) tailwind & \
+	$(MAKE) serve-static-files & \
 	$(MAKE) runserver | tee run.log
 
 .PHONY: kill-dev
 kill-dev:
-	pkill -9 -f "python -m http.server 8080 -d /tmp/twi-stats"
+	pkill -9 -f "python -m http.server 8080 -d /tmp/twi-stats" && \
 	pkill -9 -f "python manage.py runserver 9999"
+
+.PHONY: deploy
+deploy:
+	poetry run python manage.py collectstatic && \
+	poetry run python -m gunicorn innverse.asgi:application -k uvicorn.workers.UvicornWorker
