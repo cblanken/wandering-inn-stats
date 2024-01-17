@@ -49,9 +49,9 @@ module.exports = {
         },
         extend: {
             fontFamily: {
-                heading: ['Amatic SC', 'cursive'],
-                subheading: ['Andika', 'sans'],
-                para: ['Cambria', 'serif'],
+                heading: ['Candara', 'Calibri', 'Corbel', 'sans'],
+                subheading: ['Verdana', 'Tahoma', 'sans'],
+                para: ['Constantia', 'Cambria', 'serif'],
             },
             colors: {
                 "bg-primary": "#262b2cff",
@@ -66,9 +66,15 @@ module.exports = {
                 "hl-tertiary": "#e4b363ff",
                 "accept": "#38c17f",
                 "cancel": "#f4425f",
-                "info": "#8492F4",
+                "info": "rgb(164 174 240)",
                 "warn": "#F7A71B",
             },
+            maxWidth: {
+                '1/5': '20%',
+                '1/4': '25%',
+                '1/3': '33%',
+                '1/2': '50%',
+            }
         },
     },
     plugins: [

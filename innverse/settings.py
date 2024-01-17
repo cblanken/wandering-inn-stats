@@ -43,10 +43,8 @@ INSTALLED_APPS = [
     "theme",
     "django_browser_reload",
     "pattern_library",
-    "debug_toolbar",
     "django_tables2",
 ]
-
 MIDDLEWARE = [
     "debug_toolbar.middleware.DebugToolbarMiddleware",
     "django.middleware.security.SecurityMiddleware",
@@ -170,14 +168,6 @@ CACHES = {
     }
 }
 
-# Production
-TWI_PROD = env.get("TWI_PROD")
-PROD = TWI_PROD is not None and (TWI_PROD == "1" or TWI_PROD.lower() == "true")
-if PROD:
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
-
-
 # Logging
 LOGGING = {
     "version": 1,
@@ -222,3 +212,12 @@ LOGGING = {
         },
     },
 }
+
+# Production
+TWI_PROD = env.get("TWI_PROD")
+PROD = TWI_PROD is not None and (TWI_PROD == "1" or TWI_PROD.lower() == "true")
+if PROD:
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+else:
+    INSTALLED_APPS.append("debug_toolbar"),
