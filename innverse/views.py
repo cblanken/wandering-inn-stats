@@ -2,7 +2,6 @@ from django.db.models import Q
 from django.shortcuts import render
 from django.views.decorators.cache import cache_page
 from django_tables2.export.export import TableExport
-from pprint import pprint
 from stats.charts import word_count_charts, character_charts, class_charts
 from stats.models import Chapter, TextRef
 from .tables import TextRefTable
@@ -119,7 +118,9 @@ def search(request):
         else:
             # Form data not valid
             return render(
-                request, "pages/search_error.html", {"error": "Invalid form data"}
+                request,
+                "pages/search_error.html",
+                {"error": f"Invalid search parameter provided. Please try again."},
             )
     else:
         return render(request, "pages/search.html", {"form": SearchForm()})

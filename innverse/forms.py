@@ -50,7 +50,7 @@ class SearchForm(forms.Form):
         required=False,
         initial=15,
         min_value=10,
-        max_value=1000,
+        max_value=100,
         widget=forms.NumberInput(
             attrs={"class": integer_input_tailwind_classes, "style": "width: 8rem"}
         ),
