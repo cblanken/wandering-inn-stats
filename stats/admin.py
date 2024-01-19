@@ -68,6 +68,13 @@ class TextRefAdmin(admin.ModelAdmin):
     autocomplete_fields = ["type"]
 
 
+class RefTypeChapterAdmin(admin.ModelAdmin):
+    list_display = ["type", "chapter"]
+    list_filter = ["chapter__title"]
+    search_fields = ["type", "chapter__title"]
+    autocomplete_fields = ["type"]
+
+
 # Organizational data
 admin.site.register(Chapter, ChapterAdmin)
 admin.site.register(Book, BookAdmin)
@@ -80,6 +87,7 @@ admin.site.register(Color, ColorAdmin)
 admin.site.register(ColorCategory, ColorCategoryAdmin)
 admin.site.register(RefType, RefTypeAdmin)
 admin.site.register(TextRef, TextRefAdmin)
+admin.site.register(RefTypeChapter, RefTypeChapterAdmin)
 
 # Wiki data objects
 admin.site.register(Character, CharacterAdmin)

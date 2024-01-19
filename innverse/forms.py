@@ -52,11 +52,17 @@ class SearchForm(forms.Form):
         min_value=10,
         max_value=100,
         widget=forms.NumberInput(
-            attrs={"class": integer_input_tailwind_classes, "style": "width: 8rem"}
+            attrs={"class": integer_input_tailwind_classes, "style": "width: 5rem"}
         ),
     )
     only_colored_refs = forms.BooleanField(
         label="Only colored refs",
+        required=False,
+        initial=False,
+        widget=forms.CheckboxInput(attrs={"class": checkbox_tailwind_classes}),
+    )
+    refs_by_chapter = forms.BooleanField(
+        label="Refs by chapter",
         required=False,
         initial=False,
         widget=forms.CheckboxInput(attrs={"class": checkbox_tailwind_classes}),

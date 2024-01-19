@@ -3,8 +3,8 @@ from django.shortcuts import render
 from django.views.decorators.cache import cache_page
 from django_tables2.export.export import TableExport
 from stats.charts import word_count_charts, character_charts, class_charts
-from stats.models import Chapter, TextRef
-from .tables import TextRefTable
+from stats.models import Chapter, RefType, RefTypeChapter, TextRef
+from .tables import ChapterRefTable, TextRefTable
 from .forms import SearchForm
 
 
@@ -71,28 +71,68 @@ def search(request):
         form = SearchForm(query)
 
         if form.is_valid():
-            # Query TextRefs per form parameters
-            table_data = TextRef.objects.filter(
-                Q(type__type=form.cleaned_data.get("type"))
-                & Q(type__name__icontains=form.cleaned_data.get("type_query"))
-                & Q(chapter_line__text__icontains=form.cleaned_data.get("text_query"))
-                & Q(
-                    chapter_line__chapter__number__gte=form.cleaned_data.get(
-                        "first_chapter"
+            if form.cleaned_data.get("refs_by_chapter"):
+                ref_types: list[RefType] = RefType.objects.filter(
+                    Q(name__icontains=form.cleaned_data.get("type_query"))
+                    & Q(type=form.cleaned_data.get("type"))
+                )
+
+                reftype_chapters = RefTypeChapter.objects.filter(
+                    Q(type__in=ref_types)
+                    & Q(chapter__number__gte=form.cleaned_data.get("first_chapter"))
+                    & Q(
+                        chapter__number__lte=form.cleaned_data.get(
+                            "last_chapter",
+                            int(Chapter.objects.all().order_by("-number")[0].number),
+                        )
                     )
                 )
-                & Q(
-                    chapter_line__chapter__number__lte=form.cleaned_data.get(
-                        "last_chapter",
-                        int(Chapter.objects.all().order_by("-number")[0].number),
+
+                table_data = []
+                for rt in ref_types:
+                    chapter_data = reftype_chapters.filter(type=rt)
+                    chapter_data = chapter_data.values_list(
+                        "chapter__title", "chapter__source_url"
+                    )
+
+                    rc_data = {
+                        "name": rt.name,
+                        "chapter_data": chapter_data,
+                    }
+
+                    rc_data["count"] = len(rc_data["chapter_data"])
+
+                    if rc_data["chapter_data"]:
+                        table_data.append(rc_data)
+
+                table = ChapterRefTable(table_data)
+            else:
+                # Default TextRefs table data
+                table_data = TextRef.objects.filter(
+                    Q(type__type=form.cleaned_data.get("type"))
+                    & Q(type__name__icontains=form.cleaned_data.get("type_query"))
+                    & Q(
+                        chapter_line__text__icontains=form.cleaned_data.get(
+                            "text_query"
+                        )
+                    )
+                    & Q(
+                        chapter_line__chapter__number__gte=form.cleaned_data.get(
+                            "first_chapter"
+                        )
+                    )
+                    & Q(
+                        chapter_line__chapter__number__lte=form.cleaned_data.get(
+                            "last_chapter",
+                            int(Chapter.objects.all().order_by("-number")[0].number),
+                        )
                     )
                 )
-            )
 
-            if form.cleaned_data.get("only_colored_refs"):
-                table_data = table_data.filter(color__isnull=False)
+                if form.cleaned_data.get("only_colored_refs"):
+                    table_data = table_data.filter(color__isnull=False)
 
-            table = TextRefTable(table_data)
+                table = TextRefTable(table_data)
 
             export_format = request.GET.get("_export", None)
             if TableExport.is_valid_format(export_format):

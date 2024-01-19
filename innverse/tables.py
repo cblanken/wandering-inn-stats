@@ -1,8 +1,8 @@
-from django.utils.html import format_html, strip_tags
+from django.utils.html import strip_tags
 from django.template.loader import render_to_string
-from urllib.parse import quote, urlencode
+from urllib.parse import quote
 import django_tables2 as tables
-from stats.models import Character, RefType, TextRef
+from stats.models import RefType, TextRef
 
 
 class TextRefTable(tables.Table):
@@ -89,3 +89,31 @@ class TextRefTable(tables.Table):
 
     def value_chapter_url(self, record: TextRef) -> str:
         return record.chapter_line.chapter.source_url
+
+
+class ChapterRefTable(tables.Table):
+    ref_name: str = tables.Column(accessor="name", verbose_name="Name")
+    chapters: str = tables.Column(accessor="chapter_data", verbose_name="Chapters")
+    count: int = tables.Column(accessor="count", verbose_name="Count")
+
+    class Meta:
+        template_name = "tables/search_table.html"
+        fields = ("ref_name", "count", "chapters")
+
+    def render_chapters(self, record):
+        return ", ".join(
+            [
+                render_to_string(
+                    "patterns/atoms/inline_ref/inline_ref.html",
+                    context={
+                        "text": f"{chapter[0]}",
+                        "href": f"{chapter[1]}",
+                        "external": False,
+                    },
+                )
+                for chapter in record["chapter_data"]
+            ]
+        )
+
+    def value_chapters(self, record) -> str:
+        return ";".join(record["chapters"])

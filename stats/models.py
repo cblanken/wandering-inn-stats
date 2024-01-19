@@ -456,10 +456,31 @@ class TextRef(models.Model):
         ]
         constraints = [
             models.UniqueConstraint(
-                name="key",
+                name="textref_key",
                 fields=["chapter_line", "start_column", "end_column"],
             )
         ]
 
     def __str__(self):
         return f"(TextRef: {self.type}, line: {self.chapter_line.line_number:>5}, start: {self.start_column:>4}, end: {self.end_column:>4})"
+
+
+class RefTypeChapter(models.Model):
+    """Chapter references by RefType
+    Indexes the chapters in which a RefType has one or more references
+    """
+
+    type = models.ForeignKey(RefType, on_delete=models.CASCADE)
+    chapter = models.ForeignKey(Chapter, on_delete=models.CASCADE)
+
+    class Meta:
+        verbose_name_plural = "RefType Chapters"
+        constraints = [
+            models.UniqueConstraint(
+                name="reftype_chapters_key",
+                fields=["type", "chapter"],
+            )
+        ]
+
+    def __str__(self):
+        return f"(RefTypeChapters: {self.type}, Chapter: {self.chapter.title} - {self.chapter.number:>4}"
