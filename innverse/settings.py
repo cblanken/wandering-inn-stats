@@ -124,6 +124,8 @@ USE_TZ = True
 STATIC_URL = env.get("TWI_STATIC_URL", "static/")
 STATIC_ROOT = env.get("TWI_STATIC_ROOT", "/tmp/twi-stats/static/")
 
+STATICFILES_DIRS = [BASE_DIR / "innverse/static"]
+
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
