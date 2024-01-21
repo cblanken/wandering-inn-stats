@@ -5,6 +5,7 @@ Django settings for innverse project.
 from pathlib import Path
 from os import environ as env
 from dotenv import load_dotenv
+import pymemcache
 
 load_dotenv()
 
@@ -17,12 +18,6 @@ if SECRET_KEY is None:
     raise Exception(
         "The secret key ('TWI_KEY\") must be available in the environment to run this application!"
     )
-
-# DON'T RUN WITH DEBUG TURNED ON IN PRODUCTION!
-TWI_DEBUG = env.get("TWI_DEBUG")
-DEBUG = TWI_DEBUG is not None and (TWI_DEBUG == "1" or TWI_DEBUG.lower() == "true")
-if DEBUG:
-    X_FRAME_OPTIONS = "SAMEORIGIN"  # get detailed error pages from pattern library
 
 ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
 
@@ -57,7 +52,34 @@ MIDDLEWARE = [
     "django_browser_reload.middleware.BrowserReloadMiddleware",
 ]
 
+# DON'T RUN WITH DEBUG TURNED ON IN PRODUCTION!
+TWI_DEBUG = env.get("TWI_DEBUG")
+DEBUG = TWI_DEBUG is not None and (TWI_DEBUG == "1" or TWI_DEBUG.lower() == "true")
+if DEBUG:
+    X_FRAME_OPTIONS = "SAMEORIGIN"  # get detailed error pages from pattern library
+    INSTALLED_APPS.append("debug_toolbar"),
+    INSTALLED_APPS.append("template_profiler_panel"),
+    INSTALLED_APPS.append("pyflame"),
+
 ROOT_URLCONF = "innverse.urls"
+
+DEBUG_TOOLBAR_PANELS = [
+    "debug_toolbar.panels.history.HistoryPanel",
+    "debug_toolbar.panels.versions.VersionsPanel",
+    "debug_toolbar.panels.timer.TimerPanel",
+    "debug_toolbar.panels.settings.SettingsPanel",
+    "debug_toolbar.panels.headers.HeadersPanel",
+    "debug_toolbar.panels.request.RequestPanel",
+    "debug_toolbar.panels.sql.SQLPanel",
+    "debug_toolbar.panels.staticfiles.StaticFilesPanel",
+    "debug_toolbar.panels.templates.TemplatesPanel",
+    "debug_toolbar.panels.cache.CachePanel",
+    "debug_toolbar.panels.signals.SignalsPanel",
+    "debug_toolbar.panels.redirects.RedirectsPanel",
+    "debug_toolbar.panels.profiling.ProfilingPanel",
+    "template_profiler_panel.panels.template.TemplateProfilerPanel",
+    "pyflame.djdt.panel.FlamegraphPanel",
+]
 
 TEMPLATES = [
     {
@@ -162,11 +184,20 @@ PATTERN_LIBRARY = {
 
 CACHES = {
     "default": {
-        # "LOCATION": env.get("CACHE_URI", "PROTO://IP:PORT"),
-        # "BACKEND": "django.core.cache.backends.memcached.PyMemcacheCache",
-        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
-        "TIMEOUT": 60,
-        "OPTIONS": {"MAX_ENTRIES": 1000},
+        # "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        # "LOCATION": "twi-stats-cache",
+        "BACKEND": "django.core.cache.backends.memcached.PyMemcacheCache",
+        "LOCATION": env.get("TWI_CACHE_URI", "127.0.0.1:11211"),
+        "TIMEOUT": 300,
+        "OPTIONS": {
+            "no_delay": True,
+            "ignore_exc": True,
+            "max_pool_size": 4,
+            "use_pooling": True,
+            "allow_unicode_keys": True,
+            "default_noreply": False,
+            "serde": pymemcache.serde.pickle_serde,
+        },
     }
 }
 
@@ -221,5 +252,3 @@ PROD = TWI_PROD is not None and (TWI_PROD == "1" or TWI_PROD.lower() == "true")
 if PROD:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
-else:
-    INSTALLED_APPS.append("debug_toolbar"),

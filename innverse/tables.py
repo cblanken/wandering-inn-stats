@@ -116,4 +116,4 @@ class ChapterRefTable(tables.Table):
         )
 
     def value_chapters(self, record) -> str:
-        return ";".join(record["chapters"])
+        return ";".join([x[1] for x in record["chapter_data"]])

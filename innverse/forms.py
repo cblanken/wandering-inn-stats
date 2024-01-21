@@ -6,7 +6,7 @@ MAX_CHAPTER_NUM = int(Chapter.objects.all().order_by("-number")[0].number)
 
 def get_chapters():
     yield (0, "--- First Chapter ---")
-    for tup in ((c.number, c.title) for c in Chapter.objects.all().order_by("number")):
+    for tup in ((c.number, c.title) for c in Chapter.objects.order_by("number")):
         yield tup
     yield (MAX_CHAPTER_NUM + 1, "--- Last Chapter ---")
 
@@ -27,9 +27,11 @@ class SearchForm(forms.Form):
 
     text_query = forms.CharField(label="Text Query", max_length=100, required=False)
 
+    chapter_choices = list(get_chapters())
+
     first_chapter = forms.TypedChoiceField(
         label="First Chapter",
-        choices=get_chapters,
+        choices=chapter_choices,
         empty_value=8,
         required=True,
         initial=0,
@@ -38,7 +40,7 @@ class SearchForm(forms.Form):
 
     last_chapter = forms.TypedChoiceField(
         label="Last Chapter",
-        choices=get_chapters,
+        choices=chapter_choices,
         empty_value=MAX_CHAPTER_NUM,
         required=True,
         initial=MAX_CHAPTER_NUM + 1,
@@ -50,7 +52,7 @@ class SearchForm(forms.Form):
         required=False,
         initial=15,
         min_value=10,
-        max_value=100,
+        max_value=999999,
         widget=forms.NumberInput(
             attrs={"class": integer_input_tailwind_classes, "style": "width: 5rem"}
         ),

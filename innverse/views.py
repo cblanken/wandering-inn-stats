@@ -1,11 +1,13 @@
-from django.db.models import Q
+from django.core.cache import cache
+from django.db.models import Q, F
 from django.shortcuts import render
 from django.views.decorators.cache import cache_page
+from django_tables2.paginators import LazyPaginator
 from django_tables2.export.export import TableExport
 from stats.charts import word_count_charts, character_charts, class_charts
 from stats.models import Chapter, RefType, RefTypeChapter, TextRef
 from .tables import ChapterRefTable, TextRefTable
-from .forms import SearchForm
+from .forms import SearchForm, MAX_CHAPTER_NUM
 
 
 @cache_page(60 * 60 * 24)
@@ -65,9 +67,7 @@ def search(request):
     if request.method == "GET" and bool(request.GET):
         query = request.GET.copy()
         query["first_chapter"] = query.get("first_chapter", 0)
-        query["last_chapter"] = query.get(
-            "last_chapter", int(Chapter.objects.all().order_by("-number")[0].number + 1)
-        )
+        query["last_chapter"] = query.get("last_chapter", MAX_CHAPTER_NUM)
         form = SearchForm(query)
 
         if form.is_valid():
@@ -90,8 +90,7 @@ def search(request):
 
                 table_data = []
                 for rt in ref_types:
-                    chapter_data = reftype_chapters.filter(type=rt)
-                    chapter_data = chapter_data.values_list(
+                    chapter_data = reftype_chapters.filter(type=rt).values_list(
                         "chapter__title", "chapter__source_url"
                     )
 
@@ -107,24 +106,32 @@ def search(request):
 
                 table = ChapterRefTable(table_data)
             else:
-                # Default TextRefs table data
-                table_data = TextRef.objects.filter(
-                    Q(type__type=form.cleaned_data.get("type"))
-                    & Q(type__name__icontains=form.cleaned_data.get("type_query"))
-                    & Q(
-                        chapter_line__text__icontains=form.cleaned_data.get(
-                            "text_query"
-                        )
+                table_data = (
+                    TextRef.objects.select_related("type", "chapter_line__chapter")
+                    .annotate(
+                        name=F("type__name"),
+                        text=F("chapter_line__text"),
+                        title=F("chapter_line__chapter__title"),
+                        url=F("chapter_line__chapter__source_url"),
                     )
-                    & Q(
-                        chapter_line__chapter__number__gte=form.cleaned_data.get(
-                            "first_chapter"
+                    .filter(
+                        Q(type__type=form.cleaned_data.get("type"))
+                        & Q(type__name__icontains=form.cleaned_data.get("type_query"))
+                        & Q(
+                            chapter_line__text__icontains=form.cleaned_data.get(
+                                "text_query"
+                            )
                         )
-                    )
-                    & Q(
-                        chapter_line__chapter__number__lte=form.cleaned_data.get(
-                            "last_chapter",
-                            int(Chapter.objects.all().order_by("-number")[0].number),
+                        & Q(
+                            chapter_line__chapter__number__gte=form.cleaned_data.get(
+                                "first_chapter"
+                            )
+                        )
+                        & Q(
+                            chapter_line__chapter__number__lte=form.cleaned_data.get(
+                                "last_chapter",
+                                int(Chapter.objects.order_by("-number")[0].number),
+                            )
                         )
                     )
                 )
@@ -137,10 +144,11 @@ def search(request):
             export_format = request.GET.get("_export", None)
             if TableExport.is_valid_format(export_format):
                 exporter = TableExport(export_format, table)
-                return exporter.response(f"textrefs.{export_format}")
+                return exporter.response(f"twi_text_refs.{export_format}")
 
             try:
                 table.paginate(
+                    # paginator_class=LazyPaginator,
                     page=request.GET.get("page", 1),
                     per_page=request.GET.get("page_size", 15),
                 )
@@ -154,7 +162,7 @@ def search(request):
             context = {}
             context["table"] = table
             context["form"] = form
-            context["result_count"] = table_data.count()
+            # context["result_count"] = table_data.count()
             return render(request, "pages/search.html", context)
         else:
             # Form data not valid
