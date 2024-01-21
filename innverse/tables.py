@@ -16,6 +16,7 @@ class TextRefTable(tables.Table):
         model = TextRef
         template_name = "tables/search_table.html"
         fields = ("ref_name", "text", "chapter_url")
+        empty_text = "No results found for the given query. Please try again."
 
     def render_ref_name(self, record: TextRef):
         if record.type.type == RefType.CHARACTER:
@@ -32,10 +33,20 @@ class TextRefTable(tables.Table):
                 "patterns/atoms/link/link.html",
                 context={
                     "text": f"{record.type.name}",
-                    "href": f"https://wiki.wanderinginn.com/index.php?title=Special%3ASearch&search=Category%3AClasses+{record.type.name[1:-1]}",
+                    "href": f"https://wiki.wanderinginn.com/List_of_Classes/{record.type.name[1]}#:~:text={record.type.name}",
                     "external": True,
                 },
             )
+        elif record.type.type == RefType.SPELL:
+            return render_to_string(
+                "patterns/atoms/link/link.html",
+                context={
+                    "text": f"{record.type.name}",
+                    "href": f"https://wiki.wanderinginn.com/Spells#:~:text={record.type.name}",
+                    "external": True,
+                },
+            )
+
         else:
             return record.type.name
 
@@ -108,7 +119,6 @@ class ChapterRefTable(tables.Table):
                     context={
                         "text": f"{chapter[0]}",
                         "href": f"{chapter[1]}",
-                        "external": False,
                     },
                 )
                 for chapter in record["chapter_data"]
