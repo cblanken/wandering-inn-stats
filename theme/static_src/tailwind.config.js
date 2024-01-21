@@ -32,7 +32,7 @@ module.exports = {
      * JS: If you use Tailwind CSS in JavaScript, uncomment the following lines and make sure
      * patterns match your project structure.
      */
-    /* JS 1: Ignore any JavaScript in node_modules folder. */
+    /* JS 1: Ignore any JavaScript in node_modules Folder. */
     // '!../../**/node_modules',
     /* JS 2: Process all JavaScript files in the project. */
     // '../../**/*.js',
@@ -43,11 +43,6 @@ module.exports = {
      * and make sure the pattern below matches your project structure.
      */
     // '../../**/*.py'
-  ],
-  safelist: [
-    {
-      pattern: /animate-./,
-    }
   ],
   theme: {
     container: {
@@ -86,10 +81,15 @@ module.exports = {
           "0%": { transform: "rotate(0)" },
           "100%": { transform: "rotate(-180deg)" },
         },
+        spin: {
+          "0%": { transform: "roatate(0deg)" },
+          "100%": { transform: "roatate(360deg)" },
+        }
       },
     },
     animation: {
       "flip-icon": "flip180 0.25s linear forwards",
+      "spin-slow": "spin 2s linear infinite",
     }
   },
   plugins: [

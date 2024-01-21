@@ -1,3 +1,20 @@
+// Searching animation
+let search_btn = document.querySelector("#search_bar_btn");
+
+function replace_search_icon(feather_name) {
+  let icon = document.createElement("i");
+  icon.setAttribute("data-feather", feather_name);
+  icon.classList.add("animate-spin-slow", "absolute", "left-2", "pointer-events-none");
+
+  search_btn.replaceChild(icon, search_btn.firstElementChild);
+  feather.replace();
+}
+
+search_btn.addEventListener("click", e => {
+  replace_search_icon("loader")
+});
+
+// Header folding
 let header = document.querySelector("#textref-search-form");
 
 function replace_header_fold_icon(feather_name) {
