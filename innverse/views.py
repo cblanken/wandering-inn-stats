@@ -154,6 +154,7 @@ def search(request):
             context = {}
             context["table"] = table
             context["form"] = form
+            context["result_count"] = table_data.count()
             return render(request, "pages/search.html", context)
         else:
             # Form data not valid
@@ -169,8 +170,3 @@ def search(request):
 @cache_page(60 * 60 * 24)
 def about(request):
     return render(request, "pages/about.html")
-
-
-@cache_page(60 * 60 * 24)
-def settings(request):
-    return render(request, "pages/settings.html")

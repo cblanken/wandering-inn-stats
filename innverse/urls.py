@@ -5,6 +5,7 @@ from django.urls import path, include
 from . import views
 
 urlpatterns = [
+    path("", views.search),
     path("overview", views.overview),
     path("characters", views.characters),
     path("classes", views.classes),
@@ -12,7 +13,6 @@ urlpatterns = [
     path("magic", views.magic),
     path("search", views.search),
     path("about", views.about),
-    path("settings", views.settings),
     path("stats/", include("stats.urls")),
     path("admin/", admin.site.urls),
     path("__debug__/", include("debug_toolbar.urls")),
