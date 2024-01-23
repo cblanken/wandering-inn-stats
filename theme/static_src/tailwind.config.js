@@ -69,6 +69,7 @@ module.exports = {
         "cancel": "#f4425f",
         "info": "rgb(164 174 240)",
         "warn": "#F7A71B",
+        "plotly-bg": "#111111",
       },
       maxWidth: {
         '1/5': '20%',
