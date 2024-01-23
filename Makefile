@@ -22,6 +22,10 @@ migrate:
 tailwind:
 	poetry run python manage.py tailwind start
 
+.PHONY: generate-chart-thumbs
+generate-chart-thumbs:
+	poetry run python manage.py generate_chart_thumbnails
+
 .PHONY: serve-static-files
 serve-static-files:
 	python -m http.server 8080 -d /tmp/twi-stats/

@@ -44,10 +44,7 @@ def character_text_refs():
         + "<extra></extra>",
     )
 
-    return char_refs_count_fig.to_html(
-        full_html=False,
-        include_plotlyjs=False,
-    )
+    return char_refs_count_fig
 
 
 def character_counts_per_chapter():
@@ -89,10 +86,7 @@ def character_counts_per_chapter():
         + "<b>Total Characters</b>: %{y}"
         + "<extra></extra>"
     )
-    return char_counts_per_chapter_fig.to_html(
-        full_html=False,
-        include_plotlyjs=False,
-    )
+    return char_counts_per_chapter_fig
 
 
 def characters_by_species():
@@ -125,10 +119,7 @@ def characters_by_species():
         + "<extra></extra>",
     )
 
-    return chars_by_species_fig.to_html(
-        full_html=False,
-        include_plotlyjs=False,
-    )
+    return chars_by_species_fig
 
 
 def characters_by_status():
@@ -148,7 +139,4 @@ def characters_by_status():
         + "<extra></extra>",
     )
 
-    return chars_by_status_fig.to_html(
-        full_html=False,
-        include_plotlyjs=False,
-    )
+    return chars_by_status_fig

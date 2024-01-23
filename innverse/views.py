@@ -1,10 +1,18 @@
 from django.core.cache import cache
 from django.db.models import Q, F
+from django.http import Http404
 from django.shortcuts import render
 from django.views.decorators.cache import cache_page
 from django_tables2.paginators import LazyPaginator
 from django_tables2.export.export import TableExport
-from stats.charts import word_count_charts, character_charts, class_charts
+from itertools import chain
+from typing import Iterable, Tuple
+from stats.charts import (
+    ChartGalleryItem,
+    word_count_charts,
+    character_charts,
+    class_charts,
+)
 from stats.models import Chapter, RefType, RefTypeChapter, TextRef
 from .tables import ChapterRefTable, TextRefTable
 from .forms import SearchForm, MAX_CHAPTER_NUM
@@ -12,44 +20,19 @@ from .forms import SearchForm, MAX_CHAPTER_NUM
 
 @cache_page(60 * 60 * 24)
 def overview(request):
-    context = {
-        "plot_groups": {
-            "word_counts": {
-                "plots": word_count_charts()["plots"],
-                "selected_param": "word_count_tab",
-                "selected": int(request.GET.get("word_count_tab", 0)),
-            }
-        }
-    }
-
+    context = {"gallery": word_count_charts}
     return render(request, "pages/overview.html", context)
 
 
 @cache_page(60 * 60 * 24)
 def characters(request):
-    context = {
-        "plot_groups": {
-            "word_counts": {
-                "plots": character_charts()["plots"],
-                "selected_param": "character_count_tab",
-                "selected": int(request.GET.get("character_count_tab", 0)),
-            }
-        }
-    }
+    context = {"gallery": character_charts}
     return render(request, "pages/characters.html", context)
 
 
 @cache_page(60 * 60 * 24)
 def classes(request):
-    context = {
-        "plot_groups": {
-            "word_counts": {
-                "plots": class_charts()["plots"],
-                "selected_param": "class_count_tab",
-                "selected": int(request.GET.get("class_count_tab", 0)),
-            }
-        }
-    }
+    context = {"gallery": class_charts}
     return render(request, "pages/classes.html", context)
 
 
@@ -61,6 +44,19 @@ def skills(request):
 @cache_page(60 * 60 * 24)
 def magic(request):
     return render(request, "pages/magic.html")
+
+
+def interactive_chart(request, chart):
+    charts: Iterable[ChartGalleryItem] = chain(
+        word_count_charts, character_charts, class_charts
+    )
+
+    for c in charts:
+        if chart == c.title_slug:
+            context = {"chart": c.get_fig().to_html}
+            return render(request, "pages/interactive_chart.html", context)
+
+    raise Http404()
 
 
 def search(request):

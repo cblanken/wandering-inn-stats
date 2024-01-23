@@ -35,7 +35,4 @@ def class_ref_counts():
         + "<extra></extra>",
     )
 
-    return class_refs_count_fig.to_html(
-        full_html=False,
-        include_plotlyjs=False,
-    )
+    return class_refs_count_fig

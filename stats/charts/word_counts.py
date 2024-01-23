@@ -1,4 +1,5 @@
 from django.db.models import Q
+from plotly.graph_objects import Figure
 import plotly.express as px
 import numpy as np
 from stats.models import Chapter
@@ -9,7 +10,7 @@ chapter_wc_data = Chapter.objects.values(
 ).order_by("number")
 
 
-def word_count_per_chapter():
+def word_count_per_chapter() -> Figure:
     """Word counts per chapter"""
     chapter_wc_fig = px.scatter(
         chapter_wc_data,
@@ -40,13 +41,10 @@ def word_count_per_chapter():
         + "<extra></extra>",
     )
 
-    return chapter_wc_fig.to_html(
-        full_html=False,
-        include_plotlyjs=False,
-    )
+    return chapter_wc_fig
 
 
-def word_count_histogram():
+def word_count_histogram() -> Figure:
     sorted_posts = Chapter.objects.order_by("post_date")
     reverse_sorted_posts = Chapter.objects.order_by("-post_date")
     # a ("post_date", ascending=True)
@@ -76,13 +74,10 @@ def word_count_histogram():
     #     yaxis=dict(title="Word Count"),
     # )
 
-    return chapter_wc_histogram.to_html(
-        full_html=False,
-        include_plotlyjs=False,
-    )
+    return chapter_wc_histogram
 
 
-def word_count_authors_note():
+def word_count_authors_note() -> Figure:
     # Word counts per author's note
     chapter_wc_data = (
         Chapter.objects.filter(authors_note_word_count__gt=0)
@@ -115,13 +110,10 @@ def word_count_authors_note():
         + "<extra></extra>",
     )
 
-    return chapter_authors_wc_fig.to_html(
-        full_html=False,
-        include_plotlyjs=False,
-    )
+    return chapter_authors_wc_fig
 
 
-def word_count_by_book():
+def word_count_by_book() -> Figure:
     # Word counts grouped by book
     book_wc_data = (
         Chapter.objects.filter(~Q(book__title__contains="Unreleased"))
@@ -153,13 +145,10 @@ def word_count_by_book():
         + "<extra></extra>",
     )
 
-    return book_wc_fig.to_html(
-        full_html=False,
-        include_plotlyjs=False,
-    )
+    return book_wc_fig
 
 
-def word_count_by_volume():
+def word_count_by_volume() -> Figure:
     # Word counts grouped by volume
     volume_wc_data = Chapter.objects.values(
         "book__volume", "book__volume__title", "id", "title", "word_count"
@@ -188,7 +177,4 @@ def word_count_by_volume():
         + "<extra></extra>",
     )
 
-    return volume_wc_fig.to_html(
-        full_html=False,
-        include_plotlyjs=False,
-    )
+    return volume_wc_fig
