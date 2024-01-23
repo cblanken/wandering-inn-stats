@@ -1,10 +1,7 @@
 """Module for processing scraped chapter text"""
 from __future__ import annotations
-import re
 import regex
 import sys
-from collections import OrderedDict
-from enum import Enum, Flag, auto
 import json
 from pathlib import Path
 from typing import Generator
@@ -25,15 +22,17 @@ class Pattern:
         if len(patterns) == 0:
             return None
         if len(patterns) == 1:
-            return patterns[0]
-
-        new_pattern = regex.compile(
-            prefix
-            + r"(?P<or_center>"
-            + "|".join([f"({p.pattern})" for p in patterns])
-            + r")"
-            + suffix
-        )
+            new_pattern = regex.compile(
+                prefix + r"(?P<or_center>" + patterns[0].pattern + r")" + suffix
+            )
+        else:
+            new_pattern = regex.compile(
+                prefix
+                + r"(?P<or_center>"
+                + "|".join([f"({p.pattern})" for p in patterns])
+                + r")"
+                + suffix
+            )
         return new_pattern
 
     @staticmethod
@@ -139,8 +138,9 @@ class Chapter:
     def gen_text_refs(
         self,
         line_num: int,
-        extra_patterns: list[str] = None,
+        extra_patterns: regex.Pattern = None,
         context_len: int = 50,
+        only_extra_patterns=False,
     ) -> Generator[TextRef]:
         """Return  TextRef(s) that match the regex for the given regex patterns
         and other arguments
@@ -153,15 +153,16 @@ class Chapter:
         """
 
         # Yield any matches for bracketed types
-        for match in regex.finditer(self.__bracket_pattern, self.lines[line_num]):
-            yield TextRef(
-                match.group(),
-                match.string,
-                line_num,
-                match.start(),
-                match.end(),
-                context_len,
-            )
+        if not only_extra_patterns:
+            for match in regex.finditer(self.__bracket_pattern, self.lines[line_num]):
+                yield TextRef(
+                    match.group(),
+                    match.string,
+                    line_num,
+                    match.start(),
+                    match.end(),
+                    context_len,
+                )
 
         # TODO: selection prompt for aliases with multiple matches
         # or if an alias matches a common word

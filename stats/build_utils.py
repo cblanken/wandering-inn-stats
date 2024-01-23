@@ -3,28 +3,35 @@ from enum import Enum
 from pathlib import Path
 from pprint import pformat
 from subprocess import run, TimeoutExpired
-from typing import Protocol
+from typing import Iterable
+import regex
 from django.core.management.base import CommandError
 from django.db.models.query import QuerySet
+from processing import Pattern
 from stats.models import Alias, RefType
 
 
-class RefTypeHolder(Protocol):
-    @property
-    def ref_type(self) -> RefType:
-        ...
-
-
-def build_reftype_pattern(ref: RefTypeHolder):
+def build_reftype_pattern(ref: RefType):
     """Create an OR'ed regex of a Reftype's name and its aliases"""
     return [
-        ref.ref_type.name,
+        ref.name,
         *[
             alias.name
-            for alias in Alias.objects.filter(ref_type=ref.ref_type)
+            for alias in Alias.objects.filter(ref_type=ref)
             if "(" not in alias.name
         ],
     ]
+
+
+def compile_textref_patterns(patterns: Iterable[str]) -> regex.Pattern:
+    # Build patterns for finding TextRefs
+    prefix = r"[>\W]"
+    suffix = r"[<\W\.\?,!]"
+    return Pattern._or(
+        [regex.compile(f"{pattern}") for pattern in patterns if "(" not in pattern],
+        prefix=prefix,
+        suffix=suffix,
+    )
 
 
 class COLOR_CATEGORY(Enum):

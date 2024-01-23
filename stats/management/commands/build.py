@@ -33,6 +33,7 @@ from processing import (
 
 from stats.build_utils import (
     build_reftype_pattern,
+    compile_textref_patterns,
     prompt,
     select_ref_type,
     select_ref_type_from_qs,
@@ -57,14 +58,22 @@ class Command(BaseCommand):
             "--config-dir",
             type=str,
             default="config",
-            help="Directory in file system where config files are saved to disk. \
-                This includes disambiguation.cfg, ...",
+            help="Directory in file system where config files are saved to \
+                    disk. This includes disambiguation.cfg, ...",
         )
         parser.add_argument(
             "-i",
             "--ignore-missing-chapter-metadata",
             action="store_true",
-            help="Update Chapter data with defaults if the metadata file can't be read",
+            help="Update Chapter data with defaults if the metadata file \
+                    can't be read",
+        )
+        parser.add_argument(
+            "--custom-refs",
+            type=str,
+            help="Path to a text file containing names of RefTypes to check \
+                    instead of checking every existing RefType already \
+                    available in the database",
         )
         parser.add_argument(
             "--skip-text-refs",
@@ -124,12 +133,14 @@ class Command(BaseCommand):
         parser.add_argument(
             "--skip-textref-color-select",
             action="store_true",
-            help="Disable TextRef selection prompt for ambiguous TextRef colors",
+            help="Disable TextRef selection prompt for ambiguous TextRef \
+                    colors",
         )
         parser.add_argument(
             "--skip-disambiguation",
             action="store_true",
-            help="Disable disambiguation checks for TextRefs from 'cfg/disambiguation.cfg'",
+            help="Disable disambiguation checks for TextRefs from \
+                    'cfg/disambiguation.cfg'",
         )
         parser.add_argument(
             "--prompt-sound",
@@ -485,7 +496,12 @@ class Command(BaseCommand):
                 f"\nPopulating chapter data for chapter (id={chapter_id}): {chapter.title} ..."
             )
             chapter_dir = Path(glob(f"./data/*/*/*/{chapter.title}")[0])
-            self.build_chapter(options, chapter.book, chapter_dir, chapter_id)
+            self.build_chapter(
+                options,
+                chapter.book,
+                chapter_dir,
+                chapter_id,
+            )
         except Chapter.DoesNotExist as exc:
             self.stdout.write(
                 self.style.WARNING(
@@ -500,7 +516,13 @@ class Command(BaseCommand):
             )
         return
 
-    def build_chapter(self, options, book: Book, src_path: Path, chapter_num: int):
+    def build_chapter(
+        self,
+        options,
+        book: Book,
+        src_path: Path,
+        chapter_num: int,
+    ):
         src_chapter: SrcChapter = SrcChapter(src_path)
         if src_chapter.metadata is None:
             self.stdout.write(
@@ -550,41 +572,37 @@ class Command(BaseCommand):
         if options.get("skip_text_refs"):
             return
 
-        # Compile character names for TextRef search
-        # NOTE: names and aliases containing a '(' are filtered out to prevent
-        # interference when compiling the regex to match TextRefs
-        character_patterns = (
-            [
-                "|".join(build_reftype_pattern(char))
-                for char in Character.objects.all()
-                if "(" not in char.ref_type.name
-            ]
-            if not options.get("skip_ref_chars")
-            else []
-        )
+        compiled_patterns = options.get("custom_refs")
+        if compiled_patterns is None:
+            # Compile character names for TextRef search
+            # NOTE: names and aliases containing a '(' are filtered out to prevent
+            # interference when compiling the regex to match TextRefs
+            character_patterns = (
+                [
+                    "|".join(build_reftype_pattern(char))
+                    for char in RefType.objects.filter(type=RefType.CHARACTER)
+                    if "(" not in char.name
+                ]
+                if not options.get("skip_ref_chars")
+                else []
+            )
 
-        # Compile location names for TextRef search
-        location_patterns = (
-            ["|".join(build_reftype_pattern(loc)) for loc in Location.objects.all()]
-            if not options.get("skip_ref_locs")
-            else []
-        )
+            # Compile location names for TextRef search
+            location_patterns = (
+                [
+                    "|".join(build_reftype_pattern(loc))
+                    for loc in RefType.objects.filter(type=RefType.LOCATION)
+                ]
+                if not options.get("skip_ref_locs")
+                else []
+            )
 
-        # Compile item/artifact names for TextRef search
-        # TODO: add item/artifact names
+            # Compile item/artifact names for TextRef search
+            # TODO: add item/artifact names
 
-        # Build patterns for finding TextRefs
-        prefix = r"[>\W]"
-        suffix = r"[<\W\.\?,!]"
-        compiled_patterns = Pattern._or(
-            [
-                regex.compile(f"{pattern}")
-                for pattern in itertools.chain(character_patterns, location_patterns)
-                if "(" not in pattern
-            ],
-            prefix=prefix,
-            suffix=suffix,
-        )
+            compiled_patterns = compile_textref_patterns(
+                patterns=itertools.chain(character_patterns, location_patterns)
+            )
 
         # Build TextRefs
         line_range = options.get("chapter_line_range")
@@ -633,7 +651,11 @@ class Command(BaseCommand):
             if created:
                 self.stdout.write(self.style.SUCCESS(f"> Creating line {i:>3}..."))
 
-            text_refs = src_chapter.gen_text_refs(i, extra_patterns=compiled_patterns)
+            text_refs = src_chapter.gen_text_refs(
+                i,
+                extra_patterns=compiled_patterns,
+                only_extra_patterns=bool(options.get("custom_refs")),
+            )
 
             for text_ref in text_refs:
                 # Check for existing TextRef
@@ -1021,6 +1043,60 @@ class Command(BaseCommand):
 
         return None
 
+    def get_custom_compiled_patterns(self, filepath: Path) -> regex.Pattern:
+        try:
+            if filepath is None:
+                filepath = "config/custom-refs.json"
+            with open(filepath, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                found_reftypes = []
+                missing_reftypes = []
+                for rt_type, names in data.items():
+                    for name in names:
+                        qs = RefType.objects.filter(Q(type=rt_type) & Q(name=name))
+                        if qs.count() == 0:
+                            missing_reftypes.append((rt_type, name))
+                        elif qs.count() == 1:
+                            found_reftypes.append(qs[0])
+                        else:
+                            raise CommandError(
+                                f"The name \n{name}\n provided by the custom ref config file matches multiple RefTypes → {qs}"
+                            )
+
+                for qs in found_reftypes:
+                    self.stdout.write(
+                        self.style.SUCCESS(
+                            f'Type: {qs.type:>3} | Name: "{qs.name}" found → {qs}'
+                        )
+                    )
+
+                for qs in missing_reftypes:
+                    self.stdout.write(
+                        self.style.WARNING(
+                            f'Type: {qs[0]:>3} | Name: "{qs[1]}" does not exist. Make sure there isn\'t a typo'
+                        )
+                    )
+
+                if len(missing_reftypes):
+                    raise CommandError(
+                        "Some reftypes provided in the custom ref config file did not find any existing RefTypes. There are probably some typos. Fix them and try again."
+                    )
+
+                patterns = [
+                    "|".join(build_reftype_pattern(rt)) for rt in found_reftypes
+                ]
+
+                return compile_textref_patterns(patterns=patterns)
+
+        except json.JSONDecodeError as e:
+            raise CommandError(
+                f'Build error. Unable to parse JSON file: "{filepath}"'
+            ) from e
+        except OSError as e:
+            raise CommandError(
+                f'Build error. Unable to open custom ref list file: "{filepath}"'
+            ) from e
+
     def handle(self, *args, **options) -> None:
         try:
             if options.get("skip_wiki_all"):
@@ -1059,6 +1135,16 @@ class Command(BaseCommand):
                 self.build_classes(Path(options["data_path"], "classes.txt"))
             if not options.get("skip_wiki_locs"):
                 self.build_locations(Path(options["data_path"], "locations.json"))
+
+            # Setup custom reference list override if provided
+            custom_refs_path = options.get("custom_refs")
+            if custom_refs_path is not None:
+                self.stdout.write(
+                    f'Loading custom references config file "{custom_refs_path}"'
+                )
+                options["custom_refs"] = self.get_custom_compiled_patterns(
+                    custom_refs_path
+                )
 
             chapter_id = options.get("chapter_id")
             if chapter_id is not None:
