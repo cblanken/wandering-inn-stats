@@ -625,7 +625,7 @@ class Command(BaseCommand):
                 ) from exc
 
         for i in line_range:
-            image_tag_pattern = regex.compile(r".*(<a href)|(<img ).*")
+            image_tag_pattern = regex.compile(r".*((<a href)|(<img )).*")
             if image_tag_pattern.match(src_chapter.lines[i]):
                 self.stdout.write(
                     self.style.WARNING(f"> Line {i} contains an <img> tag. Skipping...")
@@ -644,9 +644,20 @@ class Command(BaseCommand):
                 )
 
             # Create ChapterLine if it doesn't already exist
-            chapter_line, created = ChapterLine.objects.get_or_create(
-                chapter=chapter, line_number=i, text=src_chapter.lines[i]
-            )
+            try:
+                chapter_line, created = ChapterLine.objects.get_or_create(
+                    chapter=chapter, line_number=i, text=src_chapter.lines[i]
+                )
+            except IntegrityError:
+                self.stdout.write(self.style.WARNING(f"{src_chapter.lines[i]}"))
+                response = prompt(
+                    f"> An existing chapter line ({i}) in chapter {chapter} was found with different text. Continue? (y/n): ",
+                    sound=True,
+                )
+                if response.strip().lower() == "y":
+                    continue
+                else:
+                    raise CommandError("Build aborted.")
 
             if created:
                 self.stdout.write(self.style.SUCCESS(f"> Creating line {i:>3}..."))
