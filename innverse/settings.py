@@ -182,24 +182,33 @@ PATTERN_LIBRARY = {
     "BASE_TEMPLATE_NAMES": ["patterns/base_page.html"],
 }
 
-CACHES = {
-    "default": {
-        # "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
-        # "LOCATION": "twi-stats-cache",
-        "BACKEND": "django.core.cache.backends.memcached.PyMemcacheCache",
-        "LOCATION": env.get("TWI_CACHE_URI", "127.0.0.1:11211"),
-        "TIMEOUT": 300,
-        "OPTIONS": {
-            "no_delay": True,
-            "ignore_exc": True,
-            "max_pool_size": 4,
-            "use_pooling": True,
-            "allow_unicode_keys": True,
-            "default_noreply": False,
-            "serde": pymemcache.serde.pickle_serde,
-        },
+
+DISABLE_CACHE = env.get("TWI_DISABLE_CACHE", False)
+if DISABLE_CACHE:
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.dummy.DummyCache",
+        }
     }
-}
+else:
+    CACHES = {
+        "default": {
+            # "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+            # "LOCATION": "twi-stats-cache",
+            "BACKEND": "django.core.cache.backends.memcached.PyMemcacheCache",
+            "LOCATION": env.get("TWI_CACHE_URI", "127.0.0.1:11211"),
+            "TIMEOUT": 300,
+            "OPTIONS": {
+                "no_delay": True,
+                "ignore_exc": True,
+                "max_pool_size": 4,
+                "use_pooling": True,
+                "allow_unicode_keys": True,
+                "default_noreply": False,
+                "serde": pymemcache.serde.pickle_serde,
+            },
+        }
+    }
 
 # Logging
 LOGGING = {
