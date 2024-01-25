@@ -82,7 +82,6 @@ def get_reftype_mention_history(rt: RefType):
         x="chapter_line__chapter__title",
         y="count",
         labels={"chapter_line__chapter__title": "title", "count": "mentions"},
-        template="plotly_dark",
         cumulative=True,
     )
     histo2 = px.histogram(
@@ -91,7 +90,6 @@ def get_reftype_mention_history(rt: RefType):
         x="chapter_line__chapter__title",
         y="count",
         labels={"chapter_line__chapter__title": "title", "count": "mentions"},
-        template="plotly_dark",
     )
     top20_chapters = px.bar(
         chapter_counts.order_by("-count")[:20],
@@ -99,7 +97,6 @@ def get_reftype_mention_history(rt: RefType):
         x="chapter_line__chapter__title",
         y="count",
         labels={"count": "mentions", "chapter_line__chapter__title": "title"},
-        template="plotly_dark",
     )
 
     return (histo1, histo2, top20_chapters)

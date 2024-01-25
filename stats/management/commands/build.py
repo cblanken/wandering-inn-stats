@@ -488,30 +488,39 @@ class Command(BaseCommand):
 
         return None
 
-    def build_chapter_by_id(self, options, chapter_id: int):
+    def build_chapter_by_id(self, options, chapter_num: int):
         """Build individual Chapter by ID"""
         try:
-            chapter = Chapter.objects.get(number=chapter_id)
+            chapter = Chapter.objects.get(number=chapter_num)
             self.stdout.write(
-                f"\nPopulating chapter data for chapter (id={chapter_id}): {chapter.title} ..."
+                f"\nPopulating chapter data for existing chapter (id={chapter_num}): {chapter.title} ..."
             )
             chapter_dir = Path(glob(f"./data/*/*/*/{chapter.title}")[0])
             self.build_chapter(
                 options,
                 chapter.book,
                 chapter_dir,
-                chapter_id,
+                chapter_num,
             )
         except Chapter.DoesNotExist as exc:
             self.stdout.write(
                 self.style.WARNING(
-                    f"> Chapter (id) {chapter_id} does not exist in database."
+                    f"> Chapter (id) {chapter_num} does not exist in database and cannot be created \
+                            with just a chapter number/id. Please run a regular build with \
+                            `--skip-text-refs` to build all Chapter records from the available data."
                 )
+            )
+            chapter_dir = Path(glob(f"./data/*/*/*/{chapter.title}")[0])
+            self.build_chapter(
+                options,
+                chapter.book,
+                chapter_dir,
+                chapter_num,
             )
         except IndexError:
             self.stdout.write(
                 self.style.WARNING(
-                    f"> Chapter (id): {chapter_id} source file does not exist. Skipping..."
+                    f"> Chapter (id): {chapter_num} source file does not exist. Skipping..."
                 )
             )
         return

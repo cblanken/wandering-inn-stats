@@ -83,7 +83,11 @@ def search(request):
                     & Q(
                         chapter__number__lte=form.cleaned_data.get(
                             "last_chapter",
-                            int(Chapter.objects.all().order_by("-number")[0].number),
+                            int(
+                                Chapter.objects.values_list("number").order_by(
+                                    "-number"
+                                )[0][0]
+                            ),
                         )
                     )
                 )

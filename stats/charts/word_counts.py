@@ -5,15 +5,25 @@ import numpy as np
 from stats.models import Chapter
 from .config import DEFAULT_LAYOUT
 
-chapter_wc_data = Chapter.objects.values(
-    "number", "title", "word_count", "post_date"
-).order_by("number")
+chapter_data = (
+    Chapter.objects.filter(is_canon=True)
+    .values("number", "title", "word_count", "post_date")
+    .order_by("number")
+)
+
+
+def longest_chapter() -> Chapter:
+    chapter_data.order_by("-word_count")[0]
+
+
+def longest_interlude() -> Chapter:
+    chapter_data.filter(is_interlude=True).order_by("-word_count")[0]
 
 
 def word_count_per_chapter() -> Figure:
     """Word counts per chapter"""
     chapter_wc_fig = px.scatter(
-        chapter_wc_data,
+        chapter_data,
         x="number",
         y="word_count",
         hover_data=["title", "number", "word_count", "post_date"],
@@ -30,9 +40,7 @@ def word_count_per_chapter() -> Figure:
     )
 
     chapter_wc_fig.update_traces(
-        customdata=np.stack(
-            (chapter_wc_data.values_list("title", "post_date"),), axis=-1
-        ),
+        customdata=np.stack((chapter_data.values_list("title", "post_date"),), axis=-1),
         hovertemplate="<b>Chapter Title</b>: %{customdata[0]}<br>"
         + "<b>Chapter Number</b>: %{x}<br>"
         + "<b>Word Count</b>: %{y}<br>"
@@ -51,7 +59,7 @@ def word_count_histogram() -> Figure:
 
     diff = last_post.post_date - first_post.post_date
     chapter_wc_histogram = px.histogram(
-        chapter_wc_data,
+        chapter_data,
         x="post_date",
         y="word_count",
         nbins=diff.days,

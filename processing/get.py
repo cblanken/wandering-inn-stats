@@ -73,34 +73,10 @@ class TorSession:
         }
 
     def get_new_tor_circuit(self, control_port: int = 9051) -> str:
-        with Controller.from_port(port=control_port) as conn:
-            if conn.is_newnym_available():
-                conn.authenticate()
-                conn.signal(Signal.NEWNYM)
-                time.sleep(0.25)
-            else:
-                print(
-                    "! New Tor circuit not available - must wait for Tor to accept NEWNYM signal"
-                )
-                # breakpoint()
-                # while(True):
-                #    print("> Switching Tor circuit...")
-                #    start_ip: str = self.session.get("https://api.ipify.org").text.strip()
-                #    start_time: float = time.time()
-
-                #    # Wait for new IP
-                #    current_ip = start_ip
-                #    while(time.time() - start_time < 3):
-                #        current_ip = self.session.get("https://api.ipify.org").text.strip()
-                #        if current_ip != start_ip:
-                #            print(f"> Switched Tor circuit from {start_ip} to {current_ip}")
-                #            return current_ip
-                #        time.sleep(0.5)
-
-                #    reply = input("Try new Tor circuit? (y/n): ")
-                #    breakpoint()
-                #    if reply.lower() != "y":
-                #        break
+        with Controller.from_port(port=control_port) as controller:
+            controller.authenticate()
+            controller.signal(Signal.NEWNYM)
+            time.sleep(controller.get_newnym_wait())
 
     def __get_character_by_alpha(self, alpha_char: str) -> dict[str:str]:
         """Get single character name and link to the wiki

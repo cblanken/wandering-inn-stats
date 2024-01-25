@@ -67,6 +67,8 @@ class Chapter(models.Model):
     number = models.PositiveBigIntegerField()
     title = models.CharField(max_length=50, verbose_name="Chapter Title")
     is_interlude = models.BooleanField()
+    is_canon = models.BooleanField(default=True)
+    is_status_update = models.BooleanField(default=False)
     source_url = models.URLField()
     post_date = models.DateTimeField()
     last_update = models.DateTimeField()
@@ -120,13 +122,16 @@ class RefType(models.Model):
     description = models.CharField(max_length=120, default="")
 
     class Meta:
-        verbose_name_plural = "Ref Types"
-        ordering = ["name"]
         constraints = [
             models.UniqueConstraint(
                 fields=["name", "type"], name="unique_name_and_type"
             )
         ]
+        indexes = [
+            models.Index(fields=["id", "name"]),
+        ]
+        ordering = ["name"]
+        verbose_name_plural = "Ref Types"
 
     def __str__(self):
         return f"(RefType: {self.name} - Type: {self.type})"

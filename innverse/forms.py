@@ -1,12 +1,15 @@
 from django import forms
 from stats.models import RefType, Chapter
 
-MAX_CHAPTER_NUM = int(Chapter.objects.all().order_by("-number")[0].number)
+MAX_CHAPTER_NUM = int(Chapter.objects.values_list("number").order_by("-number")[0][0])
 
 
 def get_chapters():
     yield (0, "--- First Chapter ---")
-    for tup in ((c.number, c.title) for c in Chapter.objects.order_by("number")):
+    for tup in (
+        (c["number"], c["title"])
+        for c in Chapter.objects.values("number", "title").order_by("number")
+    ):
         yield tup
     yield (MAX_CHAPTER_NUM + 1, "--- Last Chapter ---")
 
