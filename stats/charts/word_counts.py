@@ -3,7 +3,7 @@ from plotly.graph_objects import Figure
 import plotly.express as px
 import numpy as np
 from stats.models import Chapter
-from .config import DEFAULT_LAYOUT, DEFAULT_PLOTLY_THEME
+from .config import DEFAULT_LAYOUT
 
 chapter_wc_data = Chapter.objects.values(
     "number", "title", "word_count", "post_date"
@@ -16,7 +16,6 @@ def word_count_per_chapter() -> Figure:
         chapter_wc_data,
         x="number",
         y="word_count",
-        template=DEFAULT_PLOTLY_THEME,
         hover_data=["title", "number", "word_count", "post_date"],
         trendline="ols",
         trendline_color_override="#FF8585",
@@ -47,32 +46,25 @@ def word_count_per_chapter() -> Figure:
 def word_count_histogram() -> Figure:
     sorted_posts = Chapter.objects.order_by("post_date")
     reverse_sorted_posts = Chapter.objects.order_by("-post_date")
-    # a ("post_date", ascending=True)
-    # first_post = sorted_posts.iloc[0]
-    # last_post = sorted_posts.iloc[-1]
     first_post = sorted_posts[0]
     last_post = reverse_sorted_posts[0]
 
     diff = last_post.post_date - first_post.post_date
     chapter_wc_histogram = px.histogram(
         chapter_wc_data,
-        # x="number",
         x="post_date",
         y="word_count",
         nbins=diff.days,
-        # nbins=Chapter.objects.all().count(),
         cumulative=True,
-        template=DEFAULT_PLOTLY_THEME,
-        # hover_data=["title", "number", "word_count", "post_date"],
+        labels=dict(post_date="Post Date", word_count="Total Word Count"),
+        hover_data=["title", "number", "word_count", "post_date"],
     )
 
-    # chapter_wc_histogram.update_layout(
-    #     DEFAULT_LAYOUT,
-    #     xaxis=dict(
-    #         title="Chapter Number", rangeslider=dict(visible=True), type="linear"
-    #     ),
-    #     yaxis=dict(title="Word Count"),
-    # )
+    chapter_wc_histogram.update_layout(
+        DEFAULT_LAYOUT,
+        xaxis=dict(title="Post Date"),
+        yaxis=dict(title="Total Word Count"),
+    )
 
     return chapter_wc_histogram
 
@@ -89,7 +81,6 @@ def word_count_authors_note() -> Figure:
         chapter_wc_data,
         x="number",
         y="authors_note_word_count",
-        template=DEFAULT_PLOTLY_THEME,
         hover_data=["title", "number", "authors_note_word_count"],
     )
 
@@ -126,7 +117,6 @@ def word_count_by_book() -> Figure:
         x="book__title",
         y="word_count",
         color="book",
-        template=DEFAULT_PLOTLY_THEME,
         color_continuous_scale=px.colors.qualitative.Vivid,
     )
     book_wc_fig.update_layout(
@@ -159,7 +149,6 @@ def word_count_by_volume() -> Figure:
         x="book__volume__title",
         y="word_count",
         color="book__volume",
-        template=DEFAULT_PLOTLY_THEME,
         color_continuous_scale=px.colors.qualitative.Vivid,
     )
     volume_wc_fig.update_layout(

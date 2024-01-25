@@ -18,12 +18,20 @@ class Command(BaseCommand):
             charts.word_count_charts,
             charts.character_charts,
             charts.class_charts,
+            charts.skill_charts,
+            charts.magic_charts,
         ]
         try:
             for gallery in chart_galleries:
                 for chart in gallery:
                     if options.get("chart_name") in chart.title_slug:
-                        chart.save_thumbnail()
+                        fig = chart.get_fig()
+
+                        # Remove interactive elements before export
+                        fig.update_xaxes(rangeslider=dict(visible=False))
+
+                        charts.save_thumbnail(fig, chart.path)
+
                         self.stdout.write(
                             self.style.SUCCESS(
                                 f'Chart ({chart.title}) saved to "{chart.path}"'

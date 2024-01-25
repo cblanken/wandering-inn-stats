@@ -7,12 +7,8 @@ from django_tables2.paginators import LazyPaginator
 from django_tables2.export.export import TableExport
 from itertools import chain
 from typing import Iterable, Tuple
-from stats.charts import (
-    ChartGalleryItem,
-    word_count_charts,
-    character_charts,
-    class_charts,
-)
+from stats import charts
+from stats.charts import ChartGalleryItem
 from stats.models import Chapter, RefType, RefTypeChapter, TextRef
 from .tables import ChapterRefTable, TextRefTable
 from .forms import SearchForm, MAX_CHAPTER_NUM
@@ -20,40 +16,48 @@ from .forms import SearchForm, MAX_CHAPTER_NUM
 
 @cache_page(60 * 60 * 24)
 def overview(request):
-    context = {"gallery": word_count_charts}
+    context = {"gallery": charts.word_count_charts}
     return render(request, "pages/overview.html", context)
 
 
 @cache_page(60 * 60 * 24)
 def characters(request):
-    context = {"gallery": character_charts}
+    context = {"gallery": charts.character_charts}
     return render(request, "pages/characters.html", context)
 
 
 @cache_page(60 * 60 * 24)
 def classes(request):
-    context = {"gallery": class_charts}
+    context = {"gallery": charts.class_charts}
     return render(request, "pages/classes.html", context)
 
 
 @cache_page(60 * 60 * 24)
 def skills(request):
-    return render(request, "pages/skills.html")
+    context = {"gallery": charts.skill_charts}
+    return render(request, "pages/skills.html", context)
 
 
 @cache_page(60 * 60 * 24)
 def magic(request):
-    return render(request, "pages/magic.html")
+    context = {"gallery": charts.magic_charts}
+    return render(request, "pages/magic.html", context)
 
 
 def interactive_chart(request, chart):
-    charts: Iterable[ChartGalleryItem] = chain(
-        word_count_charts, character_charts, class_charts
+    chart_items: Iterable[ChartGalleryItem] = chain(
+        charts.word_count_charts,
+        charts.character_charts,
+        charts.class_charts,
+        charts.skill_charts,
+        charts.magic_charts,
     )
 
-    for c in charts:
+    for c in chart_items:
         if chart == c.title_slug:
-            context = {"chart": c.get_fig().to_html}
+            context = {
+                "chart": c.get_fig().to_html(full_html=False, include_plotlyjs="cdn")
+            }
             return render(request, "pages/interactive_chart.html", context)
 
     raise Http404()

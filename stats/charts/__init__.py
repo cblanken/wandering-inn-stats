@@ -1,7 +1,11 @@
-from typing import Callable
 from enum import Enum
 from pathlib import Path
+from typing import Callable
+
+from django.db.models import Count
 from plotly.graph_objects import Figure
+import plotly.express as px
+import plotly.io as pio
 
 from .word_counts import (
     word_count_per_chapter,
@@ -18,6 +22,12 @@ from .characters import (
 )
 
 from .classes import class_ref_counts
+from .skills import skill_ref_counts
+from .magic import spell_ref_counts
+from stats.models import RefType, TextRef
+
+
+pio.templates.default = "plotly_dark"
 
 
 class Filetype(Enum):
@@ -37,6 +47,11 @@ def get_thumbnail_path(filename: str, filetype: Filetype) -> Path:
     return Path("stats", get_static_thumbnail_path(filename, filetype))
 
 
+def save_thumbnail(fig: Figure, path: Path):
+    with open(path, "wb") as f:
+        f.write(fig.to_image(format="svg"))
+
+
 class ChartGalleryItem:
     def __init__(
         self,
@@ -53,10 +68,41 @@ class ChartGalleryItem:
         self.path = get_thumbnail_path(self.title_slug, filetype)
         self.get_fig: Callable[[], Figure] = get_fig
 
-    def save_thumbnail(self):
-        fig = self.get_fig()
-        with open(self.path, "wb") as f:
-            f.write(fig.to_image(format="svg"))
+
+def get_reftype_mention_history(rt: RefType):
+    chapter_counts = (
+        TextRef.objects.filter(type=rt)
+        .order_by("chapter_line__chapter__post_date")
+        .values("chapter_line__chapter__title", "chapter_line__chapter")
+        .annotate(count=Count("chapter_line__chapter"))
+    )
+    histo1 = px.histogram(
+        chapter_counts,
+        title=rt.name,
+        x="chapter_line__chapter__title",
+        y="count",
+        labels={"chapter_line__chapter__title": "title", "count": "mentions"},
+        template="plotly_dark",
+        cumulative=True,
+    )
+    histo2 = px.histogram(
+        chapter_counts,
+        title=rt.name,
+        x="chapter_line__chapter__title",
+        y="count",
+        labels={"chapter_line__chapter__title": "title", "count": "mentions"},
+        template="plotly_dark",
+    )
+    top20_chapters = px.bar(
+        chapter_counts.order_by("-count")[:20],
+        title=rt.name,
+        x="chapter_line__chapter__title",
+        y="count",
+        labels={"count": "mentions", "chapter_line__chapter__title": "title"},
+        template="plotly_dark",
+    )
+
+    return (histo1, histo2, top20_chapters)
 
 
 word_count_charts: list[ChartGalleryItem] = [
@@ -83,4 +129,12 @@ character_charts: list[ChartGalleryItem] = [
 
 class_charts: list[ChartGalleryItem] = [
     ChartGalleryItem("Class References", "", Filetype.SVG, class_ref_counts)
+]
+
+skill_charts: list[ChartGalleryItem] = [
+    ChartGalleryItem("Skill References", "", Filetype.SVG, skill_ref_counts),
+]
+
+magic_charts: list[ChartGalleryItem] = [
+    ChartGalleryItem("Spell References", "", Filetype.SVG, spell_ref_counts),
 ]
