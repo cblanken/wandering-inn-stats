@@ -68,6 +68,7 @@ module.exports = {
         "accept": "#38c17f",
         "cancel": "#f4425f",
         "info": "rgb(164 174 240)",
+        "info-inverted": "rgb(66 89 237)",
         "warn": "#F7A71B",
         "plotly-bg": "#111111",
       },
