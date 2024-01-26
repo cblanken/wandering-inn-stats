@@ -1,7 +1,8 @@
 from django.core.cache import cache
-from django.db.models import Q, F
+from django.db.models import Count, F, Q, QuerySet, Sum
 from django.http import Http404
 from django.shortcuts import render
+from django.template.loader import render_to_string
 from django.views.decorators.cache import cache_page
 from django_tables2.paginators import LazyPaginator
 from django_tables2.export.export import TableExport
@@ -9,20 +10,113 @@ from itertools import chain
 from typing import Iterable, Tuple
 from stats import charts
 from stats.charts import ChartGalleryItem
-from stats.models import Chapter, RefType, RefTypeChapter, TextRef
+from stats.models import Chapter, Character, RefType, RefTypeChapter, TextRef
 from .tables import ChapterRefTable, TextRefTable
 from .forms import SearchForm, MAX_CHAPTER_NUM
 
 
+class HeadlineStat:
+    def __init__(
+        self,
+        title: str,
+        value: int | float | str,
+        caption: str = "",
+        units: str = "",
+    ):
+        self.title = title
+        self.value = value
+        self.units = units
+        self.caption = caption
+
+
 @cache_page(60 * 60 * 24)
 def overview(request):
-    context = {"gallery": charts.word_count_charts}
+    total_wc = Chapter.objects.aggregate(total_wc=Sum("word_count"))["total_wc"]
+    longest_chapter = Chapter.objects.filter(is_canon=True).order_by("-word_count")[0]
+    shortest_chapter = Chapter.objects.filter(is_canon=True).order_by("word_count")[0]
+    word_counts = Chapter.objects.filter(is_canon=True).order_by("word_count")
+
+    def median(qs: QuerySet) -> float:
+        len = word_counts.count()
+        values = word_counts.values_list("word_count", flat=True)
+        if len % 2 == 0:
+            return sum(values[int(len / 2 - 1) : int(len / 2 + 1)]) / 2.0
+        else:
+            return values[int(len / 2)]
+
+    median_chapter_word_count = median(word_counts)
+
+    # return render_to_string(
+    #     "patterns/atoms/link/link.html",
+    #     context={
+    #         "text": f"{record.type.name}",
+    #         "href": f"https://wiki.wanderinginn.com/{record.type.name}",
+    #         "external": True,
+    #     },
+    # )
+
+    context = {
+        "gallery": charts.word_count_charts,
+        "stats": [
+            HeadlineStat("Total Word Count", f"{total_wc:,}", units=" words"),
+            HeadlineStat(
+                "Median Word Count",
+                f"{round(median_chapter_word_count):,}",
+                units=" words",
+            ),
+            HeadlineStat(
+                "Longest Chapter",
+                f"{longest_chapter.word_count:,}",
+                render_to_string(
+                    "patterns/atoms/link/link.html",
+                    context=dict(
+                        text=longest_chapter.title,
+                        href=longest_chapter.source_url,
+                        external=True,
+                    ),
+                ),
+                units=" words",
+            ),
+            HeadlineStat(
+                "Shortest Chapter",
+                f"{shortest_chapter.word_count:,}",
+                render_to_string(
+                    "patterns/atoms/link/link.html",
+                    context=dict(
+                        text=shortest_chapter.title,
+                        href=shortest_chapter.source_url,
+                        external=True,
+                    ),
+                ),
+                units=" words",
+            ),
+        ],
+    }
     return render(request, "pages/overview.html", context)
 
 
 @cache_page(60 * 60 * 24)
 def characters(request):
-    context = {"gallery": charts.character_charts}
+    char_count = RefType.objects.filter(type=RefType.CHARACTER).aggregate(
+        char_count=Count("name")
+    )["char_count"]
+
+    species_count = Character.objects.values("species").distinct().count()
+
+    context = {
+        "gallery": charts.character_charts,
+        "stats": [
+            HeadlineStat(
+                "Total Number of Characters", f"{char_count:,}", units=" characters"
+            ),
+            HeadlineStat(
+                "Number of Character Species",
+                f"{species_count:,}",
+                f"out of {len(Character.SPECIES)} known species",
+                units=" species",
+            ),
+        ],
+    }
     return render(request, "pages/characters.html", context)
 
 

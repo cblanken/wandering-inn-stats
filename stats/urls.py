@@ -15,7 +15,11 @@ Including another URLconf
 """
 from django.urls import path, include
 from django.contrib.auth import get_user_model
-from rest_framework import routers, serializers, viewsets
+from django.db.models import Sum
+from rest_framework import permissions, routers, serializers, viewsets
+from rest_framework.response import Response
+from stats.models import Chapter
+
 
 # Serializers define the API representation.
 class UserSerializer(serializers.HyperlinkedModelSerializer):
@@ -28,11 +32,34 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
 class UserViewSet(viewsets.ModelViewSet):
     queryset = get_user_model().objects.all()
     serializer_class = UserSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+
+class ChapterSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = Chapter
+        fields = ["title", "number", "post_date", "word_count"]
+
+
+class ChapterViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Chapter.objects.all()
+    serializer_class = ChapterSerializer
+    http_method_names = ["get"]
+
+
+class LongestChaptersViewSet(viewsets.ModelViewSet):
+    queryset = Chapter.objects.filter(is_canon=True).order_by("-word_count")[:5]
+    serializer_class = ChapterSerializer
+    http_method_names = ["get"]
 
 
 # Routers provide an easy way of automatically determining the URL conf.
 router = routers.DefaultRouter()
 router.register(r"users", UserViewSet)
+router.register(r"chapters", ChapterViewSet, basename="chapters")
+router.register(
+    r"longest-chapters", LongestChaptersViewSet, basename="longest-chapters"
+)
 
 # Wire up our API using automatic URL routing.
 # Additionally, we include login URLs for the browsable API.
