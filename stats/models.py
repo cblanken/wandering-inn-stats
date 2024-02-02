@@ -1,5 +1,8 @@
 from django.db import models
+from django.db.models.functions import Length
 import re
+
+models.CharField.register_lookup(Length, "length")
 
 
 class ColorCategory(models.Model):
