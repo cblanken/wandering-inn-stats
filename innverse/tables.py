@@ -1,5 +1,6 @@
 from django.db.models import F, Q
 from django.db.models.query import QuerySet
+from django.utils.text import slugify
 from django.utils.html import strip_tags
 from django.template.loader import render_to_string
 from urllib.parse import quote
@@ -132,8 +133,18 @@ class ChapterRefTable(tables.Table):
 
 
 class ReftypeMentionsHtmxTable(tables.Table):
+    name = tables.Column(accessor="name", verbose_name="Name Stats")
     word_count = tables.Column(accessor="word_count", verbose_name="Words")
     letter_count = tables.Column(accessor="len", verbose_name="Letters")
+
+    def render_name(self, record: RefType, value):
+        return render_to_string(
+            "patterns/atoms/link/stat_link.html",
+            context={
+                "text": f"{value}",
+                "href": f"{slugify(value)}",
+            },
+        )
 
     class Meta:
         model = RefType
@@ -142,11 +153,30 @@ class ReftypeMentionsHtmxTable(tables.Table):
 
 
 class CharacterHtmxTable(tables.Table):
-    name = tables.Column(accessor="ref_type__name", verbose_name="Name")
+    name = tables.Column(accessor="ref_type__name", verbose_name="Name Stats")
     first_appearance = tables.Column(
         accessor="first_chapter_appearance__title", verbose_name="First appearance"
     )
     wiki = tables.Column(accessor="wiki_uri", verbose_name="Wiki", orderable=False)
+
+    def render_name(self, record: Character, value):
+        return render_to_string(
+            "patterns/atoms/link/stat_link.html",
+            context={
+                "text": f"{value}",
+                "href": f"{slugify(value)}",
+            },
+        )
+
+    def render_wiki(self, record: Character, value):
+        return render_to_string(
+            "patterns/atoms/link/link.html",
+            context={
+                "text": f"{record.ref_type.name}",
+                "href": f"{value}",
+                "external": True,
+            },
+        )
 
     class Meta:
         model = Character
@@ -156,9 +186,18 @@ class CharacterHtmxTable(tables.Table):
 
 class ChapterHtmxTable(tables.Table):
     title = tables.Column(orderable=False)
-    source_url = tables.Column(orderable=False, verbose_name="Chapter Source")
+
+    def render_title(self, record: Chapter, value):
+        return render_to_string(
+            "patterns/atoms/link/link.html",
+            context={
+                "text": f"{value}",
+                "href": f"{record.source_url}",
+                "external": True,
+            },
+        )
 
     class Meta:
         model = Chapter
         template_name = "tables/htmx_table.html"
-        fields = ("number", "title", "source_url", "word_count")
+        fields = ("number", "title", "word_count", "post_date", "is_interlude")

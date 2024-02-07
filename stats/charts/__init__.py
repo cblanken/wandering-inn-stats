@@ -21,6 +21,12 @@ from .characters import (
     characters_by_status,
 )
 
+from .reftypes import (
+    histogram as rt_histogram,
+    histogram_cumulative as rt_histogram_cumulative,
+    most_mentions_by_chapter as rt_most_mentions,
+)
+
 from .classes import class_ref_counts
 from .skills import skill_ref_counts
 from .magic import spell_ref_counts
@@ -69,37 +75,21 @@ class ChartGalleryItem:
         self.get_fig: Callable[[], Figure] = get_fig
 
 
-def get_reftype_mention_history(rt: RefType):
-    chapter_counts = (
-        TextRef.objects.filter(type=rt)
-        .order_by("chapter_line__chapter__post_date")
-        .values("chapter_line__chapter__title", "chapter_line__chapter")
-        .annotate(count=Count("chapter_line__chapter"))
-    )
-    histo1 = px.histogram(
-        chapter_counts,
-        title=rt.name,
-        x="chapter_line__chapter__title",
-        y="count",
-        labels={"chapter_line__chapter__title": "title", "count": "mentions"},
-        cumulative=True,
-    )
-    histo2 = px.histogram(
-        chapter_counts,
-        title=rt.name,
-        x="chapter_line__chapter__title",
-        y="count",
-        labels={"chapter_line__chapter__title": "title", "count": "mentions"},
-    )
-    top20_chapters = px.bar(
-        chapter_counts.order_by("-count")[:20],
-        title=rt.name,
-        x="chapter_line__chapter__title",
-        y="count",
-        labels={"count": "mentions", "chapter_line__chapter__title": "title"},
-    )
-
-    return (histo1, histo2, top20_chapters)
+def get_reftype_gallery(rt: RefType) -> list[ChartGalleryItem]:
+    return [
+        ChartGalleryItem(
+            "Total mentions", "", Filetype.SVG, lambda rt=rt: rt_histogram(rt)
+        ),
+        ChartGalleryItem(
+            "Mentions", "", Filetype.SVG, lambda rt=rt: rt_histogram_cumulative(rt)
+        ),
+        ChartGalleryItem(
+            "Most mentioned chapters",
+            "",
+            Filetype.SVG,
+            lambda rt=rt: rt_most_mentions(rt),
+        ),
+    ]
 
 
 word_count_charts: list[ChartGalleryItem] = [

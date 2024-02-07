@@ -3,6 +3,7 @@ from django.db.models import Count, F, Q, QuerySet, Sum, Func, Value, IntegerFie
 from django.http import HttpRequest, HttpResponse, Http404
 from django.shortcuts import render
 from django.template.loader import render_to_string
+from django.utils.text import slugify
 from django.views.decorators.cache import cache_page
 from django_htmx.middleware import HtmxDetails
 from django_tables2 import RequestConfig
@@ -12,7 +13,7 @@ from django_tables2 import SingleTableMixin
 from itertools import chain
 from typing import Iterable, Tuple
 from stats import charts
-from stats.charts import ChartGalleryItem
+from stats.charts import ChartGalleryItem, get_reftype_gallery
 from stats.models import Chapter, Character, RefType, RefTypeChapter, TextRef
 from stats.queries import annotate_reftype_lengths
 from .tables import (
@@ -425,7 +426,7 @@ def magic(request: HtmxHttpRequest) -> HttpResponse:
         return render(request, "pages/magic.html", context)
 
 
-def interactive_chart(request: HtmxHttpRequest, chart):
+def main_interactive_chart(request: HtmxHttpRequest, chart: str):
     chart_items: Iterable[ChartGalleryItem] = chain(
         charts.word_count_charts,
         charts.character_charts,
@@ -442,6 +443,64 @@ def interactive_chart(request: HtmxHttpRequest, chart):
             return render(request, "pages/interactive_chart.html", context)
 
     raise Http404()
+
+
+def reftype_interactive_chart(request: HtmxHttpRequest, name: str, chart: str):
+    stat_root = request.path.split("/")[1].strip().lower()
+    print(stat_root)
+    rt_type = None
+    match stat_root:
+        case "character":
+            rt_type = RefType.CHARACTER
+        case "classes":
+            rt_type = RefType.CLASS
+        case "skills":
+            rt_type = RefType.SKILL
+        case "magic":
+            rt_type = RefType.SPELL
+        case _:
+            raise Http404()
+
+    name = " ".join(name.split("-"))
+    rt = RefType.objects.get(
+        (Q(name__iexact=f"[{name.title()}]") | Q(name__iexact=name)) & Q(type=rt_type)
+    )
+    chart_items = get_reftype_gallery(rt)
+
+    for c in chart_items:
+        if chart == c.title_slug:
+            context = {
+                "chart": c.get_fig().to_html(full_html=False, include_plotlyjs="cdn")
+            }
+            return render(request, "pages/interactive_chart.html", context)
+
+    raise Http404()
+
+
+def reftype_stats(request: HtmxHttpRequest, name: str):
+    stat_root = request.path.split("/")[1].strip().lower()
+    print(stat_root)
+    rt_type = None
+    match stat_root:
+        case "character":
+            rt_type = RefType.CHARACTER
+        case "classes":
+            rt_type = RefType.CLASS
+        case "skills":
+            rt_type = RefType.SKILL
+        case "magic":
+            rt_type = RefType.SPELL
+        case _:
+            raise Http404()
+
+    print("TYPEYPE", rt_type)
+    name = " ".join(name.replace("[", "").replace("]", "").split("-"))
+    rt = RefType.objects.get(
+        (Q(name__iexact=f"[{name}]") | Q(name__iexact=name)) & Q(type=rt_type)
+    )
+    context = {"title": rt.name, "gallery": get_reftype_gallery(rt)}
+
+    return render(request, "pages/reftype_gallery.html", context)
 
 
 def search(request: HtmxHttpRequest) -> HttpResponse:
