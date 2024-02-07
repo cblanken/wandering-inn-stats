@@ -1,18 +1,41 @@
 from django.core.cache import cache
 from django.db.models import Count, F, Q, QuerySet, Sum, Func, Value, IntegerField
-from django.http import Http404
+from django.http import HttpRequest, HttpResponse, Http404
 from django.shortcuts import render
 from django.template.loader import render_to_string
 from django.views.decorators.cache import cache_page
+from django_htmx.middleware import HtmxDetails
 from django_tables2.paginators import LazyPaginator
 from django_tables2.export.export import TableExport
+from django_tables2 import SingleTableMixin
 from itertools import chain
 from typing import Iterable, Tuple
 from stats import charts
 from stats.charts import ChartGalleryItem
 from stats.models import Chapter, Character, RefType, RefTypeChapter, TextRef
-from .tables import ChapterRefTable, TextRefTable
+from .tables import (
+    ChapterRefTable,
+    TextRefTable,
+    ReftypeMentionsHtmxTable,
+    ChapterHtmxTable,
+)
 from .forms import SearchForm, MAX_CHAPTER_NUM
+
+
+# class RefTypeHtmxTableView(SingleTableMixin):
+#     table_class = ReftypeHtmxTable
+#     queryset = RefType.filter(type=RefType.CHARACTER)
+#     paginate_by = 25
+
+#     def get_template_names(self):
+#         if self.request.htmx:
+#             template_name = "table_partial.html"
+#         else:
+#             template_name = "htmx_table.html"
+
+
+class HtmxHttpRequest(HttpRequest):
+    htmx: HtmxDetails
 
 
 class HeadlineStat:
@@ -30,73 +53,89 @@ class HeadlineStat:
 
 
 @cache_page(60 * 60 * 24)
-def overview(request):
-    total_wc = Chapter.objects.aggregate(total_wc=Sum("word_count"))["total_wc"]
-    longest_chapter = Chapter.objects.filter(is_canon=True).order_by("-word_count")[0]
-    shortest_chapter = Chapter.objects.filter(is_canon=True).order_by("word_count")[0]
-    word_counts = (
-        Chapter.objects.filter(is_canon=True)
-        .order_by("word_count")
-        .values_list("word_count", flat=True)
+def overview(request: HtmxHttpRequest) -> HttpResponse:
+    data = Chapter.objects.all()
+    table = ChapterHtmxTable(data)
+    table.paginate(
+        page=request.GET.get("page", 1),
+        per_page=request.GET.get("page_size", 15),
+        orphans=5,
     )
 
-    def median(values: list[int]) -> float:
-        length = len(values)
-        if length % 2 == 0:
-            return sum(values[int(length / 2 - 1) : int(length / 2 + 1)]) / 2.0
-        else:
-            return values[int(length / 2)]
+    if request.htmx:
+        return render(request, "tables/table_partial.html", {"table": table})
+    else:
+        total_wc = Chapter.objects.aggregate(total_wc=Sum("word_count"))["total_wc"]
+        longest_chapter = Chapter.objects.filter(is_canon=True).order_by("-word_count")[
+            0
+        ]
+        shortest_chapter = Chapter.objects.filter(is_canon=True).order_by("word_count")[
+            0
+        ]
+        word_counts = (
+            Chapter.objects.filter(is_canon=True)
+            .order_by("word_count")
+            .values_list("word_count", flat=True)
+        )
 
-    median_chapter_word_count = median(word_counts)
-    avg_chapter_word_count = sum(word_counts) / len(word_counts)
+        def median(values: list[int]) -> float:
+            length = len(values)
+            if length % 2 == 0:
+                return sum(values[int(length / 2 - 1) : int(length / 2 + 1)]) / 2.0
+            else:
+                return values[int(length / 2)]
 
-    context = {
-        "gallery": charts.word_count_charts,
-        "stats": [
-            HeadlineStat("Total Word Count", f"{total_wc:,}", units=" words"),
-            HeadlineStat(
-                "Median Word Count per Chapter",
-                f"{round(median_chapter_word_count):,}",
-                units=" words",
-            ),
-            HeadlineStat(
-                "Average Word Count per Chapter",
-                f"{round(avg_chapter_word_count):,}",
-                units=" words",
-            ),
-            HeadlineStat(
-                "Longest Chapter",
-                f"{longest_chapter.word_count:,}",
-                render_to_string(
-                    "patterns/atoms/link/link.html",
-                    context=dict(
-                        text=longest_chapter.title,
-                        href=longest_chapter.source_url,
-                        external=True,
-                    ),
+        median_chapter_word_count = median(word_counts)
+        avg_chapter_word_count = sum(word_counts) / len(word_counts)
+
+        context = {
+            "gallery": charts.word_count_charts,
+            "stats": [
+                HeadlineStat("Total Word Count", f"{total_wc:,}", units=" words"),
+                HeadlineStat(
+                    "Median Word Count per Chapter",
+                    f"{round(median_chapter_word_count):,}",
+                    units=" words",
                 ),
-                units=" words",
-            ),
-            HeadlineStat(
-                "Shortest Chapter",
-                f"{shortest_chapter.word_count:,}",
-                render_to_string(
-                    "patterns/atoms/link/link.html",
-                    context=dict(
-                        text=shortest_chapter.title,
-                        href=shortest_chapter.source_url,
-                        external=True,
-                    ),
+                HeadlineStat(
+                    "Average Word Count per Chapter",
+                    f"{round(avg_chapter_word_count):,}",
+                    units=" words",
                 ),
-                units=" words",
-            ),
-        ],
-    }
-    return render(request, "pages/overview.html", context)
+                HeadlineStat(
+                    "Longest Chapter",
+                    f"{longest_chapter.word_count:,}",
+                    render_to_string(
+                        "patterns/atoms/link/link.html",
+                        context=dict(
+                            text=longest_chapter.title,
+                            href=longest_chapter.source_url,
+                            external=True,
+                        ),
+                    ),
+                    units=" words",
+                ),
+                HeadlineStat(
+                    "Shortest Chapter",
+                    f"{shortest_chapter.word_count:,}",
+                    render_to_string(
+                        "patterns/atoms/link/link.html",
+                        context=dict(
+                            text=shortest_chapter.title,
+                            href=shortest_chapter.source_url,
+                            external=True,
+                        ),
+                    ),
+                    units=" words",
+                ),
+            ],
+            "table": table,
+        }
+        return render(request, "pages/overview.html", context)
 
 
 @cache_page(60 * 60 * 24)
-def characters(request):
+def characters(request: HtmxHttpRequest) -> HttpResponse:
     char_count = RefType.objects.filter(type=RefType.CHARACTER).aggregate(
         char_count=Count("name")
     )["char_count"]
@@ -146,7 +185,7 @@ def characters(request):
 
 
 @cache_page(60 * 60 * 24)
-def classes(request):
+def classes(request: HtmxHttpRequest) -> HttpResponse:
     longest_class_name_by_chars = RefType.objects.filter(type=RefType.CLASS).order_by(
         "-name__length"
     )[0]
@@ -210,7 +249,7 @@ def classes(request):
 
 
 @cache_page(60 * 60 * 24)
-def skills(request):
+def skills(request: HtmxHttpRequest) -> HttpResponse:
     longest_skill_name_by_characters = RefType.objects.filter(
         type=RefType.SKILL
     ).order_by("-name__length")[0]
@@ -274,7 +313,7 @@ def skills(request):
 
 
 @cache_page(60 * 60 * 24)
-def magic(request):
+def magic(request: HtmxHttpRequest) -> HttpResponse:
     longest_spell_name_by_characters = RefType.objects.filter(
         type=RefType.SPELL
     ).order_by("-name__length")[0]
@@ -337,7 +376,7 @@ def magic(request):
     return render(request, "pages/magic.html", context)
 
 
-def interactive_chart(request, chart):
+def interactive_chart(request: HtmxHttpRequest, chart):
     chart_items: Iterable[ChartGalleryItem] = chain(
         charts.word_count_charts,
         charts.character_charts,
@@ -356,7 +395,7 @@ def interactive_chart(request, chart):
     raise Http404()
 
 
-def search(request):
+def search(request: HtmxHttpRequest) -> HttpResponse:
     if request.method == "GET" and bool(request.GET):
         query = request.GET.copy()
         query["first_chapter"] = query.get("first_chapter", 0)
@@ -473,5 +512,5 @@ def search(request):
 
 
 @cache_page(60 * 60 * 24)
-def about(request):
+def about(request: HtmxHttpRequest) -> HttpResponse:
     return render(request, "pages/about.html")

@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     "django_browser_reload",
     "pattern_library",
     "django_tables2",
+    "django_htmx",
 ]
 MIDDLEWARE = [
     "debug_toolbar.middleware.DebugToolbarMiddleware",
@@ -50,6 +51,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "django_browser_reload.middleware.BrowserReloadMiddleware",
+    "django_htmx.middleware.HtmxMiddleware",
 ]
 
 # DON'T RUN WITH DEBUG TURNED ON IN PRODUCTION!

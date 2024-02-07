@@ -1,8 +1,9 @@
+from django.db.models import F, Q
 from django.utils.html import strip_tags
 from django.template.loader import render_to_string
 from urllib.parse import quote
 import django_tables2 as tables
-from stats.models import RefType, TextRef
+from stats.models import Chapter, RefType, TextRef
 
 
 class TextRefTable(tables.Table):
@@ -127,3 +128,17 @@ class ChapterRefTable(tables.Table):
 
     def value_chapters(self, record) -> str:
         return ";".join([x[1] for x in record["chapter_data"]])
+
+
+class ReftypeMentionsHtmxTable(tables.Table):
+    class Meta:
+        model = RefType
+        template_name = "tables/htmx_table.html"
+        fields = ("name",)
+
+
+class ChapterHtmxTable(tables.Table):
+    class Meta:
+        model = Chapter
+        template_name = "tables/htmx_table.html"
+        fields = ("number", "title", "source_url", "word_count")
