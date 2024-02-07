@@ -5,6 +5,7 @@ from django.shortcuts import render
 from django.template.loader import render_to_string
 from django.views.decorators.cache import cache_page
 from django_htmx.middleware import HtmxDetails
+from django_tables2 import RequestConfig
 from django_tables2.paginators import LazyPaginator
 from django_tables2.export.export import TableExport
 from django_tables2 import SingleTableMixin
@@ -54,8 +55,10 @@ class HeadlineStat:
 
 @cache_page(60 * 60 * 24)
 def overview(request: HtmxHttpRequest) -> HttpResponse:
-    data = Chapter.objects.all()
+    config = RequestConfig(request)
+    data = Chapter.objects.filter(is_canon=True, is_status_update=False)
     table = ChapterHtmxTable(data)
+    config.configure(table)
     table.paginate(
         page=request.GET.get("page", 1),
         per_page=request.GET.get("page_size", 15),

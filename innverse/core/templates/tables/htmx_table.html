@@ -83,7 +83,7 @@
         <thead class="text-hl-tertiary text-xl bg-bg-secondary">
           <tr>
           {% for column in table.columns %}
-            <th class="h-8 py-2 px-4 border-2 border-bg-tertiary font-mono"
+            <th class="relative h-8 py-2 px-4 border-2 border-bg-tertiary font-mono"
               {% if column.orderable %}
                 hx-get="{% querystring table.prefixed_order_by_field=column.order_by_alias.next %}"
                 hx-trigger="click"
@@ -91,7 +91,18 @@
                 hx-swap="outerHTML"
                 style="cursor: pointer;"
               {% endif %}
-            >{{ column.header }}</th>
+            >
+            {{ column.header }}
+            <span class="text-text-secondary">
+            {% if column.orderable %}
+              {% if "-" in column.order_by_alias %}
+                <i class="absolute right-2 top-3 {% if column.is_ordered %}text-info{% endif %}" data-feather="chevron-up"></i>
+              {% else %}
+                <i class="absolute right-2 top-3 {% if column.is_ordered %}text-info{% endif %}" data-feather="chevron-down"></i>
+              {% endif %}
+            {% endif %}
+            </span>
+            </th>
           {% endfor %}
           </tr>
         </thead>
@@ -104,7 +115,7 @@
           <tr class="max-h-[2rem] [&:nth-child(2n)]:backdrop-brightness-125" {{ row.attrs.as_html }}>
             {% for column, cell in row.items %}
               {% autoescape off %}
-              <td class="border-2 border-bg-tertiary text-center last:text-left p-2">{% if column.localize == None %}{{ cell }}{% else %}{% if column.localize %}{{ cell|localize }}{% else %}{{ cell|unlocalize }}{% endif %}{% endif %}</td>
+              <td class="border-2 border-bg-tertiary text-center p-2">{% if column.localize == None %}{{ cell }}{% else %}{% if column.localize %}{{ cell|localize }}{% else %}{{ cell|unlocalize }}{% endif %}{% endif %}</td>
               {% endautoescape %}
             {% endfor %}
           </tr>

@@ -1,4 +1,5 @@
 from django.db.models import F, Q
+from django.db.models.query import QuerySet
 from django.utils.html import strip_tags
 from django.template.loader import render_to_string
 from urllib.parse import quote
@@ -138,6 +139,9 @@ class ReftypeMentionsHtmxTable(tables.Table):
 
 
 class ChapterHtmxTable(tables.Table):
+    title = tables.Column(orderable=False)
+    source_url = tables.Column(orderable=False, verbose_name="Chapter Source")
+
     class Meta:
         model = Chapter
         template_name = "tables/htmx_table.html"
