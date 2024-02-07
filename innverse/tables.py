@@ -4,7 +4,7 @@ from django.utils.html import strip_tags
 from django.template.loader import render_to_string
 from urllib.parse import quote
 import django_tables2 as tables
-from stats.models import Chapter, RefType, TextRef
+from stats.models import Chapter, Character, RefType, TextRef
 
 
 class TextRefTable(tables.Table):
@@ -132,10 +132,26 @@ class ChapterRefTable(tables.Table):
 
 
 class ReftypeMentionsHtmxTable(tables.Table):
+    word_count = tables.Column(accessor="word_count", verbose_name="Words")
+    letter_count = tables.Column(accessor="len", verbose_name="Letters")
+
     class Meta:
         model = RefType
         template_name = "tables/htmx_table.html"
-        fields = ("name",)
+        fields = ("name", "word_count", "letter_count")
+
+
+class CharacterHtmxTable(tables.Table):
+    name = tables.Column(accessor="ref_type__name", verbose_name="Name")
+    first_appearance = tables.Column(
+        accessor="first_chapter_appearance__title", verbose_name="First appearance"
+    )
+    wiki = tables.Column(accessor="wiki_uri", verbose_name="Wiki", orderable=False)
+
+    class Meta:
+        model = Character
+        template_name = "tables/htmx_table.html"
+        fields = ("name", "species", "status", "first_appearance", "wiki")
 
 
 class ChapterHtmxTable(tables.Table):
