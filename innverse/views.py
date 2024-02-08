@@ -445,21 +445,23 @@ def main_interactive_chart(request: HtmxHttpRequest, chart: str):
     raise Http404()
 
 
+def match_reftype_str(s: str) -> str | None:
+    match s:
+        case "characters":
+            return RefType.CHARACTER
+        case "classes":
+            return RefType.CLASS
+        case "skills":
+            return RefType.SKILL
+        case "magic":
+            return RefType.SPELL
+        case _:
+            return None
+
+
 def reftype_interactive_chart(request: HtmxHttpRequest, name: str, chart: str):
     stat_root = request.path.split("/")[1].strip().lower()
-    print(stat_root)
-    rt_type = None
-    match stat_root:
-        case "character":
-            rt_type = RefType.CHARACTER
-        case "classes":
-            rt_type = RefType.CLASS
-        case "skills":
-            rt_type = RefType.SKILL
-        case "magic":
-            rt_type = RefType.SPELL
-        case _:
-            raise Http404()
+    rt_type = match_reftype_str(stat_root)
 
     name = " ".join(name.split("-"))
     rt = RefType.objects.get(
@@ -479,21 +481,8 @@ def reftype_interactive_chart(request: HtmxHttpRequest, name: str, chart: str):
 
 def reftype_stats(request: HtmxHttpRequest, name: str):
     stat_root = request.path.split("/")[1].strip().lower()
-    print(stat_root)
-    rt_type = None
-    match stat_root:
-        case "character":
-            rt_type = RefType.CHARACTER
-        case "classes":
-            rt_type = RefType.CLASS
-        case "skills":
-            rt_type = RefType.SKILL
-        case "magic":
-            rt_type = RefType.SPELL
-        case _:
-            raise Http404()
+    rt_type = match_reftype_str(stat_root)
 
-    print("TYPEYPE", rt_type)
     name = " ".join(name.replace("[", "").replace("]", "").split("-"))
     rt = RefType.objects.get(
         (Q(name__iexact=f"[{name}]") | Q(name__iexact=name)) & Q(type=rt_type)
