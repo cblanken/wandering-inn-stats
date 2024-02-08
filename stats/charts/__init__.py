@@ -1,8 +1,10 @@
 from enum import Enum
 from pathlib import Path
 from typing import Callable
+from urllib.parse import quote
 
 from django.db.models import Count
+from django.utils.text import slugify
 from plotly.graph_objects import Figure
 import plotly.express as px
 import plotly.io as pio
@@ -42,18 +44,25 @@ class Filetype(Enum):
     JPG = "jpg"
 
 
-def get_static_thumbnail_path(filename: str, filetype: Filetype) -> Path:
+def get_static_thumbnail_path(
+    filename: str, filetype: Filetype, extra_path: Path = ""
+) -> Path:
     return Path(
-        f"static/charts/{filetype.value}",
+        "static/charts/",
+        filetype.value,
+        extra_path,
         f"{filename}.{filetype.value}",
     )
 
 
-def get_thumbnail_path(filename: str, filetype: Filetype) -> Path:
-    return Path("stats", get_static_thumbnail_path(filename, filetype))
+def get_thumbnail_path(
+    filename: str, filetype: Filetype, extra_path: Path = ""
+) -> Path:
+    return Path("stats", get_static_thumbnail_path(filename, filetype, extra_path))
 
 
 def save_thumbnail(fig: Figure, path: Path):
+    path.parent.mkdir(parents=True, exist_ok=True)
     with open(path, "wb") as f:
         f.write(fig.to_image(format="svg"))
 
@@ -65,29 +74,39 @@ class ChartGalleryItem:
         caption: str,
         filetype: Filetype,
         get_fig: Callable[[], Figure],
+        subdir: Path = "",
     ):
         self.title = title
-        self.title_slug = title.strip().lower().replace(" ", "_")
+        self.title_slug = slugify(title)
         self.caption = caption
         self.filetype = filetype
-        self.static_path = get_static_thumbnail_path(self.title_slug, filetype)
-        self.path = get_thumbnail_path(self.title_slug, filetype)
+        self.static_path = get_static_thumbnail_path(self.title_slug, filetype, subdir)
+        self.path = get_thumbnail_path(self.title_slug, filetype, subdir)
         self.get_fig: Callable[[], Figure] = get_fig
 
 
 def get_reftype_gallery(rt: RefType) -> list[ChartGalleryItem]:
     return [
         ChartGalleryItem(
-            "Total mentions", "", Filetype.SVG, lambda rt=rt: rt_histogram(rt)
+            "Total mentions",
+            "",
+            Filetype.SVG,
+            lambda rt=rt: rt_histogram(rt),
+            subdir=Path(slugify(rt.type), rt.slug),
         ),
         ChartGalleryItem(
-            "Mentions", "", Filetype.SVG, lambda rt=rt: rt_histogram_cumulative(rt)
+            "Mentions",
+            "",
+            Filetype.SVG,
+            lambda rt=rt: rt_histogram_cumulative(rt),
+            subdir=Path(slugify(rt.type), rt.slug),
         ),
         ChartGalleryItem(
             "Most mentioned chapters",
             "",
             Filetype.SVG,
             lambda rt=rt: rt_most_mentions(rt),
+            subdir=Path(slugify(rt.type), rt.slug),
         ),
     ]
 

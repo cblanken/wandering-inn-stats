@@ -1,5 +1,6 @@
 from django.db import models
 from django.db.models.functions import Length
+from django.utils.text import slugify
 import re
 
 models.CharField.register_lookup(Length, "length")
@@ -123,6 +124,7 @@ class RefType(models.Model):
     name = models.CharField(max_length=300)
     type = models.CharField(max_length=2, choices=TYPES, null=True)
     description = models.CharField(max_length=120, default="")
+    slug = models.TextField(default="")
 
     class Meta:
         constraints = [
@@ -135,6 +137,10 @@ class RefType(models.Model):
         ]
         ordering = ["name"]
         verbose_name_plural = "Ref Types"
+
+    def save(self, *args, **kwargs):
+        self.slug = slugify(self.name[:100], allow_unicode=True)
+        super(RefType, self).save(*args, **kwargs)
 
     def __str__(self):
         return f"(RefType: {self.name} - Type: {self.type})"

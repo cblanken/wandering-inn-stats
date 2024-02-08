@@ -1,3 +1,4 @@
+import string
 from django.db.models import F, Q
 from django.db.models.query import QuerySet
 from django.utils.text import slugify
@@ -142,7 +143,7 @@ class ReftypeMentionsHtmxTable(tables.Table):
             "patterns/atoms/link/stat_link.html",
             context={
                 "text": f"{value}",
-                "href": f"{slugify(value)}",
+                "href": f"{slugify(value, allow_unicode=True)}",
             },
         )
 
@@ -164,7 +165,7 @@ class CharacterHtmxTable(tables.Table):
             "patterns/atoms/link/stat_link.html",
             context={
                 "text": f"{value}",
-                "href": f"{slugify(value)}",
+                "href": f"{slugify(value, allow_unicode=True)}",
             },
         )
 

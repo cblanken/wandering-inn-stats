@@ -462,11 +462,7 @@ def match_reftype_str(s: str) -> str | None:
 def reftype_interactive_chart(request: HtmxHttpRequest, name: str, chart: str):
     stat_root = request.path.split("/")[1].strip().lower()
     rt_type = match_reftype_str(stat_root)
-
-    name = " ".join(name.split("-"))
-    rt = RefType.objects.get(
-        (Q(name__iexact=f"[{name.title()}]") | Q(name__iexact=name)) & Q(type=rt_type)
-    )
+    rt = RefType.objects.get(Q(slug__istartswith=name) & Q(type=rt_type))
     chart_items = get_reftype_gallery(rt)
 
     for c in chart_items:
@@ -482,13 +478,8 @@ def reftype_interactive_chart(request: HtmxHttpRequest, name: str, chart: str):
 def reftype_stats(request: HtmxHttpRequest, name: str):
     stat_root = request.path.split("/")[1].strip().lower()
     rt_type = match_reftype_str(stat_root)
-
-    name = " ".join(name.replace("[", "").replace("]", "").split("-"))
-    rt = RefType.objects.get(
-        (Q(name__iexact=f"[{name}]") | Q(name__iexact=name)) & Q(type=rt_type)
-    )
+    rt = RefType.objects.get(Q(slug__istartswith=name) & Q(type=rt_type))
     context = {"title": rt.name, "gallery": get_reftype_gallery(rt)}
-
     return render(request, "pages/reftype_gallery.html", context)
 
 

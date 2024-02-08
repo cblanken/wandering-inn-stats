@@ -16,34 +16,47 @@ def __chapter_counts(rt: RefType) -> QuerySet:
 
 def histogram(rt: RefType) -> Figure:
     chapter_counts = __chapter_counts(rt)
-    return px.histogram(
-        chapter_counts,
-        title="Total mentions",
-        x="chapter_line__chapter__title",
-        y="count",
-        labels={"chapter_line__chapter__title": "title", "count": "mentions"},
-        cumulative=True,
-    )
+
+    title = "Total mentions"
+    if chapter_counts:
+        return px.histogram(
+            chapter_counts,
+            title=title,
+            x="chapter_line__chapter__title",
+            y="count",
+            labels={"chapter_line__chapter__title": "title", "count": "mentions"},
+            cumulative=True,
+        )
+    else:
+        return px.histogram([], title=title, cumulative=True)
 
 
 def histogram_cumulative(rt: RefType) -> Figure:
     chapter_counts = __chapter_counts(rt)
-    return px.histogram(
-        chapter_counts,
-        title="Mentions",
-        x="chapter_line__chapter__title",
-        y="count",
-        labels={"chapter_line__chapter__title": "title", "count": "mentions"},
-    )
+    title = "Mentions"
+    if chapter_counts:
+        return px.histogram(
+            chapter_counts,
+            title=title,
+            x="chapter_line__chapter__title",
+            y="count",
+            labels={"chapter_line__chapter__title": "title", "count": "mentions"},
+        )
+    else:
+        return px.histogram([], title=title)
 
 
 def most_mentions_by_chapter(rt: RefType) -> Figure:
     chapter_counts = __chapter_counts(rt)
 
-    return px.bar(
-        chapter_counts.order_by("-count")[:20],
-        title="Most mentioned chapters",
-        x="chapter_line__chapter__title",
-        y="count",
-        labels={"count": "mentions", "chapter_line__chapter__title": "title"},
-    )
+    title = "Most mentions by chapter"
+    if chapter_counts:
+        return px.bar(
+            chapter_counts.order_by("-count")[:20],
+            title=title,
+            x="chapter_line__chapter__title",
+            y="count",
+            labels={"count": "mentions", "chapter_line__chapter__title": "title"},
+        )
+    else:
+        return px.bar([], title=title)
