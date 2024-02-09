@@ -14,3 +14,22 @@ def annotate_reftype_lengths(qs: QuerySet[RefType]) -> QuerySet:
         )
         .annotate(len=F("name__length"))
     )
+
+
+def get_reftype_mentions(rt_type: str) -> QuerySet:
+    return (
+        TextRef.objects.filter(type__type=rt_type)
+        .select_related("type", "chapter_line__chapter")
+        .values("type__name")
+        .annotate(name=F("type__name"))
+        .annotate(mentions=Count("type__name"))
+        .annotate(
+            words=Func(F("name"), Value(r"\s+"), function="regexp_split_to_array")
+        )
+        .annotate(
+            word_count=Func(
+                "words", 1, function="array_length", output_field=IntegerField()
+            )
+        )
+        .annotate(letter_count=F("name__length"))
+    )

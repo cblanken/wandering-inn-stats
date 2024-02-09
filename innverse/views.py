@@ -15,7 +15,7 @@ from typing import Iterable, Tuple
 from stats import charts
 from stats.charts import ChartGalleryItem, get_reftype_gallery
 from stats.models import Chapter, Character, RefType, RefTypeChapter, TextRef
-from stats.queries import annotate_reftype_lengths
+from stats.queries import annotate_reftype_lengths, get_reftype_mentions
 from .tables import (
     ChapterRefTable,
     TextRefTable,
@@ -195,8 +195,8 @@ def characters(request: HtmxHttpRequest) -> HttpResponse:
 @cache_page(60 * 60 * 24)
 def classes(request: HtmxHttpRequest) -> HttpResponse:
     config = RequestConfig(request)
-    data = annotate_reftype_lengths(RefType.objects.filter(type=RefType.CLASS))
-    table = ReftypeMentionsHtmxTable(data)
+    rt_mentions = get_reftype_mentions(RefType.CLASS)
+    table = ReftypeMentionsHtmxTable(rt_mentions.order_by("-mentions"))
     config.configure(table)
     table.paginate(
         page=request.GET.get("page", 1),
@@ -207,22 +207,8 @@ def classes(request: HtmxHttpRequest) -> HttpResponse:
     if request.htmx:
         return render(request, "tables/table_partial.html", {"table": table})
     else:
-        longest_class_name_by_chars = RefType.objects.filter(
-            type=RefType.CLASS
-        ).order_by("-name__length")[0]
-
-        longest_class_name_by_words = (
-            RefType.objects.filter(type=RefType.CLASS)
-            .annotate(
-                words=Func(F("name"), Value(r"\s+"), function="regexp_split_to_array")
-            )
-            .annotate(
-                word_count=Func(
-                    F("words"), 1, function="array_length", output_field=IntegerField()
-                )
-            )
-            .order_by("-word_count")
-        )[0]
+        longest_class_name_by_chars = rt_mentions.order_by("-letter_count")[0]
+        longest_class_name_by_words = rt_mentions.order_by("-word_count")[0]
 
         chapter_with_most_class_refs = (
             TextRef.objects.filter(type__type=RefType.CLASS)
@@ -232,8 +218,8 @@ def classes(request: HtmxHttpRequest) -> HttpResponse:
             )
             .select_related("title")
             .values("title", "url")
-            .annotate(count=Count("title"))
-            .order_by("-count")[0]
+            .annotate(mentions=Count("title"))
+            .order_by("-mentions")[0]
         )
 
         context = {
@@ -241,19 +227,19 @@ def classes(request: HtmxHttpRequest) -> HttpResponse:
             "stats": [
                 HeadlineStat(
                     "Longest Class Name (by words)",
-                    f"{longest_class_name_by_words.word_count}",
-                    f"{longest_class_name_by_words.name}",
+                    f"{longest_class_name_by_words['word_count']}",
+                    f"{longest_class_name_by_words['name']}",
                     units=" words",
                 ),
                 HeadlineStat(
                     "Longest Class Name (by letters)",
-                    f"{len(longest_class_name_by_chars.name)}",
-                    f"{longest_class_name_by_chars.name}",
+                    f"{len(longest_class_name_by_chars['name'])}",
+                    f"{longest_class_name_by_chars['name']}",
                     units=" letters",
                 ),
                 HeadlineStat(
                     "Chapter with the Most Class Mentions",
-                    f"{chapter_with_most_class_refs['count']}",
+                    f"{chapter_with_most_class_refs['mentions']}",
                     render_to_string(
                         "patterns/atoms/link/link.html",
                         context=dict(
@@ -273,8 +259,8 @@ def classes(request: HtmxHttpRequest) -> HttpResponse:
 @cache_page(60 * 60 * 24)
 def skills(request: HtmxHttpRequest) -> HttpResponse:
     config = RequestConfig(request)
-    data = annotate_reftype_lengths(RefType.objects.filter(type=RefType.SKILL))
-    table = ReftypeMentionsHtmxTable(data)
+    rt_mentions = get_reftype_mentions(RefType.SKILL)
+    table = ReftypeMentionsHtmxTable(rt_mentions.order_by("-mentions"))
     config.configure(table)
     table.paginate(
         page=request.GET.get("page", 1),
@@ -285,22 +271,8 @@ def skills(request: HtmxHttpRequest) -> HttpResponse:
     if request.htmx:
         return render(request, "tables/table_partial.html", {"table": table})
     else:
-        longest_skill_name_by_characters = RefType.objects.filter(
-            type=RefType.SKILL
-        ).order_by("-name__length")[0]
-
-        longest_skill_name_by_words = (
-            RefType.objects.filter(type=RefType.SKILL)
-            .annotate(
-                words=Func(F("name"), Value(r"\s+"), function="regexp_split_to_array")
-            )
-            .annotate(
-                word_count=Func(
-                    F("words"), 1, function="array_length", output_field=IntegerField()
-                )
-            )
-            .order_by("-word_count")
-        )[0]
+        longest_skill_name_by_chars = rt_mentions.order_by("-letter_count")[0]
+        longest_skill_name_by_words = rt_mentions.order_by("-word_count")[0]
 
         chapter_with_most_skill_refs = (
             TextRef.objects.filter(type__type=RefType.SKILL)
@@ -319,14 +291,14 @@ def skills(request: HtmxHttpRequest) -> HttpResponse:
             "stats": [
                 HeadlineStat(
                     "Longest [Skill] Name (by words)",
-                    f"{longest_skill_name_by_words.word_count}",
-                    f"{longest_skill_name_by_words.name}",
+                    f"{longest_skill_name_by_words['word_count']}",
+                    f"{longest_skill_name_by_words['name']}",
                     units=" words",
                 ),
                 HeadlineStat(
                     "Longest [Skill] Name (by letters)",
-                    f"{len(longest_skill_name_by_characters.name)}",
-                    f"{longest_skill_name_by_characters.name}",
+                    f"{len(longest_skill_name_by_chars['name'])}",
+                    f"{longest_skill_name_by_chars['name']}",
                     units=" letters",
                 ),
                 HeadlineStat(
@@ -351,8 +323,8 @@ def skills(request: HtmxHttpRequest) -> HttpResponse:
 @cache_page(60 * 60 * 24)
 def magic(request: HtmxHttpRequest) -> HttpResponse:
     config = RequestConfig(request)
-    data = annotate_reftype_lengths(RefType.objects.filter(type=RefType.SPELL))
-    table = ReftypeMentionsHtmxTable(data)
+    rt_mentions = get_reftype_mentions(RefType.SPELL)
+    table = ReftypeMentionsHtmxTable(rt_mentions.order_by("-mentions"))
     config.configure(table)
     table.paginate(
         page=request.GET.get("page", 1),
@@ -363,22 +335,8 @@ def magic(request: HtmxHttpRequest) -> HttpResponse:
     if request.htmx:
         return render(request, "tables/table_partial.html", {"table": table})
     else:
-        longest_spell_name_by_characters = RefType.objects.filter(
-            type=RefType.SPELL
-        ).order_by("-name__length")[0]
-
-        longest_spell_name_by_words = (
-            RefType.objects.filter(type=RefType.SPELL)
-            .annotate(
-                words=Func(F("name"), Value(r"\s+"), function="regexp_split_to_array")
-            )
-            .annotate(
-                word_count=Func(
-                    F("words"), 1, function="array_length", output_field=IntegerField()
-                )
-            )
-            .order_by("-word_count")
-        )[0]
+        longest_spell_name_by_chars = rt_mentions.order_by("-letter_count")[0]
+        longest_spell_name_by_words = rt_mentions.order_by("-word_count")[0]
 
         chapter_with_most_spell_refs = (
             TextRef.objects.filter(type__type=RefType.SPELL)
@@ -397,14 +355,14 @@ def magic(request: HtmxHttpRequest) -> HttpResponse:
             "stats": [
                 HeadlineStat(
                     "Longest [Spell] Name (by words)",
-                    f"{longest_spell_name_by_words.word_count}",
-                    f"{longest_spell_name_by_words.name}",
+                    f"{longest_spell_name_by_words['word_count']}",
+                    f"{longest_spell_name_by_words['name']}",
                     units=" words",
                 ),
                 HeadlineStat(
                     "Longest [Spell] Name (by letters)",
-                    f"{len(longest_spell_name_by_characters.name)}",
-                    f"{longest_spell_name_by_characters.name}",
+                    f"{len(longest_spell_name_by_chars['name'])}",
+                    f"{longest_spell_name_by_chars['name']}",
                     units=" letters",
                 ),
                 HeadlineStat(
@@ -462,7 +420,11 @@ def match_reftype_str(s: str) -> str | None:
 def reftype_interactive_chart(request: HtmxHttpRequest, name: str, chart: str):
     stat_root = request.path.split("/")[1].strip().lower()
     rt_type = match_reftype_str(stat_root)
-    rt = RefType.objects.get(Q(slug__istartswith=name) & Q(type=rt_type))
+    if len(name) >= 100:
+        rt = RefType.objects.get(Q(slug__istartswith=name) & Q(type=rt_type))
+    else:
+        rt = RefType.objects.get(Q(slug__iexact=name) & Q(type=rt_type))
+
     chart_items = get_reftype_gallery(rt)
 
     for c in chart_items:
@@ -478,7 +440,10 @@ def reftype_interactive_chart(request: HtmxHttpRequest, name: str, chart: str):
 def reftype_stats(request: HtmxHttpRequest, name: str):
     stat_root = request.path.split("/")[1].strip().lower()
     rt_type = match_reftype_str(stat_root)
-    rt = RefType.objects.get(Q(slug__istartswith=name) & Q(type=rt_type))
+    if len(name) >= 100:
+        rt = RefType.objects.get(Q(slug__istartswith=name) & Q(type=rt_type))
+    else:
+        rt = RefType.objects.get(Q(slug__iexact=name) & Q(type=rt_type))
     context = {"title": rt.name, "gallery": get_reftype_gallery(rt)}
     return render(request, "pages/reftype_gallery.html", context)
 

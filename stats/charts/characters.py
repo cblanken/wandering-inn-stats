@@ -1,10 +1,7 @@
 from django.db.models import Q, Count, Max
-import plotly.graph_objects as go
 import plotly.express as px
-from pprint import pprint
 import numpy as np
-import pandas as pd
-from stats.models import Chapter, Character, RefType, TextRef
+from stats.models import Character, RefType, TextRef
 from .config import DEFAULT_LAYOUT, DEFAULT_DISCRETE_COLORS
 
 
@@ -26,7 +23,7 @@ def character_text_refs():
         color="type__name",
         color_discrete_sequence=DEFAULT_DISCRETE_COLORS,
         text_auto=".3s",
-        labels={"type__name": "Name", "char_instance_cnt": "Reference Count"},
+        labels={"type__name": "Name", "char_instance_cnt": "Mentions"},
     )
 
     char_refs_count_fig.update_layout(DEFAULT_LAYOUT)

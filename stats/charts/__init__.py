@@ -124,7 +124,7 @@ word_count_charts: list[ChartGalleryItem] = [
 
 
 character_charts: list[ChartGalleryItem] = [
-    ChartGalleryItem("Character References", "", Filetype.SVG, character_text_refs),
+    ChartGalleryItem("Character Mentions", "", Filetype.SVG, character_text_refs),
     ChartGalleryItem(
         "Unique Characters per Chapter", "", Filetype.SVG, character_counts_per_chapter
     ),
@@ -134,13 +134,13 @@ character_charts: list[ChartGalleryItem] = [
 
 
 class_charts: list[ChartGalleryItem] = [
-    ChartGalleryItem("Class References", "", Filetype.SVG, class_ref_counts)
+    ChartGalleryItem("Class Mentions", "", Filetype.SVG, class_ref_counts)
 ]
 
 skill_charts: list[ChartGalleryItem] = [
-    ChartGalleryItem("Skill References", "", Filetype.SVG, skill_ref_counts),
+    ChartGalleryItem("Skill Mentions", "", Filetype.SVG, skill_ref_counts),
 ]
 
 magic_charts: list[ChartGalleryItem] = [
-    ChartGalleryItem("Spell References", "", Filetype.SVG, spell_ref_counts),
+    ChartGalleryItem("Spell Mentions", "", Filetype.SVG, spell_ref_counts),
 ]

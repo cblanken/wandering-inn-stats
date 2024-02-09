@@ -1,6 +1,5 @@
 from django.db.models import Count
 import plotly.express as px
-import numpy as np
 from stats.models import RefType, TextRef
 from .config import DEFAULT_LAYOUT, DEFAULT_DISCRETE_COLORS
 

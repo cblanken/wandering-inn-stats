@@ -136,7 +136,7 @@ class ChapterRefTable(tables.Table):
 class ReftypeMentionsHtmxTable(tables.Table):
     name = tables.Column(accessor="name", verbose_name="Name Stats")
     word_count = tables.Column(accessor="word_count", verbose_name="Words")
-    letter_count = tables.Column(accessor="len", verbose_name="Letters")
+    letter_count = tables.Column(accessor="letter_count", verbose_name="Letters")
 
     def render_name(self, record: RefType, value):
         return render_to_string(
@@ -148,9 +148,9 @@ class ReftypeMentionsHtmxTable(tables.Table):
         )
 
     class Meta:
-        model = RefType
+        model = TextRef
         template_name = "tables/htmx_table.html"
-        fields = ("name", "word_count", "letter_count")
+        fields = ("name", "mentions", "word_count", "letter_count")
 
 
 class CharacterHtmxTable(tables.Table):
