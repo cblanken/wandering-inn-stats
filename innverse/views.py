@@ -15,7 +15,7 @@ from typing import Iterable, Tuple
 from stats import charts
 from stats.charts import ChartGalleryItem, get_reftype_gallery
 from stats.models import Chapter, Character, RefType, RefTypeChapter, TextRef
-from stats.queries import annotate_reftype_lengths, get_reftype_mentions
+from stats.queries import get_reftype_mentions
 from .tables import (
     ChapterRefTable,
     TextRefTable,
@@ -131,7 +131,9 @@ def overview(request: HtmxHttpRequest) -> HttpResponse:
 @cache_page(60 * 60 * 24)
 def characters(request: HtmxHttpRequest) -> HttpResponse:
     config = RequestConfig(request)
-    data = Character.objects.all()
+    data = Character.objects.select_related(
+        "ref_type", "first_chapter_appearance"
+    ).all()
     table = CharacterHtmxTable(data)
     config.configure(table)
     table.paginate(
@@ -151,11 +153,11 @@ def characters(request: HtmxHttpRequest) -> HttpResponse:
 
         chapter_with_most_char_refs = (
             TextRef.objects.filter(type__type=RefType.CHARACTER)
+            .select_related("chapter_line__chapter")
             .annotate(
                 title=F("chapter_line__chapter__title"),
                 url=F("chapter_line__chapter__source_url"),
             )
-            .select_related("title")
             .values("title", "url")
             .annotate(count=Count("title"))
             .order_by("-count")[0]

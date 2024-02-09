@@ -1,19 +1,17 @@
-from stats.models import Chapter, Character, RefType, RefTypeChapter, TextRef
-from django.db.models import Count, F, Q, QuerySet, Sum, Func, Value, IntegerField
+from django.contrib.postgres.fields import ArrayField
+from django.db.models import (
+    Count,
+    F,
+    Q,
+    QuerySet,
+    Sum,
+    Func,
+    Value,
+    TextField,
+    IntegerField,
+)
 
-
-def annotate_reftype_lengths(qs: QuerySet[RefType]) -> QuerySet:
-    return (
-        qs.annotate(
-            words=Func(F("name"), Value(r"\s+"), function="regexp_split_to_array")
-        )
-        .annotate(
-            word_count=Func(
-                F("words"), 1, function="array_length", output_field=IntegerField()
-            )
-        )
-        .annotate(len=F("name__length"))
-    )
+from stats.models import TextRef
 
 
 def get_reftype_mentions(rt_type: str) -> QuerySet:
@@ -24,12 +22,21 @@ def get_reftype_mentions(rt_type: str) -> QuerySet:
         .annotate(name=F("type__name"))
         .annotate(mentions=Count("type__name"))
         .annotate(
-            words=Func(F("name"), Value(r"\s+"), function="regexp_split_to_array")
+            words=Func(
+                F("name"),
+                Value(r"\s+"),
+                function="regexp_split_to_array",
+                output_field=ArrayField(TextField()),
+            )
         )
         .annotate(
             word_count=Func(
                 "words", 1, function="array_length", output_field=IntegerField()
             )
         )
-        .annotate(letter_count=F("name__length"))
+        .annotate(
+            letter_count=Func(
+                "name", arity=1, function="length", output_field=IntegerField()
+            )
+        )
     )

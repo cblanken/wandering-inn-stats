@@ -1,3 +1,4 @@
+from django.core.validators import RegexValidator
 from django.db import models
 from django.db.models.functions import Length
 from django.utils.text import slugify
@@ -22,7 +23,10 @@ class Color(models.Model):
     """Model for colored text"""
 
     # TODO: add rgb regex constraint
-    rgb = models.CharField(max_length=8)
+    rgb = models.CharField(
+        max_length=6,
+        validators=[RegexValidator(r"^[a-zA-Z\d]{6}$")],
+    )
     category = models.ForeignKey(
         ColorCategory, on_delete=models.CASCADE, verbose_name="Color Category"
     )
@@ -37,7 +41,7 @@ class Color(models.Model):
 class Volume(models.Model):
     "Model for volumes"
     number = models.PositiveIntegerField(unique=True, verbose_name="Volume Number")
-    title = models.CharField(max_length=50, unique=True, verbose_name="Volume Title")
+    title = models.TextField(unique=True, verbose_name="Volume Title")
     summary = models.TextField(default="")
 
     class Meta:
@@ -50,7 +54,7 @@ class Volume(models.Model):
 class Book(models.Model):
     "Model for books"
     number = models.PositiveBigIntegerField(verbose_name="Book Number")
-    title = models.CharField(max_length=50, verbose_name="Book Title")
+    title = models.TextField(verbose_name="Book Title")
     volume = models.ForeignKey(Volume, on_delete=models.CASCADE)
     summary = models.TextField(default="")
 
@@ -69,7 +73,7 @@ class Book(models.Model):
 class Chapter(models.Model):
     "Model for book chapters"
     number = models.PositiveBigIntegerField()
-    title = models.CharField(max_length=50, verbose_name="Chapter Title")
+    title = models.TextField(verbose_name="Chapter Title")
     is_interlude = models.BooleanField()
     is_canon = models.BooleanField(default=True)
     is_status_update = models.BooleanField(default=False)
@@ -83,6 +87,9 @@ class Chapter(models.Model):
 
     class Meta:
         ordering = ["number"]
+        indexes = [
+            models.Index(fields=["number"]),
+        ]
 
     def __str__(self) -> str:
         return f"(Chapter: {self.title}, URL: {self.source_url})"
@@ -121,9 +128,8 @@ class RefType(models.Model):
         (SYSTEM_GENERAL, "System General"),
         (UNDECIDED, "Undecided"),
     ]
-    name = models.CharField(max_length=300)
+    name = models.TextField()
     type = models.CharField(max_length=2, choices=TYPES, null=True)
-    description = models.CharField(max_length=120, default="")
     slug = models.TextField(default="")
 
     class Meta:
@@ -133,7 +139,8 @@ class RefType(models.Model):
             )
         ]
         indexes = [
-            models.Index(fields=["id", "name"]),
+            models.Index(fields=["name"]),
+            models.Index(fields=["type"]),
         ]
         ordering = ["name"]
         verbose_name_plural = "Ref Types"
@@ -421,7 +428,7 @@ class Spell(models.Model):
 class Alias(models.Model):
     """RefType aliases / alternate names"""
 
-    name = models.CharField(unique=True, max_length=100)
+    name = models.TextField(unique=True)
     ref_type = models.ForeignKey(RefType, on_delete=models.CASCADE)
 
     class Meta:
