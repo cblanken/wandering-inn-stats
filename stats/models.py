@@ -72,8 +72,8 @@ class Book(models.Model):
 
 class Chapter(models.Model):
     "Model for book chapters"
-    number = models.PositiveBigIntegerField()
-    title = models.TextField(verbose_name="Chapter Title")
+    number = models.PositiveBigIntegerField(unique=True)
+    title = models.TextField(verbose_name="Chapter Title", unique=True)
     is_interlude = models.BooleanField()
     is_canon = models.BooleanField(default=True)
     is_status_update = models.BooleanField(default=False)
@@ -324,7 +324,7 @@ class Character(models.Model):
         (SELPHID, "Selphid", re.compile(r"[Ss]elphid")),
         (SLIME, "Slime", re.compile(r"[Ss]lime")),
         (SPIDERFOLK, "Spiderfolk", re.compile(r"[Ss]pider\s*[-]?[Ff]olk")),
-        (STRING_PEOPLE, "String People", re.compile(r"[Ss](titch|tring)")),
+        (STRING_PEOPLE, "String Person", re.compile(r"[Ss](titch|tring)")),
         (TITAN, "Titan", re.compile(r"[Tt]itan")),
         (TROLL, "Troll", re.compile(r"[Tt]roll")),
         (TREANT, "Treant", re.compile(r"[Tt]reant")),
@@ -350,7 +350,7 @@ class Character(models.Model):
         (UNKNOWN, "Unknown"),
     ]
 
-    ref_type = models.ForeignKey(RefType, on_delete=models.CASCADE)
+    ref_type = models.OneToOneField(RefType, on_delete=models.CASCADE, primary_key=True)
     first_chapter_appearance = models.ForeignKey(
         Chapter, on_delete=models.CASCADE, null=True
     )
@@ -390,7 +390,7 @@ class Character(models.Model):
 
 
 class Item(models.Model):
-    ref_type = models.ForeignKey(RefType, on_delete=models.CASCADE)
+    ref_type = models.OneToOneField(RefType, on_delete=models.CASCADE)
     first_chapter_ref = models.ForeignKey(Chapter, on_delete=models.CASCADE, null=True)
     wiki_uri = models.URLField(null=True)
 
@@ -399,7 +399,7 @@ class Item(models.Model):
 
 
 class Location(models.Model):
-    ref_type = models.ForeignKey(RefType, on_delete=models.CASCADE)
+    ref_type = models.OneToOneField(RefType, on_delete=models.CASCADE)
     first_chapter_ref = models.ForeignKey(Chapter, on_delete=models.CASCADE, null=True)
     wiki_uri = models.URLField(null=True)
 
@@ -408,7 +408,7 @@ class Location(models.Model):
 
 
 class Skill(models.Model):
-    ref_type = models.ForeignKey(RefType, on_delete=models.CASCADE)
+    ref_type = models.OneToOneField(RefType, on_delete=models.CASCADE)
     first_chapter_ref = models.ForeignKey(Chapter, on_delete=models.CASCADE, null=True)
     wiki_uri = models.URLField(null=True)
 
@@ -417,7 +417,7 @@ class Skill(models.Model):
 
 
 class Spell(models.Model):
-    ref_type = models.ForeignKey(RefType, on_delete=models.CASCADE)
+    ref_type = models.OneToOneField(RefType, on_delete=models.CASCADE)
     first_chapter_ref = models.ForeignKey(Chapter, on_delete=models.CASCADE, null=True)
     wiki_uri = models.URLField(null=True)
 
@@ -434,6 +434,9 @@ class Alias(models.Model):
     class Meta:
         verbose_name_plural = "Aliases"
         ordering = ["name"]
+        constraints = [
+            models.UniqueConstraint(fields=["name", "ref_type"], name="unique_alias")
+        ]
 
     def __str__(self) -> str:
         return f"(Alias: {self.name} - RefType: {self.ref_type})"
