@@ -15,7 +15,8 @@ class Command(BaseCommand):
             help="Only generate thumbnails for charts which contain the given `--chart-name`",
         )
         parser.add_argument(
-            "-c" "--clobber",
+            "-c",
+            "--clobber",
             action="store_true",
             help="Clobber existing thumbnail files",
         )
@@ -27,7 +28,7 @@ class Command(BaseCommand):
         )
 
     def save_chart_thumbnail(self, options, chart: charts.ChartGalleryItem):
-        if options.get("chart_name") in str(chart.path):
+        if options.get("chart_name") in str(chart.title):
             fig = chart.get_fig()
 
             # Remove interactive elements before export
@@ -58,7 +59,7 @@ class Command(BaseCommand):
             if not options.get("reftypes_only"):
                 for gallery in main_chart_galleries:
                     for chart in gallery:
-                        if not chart.path.exists() or options.get("clobber"):
+                        if options.get("clobber") or not chart.path.exists():
                             self.save_chart_thumbnail(options, chart)
                         else:
                             self.stdout.write(
