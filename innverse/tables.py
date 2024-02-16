@@ -18,7 +18,7 @@ class TextRefTable(tables.Table):
 
     class Meta:
         model = TextRef
-        template_name = "tables/search_table.html"
+        template_name = "tables/htmx_table.html"
         fields = ("ref_name", "text", "chapter_url")
         empty_text = "No results found for the given query. Please try again."
 
@@ -112,7 +112,7 @@ class ChapterRefTable(tables.Table):
     count: int = tables.Column(accessor="count", verbose_name="Count")
 
     class Meta:
-        template_name = "tables/search_table.html"
+        template_name = "tables/htmx_table.html"
         fields = ("ref_name", "count", "chapters")
 
     def render_chapters(self, record):

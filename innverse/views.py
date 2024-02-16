@@ -450,105 +450,104 @@ def reftype_stats(request: HtmxHttpRequest, name: str):
     return render(request, "pages/reftype_gallery.html", context)
 
 
+def get_search_result_table(query):
+    if query.get("refs_by_chapter"):
+        ref_types: list[RefType] = RefType.objects.filter(
+            Q(name__icontains=query.get("type_query")) & Q(type=query.get("type"))
+        )
+
+        reftype_chapters = RefTypeChapter.objects.filter(
+            Q(type__in=ref_types)
+            & Q(chapter__number__gte=query.get("first_chapter"))
+            & Q(
+                chapter__number__lte=query.get(
+                    "last_chapter",
+                    int(
+                        Chapter.objects.values_list("number").order_by("-number")[0][0]
+                    ),
+                )
+            )
+        )
+
+        table_data = []
+        for rt in ref_types:
+            chapter_data = reftype_chapters.filter(type=rt).values_list(
+                "chapter__title", "chapter__source_url"
+            )
+
+            rc_data = {
+                "name": rt.name,
+                "chapter_data": chapter_data,
+            }
+
+            rc_data["count"] = len(rc_data["chapter_data"])
+
+            if rc_data["chapter_data"]:
+                table_data.append(rc_data)
+
+        table = ChapterRefTable(table_data)
+    else:
+        table_data = (
+            TextRef.objects.select_related("type", "chapter_line__chapter")
+            .annotate(
+                name=F("type__name"),
+                text=F("chapter_line__text"),
+                title=F("chapter_line__chapter__title"),
+                url=F("chapter_line__chapter__source_url"),
+            )
+            .filter(
+                Q(type__type=query.get("type"))
+                & Q(type__name__icontains=query.get("type_query"))
+                & Q(chapter_line__text__icontains=query.get("text_query"))
+                & Q(chapter_line__chapter__number__gte=query.get("first_chapter"))
+                & Q(
+                    chapter_line__chapter__number__lte=query.get(
+                        "last_chapter",
+                        int(Chapter.objects.order_by("-number")[0].number),
+                    )
+                )
+            )
+        )
+
+        if query.get("only_colored_refs"):
+            table_data = table_data.filter(color__isnull=False)
+
+        table = TextRefTable(table_data)
+
+    return table
+
+
 def search(request: HtmxHttpRequest) -> HttpResponse:
     if request.method == "GET" and bool(request.GET):
         query = request.GET.copy()
         query["first_chapter"] = query.get("first_chapter", 0)
         query["last_chapter"] = query.get("last_chapter", MAX_CHAPTER_NUM)
+
+        config = RequestConfig(request)
+
+        if request.htmx:
+            table = get_search_result_table(query)
+            config.configure(table)
+            table.paginate(
+                page=request.GET.get("page", 1),
+                per_page=request.GET.get("page_size", 10),
+                orphans=5,
+            )
+            return render(request, "tables/table_partial.html", {"table": table})
+
         form = SearchForm(query)
-
         if form.is_valid():
-            if form.cleaned_data.get("refs_by_chapter"):
-                ref_types: list[RefType] = RefType.objects.filter(
-                    Q(name__icontains=form.cleaned_data.get("type_query"))
-                    & Q(type=form.cleaned_data.get("type"))
-                )
-
-                reftype_chapters = RefTypeChapter.objects.filter(
-                    Q(type__in=ref_types)
-                    & Q(chapter__number__gte=form.cleaned_data.get("first_chapter"))
-                    & Q(
-                        chapter__number__lte=form.cleaned_data.get(
-                            "last_chapter",
-                            int(
-                                Chapter.objects.values_list("number").order_by(
-                                    "-number"
-                                )[0][0]
-                            ),
-                        )
-                    )
-                )
-
-                table_data = []
-                for rt in ref_types:
-                    chapter_data = reftype_chapters.filter(type=rt).values_list(
-                        "chapter__title", "chapter__source_url"
-                    )
-
-                    rc_data = {
-                        "name": rt.name,
-                        "chapter_data": chapter_data,
-                    }
-
-                    rc_data["count"] = len(rc_data["chapter_data"])
-
-                    if rc_data["chapter_data"]:
-                        table_data.append(rc_data)
-
-                table = ChapterRefTable(table_data)
-            else:
-                table_data = (
-                    TextRef.objects.select_related("type", "chapter_line__chapter")
-                    .annotate(
-                        name=F("type__name"),
-                        text=F("chapter_line__text"),
-                        title=F("chapter_line__chapter__title"),
-                        url=F("chapter_line__chapter__source_url"),
-                    )
-                    .filter(
-                        Q(type__type=form.cleaned_data.get("type"))
-                        & Q(type__name__icontains=form.cleaned_data.get("type_query"))
-                        & Q(
-                            chapter_line__text__icontains=form.cleaned_data.get(
-                                "text_query"
-                            )
-                        )
-                        & Q(
-                            chapter_line__chapter__number__gte=form.cleaned_data.get(
-                                "first_chapter"
-                            )
-                        )
-                        & Q(
-                            chapter_line__chapter__number__lte=form.cleaned_data.get(
-                                "last_chapter",
-                                int(Chapter.objects.order_by("-number")[0].number),
-                            )
-                        )
-                    )
-                )
-
-                if form.cleaned_data.get("only_colored_refs"):
-                    table_data = table_data.filter(color__isnull=False)
-
-                table = TextRefTable(table_data)
-
+            table = get_search_result_table(query)
+            config.configure(table)
+            table.paginate(
+                page=request.GET.get("page", 1),
+                per_page=request.GET.get("page_size", 10),
+                orphans=5,
+            )
             export_format = request.GET.get("_export", None)
             if TableExport.is_valid_format(export_format):
                 exporter = TableExport(export_format, table)
                 return exporter.response(f"twi_text_refs.{export_format}")
-
-            try:
-                table.paginate(
-                    # paginator_class=LazyPaginator,
-                    page=request.GET.get("page", 1),
-                    per_page=request.GET.get("page_size", 15),
-                )
-            except:
-                return render(
-                    request,
-                    "pages/search_error.html",
-                    {"error": "No results for the current search"},
-                )
 
             context = {}
             context["table"] = table
