@@ -3,11 +3,9 @@ from django.db.models import Count, F, Q, QuerySet, Sum, Func, Value, IntegerFie
 from django.http import HttpRequest, HttpResponse, Http404
 from django.shortcuts import render
 from django.template.loader import render_to_string
-from django.utils.text import slugify
 from django.views.decorators.cache import cache_page
 from django_htmx.middleware import HtmxDetails
 from django_tables2 import RequestConfig
-from django_tables2.paginators import LazyPaginator
 from django_tables2.export.export import TableExport
 from django_tables2 import SingleTableMixin
 from itertools import chain
@@ -145,9 +143,18 @@ def characters(request: HtmxHttpRequest) -> HttpResponse:
     if request.htmx:
         return render(request, "tables/table_partial.html", {"table": table})
     else:
-        char_count = RefType.objects.filter(type=RefType.CHARACTER).aggregate(
-            char_count=Count("name")
-        )["char_count"]
+        char_counts = (
+            TextRef.objects.filter(type__type=RefType.CHARACTER)
+            .select_related("type")
+            .values("type__name", "type__character")
+            .annotate(
+                fca=F("type__character__first_chapter_appearance"),
+                count=Count("type__name"),
+            )
+        )
+
+        chars_with_appearances = char_counts.filter(fca__isnull=False).count()
+        chars_mentioned = char_counts.count()
 
         species_count = Character.objects.values("species").distinct().count()
 
@@ -167,7 +174,10 @@ def characters(request: HtmxHttpRequest) -> HttpResponse:
             "gallery": charts.character_charts,
             "stats": [
                 HeadlineStat(
-                    "Total Number of Characters", f"{char_count:,}", units=" characters"
+                    "Total Number of Characters",
+                    f"{chars_with_appearances:,}",
+                    f"out of {chars_mentioned} total known characters",
+                    units=" character appearances",
                 ),
                 HeadlineStat(
                     "Chapter with the Most Character Mentions",
