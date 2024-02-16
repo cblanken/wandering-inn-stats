@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Callable
 from urllib.parse import quote
 
+from django.conf import settings
 from django.db.models import Count
 from django.utils.text import slugify
 from plotly.graph_objects import Figure
@@ -48,7 +49,7 @@ def get_static_thumbnail_path(
     filename: str, filetype: Filetype, extra_path: Path = ""
 ) -> Path:
     return Path(
-        "static/charts/",
+        "charts",
         filetype.value,
         extra_path,
         f"{filename}.{filetype.value}",
@@ -81,6 +82,7 @@ class ChartGalleryItem:
         self.caption = caption
         self.filetype = filetype
         self.static_path = get_static_thumbnail_path(self.title_slug, filetype, subdir)
+        self.static_url = f"{settings.STATIC_URL}{self.static_path}"
         self.path = get_thumbnail_path(self.title_slug, filetype, subdir)
         self.get_fig: Callable[[], Figure] = get_fig
 

@@ -36,5 +36,5 @@ serve-static-files:
 
 .PHONY: deploy
 deploy:
-	poetry run python manage.py collectstatic && \
+	sudo chown -R www-data:www-data /var/www/static && \
 	poetry run python -m gunicorn innverse.asgi:application -k uvicorn.workers.UvicornWorker
