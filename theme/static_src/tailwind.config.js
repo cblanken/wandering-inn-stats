@@ -52,7 +52,8 @@ module.exports = {
       fontFamily: {
         heading: ['Candara', 'Calibri', 'Corbel', 'sans'],
         subheading: ['Verdana', 'Tahoma', 'sans'],
-        para: ['Constantia', 'Cambria', 'serif'],
+        para: ['Verdana', 'Tahoma', 'sans'],
+        // para: ['Constantia', 'Cambria', 'serif'],
       },
       colors: {
         "bg-primary": "#262b2cff",
