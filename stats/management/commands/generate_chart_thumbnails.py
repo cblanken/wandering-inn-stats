@@ -54,6 +54,7 @@ class Command(BaseCommand):
             charts.class_charts,
             charts.skill_charts,
             charts.magic_charts,
+            charts.location_charts,
         ]
         try:
             if not options.get("reftypes_only"):

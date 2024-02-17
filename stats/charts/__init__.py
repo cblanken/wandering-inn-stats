@@ -33,6 +33,7 @@ from .reftypes import (
 from .classes import class_ref_counts
 from .skills import skill_ref_counts
 from .magic import spell_ref_counts
+from .locations import location_ref_counts
 from stats.models import RefType, TextRef
 
 
@@ -59,7 +60,9 @@ def get_static_thumbnail_path(
 def get_thumbnail_path(
     filename: str, filetype: Filetype, extra_path: Path = ""
 ) -> Path:
-    return Path("stats", get_static_thumbnail_path(filename, filetype, extra_path))
+    return Path(
+        "stats", "static", get_static_thumbnail_path(filename, filetype, extra_path)
+    )
 
 
 def save_thumbnail(fig: Figure, path: Path):
@@ -145,4 +148,8 @@ skill_charts: list[ChartGalleryItem] = [
 
 magic_charts: list[ChartGalleryItem] = [
     ChartGalleryItem("Spell Mentions", "", Filetype.SVG, spell_ref_counts),
+]
+
+location_charts: list[ChartGalleryItem] = [
+    ChartGalleryItem("Location Mentions", "", Filetype.SVG, location_ref_counts),
 ]

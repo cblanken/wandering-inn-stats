@@ -396,6 +396,55 @@ def magic(request: HtmxHttpRequest) -> HttpResponse:
         return render(request, "pages/magic.html", context)
 
 
+@cache_page(60 * 60 * 24)
+def locations(request: HtmxHttpRequest) -> HttpResponse:
+    config = RequestConfig(request)
+    rt_mentions = get_reftype_mentions(RefType.LOCATION)
+    table = ReftypeMentionsHtmxTable(rt_mentions.order_by("-mentions"))
+    config.configure(table)
+    table.paginate(
+        page=request.GET.get("page", 1),
+        per_page=request.GET.get("page_size", 15),
+        orphans=5,
+    )
+
+    if request.htmx:
+        return render(request, "tables/table_partial.html", {"table": table})
+    else:
+        chapter_with_most_location_refs = (
+            TextRef.objects.filter(type__type=RefType.LOCATION)
+            .annotate(
+                title=F("chapter_line__chapter__title"),
+                url=F("chapter_line__chapter__source_url"),
+            )
+            .select_related("title")
+            .values("title", "url")
+            .annotate(count=Count("title"))
+            .order_by("-count")[0]
+        )
+
+        context = {
+            "gallery": charts.location_charts,
+            "stats": [
+                HeadlineStat(
+                    "Chapter with the Most Location Mentions",
+                    f"{chapter_with_most_location_refs['count']}",
+                    render_to_string(
+                        "patterns/atoms/link/link.html",
+                        context=dict(
+                            text=chapter_with_most_location_refs["title"],
+                            href=chapter_with_most_location_refs["url"],
+                            external=True,
+                        ),
+                    ),
+                    units=" Location mentions",
+                ),
+            ],
+            "table": table,
+        }
+        return render(request, "pages/locations.html", context)
+
+
 def main_interactive_chart(request: HtmxHttpRequest, chart: str):
     chart_items: Iterable[ChartGalleryItem] = chain(
         charts.word_count_charts,
@@ -425,6 +474,8 @@ def match_reftype_str(s: str) -> str | None:
             return RefType.SKILL
         case "magic":
             return RefType.SPELL
+        case "locations":
+            return RefType.LOCATION
         case _:
             return None
 
