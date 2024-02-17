@@ -185,33 +185,6 @@ PATTERN_LIBRARY = {
 }
 
 
-DISABLE_CACHE = env.get("TWI_DISABLE_CACHE", False)
-if DISABLE_CACHE:
-    CACHES = {
-        "default": {
-            "BACKEND": "django.core.cache.backends.dummy.DummyCache",
-        }
-    }
-else:
-    CACHES = {
-        "default": {
-            # "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
-            # "LOCATION": "twi-stats-cache",
-            "BACKEND": "django.core.cache.backends.memcached.PyMemcacheCache",
-            "LOCATION": env.get("TWI_CACHE_URI", "127.0.0.1:11211"),
-            "TIMEOUT": 300,
-            "OPTIONS": {
-                "no_delay": True,
-                "ignore_exc": True,
-                "max_pool_size": 4,
-                "use_pooling": True,
-                "allow_unicode_keys": True,
-                "default_noreply": False,
-                "serde": pymemcache.serde.pickle_serde,
-            },
-        }
-    }
-
 # Logging
 LOGGING = {
     "version": 1,
@@ -263,3 +236,38 @@ PROD = TWI_PROD is not None and (TWI_PROD == "1" or TWI_PROD.lower() == "true")
 if PROD:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
+
+
+DISABLE_CACHE = env.get("TWI_DISABLE_CACHE", False)
+if DISABLE_CACHE:
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.dummy.DummyCache",
+        }
+    }
+else:
+    if TWI_PROD:
+        CACHES = {
+            "default": {
+                # "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+                # "LOCATION": "twi-stats-cache",
+                "BACKEND": "django.core.cache.backends.memcached.PyMemcacheCache",
+                "LOCATION": env.get("TWI_CACHE_URI", "127.0.0.1:11211"),
+                "TIMEOUT": 300,
+                "OPTIONS": {
+                    "no_delay": True,
+                    "ignore_exc": True,
+                    "max_pool_size": 4,
+                    "use_pooling": True,
+                    "allow_unicode_keys": True,
+                    "default_noreply": False,
+                    "serde": pymemcache.serde.pickle_serde,
+                },
+            }
+        }
+    else:
+        CACHES = {
+            "default": {
+                "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+            }
+        }

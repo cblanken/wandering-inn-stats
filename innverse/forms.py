@@ -1,7 +1,12 @@
 from django import forms
+from django.core.cache import cache
 from stats.models import RefType, Chapter
 
-MAX_CHAPTER_NUM = int(Chapter.objects.values_list("number").order_by("-number")[0][0])
+MAX_CHAPTER_NUM = cache.get_or_set(
+    "MAX_CHAPTER_NUM",
+    int(Chapter.objects.values_list("number").order_by("-number")[0][0]),
+    60 * 60 * 24,
+)
 
 
 def get_chapters():

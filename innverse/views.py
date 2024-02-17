@@ -507,8 +507,6 @@ def get_search_result_table(query):
             )
             .filter(
                 Q(type__type=query.get("type"))
-                & Q(type__name__icontains=query.get("type_query"))
-                & Q(chapter_line__text__icontains=query.get("text_query"))
                 & Q(chapter_line__chapter__number__gte=query.get("first_chapter"))
                 & Q(
                     chapter_line__chapter__number__lte=query.get(
@@ -518,6 +516,16 @@ def get_search_result_table(query):
                 )
             )
         )
+
+        if query.get("type_query"):
+            table_data = table_data.filter(
+                type__name__icontains=query.get("type_query")
+            )
+
+        if query.get("text_query"):
+            table_data = table_data.filter(
+                chapter_line__text__icontains=query.get("text_query")
+            )
 
         if query.get("only_colored_refs"):
             table_data = table_data.filter(color__isnull=False)
@@ -540,7 +548,7 @@ def search(request: HtmxHttpRequest) -> HttpResponse:
             config.configure(table)
             table.paginate(
                 page=request.GET.get("page", 1),
-                per_page=request.GET.get("page_size", 10),
+                per_page=request.GET.get("page_size", 15),
                 orphans=5,
             )
             return render(request, "tables/table_partial.html", {"table": table})
@@ -551,7 +559,7 @@ def search(request: HtmxHttpRequest) -> HttpResponse:
             config.configure(table)
             table.paginate(
                 page=request.GET.get("page", 1),
-                per_page=request.GET.get("page_size", 10),
+                per_page=request.GET.get("page_size", 15),
                 orphans=5,
             )
             export_format = request.GET.get("_export", None)
