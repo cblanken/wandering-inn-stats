@@ -15,8 +15,9 @@ from stem import Signal
 from stem.control import Controller
 from fake_useragent import UserAgent
 
-BASE_URL: str = "https://wanderinginn.com"
+BASE_URL: str = "https://www.wanderinginn.com"
 WIKI_URL: str = "https://thewanderinginn.fandom.com"
+# WIKI_URL: str = "https://wiki.wanderinginn.com"
 
 
 def remove_bracketed_ref_number(s: str) -> str:
@@ -213,8 +214,8 @@ class TorSession:
 
     def get_class_list(self) -> list[str]:
         list_hrefs = [
-            "https://thewanderinginn.fandom.com/wiki/List_of_Classes/A-L",
-            "https://thewanderinginn.fandom.com/wiki/List_of_Classes/M-Z",
+            f"{WIKI_URL}/wiki/List_of_Classes/A-L",
+            f"{WIKI_URL}/wiki/List_of_Classes/M-Z",
         ]
         soups = [
             BeautifulSoup(self.get(href).text, "html.parser") for href in list_hrefs
@@ -242,7 +243,7 @@ class TorSession:
     def get_spell_list(self) -> list[str]:
         # TODO: fix parsing of spell names with nested brackets
         soup = BeautifulSoup(
-            self.get("https://thewanderinginn.fandom.com/wiki/Spells").text,
+            self.get(f"{WIKI_URL}/wiki/Spells").text,
             "html.parser",
         )
         spell_elements: ResultSet[Tag] = soup.select(
@@ -267,7 +268,7 @@ class TorSession:
 
     def get_skill_list(self) -> list[str]:
         soup = BeautifulSoup(
-            self.get("https://thewanderinginn.fandom.com/wiki/Skills").text,
+            self.get(f"{WIKI_URL}/wiki/Skills").text,
             "html.parser",
         )
         skill_elements: ResultSet[Tag] = chain(
