@@ -11,7 +11,7 @@ poetry install
 
 
 ## License
-- Copyright of The Wandering Inn and all original text belongs to pirateba
+- Copyright of The Wandering Inn and all original text belongs to [pirateaba](https://www.patreon.com/pirateaba)
 - All other code falls under the MIT LICENSE
 
 ## Credits
