@@ -452,6 +452,7 @@ def main_interactive_chart(request: HtmxHttpRequest, chart: str):
         charts.class_charts,
         charts.skill_charts,
         charts.magic_charts,
+        charts.location_charts,
     )
 
     for c in chart_items:
