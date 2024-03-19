@@ -125,7 +125,7 @@ class ChapterRefTable(tables.Table):
                         "href": f"{chapter[1]}",
                     },
                 )
-                for chapter in record["chapter_data"]
+                for chapter in record["chapter_data"].order_by("chapter_id")
             ]
         )
 
