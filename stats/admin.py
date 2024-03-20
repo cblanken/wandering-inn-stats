@@ -49,7 +49,7 @@ class ColorCategoryAdmin(admin.ModelAdmin):
 
 
 class RefTypeAdmin(admin.ModelAdmin):
-    list_display = ["name", "type"]
+    list_display = ["name", "type", "word_count", "letter_count"]
     list_filter = ["type"]
     search_fields = ["name"]
     radio_fields = {"type": admin.VERTICAL}
@@ -75,6 +75,12 @@ class RefTypeChapterAdmin(admin.ModelAdmin):
     autocomplete_fields = ["type"]
 
 
+class RefTypeComputedViewAdmin(admin.ModelAdmin):
+    list_display = ["mentions", "ref_type"]
+    list_filter = ["ref_type__type"]
+    ordering = ["mentions"]
+
+
 # Organizational data
 admin.site.register(Chapter, ChapterAdmin)
 admin.site.register(Book, BookAdmin)
@@ -86,6 +92,7 @@ admin.site.register(ChapterLine, ChapterLineAdmin)
 admin.site.register(Color, ColorAdmin)
 admin.site.register(ColorCategory, ColorCategoryAdmin)
 admin.site.register(RefType, RefTypeAdmin)
+admin.site.register(RefTypeComputedView, RefTypeComputedViewAdmin)
 admin.site.register(TextRef, TextRefAdmin)
 admin.site.register(RefTypeChapter, RefTypeChapterAdmin)
 

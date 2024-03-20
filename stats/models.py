@@ -1,3 +1,4 @@
+from django.contrib.postgres.fields import ArrayField
 from django.core.validators import RegexValidator
 from django.db import models
 from django.db.models.functions import Length
@@ -131,6 +132,24 @@ class RefType(models.Model):
     name = models.TextField()
     type = models.CharField(max_length=2, choices=TYPES, null=True)
     slug = models.TextField(default="")
+    word_count = models.GeneratedField(
+        expression=models.Func(
+            models.Func(
+                models.F("name"), models.Value(r"\s+"), function="regexp_split_to_array"
+            ),
+            1,
+            function="array_length",
+        ),
+        output_field=models.IntegerField(),
+        db_persist=True,
+    )
+    letter_count = models.GeneratedField(
+        expression=models.Func(
+            "name", arity=1, function="length", output_field=models.IntegerField()
+        ),
+        output_field=models.IntegerField(),
+        db_persist=True,
+    )
 
     class Meta:
         constraints = [
@@ -507,4 +526,19 @@ class RefTypeChapter(models.Model):
         ]
 
     def __str__(self):
-        return f"(RefTypeChapters: {self.type}, Chapter: {self.chapter.title} - {self.chapter.number:>4}"
+        return f"RefTypeChapters: {self.type}, Chapter: {self.chapter.title} - {self.chapter.number:>4}"
+
+
+class RefTypeComputedView(models.Model):
+    """RefType Computed View
+    Contains any additional RefType data that requires long running computations, to be materialized / refreshed as needed
+    """
+
+    ref_type = models.OneToOneField(
+        RefType, on_delete=models.CASCADE, primary_key=True, db_column="ref_type"
+    )
+    mentions = models.PositiveIntegerField()
+
+    class Meta:
+        managed = False
+        db_table = "reftype_computed_view"

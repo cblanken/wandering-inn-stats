@@ -135,8 +135,7 @@ class ChapterRefTable(tables.Table):
 
 class ReftypeMentionsHtmxTable(tables.Table):
     name = tables.Column(accessor="name", verbose_name="Name Stats")
-    word_count = tables.Column(accessor="word_count", verbose_name="Words")
-    letter_count = tables.Column(accessor="letter_count", verbose_name="Letters")
+    mentions = tables.Column(accessor="mentions", verbose_name="Mentions")
 
     def render_name(self, record: RefType, value):
         return render_to_string(
@@ -147,8 +146,19 @@ class ReftypeMentionsHtmxTable(tables.Table):
             },
         )
 
+    def order_mentions(self, queryset, is_descending):
+        queryset = queryset.annotate(
+            mentions=F("reftypecomputedview__mentions")
+        ).order_by(
+            F("mentions").desc(nulls_last=True)
+            if is_descending
+            else F("mentions").asc()
+        )
+
+        return (queryset, True)
+
     class Meta:
-        model = TextRef
+        model = RefType
         template_name = "tables/htmx_table.html"
         fields = ("name", "mentions", "word_count", "letter_count")
 
@@ -156,9 +166,12 @@ class ReftypeMentionsHtmxTable(tables.Table):
 class CharacterHtmxTable(tables.Table):
     name = tables.Column(accessor="ref_type__name", verbose_name="Name Stats")
     first_appearance = tables.Column(
-        accessor="first_chapter_appearance__title", verbose_name="First appearance"
+        accessor="first_chapter_appearance", verbose_name="First appearance"
     )
     wiki = tables.Column(accessor="wiki_uri", verbose_name="Wiki", orderable=False)
+    mentions = tables.Column(
+        accessor="ref_type__reftypecomputedview__mentions", verbose_name="Mentions"
+    )
 
     def render_name(self, record: Character, value):
         return render_to_string(
@@ -166,6 +179,16 @@ class CharacterHtmxTable(tables.Table):
             context={
                 "text": f"{value}",
                 "href": f"{slugify(value, allow_unicode=True)}",
+            },
+        )
+
+    def render_first_appearance(self, record: Character, value):
+        return render_to_string(
+            "patterns/atoms/link/link.html",
+            context={
+                "text": f"{value.title}",
+                "href": f"{value.source_url}",
+                "external": True,
             },
         )
 
@@ -179,10 +202,32 @@ class CharacterHtmxTable(tables.Table):
             },
         )
 
+    def order_mentions(self, queryset, is_descending):
+        queryset = queryset.annotate(
+            mentions=F("ref_type__reftypecomputedview__mentions")
+        ).order_by(
+            F("mentions").desc(nulls_last=True)
+            if is_descending
+            else F("mentions").asc()
+        )
+
+        return (queryset, True)
+
+    def order_first_appearance(self, queryset, is_descending):
+        queryset = queryset.annotate(
+            chapter_num=F("first_chapter_appearance__number")
+        ).order_by(
+            F("chapter_num").desc(nulls_last=True)
+            if is_descending
+            else F("chapter_num").asc()
+        )
+
+        return (queryset, True)
+
     class Meta:
         model = Character
         template_name = "tables/htmx_table.html"
-        fields = ("name", "species", "status", "first_appearance", "wiki")
+        fields = ("name", "mentions", "species", "status", "first_appearance", "wiki")
 
 
 class ChapterHtmxTable(tables.Table):
