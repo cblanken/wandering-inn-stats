@@ -13,7 +13,6 @@ from typing import Iterable, Tuple
 from stats import charts
 from stats.charts import ChartGalleryItem, get_reftype_gallery
 from stats.models import Chapter, Character, RefType, RefTypeChapter, TextRef
-from stats.queries import get_reftype_mentions
 from .tables import (
     ChapterRefTable,
     TextRefTable,
