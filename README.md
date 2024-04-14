@@ -7,12 +7,12 @@ Use poetry to install dependencies
 poetry install
 ```
 
-## Demo
-
+## Deployment
+See a live deployment of the application here: https://twi-stats.cblanken.dev
 
 ## License
 - Copyright of The Wandering Inn and all original text belongs to [pirateaba](https://www.patreon.com/pirateaba)
-- All other code falls under the MIT LICENSE
+- All other code falls under the MIT [LICENSE](LICENSE)
 
 ## Credits
 - See [The Wandering Inn offical website](https://wanderinginn.com) to check out the web serial which inspired this project, and check out the author's [Patreon](https://www.patreon.com/pirateaba) if you enjoy the web serial and would like to support them.
