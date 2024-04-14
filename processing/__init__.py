@@ -1,4 +1,5 @@
 """Module for processing scraped chapter text"""
+
 from __future__ import annotations
 import regex
 import sys
@@ -18,7 +19,9 @@ class Pattern:
     SPELL_UPDATED = regex.compile(r"\[[Ss]pell" + OBTAINED_SUFFIX)
 
     @staticmethod
-    def _or(patterns: tuple[regex.Pattern], prefix="", suffix="") -> regex.Pattern:
+    def _or(
+        patterns: list[regex.Pattern[str]], prefix="", suffix=""
+    ) -> regex.Pattern[str] | None:
         if len(patterns) == 0:
             return None
         if len(patterns) == 1:
@@ -63,7 +66,7 @@ class TextRef:
         end_column: int,
         context_len: int,
         is_bracketed: bool = True,
-    ) -> TextRef:
+    ):
         self.text: str = text.strip()
         self.is_bracketed = is_bracketed
         self.line_text = line_text.strip()
@@ -81,7 +84,7 @@ class TextRef:
         return f"Line: {self.line_number:>5}: {self.text:⋅<55}context: {self.context}"
 
 
-def get_metadata(path: Path, filename: str = "metadata.json") -> dict:
+def get_metadata(path: Path, filename: str = "metadata.json") -> dict | None:
     """Return dictionary of metadata from a JSON file"""
     try:
         with open(Path(path, filename), "r", encoding="utf-8") as file:
@@ -108,19 +111,19 @@ class Chapter:
         self.title: str = path.name
 
         src_path = Path(path, f"{self.title}.html")
-        self.src_path: Path = src_path if src_path.exists() else None
 
         if src_path.exists():
+            self.src_path = src_path
             with open(self.src_path, "r", encoding="utf-8") as file:
                 self.lines = file.readlines()
         else:
             self.lines = []
 
         txt_path = Path(path, f"{self.title}.txt")
-        self.txt_path: Path = txt_path if txt_path.exists() else None
+        self.txt_path: Path | None = txt_path if txt_path.exists() else None
 
         meta_path = Path(path, "metadata.json")
-        self.meta_path: Path = meta_path if meta_path.exists() else None
+        self.meta_path: Path | None = meta_path if meta_path.exists() else None
         self.metadata = get_metadata(self.path) if meta_path.exists() else None
 
         self.__bracket_pattern = Pattern._or(
@@ -131,17 +134,17 @@ class Chapter:
                 Pattern.SPELL_UPDATED,
             ]
         )
-        self.all_bracket_ref_gens_by_line: Generator[Generator[TextRef]] = [
+        self.all_bracket_ref_gens_by_line: list[Generator[TextRef, None, None]] = [
             self.gen_text_refs(i) for i in range(len(self.lines))
         ]
 
     def gen_text_refs(
         self,
         line_num: int,
-        extra_patterns: regex.Pattern = None,
+        extra_patterns: regex.Pattern | None = None,
         context_len: int = 50,
         only_extra_patterns=False,
-    ) -> Generator[TextRef]:
+    ) -> Generator[TextRef, None, None]:
         """Return  TextRef(s) that match the regex for the given regex patterns
         and other arguments
 
@@ -153,7 +156,7 @@ class Chapter:
         """
 
         # Yield any matches for bracketed types
-        if not only_extra_patterns:
+        if not only_extra_patterns and self.__bracket_pattern is not None:
             for match in regex.finditer(self.__bracket_pattern, self.lines[line_num]):
                 yield TextRef(
                     match.group(),
@@ -199,6 +202,8 @@ class Book:
     def __init__(self, path: Path):
         self.path = path
         self.metadata = get_metadata(self.path)
+        if self.metadata is None:
+            return
         self.title: str = self.metadata["title"]
         self.chapters: list[str] = [
             x[0]
@@ -215,6 +220,8 @@ class Volume:
     def __init__(self, path: Path):
         self.path: Path = path
         self.metadata = get_metadata(self.path)
+        if self.metadata is None:
+            return
         self.title: str = self.metadata["title"]
         self.books: list[str] = [
             x[0]

@@ -536,9 +536,9 @@ def reftype_stats(request: HtmxHttpRequest, name: str):
     return render(request, "pages/reftype_gallery.html", context)
 
 
-def get_search_result_table(query):
+def get_search_result_table(query: dict[str, str]):
     if query.get("refs_by_chapter"):
-        ref_types: list[RefType] = RefType.objects.filter(
+        ref_types: QuerySet[RefType] = RefType.objects.filter(
             Q(name__icontains=query.get("type_query")) & Q(type=query.get("type"))
         )
 
@@ -624,7 +624,7 @@ def search(request: HtmxHttpRequest) -> HttpResponse:
             config.configure(table)
             table.paginate(
                 page=request.GET.get("page", 1),
-                per_page=request.GET.get("page_size", 15),
+                per_page=request.GET.get("page_size", str(15)),
                 orphans=5,
             )
             return render(request, "tables/table_partial.html", {"table": table})

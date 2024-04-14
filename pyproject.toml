@@ -54,6 +54,8 @@ pylint = "^2.17.3"
 pylint-django = "^2.5.3"
 pylsp-mypy = "^0.6.8"
 statsmodels = "^0.14.0"
+types-regex = "^2023.12.25.20240311"
+djangorestframework-stubs = {extras = ["compatible-mypy"], version = "^3.14.5"}
 
 [tool.pylsp-mypy]
 enabled = true
@@ -61,10 +63,23 @@ live_mode = true
 strict = true
 
 [tool.mypy]
-plugins = ["mypy_django_plugin.main"]
+plugins = [
+  "mypy_django_plugin.main",
+  "mypy_drf_plugin.main",
+]
+
+[[tool.mypy.overrides]]
+# Ignore charts mypy errors because Plotly doesn't currently support typing
+# Though there is an existing issue see (https://github.com/plotly/plotly.py/issues/1103)
+module = [
+  'stats.charts.*',
+]
+ignore_missing_imports = true
+ignore_errors = true
 
 [tool.django-stubs]
 django_settings_module = "innverse.settings"
+strict_settings = false
 
 [tool.ipdb]
 context=5

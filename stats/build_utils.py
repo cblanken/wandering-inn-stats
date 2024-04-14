@@ -1,4 +1,5 @@
 """Utility functions and classes for build script"""
+
 from enum import Enum
 from pathlib import Path
 from pprint import pformat
@@ -23,7 +24,7 @@ def build_reftype_pattern(ref: RefType):
     ]
 
 
-def compile_textref_patterns(patterns: Iterable[str]) -> regex.Pattern:
+def compile_textref_patterns(patterns: Iterable[str]) -> regex.Pattern[str] | None:
     # Build patterns for finding TextRefs
     prefix = r"[>\W]"
     suffix = r"[<\W\.\?,!]"

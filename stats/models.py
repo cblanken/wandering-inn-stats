@@ -4,6 +4,7 @@ from django.db import models
 from django.db.models.functions import Length
 from django.utils.text import slugify
 import re
+from typing import Any
 
 models.CharField.register_lookup(Length, "length")
 
@@ -23,7 +24,6 @@ class ColorCategory(models.Model):
 class Color(models.Model):
     """Model for colored text"""
 
-    # TODO: add rgb regex constraint
     rgb = models.CharField(
         max_length=6,
         validators=[RegexValidator(r"^[a-zA-Z\d]{6}$")],
@@ -132,7 +132,7 @@ class RefType(models.Model):
     name = models.TextField()
     type = models.CharField(max_length=2, choices=TYPES, null=True)
     slug = models.TextField(default="")
-    word_count = models.GeneratedField(
+    word_count = models.GeneratedField(  # type: ignore[attr-defined]
         expression=models.Func(
             models.Func(
                 models.F("name"), models.Value(r"\s+"), function="regexp_split_to_array"
@@ -143,7 +143,7 @@ class RefType(models.Model):
         output_field=models.IntegerField(),
         db_persist=True,
     )
-    letter_count = models.GeneratedField(
+    letter_count = models.GeneratedField(  # type: ignore[attr-defined]
         expression=models.Func(
             "name", arity=1, function="length", output_field=models.IntegerField()
         ),
@@ -266,7 +266,7 @@ class Character(models.Model):
     WYVERN = "WV"
 
     # fmt: off
-    SPECIES_DATA: tuple[str, str, re.Pattern] = [
+    SPECIES_DATA: list[tuple[str, str, re.Pattern[Any]]] = [
         (AGELUM, "Agelum", re.compile(r"[Aa]gelum")),
         (ANTINIUM, "Antinium", re.compile(r"[Aa]ntinium")),
         (ASHFIRE_BEE, "Ashfire Bee", re.compile(r"[Aa]shfire[-\s]?[Bb]ee")),
@@ -379,6 +379,7 @@ class Character(models.Model):
 
     # TODO: correctly parse poorly formatted alternates instead
     # of lumping into UNKNOWN
+    @staticmethod
     def parse_status_str(s: str):
         if s is None:
             return Character.UNKNOWN
@@ -394,6 +395,7 @@ class Character(models.Model):
             case _:
                 return Character.UNKNOWN
 
+    @staticmethod
     def parse_species_str(s: str):
         if s is None:
             return Character.UNKNOWN
@@ -531,13 +533,14 @@ class RefTypeChapter(models.Model):
 
 class RefTypeComputedView(models.Model):
     """RefType Computed View
-    Contains any additional RefType data that requires long running computations, to be materialized / refreshed as needed
+    Contains any additional RefType data that requires long running computations, to be materialized as needed
     """
 
     ref_type = models.OneToOneField(
         RefType, on_delete=models.CASCADE, primary_key=True, db_column="ref_type"
     )
     mentions = models.PositiveIntegerField()
+    # first_mention_chapter = models.ForeignKey(Chapter, on_delete=models.CASCADE)
 
     class Meta:
         managed = False

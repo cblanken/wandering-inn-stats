@@ -2,10 +2,13 @@ from django import forms
 from django.core.cache import cache
 from stats.models import RefType, Chapter
 
-MAX_CHAPTER_NUM = cache.get_or_set(
-    "MAX_CHAPTER_NUM",
-    int(Chapter.objects.values_list("number").order_by("-number")[0][0]),
-    60 * 60 * 24,
+MAX_CHAPTER_NUM = (
+    cache.get_or_set(
+        "MAX_CHAPTER_NUM",
+        int(Chapter.objects.values_list("number").order_by("-number")[0][0]),
+        60 * 60 * 24,
+    )
+    or 0
 )
 
 
@@ -40,7 +43,6 @@ class SearchForm(forms.Form):
     first_chapter = forms.TypedChoiceField(
         label="First Chapter",
         choices=chapter_choices,
-        empty_value=8,
         required=True,
         initial=0,
         widget=forms.Select(attrs={"class": select_input_tailwind_classes}),
@@ -49,7 +51,7 @@ class SearchForm(forms.Form):
     last_chapter = forms.TypedChoiceField(
         label="Last Chapter",
         choices=chapter_choices,
-        empty_value=MAX_CHAPTER_NUM,
+        empty_value=str(MAX_CHAPTER_NUM),
         required=True,
         initial=MAX_CHAPTER_NUM + 1,
         widget=forms.Select(attrs={"class": select_input_tailwind_classes}),

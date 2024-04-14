@@ -5,7 +5,8 @@ Django settings for innverse project.
 from pathlib import Path
 from os import environ as env
 from dotenv import load_dotenv
-import pymemcache
+import pymemcache  # type: ignore[import-untyped]
+from typing import Any
 
 load_dotenv()
 
@@ -59,9 +60,9 @@ TWI_DEBUG = env.get("TWI_DEBUG")
 DEBUG = TWI_DEBUG is not None and (TWI_DEBUG == "1" or TWI_DEBUG.lower() == "true")
 if DEBUG:
     X_FRAME_OPTIONS = "SAMEORIGIN"  # get detailed error pages from pattern library
-    INSTALLED_APPS.append("debug_toolbar"),
-    INSTALLED_APPS.append("template_profiler_panel"),
-    INSTALLED_APPS.append("pyflame"),
+    INSTALLED_APPS.append("debug_toolbar")
+    INSTALLED_APPS.append("template_profiler_panel")
+    INSTALLED_APPS.append("pyflame")
 
 ROOT_URLCONF = "innverse.urls"
 
@@ -239,6 +240,7 @@ if PROD:
 
 
 DISABLE_CACHE = env.get("TWI_DISABLE_CACHE", False)
+CACHES: dict[str, str | dict[str, Any] | int | bool] = {}
 if DISABLE_CACHE:
     CACHES = {
         "default": {
