@@ -1,6 +1,8 @@
 # Innverse Stats
 A web app for searching The Wandering Inn web serial and exploring interesting statistics surrounding the many characters, [Skills], [Classes], [Spells], etc.
 
+Check out the live site [here](twi-stats.cblanken.dev)
+
 ## Installation
 Use poetry to install dependencies
 ```console
