@@ -3,10 +3,7 @@ from django.apps import apps
 from django.http import HttpResponseRedirect
 from django.urls import path, include, reverse
 
-# from django.shortcuts import redirect
-
 from . import views
-from .core import views as core_views
 
 
 def overview_redirect(req):
@@ -43,7 +40,6 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("__debug__/", include("debug_toolbar.urls")),
     path("__reload__", include("django_browser_reload.urls")),
-    path("favicon.ico", core_views.favicon),
 ]
 
 
