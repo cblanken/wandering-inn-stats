@@ -1,7 +1,11 @@
+import regex as re
+from pprint import pprint
 from django.core.management.base import BaseCommand, CommandError
 import pywikibot as pwb
 from stats.models import RefType
 from stats.wikibot import bot
+
+from IPython.core.debugger import set_trace
 
 # import IPython; IPython.embed()
 
@@ -60,7 +64,9 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        # Collect wiki pages by category (Characters, Skills, Classes etc.)
+        """
+        Collect wiki pages by category (Characters, Skills, Classes etc.)
+        """
         if options.get("all"):
             options[RefType.CHARACTER] = True
             options[RefType.SKILL] = True
@@ -74,27 +80,48 @@ class Command(BaseCommand):
                 match k:
                     case RefType.CHARACTER:
                         chars = pwb.Category(bot.site, "Characters").articles()
+                        data = {}
                         for page in chars:
-                            bot.treat_character(page)
+                            data |= bot.treat_character(page)
+                        pprint(data)
                     case RefType.CLASS:
-                        classes = pwb.Category(bot.site, "Classes").articles()
-                        for page in classes:
-                            bot.treat_class(page)
+                        class_list_pages = [
+                            a
+                            for a in pwb.Category(bot.site, "Classes").articles()
+                            if re.match(r"List of Classes[/]", a.title().lstrip())
+                        ]
+                        data = {}
+                        for page in class_list_pages:
+                            data |= bot.treat_classes(page)
+                        pprint(data)
                     case RefType.SKILL:
-                        skills_page = pwb.Page(
-                            bot.site, "Skills#List of Skills - Alphabetical Order"
-                        )
-                        bot.treat_skills(skills_page)
+                        skill_list_pages = [
+                            a
+                            for a in pwb.Category(bot.site, "Skills").articles()
+                            if re.match(r"Skills Effect[/]", a.title().lstrip())
+                        ]
+                        data = {}
+                        for page in skill_list_pages:
+                            data |= bot.treat_skills(page)
+                        pprint(data)
                     case RefType.SPELL:
                         spells_page = pwb.Page(bot.site, "Spells")
-                        bot.treat_spells(spells_page)
+                        data = bot.treat_spells(spells_page)
+                        pprint(data)
                     case RefType.LOCATION:
-                        locs = pwb.Category(bot.site, "Locations").articles()
+                        locs = [
+                            a
+                            for a in pwb.Category(bot.site, "Locations").articles()
+                            if not re.match(r".*[/].*", a.title())
+                        ]
+                        data = {}
                         for page in locs:
-                            bot.treat_location(page)
+                            data |= bot.treat_location(page)
+                        pprint(data)
                     case RefType.ITEM:
                         artifacts_page = pwb.Page(bot.site, "Artifacts#Artifacts List")
-                        bot.treat_items(artifacts_page)
+                        data = bot.treat_artifacts(artifacts_page)
+                        pprint(data)
                     case _:
                         pass
 

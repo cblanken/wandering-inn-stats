@@ -6,9 +6,8 @@ import pywikibot as pwb
 import mwparserfromhell as mwp
 import wikitextparser as wtp
 from pywikibot.textlib import extract_templates_and_params
-from collections import OrderedDict
-from stats.models import Chapter, Character
 from bs4 import BeautifulSoup
+from IPython.core.debugger import set_trace
 
 
 def params_to_dict(params: list[str]) -> dict[str, str]:
@@ -30,6 +29,24 @@ class WikiTemplateParser:
     @abc.abstractmethod
     def parse(self) -> dict:
         """Parse template-specific data from target wiki template"""
+        pass
+
+
+class WikiTableParser:
+    def __init__(self, table: wtp.Table):
+        self.table = table
+
+    def parse(self):
+        """Parse a wikitable"""
+        pass
+
+
+class WikiListParser:
+    def __init__(self, wikilist: wtp.WikiList):
+        self.wikilist = wikilist
+
+    def parse(self):
+        """Parse a wikilist"""
         pass
 
 
@@ -81,5 +98,73 @@ class CharInfoBoxParser(WikiTemplateParser):
             "status": status,
         }
 
-        pprint(parsed_data)
+        return parsed_data
+
+
+class ClassesTableParser(WikiTableParser):
+    def __init__(self, table: wtp.Table):
+        super().__init__(table)
+        self.name_alias_splitter_pattern = re.compile(r"[\s]*[/][\s]*")
+
+    def parse(self):
+        parsed_data = {}
+        for row in self.table.data()[1:]:
+            names = re.split(self.name_alias_splitter_pattern, row[0])
+            aliases = names[1:] if len(names) > 1 else None
+
+            primary_name = names[0]
+            parsed_data[primary_name] = {
+                "aliases": aliases,
+                "type": row[2].strip(),
+            }
+        return parsed_data
+
+
+class SkillTableParser(WikiTableParser):
+    def __init__(self, table: wtp.Table):
+        super().__init__(table)
+        self.name_alias_splitter_pattern = re.compile(r"[\s]*[/][\s]*")
+
+    def parse(self) -> dict | None:
+        parsed_data = {}
+        for row in self.table.data()[1:]:
+            names = re.split(self.name_alias_splitter_pattern, row[0])
+            aliases = names[1:] if len(names) > 1 else None
+
+            primary_name = names[0]
+            parsed_data[primary_name] = {
+                "aliases": aliases,
+                "effect": row[1].strip(),
+            }
+        return parsed_data
+
+
+class SpellTableParser(WikiTableParser):
+    def __init__(self, table: wtp.Table):
+        super().__init__(table)
+        self.name_alias_splitter_pattern = re.compile(r"[\s]*[/][\s]*")
+
+    def parse(self) -> dict | None:
+        parsed_data = {}
+        for row in self.table.data()[1:]:
+            # names = re.split(self.name_alias_splitter_pattern, row[0])
+            names = parse_into_list(row[0])
+            aliases = names[1:] if len(names) > 1 else None
+
+            primary_name = names[0]
+            parsed_data[primary_name] = {
+                "aliases": aliases,
+                "tier": row[1].strip(),
+                "effect": row[2].strip(),
+            }
+        return parsed_data
+
+
+class ArtifactListParser(WikiListParser):
+    def parse(self) -> dict | None:
+        parsed_data = {}
+        for item in self.wikilist.items:
+            parsed_data[item] = {
+                # TODO wikibot: expand links for more data on artifacts with their own pages
+            }
         return parsed_data
