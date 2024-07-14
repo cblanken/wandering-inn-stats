@@ -99,7 +99,7 @@ class TwiBot(SingleSiteBot):
             data = parser.parse()
             return data
         except IndexError as e:
-            print("Missing sections or table on [Class] list page")
+            print("Missing sections or table on [Skills] list page")
             raise e
 
     def treat_spells(self, page: pwb.Page) -> dict | None:

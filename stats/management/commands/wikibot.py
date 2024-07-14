@@ -83,12 +83,13 @@ class Command(BaseCommand):
                         data = {}
                         for page in chars:
                             data |= bot.treat_character(page)
+                            print(data)
                         pprint(data)
                     case RefType.CLASS:
                         class_list_pages = [
-                            a
-                            for a in pwb.Category(bot.site, "Classes").articles()
-                            if re.match(r"List of Classes[/]", a.title().lstrip())
+                            page
+                            for page in pwb.Category(bot.site, "Classes").articles()
+                            if re.match(r"List of Classes[/]", page.title().lstrip())
                         ]
                         data = {}
                         for page in class_list_pages:
