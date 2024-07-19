@@ -17,7 +17,20 @@ def test_no_aliases():
                 "[https://wanderinginn.com/2022/08/30/9-12/ 9.12]",
             ]
         )
-    ).get("aliases") == []
+    ).get("aliases") == None
+
+
+def test_no_parse_category_as_alias():
+    """Does not parse a (Category) as an alias even if it is split by a linebreak <br /> tag"""
+    assert (
+        SkillTableParser.parse_row(
+            [
+                "[Adept Haggler]<br/>(Alchemy)",
+                "",
+                "[https://wanderinginn.com/2023/07/16/9-54-c/ 9.54 C]",
+            ]
+        )
+    ).get("aliases") == None
 
 
 """

@@ -13,7 +13,7 @@ def test_no_aliases():
         SpellTableParser.parse_row(
             ["[Zone of No Transference]", "Unknown", "", "", None]
         )
-    ).get("aliases") == []
+    ).get("aliases") == None
 
 
 def test_alias_with_br_and_forward_slash_delimiter():
@@ -38,3 +38,18 @@ def test_alias_with_br_no_delimiter():
             ["[Wind Blast]<br />[Windblast]", "Unknown", "", "", None]
         ).get("aliases")
     ) == ["[Windblast]"]
+
+
+def test_strip_tier_ref_tags():
+    """Removes any <ref> tags from parsed 'tier' property"""
+    assert (
+        SpellTableParser.parse_row(
+            [
+                "[Disintegrate]<br />[Disintegration]",
+                "6<ref>[https://wanderinginn.com/2022/03/27/8-76-b/ Chapter 8.76 B]</ref>",
+                "",
+                "",
+                None,
+            ]
+        ).get("tier")
+    ) == "6"

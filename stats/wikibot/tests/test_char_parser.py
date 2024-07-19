@@ -1,6 +1,8 @@
 import pytest
 from stats.wikibot.parse import CharInfoBoxParser
+from pywikibot import Site
 
+site = Site(code="en", fam="twi")
 
 """
 Aliases
@@ -9,14 +11,14 @@ Aliases
 
 def test_infobox_single_alias():
     """Parses infobox with only a single name into a singleton list"""
-    assert CharInfoBoxParser(["aliases=BlackMage"]).parse().get("aliases") == [
+    assert CharInfoBoxParser(["aliases=BlackMage"], site).parse().get("aliases") == [
         "BlackMage"
     ]
 
 
 def test_infobox_no_aliases():
     """Parses infobox without any aliases into an empty list"""
-    assert CharInfoBoxParser(["aliases="]).parse().get("aliases") == []
+    assert CharInfoBoxParser(["aliases="], site).parse().get("aliases") == []
 
 
 def test_infobox_Bird_aliases():
@@ -38,7 +40,8 @@ def test_infobox_Bird_aliases():
             "residence=[[The Wandering Inn]]",
             "species=[[Antinium]]",
             "status={{Status|Alive (''Resurrected via Rite of Anastases}}",
-        ]
+        ],
+        site,
     ).parse().get("aliases") == [
         "Little Bird",
         "Bird the Hunter",
@@ -56,7 +59,8 @@ def test_infobox_aliases():
     assert CharInfoBoxParser(
         [
             "aliases=Kasigna of the End<br />God/Goddess of Death<br />Goddess of the Afterlife<br />The Three Women in One<br />Three-In-One<br />One-In-Three<br/>The Maiden<br/>The Mother<br/>The Matriarch<br/>Corpsemother<br/>The Final Judge<br/>Kaligma"
-        ]
+        ],
+        site,
     ).parse().get("aliases") == [
         "Kasigna of the End",
         "God/Goddess of Death",
@@ -80,7 +84,8 @@ def test_infobox_ref_code_in_aliases():
     assert CharInfoBoxParser(
         [
             "aliases=Cara O'Sullivan<br/>\n'Humble Actor'<br/>\nQueen of Pop<br/>\nSiren of Songs<br/>\nBaroness of the Beat<br/>\nSinger of Terandria<br/>\nSinger of Afiele<br/>\nGravesinger of Afiele<br/>\nSid (''Nickname'')<ref name=\"GS1.01\"/>"
-        ]
+        ],
+        site,
     ).parse().get("aliases") == [
         "Cara O'Sullivan",
         "'Humble Actor'",
@@ -101,7 +106,23 @@ First appearance / first_href
 
 def test_infobox_no_first_appearance():
     """Parses infobox with no first appearance links"""
-    assert CharInfoBoxParser(["first appearance="]).parse().get("first_href") is None
+    assert (
+        CharInfoBoxParser(["first appearance="], site).parse().get("first_href") is None
+    )
+
+
+def test_infobox_multiple_first_hrefs():
+    """Parse all hyperlinks in "first appearance" infobox field"""
+
+    assert CharInfoBoxParser(
+        [
+            "first appearance=*[https://wanderinginn.com/2017/03/07/interlude-2/ Interlude - 2]\n*[https://wanderinginn.com/2018/11/01/interlude-blackmage/ Interlude - Blackmage]\n(''First Real\xa0Appearance'')",
+        ],
+        site,
+    ).parse().get("first_hrefs") == [
+        "https://wanderinginn.com/2017/03/07/interlude-2/",
+        "https://wanderinginn.com/2018/11/01/interlude-blackmage/",
+    ]
 
 
 """
@@ -112,7 +133,7 @@ Status
 def test_infobox_status_linebreaks():
     """Parses infobox with multiple status split by linebreaks <br>"""
     assert (
-        CharInfoBoxParser(["status={{Status|Deceased<br />(''Soul Consumed'')}}"])
+        CharInfoBoxParser(["status={{Status|Deceased<br />(''Soul Consumed'')}}"], site)
         .parse()
         .get("status")
         == "Deceased (''Soul Consumed'')"
@@ -125,7 +146,8 @@ def test_infobox_status_html_spoiler():
         CharInfoBoxParser(
             [
                 'status=<div class="mw-collapsible mw-collapsed" data-expandtext="Show Spoiler" data-collapsetext="Hide Spoiler">Alive</div>'
-            ]
+            ],
+            site,
         )
         .parse()
         .get("status")
@@ -139,7 +161,8 @@ def test_infobox_status_strips_whitespace():
         CharInfoBoxParser(
             [
                 'status=<div class="mw-collapsible mw-collapsed" data-expandtext="Show Spoiler" data-collapsetext="Hide Spoiler">\nUnknown</div>'
-            ]
+            ],
+            site,
         )
         .parse()
         .get("status")
@@ -149,4 +172,4 @@ def test_infobox_status_strips_whitespace():
 
 def test_infobox_no_status():
     """Parses infobox without status"""
-    assert CharInfoBoxParser([]).parse().get("status") is None
+    assert CharInfoBoxParser([], site).parse().get("status") is None

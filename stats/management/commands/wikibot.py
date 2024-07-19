@@ -1,3 +1,5 @@
+import json
+from pathlib import Path
 import regex as re
 from pprint import pprint
 from django.core.management.base import BaseCommand, CommandError
@@ -7,7 +9,13 @@ from stats.wikibot import bot
 
 from IPython.core.debugger import set_trace
 
-# import IPython; IPython.embed()
+DATA_DIR = Path("data")
+
+
+def save_as_json(data: dict[str], path: Path):
+    path = Path(DATA_DIR, path)
+    with open(path, "w", encoding="utf-8") as fp:
+        json.dump(data, fp, indent=2)
 
 
 # Command setup
@@ -82,9 +90,10 @@ class Command(BaseCommand):
                         chars = pwb.Category(bot.site, "Characters").articles()
                         data = {}
                         for page in chars:
-                            data |= bot.treat_character(page)
-                            print(data)
-                        pprint(data)
+                            char = bot.treat_character(page)
+                            if char is not None:
+                                data |= char
+                        save_as_json(data, Path("characters.json"))
                     case RefType.CLASS:
                         class_list_pages = [
                             page
@@ -93,8 +102,10 @@ class Command(BaseCommand):
                         ]
                         data = {}
                         for page in class_list_pages:
-                            data |= bot.treat_classes(page)
-                        pprint(data)
+                            classes = bot.treat_classes(page)
+                            if classes:
+                                data |= classes
+                        save_as_json(data, Path("classes.json"))
                     case RefType.SKILL:
                         skill_list_pages = [
                             a
@@ -104,11 +115,11 @@ class Command(BaseCommand):
                         data = {}
                         for page in skill_list_pages:
                             data |= bot.treat_skills(page)
-                        pprint(data)
+                        save_as_json(data, Path("skills.json"))
                     case RefType.SPELL:
                         spells_page = pwb.Page(bot.site, "Spells")
                         data = bot.treat_spells(spells_page)
-                        pprint(data)
+                        save_as_json(data, Path("spells.json"))
                     case RefType.LOCATION:
                         locs = [
                             a
@@ -118,18 +129,13 @@ class Command(BaseCommand):
                         data = {}
                         for page in locs:
                             data |= bot.treat_location(page)
-                        pprint(data)
+                        save_as_json(data, Path("locations.json"))
                     case RefType.ITEM:
                         artifacts_page = pwb.Page(bot.site, "Artifacts#Artifacts List")
                         data = bot.treat_artifacts(artifacts_page)
-                        pprint(data)
+                        save_as_json(data, Path("items.json"))
                     case _:
                         pass
-
-        ## Download individual pages as needed
-        ## Parse downloaded data
-        ## Process into structured data (JSON)
-        ## Export data to another module or process into DB directly
 
         ## TODO: Add integrity check - confirm new items match existing models in the database
         ## otherwise prompt for comparison check

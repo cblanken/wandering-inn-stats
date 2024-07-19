@@ -48,13 +48,12 @@ class TwiBot(SingleSiteBot):
         )
         if infoboxes:
             template, params = infoboxes[0]
-            parser = CharInfoBoxParser(params)
+            parser = CharInfoBoxParser(params, site=self.site)
 
             data = parser.parse()
             if data:
-                data["wiki_href"] = page.full_url()
-                data["name"] = page.title()
-                return data
+                data["page_url"] = page.title(as_url=True)
+                return {page.title(): data}
             else:
                 print(f"NO DATA FOUND FOR template: {template}, with params: {params}")
 
@@ -66,7 +65,6 @@ class TwiBot(SingleSiteBot):
         self.current_page = page
         return {
             page.title(): {
-                "categories": [x for x in page.categories()],
                 "url": page.full_url(),
             }
         }

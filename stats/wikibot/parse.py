@@ -1,13 +1,14 @@
 import abc
 from itertools import chain
+from functools import reduce
 from pprint import pprint
 import regex as re
 import pywikibot as pwb
+from pywikibot.textlib import extract_templates_and_params, replace_links
+from pywikibot.site import APISite
 import mwparserfromhell as mwp
 import wikitextparser as wtp
-from pywikibot.textlib import extract_templates_and_params
 from bs4 import BeautifulSoup
-from IPython.core.debugger import set_trace
 
 
 RE_LINEBREAK = re.compile(r"(?:linebreak|<[\s]*br[\s]*/?>)|(?:newline|[\s]*\n[\s]*)")
@@ -29,8 +30,22 @@ def slash_split(text: str) -> list[str]:
     return [x.strip() for x in re.split(r"[\s]/[\s]", text)]
 
 
-def remove_list_delimiters(s: str):
+def remove_list_delimiters(s: str) -> str:
     return s.replace("/", "").strip()
+
+
+def strip_ref_tags(text: str) -> str:
+    ref_tags = [t for t in wtp.parse(text).get_tags() if t.name == "ref"]
+
+    # Remove <ref> tags
+    for t in ref_tags:
+        text = text.replace(str(t), "")
+
+    return text
+
+
+def replace_br_with_space(text: str) -> str:
+    return re.sub(re.compile(r"<br[ ]?/>"), " ", text)
 
 
 def parse_name_field(text: str) -> dict[str, str] | None:
@@ -48,24 +63,36 @@ def parse_name_field(text: str) -> dict[str, str] | None:
 
     data = {}
     try:
-        # Remove any items wrapped in parens '()' which indicate a category
+        # Detect any text wrapped in parens '()' which indicates a category or some other
+        # context and is not part of the actual name
         res = RE_PARENS_MATCH.match(text)
-        data["category"] = res.group(1)[1:-1] if res else None
+        category = res.group(1)[1:-1] if res else None
+        if category:
+            data["category"] = category
+            # text = re.sub(RE_PARENS_MATCH, "", text)
+            text = text.replace("(" + category + ")", "")
+
+        text = strip_ref_tags(text)
 
         # Split line breaks <br> and <br/> or newlines '\n'
-        # lines = RE_LINEBREAK.split(r"(?:linebreak|<[\s]*br[\s]*/?>)|(?:newline|[\s]*\n[\s]*)", text)
         lines = re.split(RE_LINEBREAK, text)
-        lines = [mwp.parse(x).strip_code() for x in lines if x.strip() != ""]
-        data["name"] = lines[0]
 
-        # Remove any delimiters
+        # Remove any leftover delimiters
         lines = [remove_list_delimiters(x) if "/" in x[:2] else x for x in lines]
 
-        # Remove any items wrapped in parens '()' which indicate a category
-        data["aliases"] = []
-        for line in lines[1:]:
-            if not (line[0] == "(" and line[-1] == ")"):
-                data["aliases"].append(line)
+        # Chain together names
+        names = list(chain.from_iterable([slash_split(l) for l in lines]))
+
+        # Remove wiki code including [[Links]] and empty names
+        names = [mwp.parse(n).strip_code() for n in names if len(n) > 0]
+
+        try:
+            name = names[0]
+            data["name"] = name
+            if len(names) > 0:
+                data["aliases"] = names[1:]
+        except IndexError:
+            print(f'No name found for row field: "{text}"')
 
         return data
 
@@ -74,8 +101,9 @@ def parse_name_field(text: str) -> dict[str, str] | None:
 
 
 class WikiTemplateParser:
-    def __init__(self, template_params: list[str]):
+    def __init__(self, template_params: list[str], site: APISite):
         self.params = params_to_dict(template_params)
+        self.site = site
 
     @abc.abstractmethod
     def parse(self) -> dict:
@@ -108,20 +136,13 @@ class WikiListParser:
 
 class CharInfoBoxParser(WikiTemplateParser):
     def parse(self) -> dict | None:
-        # Parse first appearance href
-        first_href = self.params.get("first appearance") or None
-        if first_href is not None:
-            first_href_templates = extract_templates_and_params(first_href)
-            if first_href_templates:
-                first_href_templates[0][1].get("1")
-                # TODO wikibot: resolve chapter link template into URL for existing Chapters in DB
-            else:
-                # No templates found => check for manual links
-                first_href_matches = list(
-                    re.finditer(r"\[(.*)\]", self.params["first appearance"])
-                )
-                if first_href_matches:
-                    first_href = first_href_matches[0].group(1).split()[0]
+        # Parse first appearance hyperlinks
+        if first_hrefs := self.params.get("first appearance"):
+            wikitext = wtp.parse(self.site.expand_text(first_hrefs))
+            if ext_links := wikitext.external_links:
+                first_hrefs = [l.url for l in ext_links]
+        else:
+            first_hrefs = None
 
         # Parse aliases
         aliases = self.params.get("aliases") or None
@@ -149,7 +170,7 @@ class CharInfoBoxParser(WikiTemplateParser):
 
         parsed_data = {
             "aliases": aliases,
-            "first_href": first_href,
+            "first_hrefs": first_hrefs,
             "species": species,
             "status": status,
         }
@@ -163,17 +184,25 @@ class ClassesTableParser(WikiTableParser):
 
     @staticmethod
     def parse_row(row: list[str]) -> dict[str] | None:
-        names = [x for x in slash_split(row[0]) if x.strip() != ""]
-        return {
-            "name": names[0],
-            "aliases": names[1:] if len(names) > 1 else [],
-        }
+        parsed_name = parse_name_field(row[0])
+        parsed_row = {"type": row[2], "details": wtp.remove_markup(row[3])}
+        links = [
+            wl.title
+            for wl in chain.from_iterable([wtp.parse(col).wikilinks for col in row])
+        ]
+
+        if aliases := parsed_name.get("aliases"):
+            parsed_row["aliases"] = aliases
+        if links:
+            parsed_row["links_to"] = links
+
+        return parsed_row
 
     def parse(self):
         parsed_data = {}
         for row in self.table.data()[1:]:
             parsed_row = self.parse_row(row)
-            name = parsed_row.get("name")
+            name = parse_name_field(row[0])["name"]
             parsed_data[name] = parsed_row
         return parsed_data
 
@@ -185,19 +214,21 @@ class SkillTableParser(WikiTableParser):
     @staticmethod
     def parse_row(row: list[str]) -> dict[str] | None:
         parsed_name = parse_name_field(row[0])
-        return {
-            "name": parsed_name.get("name"),
-            "aliases": parsed_name.get("aliases"),
-            "category": parsed_name.get("category"),
-            "effect": row[1].strip(),
-        }
+        parsed_row = {}
+        if aliases := parsed_name.get("aliases"):
+            parsed_row["aliases"] = aliases
+        if category := parsed_name.get("category"):
+            parsed_row["category"] = replace_br_with_space(category)
+        if effect := strip_ref_tags(row[1].strip()):
+            parsed_row["effect"] = replace_br_with_space(effect)
+
+        return parsed_row
 
     def parse(self) -> dict | None:
         parsed_data = {}
         for row in self.table.data()[1:]:
-            parsed_row = self.parse_row(row)
-            name = parsed_row.get("name")
-            parsed_data[name] = parsed_row
+            name = parse_name_field(row[0])["name"]
+            parsed_data[name] = self.parse_row(row)
         return parsed_data
 
 
@@ -208,18 +239,21 @@ class SpellTableParser(WikiTableParser):
     @staticmethod
     def parse_row(row: list[str]) -> dict[str] | None:
         parsed_name = parse_name_field(row[0])
-        return {
-            "aliases": parsed_name.get("aliases"),
-            "category": parsed_name.get("category"),
-            "tier": row[1].strip(),
-            "effect": row[2].strip(),
-        }
+        parsed_row = {"tier": strip_ref_tags(replace_br_with_space(row[1].strip()))}
+        if aliases := parsed_name.get("aliases"):
+            parsed_row["aliases"] = aliases
+        if category := parsed_name.get("category"):
+            parsed_row["category"] = replace_br_with_space(category)
+        if effect := strip_ref_tags(row[2].strip()):
+            parsed_row["effect"] = replace_br_with_space(effect)
+
+        return parsed_row
 
     def parse(self) -> dict | None:
         parsed_data = {}
         for row in self.table.data()[1:]:
-            primary_name = parse_name_field(row[0])[0]
-            parsed_data[primary_name] = self.parse_row(row)
+            name = parse_name_field(row[0])["name"]
+            parsed_data[name] = self.parse_row(row)
         return parsed_data
 
 
@@ -239,17 +273,23 @@ class ArtifactListParser(WikiListParser):
             name = name.replace(ref_text, "")
 
         name, *aliases = slash_split(name)
-        return {
-            "name": name,
-            "aliases": aliases,
-        }
+
+        data = {"name": name}
+        if aliases:
+            data["aliases"] = aliases
+
+        return data
 
     def parse(self) -> dict | None:
         parsed_data = {}
         for item in self.wikilist.items:
-            parsed_name = self.parse_row([item])
-            parsed_data[parsed_name.get("name")] = {
-                "aliases": parsed_name.get("aliases")
-                # TODO wikibot: expand links for more data on artifacts with their own pages
-            }
+            parsed_row = parse_name_field(item)
+
+            name = parsed_row.get("name")
+            parsed_data[name] = {}
+
+            if aliases := parsed_row.get("aliases"):
+                parsed_data[name]["aliases"] = aliases
+
+            # TODO wikibot: expand links for more data on artifacts with their own pages
         return parsed_data

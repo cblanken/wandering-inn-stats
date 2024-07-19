@@ -19,7 +19,7 @@ def test_no_aliases():
                 "[https://wanderinginn.com/2019/11/12/6-56/ 6.56], [https://wanderinginn.com/2019/12/14/6-63-p/ 6.63 P]",
             ]
         )
-    ).get("aliases") == []
+    ).get("aliases") == None
 
 
 def test_aliases_delimited_by_forward_slash():
