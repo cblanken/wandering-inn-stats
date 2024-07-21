@@ -12,8 +12,6 @@ from .parse import (
 )
 from pywikibot.textlib import Section
 
-from IPython.core.debugger import set_trace
-
 
 def get_aliases(page: pwb.Page) -> list[str] | None:
     """Parse aliases from page"""

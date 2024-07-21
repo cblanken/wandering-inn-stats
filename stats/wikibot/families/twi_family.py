@@ -6,6 +6,7 @@ class Family(family.Family):
     langs = {
         "en": "wiki.wanderinginn.com",
     }
+    domain = "wiki.wanderinginn.com"
 
     def scriptpath(self, code):
         return ""

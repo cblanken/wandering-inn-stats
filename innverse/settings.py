@@ -231,6 +231,16 @@ LOGGING = {
     },
 }
 
+# Wiki Bot Configuration
+TWIKI_BOT_USER = env.get("PYWIKIBOT_USER")
+TWIKI_BOT_NAME = env.get("PYWIKIBOT_BOT_NAME")
+TWIKI_BOT_PASS = env.get("PYWIKIBOT_PASS")
+with open("user-password.py", "w", encoding="utf-8") as fp:
+    fp.write(
+        f"('en', 'twi', {TWIKI_BOT_USER}, BotPassword('{TWIKI_BOT_NAME}', '{TWIKI_BOT_PASS}'))"
+    )
+
+
 # Production
 TWI_PROD = env.get("TWI_PROD")
 PROD = TWI_PROD is not None and (TWI_PROD == "1" or TWI_PROD.lower() == "true")
