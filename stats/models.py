@@ -168,6 +168,11 @@ class RefType(models.Model):
         self.slug = slugify(self.name[:100], allow_unicode=True)
         super(RefType, self).save(*args, **kwargs)
 
+    def delete(self):
+        computed_cols = RefTypeComputedView.objects.filter(ref_type=self)
+        for row in computed_cols:
+            row.delete()
+
     def __str__(self):
         return f"(RefType: {self.name} - Type: {self.type})"
 
@@ -537,10 +542,17 @@ class RefTypeComputedView(models.Model):
     """
 
     ref_type = models.OneToOneField(
-        RefType, on_delete=models.CASCADE, primary_key=True, db_column="ref_type"
+        RefType, on_delete=models.DO_NOTHING, primary_key=True, db_column="ref_type"
     )
     mentions = models.PositiveIntegerField()
     # first_mention_chapter = models.ForeignKey(Chapter, on_delete=models.CASCADE)
+
+    def delete(self):
+        RefTypeComputedView.objects.raw(
+            "DELETE FROM reftype_computed_view INNER JOIN stats_reftype as sr ON ref_type = \
+                                        sr.id WHERE sr.name = %s AND sr.type = %s",
+            params=[self.ref_type.name, self.ref_type.type],
+        )
 
     class Meta:
         managed = False

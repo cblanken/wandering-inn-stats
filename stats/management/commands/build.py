@@ -34,6 +34,7 @@ from processing import (
 from stats.build_utils import (
     build_reftype_pattern,
     compile_textref_patterns,
+    confirm_field_with_edit,
     prompt,
     select_ref_type,
     select_ref_type_from_qs,
@@ -79,6 +80,12 @@ class Command(BaseCommand):
             "--skip-text-refs",
             action="store_true",
             help="Skip TextRef generation for each Chapter",
+        )
+        parser.add_argument(
+            "--skip-volumes",
+            action="store_true",
+            help="Skip Volume, Book, and Chapter building. NOTE: this option will automatically bypass all TextRef building \
+                as well, regardless of the setting for --skip-text-refs.",
         )
         parser.add_argument(
             "--skip-ref-chars",
@@ -543,29 +550,33 @@ class Command(BaseCommand):
         # if a chapter with the same chapter title or source_url already exists
         # the `number` parameter may change if new chapters are added earlier in the
         # ToC (like for rewrites) or if they are deleted/condensed
-        chapter, ref_type_updated = Chapter.objects.update_or_create(
-            number=chapter_num,
-            defaults={
-                "number": chapter_num,
-                "title": src_chapter.title,
-                "book": book,
-                "is_interlude": "interlude" in src_chapter.title.lower(),
-                "source_url": src_chapter.metadata.get("url", ""),
-                "post_date": dt.fromisoformat(
-                    src_chapter.metadata.get("pub_time", dt.now().isoformat())
-                ),
-                "last_update": dt.fromisoformat(
-                    src_chapter.metadata.get("mod_time", dt.now().isoformat())
-                ),
-                "download_date": dt.fromisoformat(
-                    src_chapter.metadata.get("dl_time", dt.now().isoformat())
-                ),
-                "word_count": src_chapter.metadata.get("word_count", 0),
-                "authors_note_word_count": src_chapter.metadata.get(
-                    "authors_note_word_count", 0
-                ),
-            },
-        )
+        try:
+            chapter, ref_type_updated = Chapter.objects.update_or_create(
+                title=src_chapter.title,
+                number=chapter_num,
+                defaults={
+                    "number": chapter_num,
+                    "title": src_chapter.title,
+                    "book": book,
+                    "is_interlude": "interlude" in src_chapter.title.lower(),
+                    "source_url": src_chapter.metadata.get("url", ""),
+                    "post_date": dt.fromisoformat(
+                        src_chapter.metadata.get("pub_time", dt.now().isoformat())
+                    ),
+                    "last_update": dt.fromisoformat(
+                        src_chapter.metadata.get("mod_time", dt.now().isoformat())
+                    ),
+                    "download_date": dt.fromisoformat(
+                        src_chapter.metadata.get("dl_time", dt.now().isoformat())
+                    ),
+                    "word_count": src_chapter.metadata.get("word_count", 0),
+                    "authors_note_word_count": src_chapter.metadata.get(
+                        "authors_note_word_count", 0
+                    ),
+                },
+            )
+        except IntegrityError:
+            return
 
         if ref_type_updated:
             self.stdout.write(self.style.SUCCESS(f"> Chapter created: {chapter}"))
@@ -983,20 +994,25 @@ class Command(BaseCommand):
         # Populate class types from wiki data
         self.stdout.write("\nPopulating class RefType(s)...")
         with open(path, encoding="utf-8") as file:
-            for line in file.readlines():
-                class_name = "[" + line.strip() + "]"
-                ref_type, ref_type_created = RefType.objects.get_or_create(
-                    name=class_name, type=RefType.CLASS
+            try:
+                class_data = json.load(file)
+            except json.JSONDecodeError:
+                self.stdout.write(
+                    self.style.ERROR(f"> [Class] data ({path}) could not be decoded")
                 )
-
-                if ref_type_created:
-                    self.stdout.write(self.style.SUCCESS(f"> {ref_type} created"))
-                else:
-                    self.stdout.write(
-                        self.style.WARNING(
-                            f"> Class RefType: {class_name} already exists. Skipping creation..."
-                        )
+                for class_name, v in class_data.items():
+                    ref_type, ref_type_created = RefType.objects.get_or_create(
+                        name=class_name, type=RefType.CLASS
                     )
+
+                    if ref_type_created:
+                        self.stdout.write(self.style.SUCCESS(f"> {ref_type} created"))
+                    else:
+                        self.stdout.write(
+                            self.style.WARNING(
+                                f"> Class RefType: {class_name} already exists. Skipping creation..."
+                            )
+                        )
 
     def build_locations(self, path: Path):
         self.stdout.write("\nPopulating locations RefType(s)...")
@@ -1005,43 +1021,49 @@ class Command(BaseCommand):
                 loc_data = json.load(file)
             except json.JSONDecodeError:
                 self.stdout.write(
-                    self.style.ERROR(f"> location data ({path}) could not be decoded")
+                    self.style.ERROR(f"> Location data ({path}) could not be decoded")
                 )
+                return
             else:
                 for loc_name, loc_data in loc_data.items():
-                    loc_url = loc_data["url"]
-                    ref_type, ref_type_created = RefType.objects.get_or_create(
-                        name=loc_name, type=RefType.LOCATION, description=loc_url
-                    )
-                    if ref_type_created:
-                        self.stdout.write(
-                            self.style.SUCCESS(
-                                f"> Location RefType: {loc_name} created"
-                            )
+                    try:
+                        loc_rt = RefType.objects.get(
+                            name=loc_name, type=RefType.LOCATION
                         )
-                    else:
                         self.stdout.write(
                             self.style.WARNING(
                                 f"> Location RefType: {loc_name} already exists. Skipping creation..."
                             )
                         )
-
-                    (
-                        new_location,
-                        new_location_created,
-                    ) = Location.objects.get_or_create(
-                        ref_type=ref_type,
-                        wiki_uri=loc_data.get("url"),
-                    )
-                    if new_location_created:
-                        self.stdout.write(
-                            self.style.SUCCESS(f"> Location data: {loc_name} created")
+                    except RefType.DoesNotExist:
+                        loc_name = confirm_field_with_edit(loc_name, "Location")
+                        loc_rt, loc_rt_created = RefType.objects.get_or_create(
+                            name=loc_name, type=RefType.LOCATION
                         )
-                    else:
+                        if loc_rt_created:
+                            self.stdout.write(
+                                self.style.SUCCESS(
+                                    f"> Location RefType: {loc_name} created"
+                                )
+                            )
+                        else:
+                            self.style.WARNING(
+                                f"> Location RefType: {loc_name} already exists. Skipping creation..."
+                            )
+
+                    try:
+                        loc = Location.objects.get_or_create(ref_type=loc_rt)
                         self.stdout.write(
                             self.style.WARNING(
-                                f"> Location data: {loc_name} already exists. Skipping creation..."
+                                f"> Location: {loc_name} already exists. Skipping creation..."
                             )
+                        )
+                    except Location.DoesNotExist:
+                        loc = Location.objects.create(ref_type=loc_rt)
+                        loc.wiki_uri = loc_data.get("url")
+                        loc.save()
+                        self.stdout.write(
+                            self.style.SUCCESS(f"> Location: {loc_name} created")
                         )
 
     def read_config_file(self, p: Path) -> list[str] | None:
@@ -1181,11 +1203,17 @@ class Command(BaseCommand):
                 return
 
             # Build volumes
+            if options.get("skip_volumes"):
+                return
+
             self.stdout.write("\nPopulating chapter data by volume...")
             vol_root = Path(options["data_path"], "volumes")
             meta_path = Path(vol_root)
-            if volumes_metadata := get_metadata(meta_path) is None:
-                raise CommandError(f"Unable to read volume metadata file. Exiting...")
+            volumes_metadata = get_metadata(meta_path)
+            if volumes_metadata is None:
+                raise CommandError(
+                    f"Unable to read top-level volumes metadata file. Exiting..."
+                )
 
             volumes = sorted(
                 list(volumes_metadata["volumes"].items()), key=lambda x: x[1]
@@ -1194,6 +1222,10 @@ class Command(BaseCommand):
             chapter_num = 0
             for vol_title, vol_num in volumes:
                 src_vol: SrcVolume = SrcVolume(Path(vol_root, vol_title))
+                if src_vol.metadata is None:
+                    raise CommandError(
+                        f"Unable to read volume ({vol_title}) metadata file. Exiting..."
+                    )
                 volume, ref_type_created = Volume.objects.get_or_create(
                     title=src_vol.title, number=vol_num
                 )
@@ -1209,6 +1241,10 @@ class Command(BaseCommand):
                 # Build books
                 for book_num, book_title in enumerate(src_vol.books):
                     src_book: SrcBook = SrcBook(Path(src_vol.path, book_title))
+                    if src_book.metadata is None:
+                        raise CommandError(
+                            f"Unable to read book ({book_title}) metadata file. Exiting..."
+                        )
                     book, book_created = Book.objects.get_or_create(
                         title=book_title, number=book_num, volume=volume
                     )

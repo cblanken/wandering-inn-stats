@@ -204,7 +204,7 @@ class Book:
         self.metadata = get_metadata(self.path)
         if self.metadata is None:
             return
-        self.title: str = self.metadata["title"]
+        self.title: str = self.metadata.get("title")
         self.chapters: list[str] = [
             x[0]
             for x in sorted(list(self.metadata["chapters"].items()), key=lambda x: x[1])

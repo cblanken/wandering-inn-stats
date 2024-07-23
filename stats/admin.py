@@ -79,6 +79,7 @@ class RefTypeComputedViewAdmin(admin.ModelAdmin):
     list_display = ["mentions", "ref_type"]
     list_filter = ["ref_type__type"]
     ordering = ["mentions"]
+    search_fields = ["ref_type__name"]
 
 
 # Organizational data

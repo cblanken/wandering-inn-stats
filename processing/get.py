@@ -1,4 +1,5 @@
 """Module to download every chapter from the links in the Wandering Inn Table of Contents"""
+
 from collections import OrderedDict
 from datetime import datetime
 from pathlib import Path
@@ -59,10 +60,14 @@ class Session:
     def get(
         self, url: str, timeout: int = 10, ignore_throttle: bool = False
     ) -> requests.Response | None:
+        """Perform a GET request to [url]"""
         resp = None
+        # Add jitter to throttle time
         throttle = random.uniform(0.5, 1.5) * self.__throttle
         if not ignore_throttle:
             while time.time() - self.__last_get < throttle:
+                # Note: the timing precision for the throttle should only be to 0.1
+                # Anything beyond that will be effectively ignored due to the sleep
                 time.sleep(0.1)
         self.__last_get = time.time()
         while self.__tries < self.__max_tries:

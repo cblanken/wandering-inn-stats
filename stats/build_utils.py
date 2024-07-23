@@ -306,3 +306,19 @@ def select_ref_type_from_qs(
     except EOFError as exc:
         print("")
         raise CommandError("Build interrupted with Ctrl-D (EOF).") from exc
+
+
+def confirm_field_with_edit(s: str, field_name: str) -> str:
+    while True:
+        resp = input(f"Edit{" " + field_name if field_name else " "}? (default={s}): ")
+        if resp.strip() == "":
+            return s
+
+        if s != resp:
+            confirm = input(f"Are you sure? (y/n): ")
+            if regex.match(r"^[Yy][e]?[s]?$", confirm):
+                return resp
+            else:
+                continue
+        else:
+            return s

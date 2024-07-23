@@ -1,4 +1,5 @@
 """Download command for wanderinginn.com"""
+
 import json
 from pathlib import Path
 import random
@@ -195,7 +196,7 @@ class Command(BaseCommand):
             self.stdout.write(self.style.WARNING(f"Could not find {exc}"))
             return
 
-        #  #Download chapter
+        # Download chapter
         chapter_path.mkdir(parents=True, exist_ok=True)
         src_path = Path(chapter_path, f"{chapter_title}.html")
         txt_path = Path(chapter_path, f"{chapter_title}.txt")
