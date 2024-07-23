@@ -168,12 +168,19 @@ class CharInfoBoxParser(WikiTemplateParser):
         if species is not None:
             species = mwp.parse(self.params["species"]).strip_code()
 
-        parsed_data = {
-            "aliases": aliases,
-            "first_hrefs": first_hrefs,
-            "species": species,
-            "status": status,
-        }
+        parsed_data = {}
+
+        if aliases:
+            parsed_data["aliases"] = aliases
+
+        if first_hrefs:
+            parsed_data["first_hrefs"] = first_hrefs
+
+        if species:
+            parsed_data["species"] = species
+
+        if status:
+            parsed_data["status"] = status
 
         return parsed_data
 

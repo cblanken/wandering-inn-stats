@@ -4,9 +4,10 @@ from datetime import datetime
 from pathlib import Path
 from itertools import chain
 import hashlib
-from sys import stderr
+import random
 import re
 import string
+from sys import stderr
 import time
 from bs4 import BeautifulSoup, ResultSet, Tag
 import requests
@@ -31,23 +32,39 @@ def remove_bracketed_ref_number(s: str) -> str:
         return s
 
 
-class TorSession:
+class Session:
     """Session object to download webpages via requests
     Also handles cycling Tor connections to prevent IP bans
     """
 
     def __init__(
-        self, proxy_ip: str = "127.0.0.1", proxy_port: int = 9050, max_tries: int = 10
+        self,
+        proxy_ip: str = "127.0.0.1",
+        proxy_port: int = 9050,
+        max_tries: int = 10,
+        tor_enabled: bool = False,
+        throttle: float = 2.0,
     ):
-        print("> Connecting to Tor session...")
+        print("> Connecting to session...")
         self.__session = requests.session()
         self.__proxy_port = proxy_port
-        self.set_tor_proxy(proxy_ip)
         self.__tries = 0  # resets after a sucessful chapter download
         self.__max_tries = max_tries
+        self.__tor_enabled = tor_enabled
+        self.__throttle = throttle
+        self.__last_get = 0
+        if tor_enabled:
+            self.set_tor_proxy(proxy_ip)
 
-    def get(self, url, timeout=10) -> requests.Response:
+    def get(
+        self, url: str, timeout: int = 10, ignore_throttle: bool = False
+    ) -> requests.Response | None:
         resp = None
+        throttle = random.uniform(0.5, 1.5) * self.__throttle
+        if not ignore_throttle:
+            while time.time() - self.__last_get < throttle:
+                time.sleep(0.1)
+        self.__last_get = time.time()
         while self.__tries < self.__max_tries:
             resp = self.__session.get(
                 url=url,
@@ -57,7 +74,8 @@ class TorSession:
             )
             if resp.status_code >= 400 and resp.status_code <= 499:
                 self.__tries += 1
-                self.get_new_tor_circuit()
+                if self.__tor_enabled:
+                    self.get_new_tor_circuit()
             else:
                 self.__tries = 0
                 return resp
@@ -397,11 +415,11 @@ def save_file(filepath: Path, text: str, clobber: bool = False):
 class TableOfContents:
     """Table of Contents scraper to query for any needed info"""
 
-    def __init__(self, session: TorSession | None = None):
+    def __init__(self, session: Session | None = None):
         self.domain: str = "www.wanderinginn.com"
         self.url: str = f"https://{self.domain}/table-of-contents"
         if session:
-            assert isinstance(session, TorSession)
+            assert isinstance(session, Session)
             self.response = session.get(self.url)
         else:
             self.response = requests.get(self.url, timeout=10)

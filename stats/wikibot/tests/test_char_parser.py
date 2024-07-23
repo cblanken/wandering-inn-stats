@@ -18,7 +18,7 @@ def test_infobox_single_alias():
 
 def test_infobox_no_aliases():
     """Parses infobox without any aliases into an empty list"""
-    assert CharInfoBoxParser(["aliases="], site).parse().get("aliases") == []
+    assert CharInfoBoxParser(["aliases="], site).parse().get("aliases") == None
 
 
 def test_infobox_Bird_aliases():

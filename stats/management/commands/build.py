@@ -240,7 +240,6 @@ class Command(BaseCommand):
             # Check for alternate forms of RefType (titlecase, pluralized, gendered, etc.)
             ref_name = text_ref.text[1:-1] if text_ref.is_bracketed else text_ref.text
 
-            # TODO: ref_name is string?
             candidates = [text_ref.text.title()]
             singular_ref_type_qs = None
             if ref_name.endswith("s"):
@@ -305,8 +304,7 @@ class Command(BaseCommand):
                     )
                 return alias.ref_type
 
-            # Could not find existing RefType or Alias or alternate form so
-            # intialize type for new RefType
+            # Could not find existing RefType or Alias or alternate form so intialize type for new RefType
 
             # Check for [Skill] or [Class] acquisition messages
             skill_obtained_pattern = regex.compile(
@@ -940,17 +938,17 @@ class Command(BaseCommand):
                                 Alias.objects.create(name=alias_name, ref_type=ref_type)
 
                     try:
-                        first_href = char_data.get("first_href")
-                        if first_href is not None:
+                        if first_hrefs := char_data.get("first_hrefs") is not None:
                             try:
-                                endpoint = first_href.split(".com")[1]
+                                # TODO: handle multiple 'first hrefs' e.g. before and after rewrite
+                                endpoint = first_hrefs[0].split(".com")[1]
                             except IndexError:
                                 # Failed to split URL on `.com` meaning the href was likely
                                 # a relative link to another wiki page
                                 first_ref = None
                             else:
                                 first_ref = Chapter.objects.get(
-                                    # Account for existance or lack of "/" at end of the URI
+                                    # Account for existence or lack of "/" at end of the URI
                                     Q(source_url__contains=endpoint)
                                     | Q(source_url__contains=endpoint + "/")
                                     | Q(source_url__contains=endpoint[:-1])
@@ -1157,8 +1155,7 @@ class Command(BaseCommand):
                 self.build_locations(Path(options["data_path"], "locations.json"))
 
             # Setup custom reference list override if provided
-            custom_refs_path = options.get("custom_refs")
-            if custom_refs_path is not None:
+            if custom_refs_path := options.get("custom_refs") is not None:
                 self.stdout.write(
                     f'Loading custom references config file "{custom_refs_path}"'
                 )
@@ -1166,13 +1163,11 @@ class Command(BaseCommand):
                     custom_refs_path
                 )
 
-            chapter_id = options.get("chapter_id")
-            if chapter_id is not None:
+            if chapter_id := options.get("chapter_id") is not None:
                 self.build_chapter_by_id(options, chapter_id)
                 return
 
-            chapter_id_range = options.get("chapter_id_range")
-            if chapter_id_range is not None:
+            if chapter_id_range := options.get("chapter_id_range") is not None:
                 try:
                     start, end = [int(x) for x in chapter_id_range.split(",")]
                 except ValueError as exc:
@@ -1189,7 +1184,9 @@ class Command(BaseCommand):
             self.stdout.write("\nPopulating chapter data by volume...")
             vol_root = Path(options["data_path"], "volumes")
             meta_path = Path(vol_root)
-            volumes_metadata = get_metadata(meta_path)
+            if volumes_metadata := get_metadata(meta_path) is None:
+                raise CommandError(f"Unable to read volume metadata file. Exiting...")
+
             volumes = sorted(
                 list(volumes_metadata["volumes"].items()), key=lambda x: x[1]
             )

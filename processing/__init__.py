@@ -93,7 +93,7 @@ def get_metadata(path: Path, filename: str = "metadata.json") -> dict | None:
         print(f'Metadata file at "{path}" could not be decoded.', file=sys.stderr)
         print("Check for syntax errors.", exc, file=sys.stderr)
         return None
-    except ValueError as exc:
+    except (ValueError, FileNotFoundError) as exc:
         print(f'Metadata file at "{path}" could not be found.', exc, file=sys.stderr)
         return None
 

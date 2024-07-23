@@ -10,7 +10,7 @@ from processing import get
 class Command(BaseCommand):
     help = "Download Wandering Inn data including volumes, books, chapters, characters etc."
     last_download: float = 0.0
-    tor_session = get.TorSession()
+    session = get.Session()
 
     def add_arguments(self, parser):
         parser.add_argument("volume", nargs="?", type=str, help="Volume to download")
@@ -109,7 +109,7 @@ class Command(BaseCommand):
         # Get class info
         if options.get("classes"):
             self.stdout.write("Downloading class information...")
-            classes = self.tor_session.get_class_list()
+            classes = self.session.get_class_list()
 
             class_data_path = Path(root_path, "classes.txt")
             self.save_file(
@@ -123,7 +123,7 @@ class Command(BaseCommand):
         # Get skill info
         if options.get("skills"):
             self.stdout.write("Downloading skill information...")
-            skills = self.tor_session.get_skill_list()
+            skills = self.session.get_skill_list()
 
             skill_data_path = Path(root_path, "skills.txt")
             self.save_file(
@@ -137,7 +137,7 @@ class Command(BaseCommand):
         # Get spell info
         if options.get("spells"):
             self.stdout.write("Downloading spell information...")
-            spells = self.tor_session.get_spell_list()
+            spells = self.session.get_spell_list()
 
             spell_data_path = Path(root_path, "spells.txt")
             self.save_file(
@@ -151,7 +151,7 @@ class Command(BaseCommand):
         # Get location info
         if options.get("locs"):
             self.stdout.write("Downloading location information...")
-            locs_by_alpha = self.tor_session.get_all_locations_by_alpha()
+            locs_by_alpha = self.session.get_all_locations_by_alpha()
             data = {}
             for locs in locs_by_alpha.values():
                 for loc in locs.items():
@@ -169,7 +169,7 @@ class Command(BaseCommand):
         # Get character info
         if options.get("chars"):
             self.stdout.write("Downloading character information...")
-            data = self.tor_session.get_all_character_data()
+            data = self.session.get_all_character_data()
 
             char_data_path = Path(root_path, "characters.json")
             self.save_file(
@@ -195,14 +195,7 @@ class Command(BaseCommand):
             self.stdout.write(self.style.WARNING(f"Could not find {exc}"))
             return
 
-        # Throttle chapter downloads
-        delay = options.get("request_delay")
-        if options.get("jitter"):
-            delay *= random.uniform(0.5, 1.5)
-        while time.time() < self.last_download + delay:
-            time.sleep(0.1)
-
-        # Download chapter
+        #  #Download chapter
         chapter_path.mkdir(parents=True, exist_ok=True)
         src_path = Path(chapter_path, f"{chapter_title}.html")
         txt_path = Path(chapter_path, f"{chapter_title}.txt")
@@ -223,11 +216,11 @@ class Command(BaseCommand):
             return
 
         self.stdout.write(f"Downloading {chapter_href}")
-        chapter_response = self.tor_session.get(chapter_href)
+        chapter_response = self.session.get(chapter_href)
         if chapter_response is None:
             self.stdout.write(self.style.WARNING("! Chapter could not be downloaded!"))
             self.stdout.write(f"Skipping download for {chapter_title} → {chapter_href}")
-            self.tor_session.reset_tries()
+            self.session.reset_tries()
             return
 
         data = get.parse_chapter(chapter_response)
@@ -333,7 +326,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options) -> None:
         # TODO: fix Keyboard Exception not working
-        toc = get.TableOfContents(self.tor_session)
+        toc = get.TableOfContents(self.session)
         if len(toc.volume_data) == 0:
             self.stdout.write(
                 self.style.WARNING(
