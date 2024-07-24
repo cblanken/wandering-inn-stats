@@ -27,7 +27,7 @@ def parse_list(text: str) -> list[str]:
 
 
 def slash_split(text: str) -> list[str]:
-    return [x.strip() for x in re.split(r"[\s]/[\s]", text)]
+    return [x.strip() for x in re.split(r"\s?/\s?", text)]
 
 
 def remove_list_delimiters(s: str) -> str:
@@ -48,7 +48,7 @@ def replace_br_with_space(text: str) -> str:
     return re.sub(re.compile(r"<br[ ]?/>"), " ", text)
 
 
-def parse_name_field(text: str) -> dict[str, str] | None:
+def parse_name_field(text: str, wrap_brackets=False) -> dict[str, str] | None:
     """
     Parse name field from tables and split aliases and categories
     Returns data in the form of:
@@ -72,10 +72,11 @@ def parse_name_field(text: str) -> dict[str, str] | None:
             # text = re.sub(RE_PARENS_MATCH, "", text)
             text = text.replace("(" + category + ")", "")
 
-        text = strip_ref_tags(text)
-
         # Split line breaks <br> and <br/> or newlines '\n'
         lines = re.split(RE_LINEBREAK, text)
+
+        # Strip tags
+        lines = [mwp.parse(l).strip_code() for l in lines]
 
         # Remove any leftover delimiters
         lines = [remove_list_delimiters(x) if "/" in x[:2] else x for x in lines]
@@ -85,6 +86,13 @@ def parse_name_field(text: str) -> dict[str, str] | None:
 
         # Remove wiki code including [[Links]] and empty names
         names = [mwp.parse(n).strip_code() for n in names if len(n) > 0]
+
+        # Remove brackets
+        names = [n.replace("[", "").replace("]", "") for n in names]
+
+        # Wrap names in brackets if needed
+        if wrap_brackets:
+            names = [f"[{n}]" for n in names]
 
         try:
             name = names[0]
@@ -191,15 +199,20 @@ class ClassesTableParser(WikiTableParser):
 
     @staticmethod
     def parse_row(row: list[str]) -> dict[str] | None:
-        parsed_name = parse_name_field(row[0])
+        parsed_name = parse_name_field(row[0], wrap_brackets=True)
         parsed_row = {"type": row[2], "details": wtp.remove_markup(row[3])}
+
+        if aliases := parsed_name.get("aliases"):
+            parsed_row["aliases"] = aliases
+
+        if re.search(r"\s*\.\.\.\s*\]?\s*$", parsed_name.get("name")):
+            parsed_row["is_prefix"] = True
+
         links = [
             wl.title
             for wl in chain.from_iterable([wtp.parse(col).wikilinks for col in row])
         ]
 
-        if aliases := parsed_name.get("aliases"):
-            parsed_row["aliases"] = aliases
         if links:
             parsed_row["links_to"] = links
 
@@ -209,7 +222,7 @@ class ClassesTableParser(WikiTableParser):
         parsed_data = {}
         for row in self.table.data()[1:]:
             parsed_row = self.parse_row(row)
-            name = parse_name_field(row[0])["name"]
+            name = parse_name_field(row[0], wrap_brackets=True)["name"]
             parsed_data[name] = parsed_row
         return parsed_data
 
@@ -220,7 +233,7 @@ class SkillTableParser(WikiTableParser):
 
     @staticmethod
     def parse_row(row: list[str]) -> dict[str] | None:
-        parsed_name = parse_name_field(row[0])
+        parsed_name = parse_name_field(row[0], wrap_brackets=True)
         parsed_row = {}
         if aliases := parsed_name.get("aliases"):
             parsed_row["aliases"] = aliases
@@ -234,7 +247,7 @@ class SkillTableParser(WikiTableParser):
     def parse(self) -> dict | None:
         parsed_data = {}
         for row in self.table.data()[1:]:
-            name = parse_name_field(row[0])["name"]
+            name = parse_name_field(row[0], wrap_brackets=True)["name"]
             parsed_data[name] = self.parse_row(row)
         return parsed_data
 
@@ -245,7 +258,7 @@ class SpellTableParser(WikiTableParser):
 
     @staticmethod
     def parse_row(row: list[str]) -> dict[str] | None:
-        parsed_name = parse_name_field(row[0])
+        parsed_name = parse_name_field(row[0], wrap_brackets=True)
         parsed_row = {"tier": strip_ref_tags(replace_br_with_space(row[1].strip()))}
         if aliases := parsed_name.get("aliases"):
             parsed_row["aliases"] = aliases
@@ -259,7 +272,7 @@ class SpellTableParser(WikiTableParser):
     def parse(self) -> dict | None:
         parsed_data = {}
         for row in self.table.data()[1:]:
-            name = parse_name_field(row[0])["name"]
+            name = parse_name_field(row[0], wrap_brackets=True)["name"]
             parsed_data[name] = self.parse_row(row)
         return parsed_data
 

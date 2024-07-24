@@ -1,10 +1,13 @@
 """Utility functions and classes for build script"""
 
+import asyncio
+from asyncio.subprocess import PIPE, STDOUT
 from enum import Enum
 from pathlib import Path
 from pprint import pformat
-from subprocess import run, TimeoutExpired
-from typing import Iterable
+from subprocess import Popen, TimeoutExpired
+import time
+from typing import Iterable, Literal
 import regex
 from django.core.management.base import CommandError
 from django.db.models.query import QuerySet
@@ -202,7 +205,7 @@ COLORS: list[Color] = [
 ]
 
 
-def match_ref_type(type_str) -> str | None:
+def match_ref_type(type_str: str) -> Literal[2] | None:
     try:
         matches = list(
             filter(lambda rt: rt[0] == type_str.strip()[:2].upper(), RefType.TYPES)
@@ -220,17 +223,22 @@ def match_ref_type(type_str) -> str | None:
         return None
 
 
+def play_sound():
+    sound_path = Path("stats/sounds/alert.mp3")
+    try:
+        proc = Popen(["/usr/bin/mpg123", "-q", sound_path])
+    except OSError as e:
+        print(f"! - Alert sound file {sound_path} could not be played. {e}")
+    except TimeoutExpired:
+        print("! - Alert sound player timed out")
+
+
 def prompt(s: str = "", sound: bool = False) -> str:
     if sound:
-        sound_filepath = Path("stats/sounds/alert.mp3")
-        try:
-            run(["mpg123", "-q", sound_filepath], timeout=1.5)
-        except OSError as e:
-            print(f"! - Alert sound file {sound_filepath} could not be played. {e}")
-        except TimeoutExpired:
-            print("! - Alert sound player timed out")
+        play_sound()
 
-    return input(s)
+    resp = input(s)
+    return resp
 
 
 def select_ref_type(sound: bool = False) -> str | None:
@@ -306,19 +314,3 @@ def select_ref_type_from_qs(
     except EOFError as exc:
         print("")
         raise CommandError("Build interrupted with Ctrl-D (EOF).") from exc
-
-
-def confirm_field_with_edit(s: str, field_name: str) -> str:
-    while True:
-        resp = input(f"Edit{" " + field_name if field_name else " "}? (default={s}): ")
-        if resp.strip() == "":
-            return s
-
-        if s != resp:
-            confirm = input(f"Are you sure? (y/n): ")
-            if regex.match(r"^[Yy][e]?[s]?$", confirm):
-                return resp
-            else:
-                continue
-        else:
-            return s

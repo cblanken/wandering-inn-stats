@@ -1,9 +1,12 @@
-from datetime import datetime as dt
+import asyncio
+import datetime as dt
+from enum import Enum
 from glob import glob
 import itertools
 import json
 from pathlib import Path
 import regex
+from typing import Literal
 from django.core.management.base import BaseCommand, CommandError
 from django.db.models import Q
 from django.db.models.query import QuerySet
@@ -34,7 +37,6 @@ from processing import (
 from stats.build_utils import (
     build_reftype_pattern,
     compile_textref_patterns,
-    confirm_field_with_edit,
     prompt,
     select_ref_type,
     select_ref_type_from_qs,
@@ -43,10 +45,26 @@ from stats.build_utils import (
 )
 
 
+class LogCat(Enum):
+    """Log categories for log message prefixes
+    - `EXISTS`  RefTypes, Aliases, TextRefs etc. that already exist
+    - `NEW`     Operations that successfully created a new model instance
+    - `PREFIX`  RefType items that exist as prefixes usually with a trailing "..."
+    - `PROMPT`  user prompts
+    """
+
+    EXISTS = "[exists]"
+    CREATED = "[new]"
+    PREFIX = "[prefix]"
+    PROMPT = "[prompt]"
+    ERROR = "[error]"
+
+
 class Command(BaseCommand):
     """Database build command"""
 
     help = "Update database from chapter source HTML and other metadata files"
+    prompt_sound: bool = False
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -173,8 +191,78 @@ class Command(BaseCommand):
             help="Limit parsing to a range of chapter lines",
         )
 
-    def get_or_create_ref_type(self, options, text_ref: SrcTextRef) -> RefType | None:
-        """Check for existing RefType of TextRef and create if necessary"""
+    def log(self, msg: str, category: LogCat):
+        t = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+        self.stdout.write(f"{t} {category.value} {msg}")
+
+    def edit_field(self, s: str, field_name: str = None) -> str | None:
+        """Prompt user to edit given input string [s] or accept the default."""
+        self.log("", LogCat.PROMPT)
+        while True:
+            # try:
+            # resp: str = self.loop.run_until_complete(prompt(f"> Edit{" " + field_name if field_name else " "}? (default={s}): ", sound=self.prompt_sound))
+            resp: str = prompt(
+                f"> Edit{" " + field_name if field_name else " "}? (default={s}): ",
+                sound=self.prompt_sound,
+            )
+            if resp.strip() == "":
+                return s
+
+            if s != resp:
+                confirm = input(f"> Are you sure? (y/n): ")
+                if regex.match(r"^[Yy][e]?[s]?$", confirm):
+                    return resp
+                else:
+                    continue
+            else:
+                return s
+            # except Exception as exc:
+            #     self.stdout.write(f"An error occurred: {exc}")
+            #     self.stdout.write(f"")
+
+            #     confirm = input(f"Would you like to try again? (y/n): ")
+            #     if not regex.match(r"^[Yy][e]?[s]?$", confirm):
+            #         break
+
+    def create_alias(self, rt: RefType, alias_name: str) -> Alias | None:
+        """Create Alias with name confirmation and logging of success/failure to console"""
+        try:
+            alias = Alias.objects.get(name=alias_name)
+            self.log(
+                f'Alias: "{alias_name}" already exists for Reftype "{rt.name}"',
+                LogCat.EXISTS,
+            )
+        except Alias.DoesNotExist:
+            alias_name = asyncio.run(self.edit_field(alias_name, "Alias name"))
+            self.log(
+                self.style.SUCCESS(
+                    f'Alias: "{alias_name}" to RefType "{rt.name}" created'
+                ),
+                LogCat.CREATED,
+            )
+            alias = Alias.objects.create(name=alias_name, ref_type=rt)
+
+        return alias
+
+    def create_reftype(self, rt_name: str, rt_type: Literal[2]) -> RefType | None:
+        """Create RefType with name confirmation and logging of success/failure to console"""
+        try:
+            rt = RefType.objects.get(name=rt_name, type=rt_type)
+            self.log(f'RefType: "{rt_name}" already exists', LogCat.EXISTS)
+        except RefType.DoesNotExist:
+            rt_name = self.edit_field(rt_name, "RefType name")
+            rt, rt_created = RefType.objects.get_or_create(name=rt_name, type=rt_type)
+            if rt_created:
+                self.log(self.style.SUCCESS(f"> {rt} created"), LogCat.CREATED)
+            else:
+                self.log(f'RefType: "{rt_name}" already exists', LogCat.EXISTS)
+        finally:
+            return rt
+
+    def get_or_create_ref_type_from_text_ref(
+        self, options, text_ref: SrcTextRef
+    ) -> RefType | None:
+        """Check for existing RefType of TextRef and create backing RefType and Aliases as needed"""
         text_ref.text = strip_tags(text_ref.text)
         while True:  # loop for retries from select RefType prompt
             # Ensure textref did not detect a innocuous word from the disambiguation list
@@ -560,14 +648,20 @@ class Command(BaseCommand):
                     "book": book,
                     "is_interlude": "interlude" in src_chapter.title.lower(),
                     "source_url": src_chapter.metadata.get("url", ""),
-                    "post_date": dt.fromisoformat(
-                        src_chapter.metadata.get("pub_time", dt.now().isoformat())
+                    "post_date": dt.datetime.fromisoformat(
+                        src_chapter.metadata.get(
+                            "pub_time", dt.datetime.now().isoformat()
+                        )
                     ),
-                    "last_update": dt.fromisoformat(
-                        src_chapter.metadata.get("mod_time", dt.now().isoformat())
+                    "last_update": dt.datetime.fromisoformat(
+                        src_chapter.metadata.get(
+                            "mod_time", dt.datetime.now().isoformat()
+                        )
                     ),
-                    "download_date": dt.fromisoformat(
-                        src_chapter.metadata.get("dl_time", dt.now().isoformat())
+                    "download_date": dt.datetime.fromisoformat(
+                        src_chapter.metadata.get(
+                            "dl_time", dt.datetime.now().isoformat()
+                        )
                     ),
                     "word_count": src_chapter.metadata.get("word_count", 0),
                     "authors_note_word_count": src_chapter.metadata.get(
@@ -700,7 +794,9 @@ class Command(BaseCommand):
                     )
                     continue
                 except TextRef.DoesNotExist:
-                    ref_type = self.get_or_create_ref_type(options, text_ref)
+                    ref_type = self.get_or_create_ref_type_from_text_ref(
+                        options, text_ref
+                    )
 
                     # RefType creation could not complete or was skipped
                     if ref_type is None:
@@ -814,35 +910,45 @@ class Command(BaseCommand):
     def build_skills(self, path: Path):
         self.stdout.write("\nPopulating spell RefType(s)...")
         with open(path, encoding="utf-8") as file:
-            for line in file.readlines():
-                skill, *aliases = ["[" + name + "]" for name in line.strip().split("|")]
-
-                ref_type, ref_type_created = RefType.objects.get_or_create(
-                    name=skill, type=RefType.SKILL
+            try:
+                skill_data = json.load(file)
+            except json.JSONDecodeError:
+                self.stdout.write(
+                    self.style.ERROR(f"> [Skill] data ({path}) could not be decoded")
                 )
-                if ref_type_created:
-                    self.stdout.write(self.style.SUCCESS(f"> {ref_type} created"))
-                else:
-                    self.stdout.write(
-                        self.style.WARNING(
-                            f"> Skill RefType: {skill} already exists. Skipping creation..."
-                        )
-                    )
+            else:
+                for skill_name, values in skill_data.items():
+                    # skill, *aliases = ["[" + name + "]" for name in line.strip().split("|")]
 
-                for alias_name in aliases:
-                    new_alias, new_alias_created = Alias.objects.get_or_create(
-                        name=alias_name, ref_type=ref_type
+                    ref_type, ref_type_created = RefType.objects.get_or_create(
+                        name=skill_name, type=RefType.SKILL
                     )
-                    if new_alias_created:
-                        self.stdout.write(
-                            self.style.SUCCESS(f"> Alias: {alias_name} created")
-                        )
+                    if ref_type_created:
+                        self.stdout.write(self.style.SUCCESS(f"> {ref_type} created"))
                     else:
                         self.stdout.write(
                             self.style.WARNING(
-                                f"> Alias: {alias_name} already exists. Skipping creation..."
+                                f"> Skill RefType: {skill_name} already exists. Skipping creation..."
                             )
                         )
+
+                    class_name = self.edit_field(class_name, "Skill")
+
+                    if aliases := values.get("aliases"):
+                        for alias_name in aliases:
+                            new_alias, new_alias_created = Alias.objects.get_or_create(
+                                name=alias_name, ref_type=ref_type
+                            )
+                            if new_alias_created:
+                                self.stdout.write(
+                                    self.style.SUCCESS(f"> Alias: {alias_name} created")
+                                )
+                            else:
+                                self.stdout.write(
+                                    self.style.WARNING(
+                                        f"> Alias: {alias_name} already exists. Skipping creation..."
+                                    )
+                                )
 
     def build_characters(self, path: Path):
         # Populate characters from wiki data
@@ -997,22 +1103,29 @@ class Command(BaseCommand):
             try:
                 class_data = json.load(file)
             except json.JSONDecodeError:
-                self.stdout.write(
+                self.log(
                     self.style.ERROR(f"> [Class] data ({path}) could not be decoded")
                 )
-                for class_name, v in class_data.items():
-                    ref_type, ref_type_created = RefType.objects.get_or_create(
-                        name=class_name, type=RefType.CLASS
-                    )
+            else:
+                for class_name, values in class_data.items():
+                    if values.get("is_prefix"):
+                        self.log(f'RefType: "{class_name}" is a prefix', LogCat.PREFIX)
+                        continue
 
-                    if ref_type_created:
-                        self.stdout.write(self.style.SUCCESS(f"> {ref_type} created"))
-                    else:
-                        self.stdout.write(
-                            self.style.WARNING(
-                                f"> Class RefType: {class_name} already exists. Skipping creation..."
-                            )
+                    ref_type = self.create_reftype(class_name, RefType.CLASS)
+
+                    if ref_type is None:
+                        self.log(
+                            self.style.ERROR(
+                                f"Unable to create RefType for {class_name}. Skipping aliases..."
+                            ),
+                            LogCat.ERROR,
                         )
+                        continue
+
+                    if aliases := values.get("aliases"):
+                        for alias_name in aliases:
+                            self.create_alias(ref_type, alias_name)
 
     def build_locations(self, path: Path):
         self.stdout.write("\nPopulating locations RefType(s)...")
@@ -1026,44 +1139,27 @@ class Command(BaseCommand):
                 return
             else:
                 for loc_name, loc_data in loc_data.items():
-                    try:
-                        loc_rt = RefType.objects.get(
-                            name=loc_name, type=RefType.LOCATION
-                        )
-                        self.stdout.write(
-                            self.style.WARNING(
-                                f"> Location RefType: {loc_name} already exists. Skipping creation..."
+                    loc_rt = self.create_reftype(loc_name, RefType.LOCATION)
+                    if loc_rt is None:
+                        self.log(
+                            self.style.ERROR(
+                                f"Unable to create RefType for {loc_name}. Skipping aliases..."
                             )
                         )
-                    except RefType.DoesNotExist:
-                        loc_name = confirm_field_with_edit(loc_name, "Location")
-                        loc_rt, loc_rt_created = RefType.objects.get_or_create(
-                            name=loc_name, type=RefType.LOCATION
-                        )
-                        if loc_rt_created:
-                            self.stdout.write(
-                                self.style.SUCCESS(
-                                    f"> Location RefType: {loc_name} created"
-                                )
-                            )
-                        else:
-                            self.style.WARNING(
-                                f"> Location RefType: {loc_name} already exists. Skipping creation..."
-                            )
+                        continue
 
                     try:
                         loc = Location.objects.get_or_create(ref_type=loc_rt)
-                        self.stdout.write(
-                            self.style.WARNING(
-                                f"> Location: {loc_name} already exists. Skipping creation..."
-                            )
+                        self.log(
+                            f'Location: "{loc_rt.name}" already exists', LogCat.EXISTS
                         )
                     except Location.DoesNotExist:
                         loc = Location.objects.create(ref_type=loc_rt)
                         loc.wiki_uri = loc_data.get("url")
                         loc.save()
-                        self.stdout.write(
-                            self.style.SUCCESS(f"> Location: {loc_name} created")
+                        self.log(
+                            self.style.SUCCESS(f'Location: "{loc_rt.name}" created'),
+                            LogCat.CREATED,
                         )
 
     def read_config_file(self, p: Path) -> list[str] | None:
@@ -1138,6 +1234,7 @@ class Command(BaseCommand):
             ) from e
 
     def handle(self, *args, **options) -> None:
+        self.prompt_sound = options.get("prompt_sound")
         try:
             if options.get("skip_wiki_all"):
                 options["skip_wiki_chars"] = True
@@ -1168,11 +1265,11 @@ class Command(BaseCommand):
             if not options.get("skip_wiki_spells"):
                 self.build_spells(Path(options["data_path"], "spells.txt"))
             if not options.get("skip_wiki_skills"):
-                self.build_skills(Path(options["data_path"], "skills.txt"))
+                self.build_skills(Path(options["data_path"], "skills.json"))
             if not options.get("skip_wiki_chars"):
                 self.build_characters(Path(options["data_path"], "characters.json"))
             if not options.get("skip_wiki_classes"):
-                self.build_classes(Path(options["data_path"], "classes.txt"))
+                self.build_classes(Path(options["data_path"], "classes.json"))
             if not options.get("skip_wiki_locs"):
                 self.build_locations(Path(options["data_path"], "locations.json"))
 

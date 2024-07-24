@@ -3,6 +3,27 @@ from stats.wikibot.parse import ClassesTableParser
 
 
 """
+Name
+"""
+
+
+def test_name_with_nowiki():
+    """Parses name with <nowiki> tags"""
+    assert (
+        ClassesTableParser.parse_row(
+            [
+                "<nowiki>[</nowiki>[[Beast Tamers|Beast Tamer]]<nowiki>]</nowiki>",
+                "[[Laken]], [[:Category:Beast Tamers|...]]",
+                "creature-control class",
+                "basic entry",
+                "[https://wanderinginn.com/2017/06/14/2-03-g/ 2.36 G], [https://wanderinginn.com/2020/09/02/7-43-g/ 7.43 G]",
+            ]
+        )
+    ).get("aliases") == None
+
+
+"""
+
 Aliases
 """
 
@@ -35,3 +56,53 @@ def test_aliases_delimited_by_forward_slash():
             ]
         )
     ).get("aliases") == ["[Camerawoman]", "[Camera Gnoll]"]
+
+
+def test_aliases_delimited_by_forward_slash_no_surrounding_space():
+    """Parses aliases properly when delimited by a forward '/' and whitespace"""
+    assert (
+        ClassesTableParser.parse_row(
+            [
+                "[Autumn Knight]/[Knight of Autumn]",
+                "[[Venoriat]], [[Ilm]]",
+                "combat class, melee",
+                "specialized [Knight]",
+                "[https://wanderinginn.com/2019/09/07/6-42-e/ 6.42 E], [https://wanderinginn.com/2021/05/30/8-24/ 8.24]",
+            ]
+        )
+    ).get("aliases") == ["[Knight of Autumn]"]
+
+
+"""
+Prefix
+"""
+
+
+def test_class_prefix_with_space():
+    """Parses [Classes] with prefix indicator '...'"""
+    assert (
+        ClassesTableParser.parse_row(
+            [
+                "[Acting ...]",
+                "Louseg",
+                "class attribute",
+                "denotes a promotion from necessity; reported for [Admiral], [Captain]",
+                "[https://wanderinginn.com/2023/03/29/interlude-the-spitoon/ 9.Spitoon]",
+            ]
+        )
+    ).get("is_prefix") == True
+
+
+def test_class_prefix_no_space():
+    """Parses [Classes] with prefix indicator '...'"""
+    assert (
+        ClassesTableParser.parse_row(
+            [
+                "[Vice...]",
+                "[[Barnethei]]",
+                "class attribute",
+                "class attribute for those working directly below another of the same or derived class. Reported with [Guildmasters], [Innkeepers], [Innkeepers of Spells]",
+                "[https://wanderinginn.com/2022/06/28/9-03/ 9.03], [https://wanderinginn.com/2022/07/10/9-05-npr/ 9.05 NPR]",
+            ]
+        )
+    ).get("is_prefix") == True
