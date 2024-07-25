@@ -39,7 +39,7 @@ Category specifications (in name)
 
 
 def test_parens_category_in_name_with_linebreak():
-    """Parses table row without any aliases but with a specifier wrapped in parens behind a linebreak"""
+    """Parses table row without any aliases but with a category wrapped in parens behind a linebreak"""
     assert (
         SkillTableParser.parse_row(
             [
@@ -47,12 +47,12 @@ def test_parens_category_in_name_with_linebreak():
                 "",
                 "[https://wanderinginn.com/2022/02/13/interlude-hectval-pt-2/ Hectval (Pt. 2)]",
             ]
-        ).get("category")
-    ) == "Ants"
+        ).get("categories")
+    ) == ["Ants"]
 
 
 def test_parens_category_in_name_no_linebreak():
-    """Parses table row without any aliases but with a specifier wrapped in parens behind a linebreak"""
+    """Parses table row without any aliases but with a category wrapped in parens inside brackets"""
     assert (
         SkillTableParser.parse_row(
             [
@@ -60,5 +60,5 @@ def test_parens_category_in_name_no_linebreak():
                 "Prevents others from saying certain dialogue that will be emotionally devastating for them.",
                 "[https://wanderinginn.com/2021/05/30/8-24/ 8.24]",
             ]
-        ).get("category")
-    ) == "Verbal"
+        ).get("categories")
+    ) == ["Verbal"]

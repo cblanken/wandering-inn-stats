@@ -26,26 +26,26 @@ def test_category_removed_and_consumes_surrounding_space_and_punctuation():
     # Category at start
     parsed_fields = parse_name_field("[(Name): Basic Training]")
     assert parsed_fields.get("name") == "Basic Training"
-    assert parsed_fields.get("category") == "Name"
+    assert parsed_fields.get("categories") == ["Name"]
 
     # Category at end
     parsed_fields = parse_name_field("[Abler Bodied Animals (Ants)]")
     assert parsed_fields.get("name") == "Abler Bodied Animals"
-    assert parsed_fields.get("category") == "Ants"
+    assert parsed_fields.get("categories") == ["Ants"]
 
     # Category at end with extra whitespace
     parsed_fields = parse_name_field(
         "[Abler Bodied Animals          (Ants)            ]"
     )
     assert parsed_fields.get("name") == "Abler Bodied Animals"
-    assert parsed_fields.get("category") == "Ants"
+    assert parsed_fields.get("categories") == ["Ants"]
 
 
 def test_category_stripped_of_markdown():
     """Parses wikitext markdown removed from 'category'"""
     parsed_fields = parse_name_field("[Alter Ego]<br />[Alter Ego: (''Person'')]")
     assert parsed_fields.get("name") == "Alter Ego"
-    assert parsed_fields.get("category") == "Person"
+    assert parsed_fields.get("categories") == ["Person"]
 
 
 def test_normalized_apostrophe():

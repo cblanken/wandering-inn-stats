@@ -13,6 +13,7 @@ RE_LINEBREAK = re.compile(r"(?:linebreak|<[\s]*br[\s]*/?>)|(?:newline|[\s]*\n[\s
 RE_PARENS_CATEGORY_MATCH_START = re.compile(r".*(\(.*\))\s*\]?$")
 RE_PARENS_CATEGORY_MATCH_END = re.compile(r"^\[?[\s]*(\(.*\)).*")
 RE_PARENS_AND_PUNCT_REPLACE = re.compile(r"[\s[:punct:]]*[(].*[)][\s[:punct:]]*")
+RE_ALL_WRAPPED_PARENS = re.compile(r"^\s*[(].*[)]\s*$")
 
 
 def params_to_dict(params: list[str]) -> dict[str, str]:
@@ -61,6 +62,7 @@ def parse_name_field(text: str, wrap_brackets=False) -> dict[str, str] | None:
     ```
     """
     data = {}
+    data.setdefault("categories", [])
     parsed_text = text
     try:
 
@@ -76,20 +78,25 @@ def parse_name_field(text: str, wrap_brackets=False) -> dict[str, str] | None:
         # Chain together names
         names = list(chain.from_iterable([slash_split(l) for l in lines]))
 
+        not_alias_indexes = []
         for i, n in enumerate(names):
             # Detect any text wrapped in parens '()' which indicates a category or some other
             # context and is not part of the actual name
-            if res := RE_PARENS_CATEGORY_MATCH_END.match(
-                parsed_text
-            ) or RE_PARENS_CATEGORY_MATCH_START.match(parsed_text):
-                if category := res.group(1)[1:-1]:
-                    # if data.get("categories") is None:
-                    #     data["categories"] = []
-                    # data["categories"].append(wtp.remove_markup(category))
-                    data["category"] = wtp.remove_markup(category)
-                    # text = re.sub(RE_PARENS_MATCH, "", text)
-                    # text = text.replace("(" + category + ")", "")
-                    names[i] = RE_PARENS_AND_PUNCT_REPLACE.sub("", n)
+            if RE_ALL_WRAPPED_PARENS.match(n):
+                data["categories"].append(wtp.remove_markup(n[1:-1]))
+                not_alias_indexes.insert(0, i)
+            else:
+                re_category = RE_PARENS_CATEGORY_MATCH_END.match(n)
+                if re_category is None:
+                    re_category = RE_PARENS_CATEGORY_MATCH_START.match(n)
+                if re_category:
+                    if category := re_category.group(1)[1:-1]:
+                        data["categories"].append(wtp.remove_markup(category))
+                        names[i] = RE_PARENS_AND_PUNCT_REPLACE.sub("", n)
+
+        # Delete any invalid aliases (e.g. categories split by linebreaks)
+        for i in not_alias_indexes:
+            del names[i]
 
         # Remove wiki code including [[Links]] and empty names
         names = [
@@ -249,8 +256,9 @@ class SkillTableParser(WikiTableParser):
         parsed_row = {}
         if aliases := parsed_name.get("aliases"):
             parsed_row["aliases"] = aliases
-        if category := parsed_name.get("category"):
-            parsed_row["category"] = replace_br_with_space(category)
+        if categories := parsed_name.get("categories"):
+            # parsed_row["categories"] = replace_br_with_space(categories)
+            parsed_row["categories"] = categories
         if effect := strip_ref_tags(row[1].strip()):
             parsed_row["effect"] = replace_br_with_space(effect)
 
@@ -274,8 +282,9 @@ class SpellTableParser(WikiTableParser):
         parsed_row = {"tier": strip_ref_tags(replace_br_with_space(row[1].strip()))}
         if aliases := parsed_name.get("aliases"):
             parsed_row["aliases"] = aliases
-        if category := parsed_name.get("category"):
-            parsed_row["category"] = replace_br_with_space(category)
+        if categories := parsed_name.get("categories"):
+            # parsed_row["category"] = replace_br_with_space(categories)
+            parsed_row["categories"] = categories
         if effect := strip_ref_tags(row[2].strip()):
             parsed_row["effect"] = replace_br_with_space(effect)
 

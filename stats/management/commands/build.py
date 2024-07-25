@@ -5,7 +5,7 @@ import itertools
 import json
 from pathlib import Path
 import regex
-from typing import Literal
+from typing import LiteralString
 from django.core.management.base import BaseCommand, CommandError
 from django.db.models import Q
 from django.db.models.query import QuerySet
@@ -60,7 +60,7 @@ class LogCat(Enum):
     PROMPT = "[prompt]"
     ERROR = "[error]"
     SKIPPED = "[skipped]"
-    BEGIN = "[skipped]"
+    BEGIN = "[begin]"
 
 
 class Command(BaseCommand):
@@ -267,7 +267,7 @@ class Command(BaseCommand):
         return alias
 
     def get_or_create_reftype(
-        self, rt_name: str, rt_type: Literal[2]
+        self, rt_name: str, rt_type: LiteralString
     ) -> RefType | None:
         """
         Get an existing or create a new RefType with name confirmation and logging of success/failure to console or
@@ -286,18 +286,19 @@ class Command(BaseCommand):
                 )
                 return alias.ref_type
             except Alias.DoesNotExist:
-                rt_name = self.edit_field(rt_name, "RefType name")
-                if rt_name is None:
+                edited_name = self.edit_field(rt_name, "RefType name")
+                if edited_name is None:
                     return
+
                 rt, rt_created = RefType.objects.get_or_create(
-                    name=rt_name, type=rt_type
+                    name=edited_name, type=rt_type
                 )
                 if rt_created:
                     self.log(
                         self.style.SUCCESS(f"RefType: {rt} created"), LogCat.CREATED
                     )
                 else:
-                    self.log(f'RefType: "{rt_name}" already exists', LogCat.EXISTS)
+                    self.log(f'RefType: "{edited_name}" already exists', LogCat.EXISTS)
                 return rt
 
     def get_or_create_ref_type_from_text_ref(
@@ -380,33 +381,25 @@ class Command(BaseCommand):
             singular_ref_type_qs = None
             if ref_name.endswith("s"):
                 candidates.append(
-                    f"[{ref_name[:-1]}]"
-                    if text_ref.is_bracketed
-                    else ref_name.text[:-1]
+                    f"[{ref_name[:-1]}]" if text_ref.is_bracketed else ref_name[:-1]
                 )
             if ref_name.endswith("es"):
                 candidates.append(
-                    f"[{ref_name[:-2]}]"
-                    if text_ref.is_bracketed
-                    else ref_name.text[:-2]
+                    f"[{ref_name[:-2]}]" if text_ref.is_bracketed else ref_name[:-2]
                 )
             if ref_name.endswith("ies"):
                 candidates.append(
-                    f"[{ref_name[:-3]}y]"
-                    if text_ref.is_bracketed
-                    else ref_name.text[:-3]
+                    f"[{ref_name[:-3]}y]" if text_ref.is_bracketed else ref_name[:-3]
                 )
             if ref_name.endswith("men"):
                 candidates.append(
-                    f"[{ref_name[:-3]}man]"
-                    if text_ref.is_bracketed
-                    else ref_name.text[:-3]
+                    f"[{ref_name[:-3]}man]" if text_ref.is_bracketed else ref_name[:-3]
                 )
             if ref_name.endswith("women"):
                 candidates.append(
                     f"[{ref_name[:-5]}woman]"
                     if text_ref.is_bracketed
-                    else ref_name.text[:-5]
+                    else ref_name[:-5]
                 )
 
             for c in candidates:
@@ -525,7 +518,7 @@ class Command(BaseCommand):
 
     def select_color_from_options(
         self, matching_colors: QuerySet[Color], prompt_sound: bool
-    ) -> Color:
+    ) -> Color | None:
         for i, col in enumerate(matching_colors):
             self.stdout.write(f"{i}: {col}")
         skip = False
@@ -544,22 +537,20 @@ class Command(BaseCommand):
 
                 index = int(sel)
             except ValueError:
-                self.stdout.write("Invalid selection. Please try again.")
+                self.stdout.write("> Invalid selection. Please try again.")
                 continue
             else:
                 if index >= 0 and index < len(matching_colors):
                     break
-                self.stdout.write("Invalid selection. Please try again.")
+                self.stdout.write("> Invalid selection. Please try again.")
 
         if skip:
-            self.stdout.write(
-                self.style.WARNING("> No color selection provided. Skipping...")
-            )
+            self.stdout.write(self.style.WARNING("> No color selection provided"))
             return None
 
         return matching_colors[i]
 
-    def detect_textref_color(self, options, text_ref) -> str | None:
+    def detect_textref_color(self, options, text_ref) -> Color | None:
         # Detect TextRef color
         if 'span style="color:' in text_ref.context:
             try:
@@ -877,16 +868,13 @@ class Command(BaseCommand):
         for cat in COLOR_CATEGORY:
             try:
                 category = ColorCategory.objects.get(name=cat.value)
-                self.stdout.write(
-                    self.style.WARNING(
-                        f"> {category} already exists. Skipping creation..."
-                    )
-                )
+                self.log(f"{category} already exists", LogCat.SKIPPED)
             except ColorCategory.DoesNotExist:
                 category = ColorCategory(name=cat.value)
                 category.save()
-                self.stdout.write(
-                    self.style.SUCCESS(f"> ColorCategory created: {category}")
+                self.log(
+                    self.style.SUCCESS(f"ColorCategory created: {category}"),
+                    LogCat.CREATED,
                 )
 
     def build_colors(self):
@@ -895,15 +883,11 @@ class Command(BaseCommand):
             matching_category = ColorCategory.objects.get(name=col[1].value)
             try:
                 color = Color.objects.get(rgb=col[0], category=matching_category)
-                self.stdout.write(
-                    self.style.WARNING(
-                        f"> {color} already exists. Skipping creation..."
-                    )
-                )
+                self.log(f"{color} already exists", LogCat.SKIPPED)
             except Color.DoesNotExist:
                 color = Color(rgb=col[0], category=matching_category)
                 color.save()
-                self.stdout.write(self.style.SUCCESS(f"> Color created: {color}"))
+                self.log(self.style.SUCCESS(f"Color created: {color}"), LogCat.CREATED)
 
     def build_spells(self, path: Path):
         """Populate spell types from wiki data"""
@@ -1103,7 +1087,8 @@ class Command(BaseCommand):
                 class_data = json.load(file)
             except json.JSONDecodeError:
                 self.log(
-                    self.style.ERROR(f"> [Class] data ({path}) could not be decoded")
+                    self.style.ERROR(f"> [Class] data ({path}) could not be decoded"),
+                    LogCat.ERROR,
                 )
             else:
                 for class_name, values in class_data.items():
@@ -1131,7 +1116,8 @@ class Command(BaseCommand):
                 loc_data = json.load(file)
             except json.JSONDecodeError:
                 self.log(
-                    self.style.ERROR(f"Location data ({path}) could not be decoded")
+                    self.style.ERROR(f"Location data ({path}) could not be decoded"),
+                    LogCat.ERROR,
                 )
                 return
             else:
@@ -1175,10 +1161,12 @@ class Command(BaseCommand):
 
         return None
 
-    def get_custom_compiled_patterns(self, filepath: Path = None) -> regex.Pattern:
+    def get_custom_compiled_patterns(
+        self, filepath: Path | None = None
+    ) -> regex.Pattern:
         try:
             if filepath is None:
-                filepath = "config/custom-refs.json"
+                filepath = Path("config/custom-refs.json")
             with open(filepath, "r", encoding="utf-8") as f:
                 data = json.load(f)
                 found_reftypes = []
@@ -1230,7 +1218,7 @@ class Command(BaseCommand):
             ) from e
 
     def handle(self, *args, **options) -> None:
-        self.prompt_sound = options.get("prompt_sound")
+        self.prompt_sound = bool(options.get("prompt_sound"))
         try:
             if options.get("skip_wiki_all"):
                 options["skip_wiki_chars"] = True
