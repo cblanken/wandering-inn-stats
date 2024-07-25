@@ -13,6 +13,7 @@ from bs4 import BeautifulSoup
 
 RE_LINEBREAK = re.compile(r"(?:linebreak|<[\s]*br[\s]*/?>)|(?:newline|[\s]*\n[\s]*)")
 RE_PARENS_MATCH = re.compile(r".*(\(.*\)).*")
+RE_PARENS_AND_PUNCT_REPLACE = re.compile(r"[\s:]*[(].*[)][\s]*")
 
 
 def params_to_dict(params: list[str]) -> dict[str, str]:
@@ -60,17 +61,16 @@ def parse_name_field(text: str, wrap_brackets=False) -> dict[str, str] | None:
     }
     ```
     """
-
     data = {}
     try:
         # Detect any text wrapped in parens '()' which indicates a category or some other
         # context and is not part of the actual name
-        res = RE_PARENS_MATCH.match(text)
-        category = res.group(1)[1:-1] if res else None
-        if category:
-            data["category"] = category
-            # text = re.sub(RE_PARENS_MATCH, "", text)
-            text = text.replace("(" + category + ")", "")
+        if res := RE_PARENS_MATCH.match(text):
+            if category := res.group(1)[1:-1]:
+                data["category"] = wtp.remove_markup(category)
+                # text = re.sub(RE_PARENS_MATCH, "", text)
+                # text = text.replace("(" + category + ")", "")
+                text = RE_PARENS_AND_PUNCT_REPLACE.sub("", text)
 
         # Split line breaks <br> and <br/> or newlines '\n'
         lines = re.split(RE_LINEBREAK, text)
@@ -85,7 +85,9 @@ def parse_name_field(text: str, wrap_brackets=False) -> dict[str, str] | None:
         names = list(chain.from_iterable([slash_split(l) for l in lines]))
 
         # Remove wiki code including [[Links]] and empty names
-        names = [mwp.parse(n).strip_code() for n in names if len(n) > 0]
+        names = [
+            wtp.remove_markup(mwp.parse(n).strip_code()) for n in names if len(n) > 0
+        ]
 
         # Remove brackets
         names = [n.replace("[", "").replace("]", "") for n in names]
@@ -98,7 +100,7 @@ def parse_name_field(text: str, wrap_brackets=False) -> dict[str, str] | None:
             name = names[0]
             data["name"] = name
             if len(names) > 0:
-                data["aliases"] = names[1:]
+                data["aliases"] = [n for n in names[1:] if n != name]
         except IndexError:
             print(f'No name found for row field: "{text}"')
 

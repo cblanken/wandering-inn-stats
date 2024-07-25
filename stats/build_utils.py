@@ -13,6 +13,7 @@ from django.core.management.base import CommandError
 from django.db.models.query import QuerySet
 from processing import Pattern
 from stats.models import Alias, RefType
+from django.core.management.base import CommandError
 
 
 def build_reftype_pattern(ref: RefType):
@@ -237,8 +238,7 @@ def prompt(s: str = "", sound: bool = False) -> str:
     if sound:
         play_sound()
 
-    resp = input(s)
-    return resp
+    return input(s)
 
 
 def select_ref_type(sound: bool = False) -> str | None:

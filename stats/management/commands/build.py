@@ -1,4 +1,3 @@
-import asyncio
 import datetime as dt
 from enum import Enum
 from glob import glob
@@ -58,6 +57,7 @@ class LogCat(Enum):
     PREFIX = "[prefix]"
     PROMPT = "[prompt]"
     ERROR = "[error]"
+    SKIPPED = "[skipped]"
 
 
 class Command(BaseCommand):
@@ -195,69 +195,107 @@ class Command(BaseCommand):
         t = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
         self.stdout.write(f"{t} {category.value} {msg}")
 
-    def edit_field(self, s: str, field_name: str = None) -> str | None:
-        """Prompt user to edit given input string [s] or accept the default."""
-        self.log("", LogCat.PROMPT)
+    def edit_field(self, s: str, desc: str = None) -> str | None:
+        """
+        Prompt user to edit given input string `s` or accept the default.
+        Returns `None` if this field should be skipped an no actions taken.
+
+        Parameters
+        - `s`: field text to be confirmed or edited
+        - `desc`: description of field
+        """
+        self.log(f'Confirming {desc} "{s}"', LogCat.PROMPT)
         while True:
-            # try:
-            # resp: str = self.loop.run_until_complete(prompt(f"> Edit{" " + field_name if field_name else " "}? (default={s}): ", sound=self.prompt_sound))
-            resp: str = prompt(
-                f"> Edit{" " + field_name if field_name else " "}? (default={s}): ",
+            edit_resp = prompt(
+                f'> Would you like to edit the {desc} "{self.style.WARNING(s)}"? ([y]es/[n]o/[s]kip): ',
                 sound=self.prompt_sound,
-            )
-            if resp.strip() == "":
-                return s
+            ).strip()
 
-            if s != resp:
-                confirm = input(f"> Are you sure? (y/n): ")
-                if regex.match(r"^[Yy][e]?[s]?$", confirm):
-                    return resp
+            if regex.match(r"^[Yy][e]?[s]?$", edit_resp):
+                name_resp = prompt(
+                    f"> Edit {desc}? (default={self.style.WARNING(s)}): ",
+                    sound=self.prompt_sound,
+                )
+                if name_resp.strip() == "":
+                    return s
+
+                if s != name_resp:
+                    confirm = input(
+                        f"> Is {self.style.WARNING(name_resp)} correct? (y/n): "
+                    )
+                    if regex.match(r"^[Yy][e]?[s]?$", confirm):
+                        return name_resp
+                    else:
+                        continue
                 else:
-                    continue
-            else:
+                    return s
+            elif regex.match(r"^[Ss][k]?[i]?[p]?", edit_resp):
+                return None
+            elif edit_resp == "" or regex.match(r"^[Nn][o]?", edit_resp):
                 return s
-            # except Exception as exc:
-            #     self.stdout.write(f"An error occurred: {exc}")
-            #     self.stdout.write(f"")
-
-            #     confirm = input(f"Would you like to try again? (y/n): ")
-            #     if not regex.match(r"^[Yy][e]?[s]?$", confirm):
-            #         break
+            else:
+                self.stdout.write(
+                    f"That doesn't match a valid response. Please try again."
+                )
 
     def create_alias(self, rt: RefType, alias_name: str) -> Alias | None:
         """Create Alias with name confirmation and logging of success/failure to console"""
         try:
-            alias = Alias.objects.get(name=alias_name)
+            alias = Alias.objects.get(name=alias_name, ref_type=rt)
             self.log(
                 f'Alias: "{alias_name}" already exists for Reftype "{rt.name}"',
                 LogCat.EXISTS,
             )
         except Alias.DoesNotExist:
-            alias_name = asyncio.run(self.edit_field(alias_name, "Alias name"))
-            self.log(
-                self.style.SUCCESS(
-                    f'Alias: "{alias_name}" to RefType "{rt.name}" created'
-                ),
-                LogCat.CREATED,
-            )
-            alias = Alias.objects.create(name=alias_name, ref_type=rt)
+            if new_name := self.edit_field(alias_name, "Alias name"):
+                self.log(
+                    self.style.SUCCESS(
+                        f'Alias: "{new_name}" to RefType "{rt.name}" created'
+                    ),
+                    LogCat.CREATED,
+                )
+                alias = Alias.objects.create(name=new_name, ref_type=rt)
+            else:
+                self.log(
+                    self.style.ERROR(f"Alias {alias_name} was skipped"), LogCat.SKIPPED
+                )
+                alias = None
 
         return alias
 
-    def create_reftype(self, rt_name: str, rt_type: Literal[2]) -> RefType | None:
-        """Create RefType with name confirmation and logging of success/failure to console"""
+    def get_or_create_reftype(
+        self, rt_name: str, rt_type: Literal[2]
+    ) -> RefType | None:
+        """
+        Get an existing or create a new RefType with name confirmation and logging of success/failure to console or
+        links to an existing Alias of the given `rt_name`.
+        """
         try:
             rt = RefType.objects.get(name=rt_name, type=rt_type)
             self.log(f'RefType: "{rt_name}" already exists', LogCat.EXISTS)
-        except RefType.DoesNotExist:
-            rt_name = self.edit_field(rt_name, "RefType name")
-            rt, rt_created = RefType.objects.get_or_create(name=rt_name, type=rt_type)
-            if rt_created:
-                self.log(self.style.SUCCESS(f"> {rt} created"), LogCat.CREATED)
-            else:
-                self.log(f'RefType: "{rt_name}" already exists', LogCat.EXISTS)
-        finally:
             return rt
+        except RefType.DoesNotExist:
+            # Check for a matching Alias
+            try:
+                alias = Alias.objects.get(name=rt_name, ref_type__type=rt_type)
+                self.log(
+                    f'RefType: "{rt_name}" already exists as an Alias', LogCat.EXISTS
+                )
+                return alias.ref_type
+            except Alias.DoesNotExist:
+                rt_name = self.edit_field(rt_name, "RefType name")
+                if rt_name is None:
+                    return
+                rt, rt_created = RefType.objects.get_or_create(
+                    name=rt_name, type=rt_type
+                )
+                if rt_created:
+                    self.log(
+                        self.style.SUCCESS(f"RefType: {rt} created"), LogCat.CREATED
+                    )
+                else:
+                    self.log(f'RefType: "{rt_name}" already exists', LogCat.EXISTS)
+                return rt
 
     def get_or_create_ref_type_from_text_ref(
         self, options, text_ref: SrcTextRef
@@ -868,43 +906,22 @@ class Command(BaseCommand):
         """Populate spell types from wiki data"""
         self.stdout.write("\nPopulating spell RefType(s)...")
         with open(path, encoding="utf-8") as file:
-            for line in file.readlines():
-                line_split: list[str] = line.strip().split("|")
-                aliases: list[str] = []
-                if len(line_split) > 1:
-                    # Spell with aliases
-                    spell_name, *aliases = line_split
-                else:
-                    spell_name = line_split[0]
-
-                spell = "[" + spell_name + "]"
-                ref_type, ref_type_created = RefType.objects.get_or_create(
-                    name=spell, type=RefType.SPELL
+            try:
+                spell_data = json.load(file)
+            except json.JSONDecodeError:
+                self.stdout.write(
+                    self.style.ERROR(f"[Spell] data ({path}) could not be decoded")
                 )
-
-                if ref_type_created:
-                    self.stdout.write(self.style.SUCCESS(f"> {ref_type} created"))
-                else:
-                    self.stdout.write(
-                        self.style.WARNING(
-                            f"> Spell RefType: {spell} already exists. Skipping creation..."
-                        )
-                    )
-
-                for alias_name in aliases:
-                    alias_name = "[" + alias_name + "]"
-                    new_alias, new_alias_created = Alias.objects.get_or_create(
-                        name=alias_name, ref_type=ref_type
-                    )
-                    if new_alias_created:
-                        self.stdout.write(
-                            self.style.SUCCESS(f"> Alias: {alias_name} created")
-                        )
+            else:
+                for spell_name, values in spell_data.items():
+                    if rt := self.get_or_create_reftype(spell_name, RefType.SPELL):
+                        if aliases := values.get("aliases"):
+                            for alias_name in aliases:
+                                self.create_alias(rt, alias_name)
                     else:
-                        self.stdout.write(
-                            self.style.WARNING(
-                                f"> Alias: {alias_name} already exists. Skipping creation..."
-                            )
+                        self.log(
+                            self.style.ERROR(f"RefType {spell_name} was skipped"),
+                            LogCat.SKIPPED,
                         )
 
     def build_skills(self, path: Path):
@@ -918,37 +935,10 @@ class Command(BaseCommand):
                 )
             else:
                 for skill_name, values in skill_data.items():
-                    # skill, *aliases = ["[" + name + "]" for name in line.strip().split("|")]
-
-                    ref_type, ref_type_created = RefType.objects.get_or_create(
-                        name=skill_name, type=RefType.SKILL
-                    )
-                    if ref_type_created:
-                        self.stdout.write(self.style.SUCCESS(f"> {ref_type} created"))
-                    else:
-                        self.stdout.write(
-                            self.style.WARNING(
-                                f"> Skill RefType: {skill_name} already exists. Skipping creation..."
-                            )
-                        )
-
-                    class_name = self.edit_field(class_name, "Skill")
-
+                    rt = self.get_or_create_reftype(skill_name, RefType.SKILL)
                     if aliases := values.get("aliases"):
                         for alias_name in aliases:
-                            new_alias, new_alias_created = Alias.objects.get_or_create(
-                                name=alias_name, ref_type=ref_type
-                            )
-                            if new_alias_created:
-                                self.stdout.write(
-                                    self.style.SUCCESS(f"> Alias: {alias_name} created")
-                                )
-                            else:
-                                self.stdout.write(
-                                    self.style.WARNING(
-                                        f"> Alias: {alias_name} already exists. Skipping creation..."
-                                    )
-                                )
+                            self.create_alias(rt, alias_name)
 
     def build_characters(self, path: Path):
         # Populate characters from wiki data
@@ -1112,7 +1102,7 @@ class Command(BaseCommand):
                         self.log(f'RefType: "{class_name}" is a prefix', LogCat.PREFIX)
                         continue
 
-                    ref_type = self.create_reftype(class_name, RefType.CLASS)
+                    ref_type = self.get_or_create_reftype(class_name, RefType.CLASS)
 
                     if ref_type is None:
                         self.log(
@@ -1139,7 +1129,7 @@ class Command(BaseCommand):
                 return
             else:
                 for loc_name, loc_data in loc_data.items():
-                    loc_rt = self.create_reftype(loc_name, RefType.LOCATION)
+                    loc_rt = self.get_or_create_reftype(loc_name, RefType.LOCATION)
                     if loc_rt is None:
                         self.log(
                             self.style.ERROR(
@@ -1263,7 +1253,7 @@ class Command(BaseCommand):
 
             # Build wiki data
             if not options.get("skip_wiki_spells"):
-                self.build_spells(Path(options["data_path"], "spells.txt"))
+                self.build_spells(Path(options["data_path"], "spells.json"))
             if not options.get("skip_wiki_skills"):
                 self.build_skills(Path(options["data_path"], "skills.json"))
             if not options.get("skip_wiki_chars"):
