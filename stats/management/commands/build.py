@@ -50,6 +50,8 @@ class LogCat(Enum):
     - `NEW`     Operations that successfully created a new model instance
     - `PREFIX`  RefType items that exist as prefixes usually with a trailing "..."
     - `PROMPT`  user prompts
+    - `SKIPPED` user initiated skip
+    - `BEGIN`   start of a new section
     """
 
     EXISTS = "[exists]"
@@ -58,6 +60,7 @@ class LogCat(Enum):
     PROMPT = "[prompt]"
     ERROR = "[error]"
     SKIPPED = "[skipped]"
+    BEGIN = "[skipped]"
 
 
 class Command(BaseCommand):
@@ -870,7 +873,7 @@ class Command(BaseCommand):
 
     def build_color_categories(self):
         """Build color categories"""
-        self.stdout.write("\nPopulating color categories...")
+        self.log("Populating color categories...", LogCat.BEGIN)
         for cat in COLOR_CATEGORY:
             try:
                 category = ColorCategory.objects.get(name=cat.value)
@@ -887,7 +890,7 @@ class Command(BaseCommand):
                 )
 
     def build_colors(self):
-        self.stdout.write("\nPopulating colors...")
+        self.log("Populating colors...", LogCat.BEGIN)
         for col in COLORS:
             matching_category = ColorCategory.objects.get(name=col[1].value)
             try:
@@ -904,7 +907,7 @@ class Command(BaseCommand):
 
     def build_spells(self, path: Path):
         """Populate spell types from wiki data"""
-        self.stdout.write("\nPopulating spell RefType(s)...")
+        self.log("Populating spell RefType(s)...", LogCat.BEGIN)
         with open(path, encoding="utf-8") as file:
             try:
                 spell_data = json.load(file)
@@ -925,7 +928,8 @@ class Command(BaseCommand):
                         )
 
     def build_skills(self, path: Path):
-        self.stdout.write("\nPopulating spell RefType(s)...")
+        # Populate skills from wiki data
+        self.log("Populating skill RefType(s)...", LogCat.BEGIN)
         with open(path, encoding="utf-8") as file:
             try:
                 skill_data = json.load(file)
@@ -935,14 +939,19 @@ class Command(BaseCommand):
                 )
             else:
                 for skill_name, values in skill_data.items():
-                    rt = self.get_or_create_reftype(skill_name, RefType.SKILL)
-                    if aliases := values.get("aliases"):
-                        for alias_name in aliases:
-                            self.create_alias(rt, alias_name)
+                    if rt := self.get_or_create_reftype(skill_name, RefType.SKILL):
+                        if aliases := values.get("aliases"):
+                            for alias_name in aliases:
+                                self.create_alias(rt, alias_name)
+                    else:
+                        self.log(
+                            self.style.ERROR(f"RefType {skill_name} was skipped"),
+                            LogCat.SKIPPED,
+                        )
 
     def build_characters(self, path: Path):
         # Populate characters from wiki data
-        self.stdout.write("\nPopulating character RefType(s)...")
+        self.log("Populating character RefType(s)...", LogCat.BEGIN)
         with open(path, encoding="utf-8") as file:
             try:
                 data = json.load(file)
@@ -1088,7 +1097,7 @@ class Command(BaseCommand):
 
     def build_classes(self, path: Path):
         # Populate class types from wiki data
-        self.stdout.write("\nPopulating class RefType(s)...")
+        self.log("Populating class RefType(s)...", LogCat.BEGIN)
         with open(path, encoding="utf-8") as file:
             try:
                 class_data = json.load(file)
@@ -1102,55 +1111,52 @@ class Command(BaseCommand):
                         self.log(f'RefType: "{class_name}" is a prefix', LogCat.PREFIX)
                         continue
 
-                    ref_type = self.get_or_create_reftype(class_name, RefType.CLASS)
-
-                    if ref_type is None:
+                    if ref_type := self.get_or_create_reftype(
+                        class_name, RefType.CLASS
+                    ):
+                        if aliases := values.get("aliases"):
+                            for alias_name in aliases:
+                                self.create_alias(ref_type, alias_name)
+                    else:
                         self.log(
-                            self.style.ERROR(
-                                f"Unable to create RefType for {class_name}. Skipping aliases..."
-                            ),
-                            LogCat.ERROR,
+                            self.style.ERROR(f"RefType {class_name} was skipped"),
+                            LogCat.SKIPPED,
                         )
-                        continue
-
-                    if aliases := values.get("aliases"):
-                        for alias_name in aliases:
-                            self.create_alias(ref_type, alias_name)
 
     def build_locations(self, path: Path):
-        self.stdout.write("\nPopulating locations RefType(s)...")
+        # Populate location types from wiki data
+        self.log("Populating location RefType(s)...", LogCat.BEGIN)
         with open(path, encoding="utf-8") as file:
             try:
                 loc_data = json.load(file)
             except json.JSONDecodeError:
-                self.stdout.write(
-                    self.style.ERROR(f"> Location data ({path}) could not be decoded")
+                self.log(
+                    self.style.ERROR(f"Location data ({path}) could not be decoded")
                 )
                 return
             else:
                 for loc_name, loc_data in loc_data.items():
-                    loc_rt = self.get_or_create_reftype(loc_name, RefType.LOCATION)
-                    if loc_rt is None:
-                        self.log(
-                            self.style.ERROR(
-                                f"Unable to create RefType for {loc_name}. Skipping aliases..."
-                            )
-                        )
-                        continue
+                    if loc_rt := self.get_or_create_reftype(loc_name, RefType.LOCATION):
+                        if aliases := loc_data.get("aliases"):
+                            for alias_name in aliases:
+                                self.create_alias(loc_rt, alias_name)
 
-                    try:
-                        loc = Location.objects.get_or_create(ref_type=loc_rt)
-                        self.log(
-                            f'Location: "{loc_rt.name}" already exists', LogCat.EXISTS
-                        )
-                    except Location.DoesNotExist:
-                        loc = Location.objects.create(ref_type=loc_rt)
-                        loc.wiki_uri = loc_data.get("url")
-                        loc.save()
-                        self.log(
-                            self.style.SUCCESS(f'Location: "{loc_rt.name}" created'),
-                            LogCat.CREATED,
-                        )
+                        try:
+                            loc = Location.objects.get_or_create(ref_type=loc_rt)
+                            self.log(
+                                f'Location: "{loc_rt.name}" already exists',
+                                LogCat.EXISTS,
+                            )
+                        except Location.DoesNotExist:
+                            loc = Location.objects.create(ref_type=loc_rt)
+                            loc.wiki_uri = loc_data.get("url")
+                            loc.save()
+                            self.log(
+                                self.style.SUCCESS(
+                                    f'Location: "{loc_rt.name}" created'
+                                ),
+                                LogCat.CREATED,
+                            )
 
     def read_config_file(self, p: Path) -> list[str] | None:
         if p.exists():
@@ -1169,7 +1175,7 @@ class Command(BaseCommand):
 
         return None
 
-    def get_custom_compiled_patterns(self, filepath: Path) -> regex.Pattern:
+    def get_custom_compiled_patterns(self, filepath: Path = None) -> regex.Pattern:
         try:
             if filepath is None:
                 filepath = "config/custom-refs.json"

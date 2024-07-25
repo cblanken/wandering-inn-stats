@@ -1,10 +1,8 @@
 import abc
 from itertools import chain
-from functools import reduce
-from pprint import pprint
 import regex as re
 import pywikibot as pwb
-from pywikibot.textlib import extract_templates_and_params, replace_links
+from pywikibot.textlib import extract_templates_and_params
 from pywikibot.site import APISite
 import mwparserfromhell as mwp
 import wikitextparser as wtp
@@ -12,8 +10,9 @@ from bs4 import BeautifulSoup
 
 
 RE_LINEBREAK = re.compile(r"(?:linebreak|<[\s]*br[\s]*/?>)|(?:newline|[\s]*\n[\s]*)")
-RE_PARENS_MATCH = re.compile(r".*(\(.*\)).*")
-RE_PARENS_AND_PUNCT_REPLACE = re.compile(r"[\s:]*[(].*[)][\s]*")
+RE_PARENS_CATEGORY_MATCH_START = re.compile(r".*(\(.*\))\s*\]?$")
+RE_PARENS_CATEGORY_MATCH_END = re.compile(r"^\[?[\s]*(\(.*\)).*")
+RE_PARENS_AND_PUNCT_REPLACE = re.compile(r"[\s[:punct:]]*[(].*[)][\s[:punct:]]*")
 
 
 def params_to_dict(params: list[str]) -> dict[str, str]:
@@ -51,7 +50,7 @@ def replace_br_with_space(text: str) -> str:
 
 def parse_name_field(text: str, wrap_brackets=False) -> dict[str, str] | None:
     """
-    Parse name field from tables and split aliases and categories
+    Parse name field from tables and lists. Parse out aliases and categories.
     Returns data in the form of:
     ```
     {
@@ -62,18 +61,11 @@ def parse_name_field(text: str, wrap_brackets=False) -> dict[str, str] | None:
     ```
     """
     data = {}
+    parsed_text = text
     try:
-        # Detect any text wrapped in parens '()' which indicates a category or some other
-        # context and is not part of the actual name
-        if res := RE_PARENS_MATCH.match(text):
-            if category := res.group(1)[1:-1]:
-                data["category"] = wtp.remove_markup(category)
-                # text = re.sub(RE_PARENS_MATCH, "", text)
-                # text = text.replace("(" + category + ")", "")
-                text = RE_PARENS_AND_PUNCT_REPLACE.sub("", text)
 
         # Split line breaks <br> and <br/> or newlines '\n'
-        lines = re.split(RE_LINEBREAK, text)
+        lines = re.split(RE_LINEBREAK, parsed_text)
 
         # Strip tags
         lines = [mwp.parse(l).strip_code() for l in lines]
@@ -84,17 +76,35 @@ def parse_name_field(text: str, wrap_brackets=False) -> dict[str, str] | None:
         # Chain together names
         names = list(chain.from_iterable([slash_split(l) for l in lines]))
 
+        for i, n in enumerate(names):
+            # Detect any text wrapped in parens '()' which indicates a category or some other
+            # context and is not part of the actual name
+            if res := RE_PARENS_CATEGORY_MATCH_END.match(
+                parsed_text
+            ) or RE_PARENS_CATEGORY_MATCH_START.match(parsed_text):
+                if category := res.group(1)[1:-1]:
+                    # if data.get("categories") is None:
+                    #     data["categories"] = []
+                    # data["categories"].append(wtp.remove_markup(category))
+                    data["category"] = wtp.remove_markup(category)
+                    # text = re.sub(RE_PARENS_MATCH, "", text)
+                    # text = text.replace("(" + category + ")", "")
+                    names[i] = RE_PARENS_AND_PUNCT_REPLACE.sub("", n)
+
         # Remove wiki code including [[Links]] and empty names
         names = [
             wtp.remove_markup(mwp.parse(n).strip_code()) for n in names if len(n) > 0
         ]
 
+        # Process brackets to catch inconsistent bracket splitting
         # Remove brackets
         names = [n.replace("[", "").replace("]", "") for n in names]
-
         # Wrap names in brackets if needed
         if wrap_brackets:
             names = [f"[{n}]" for n in names]
+
+        # Normalize apostrophes (') to \u2019
+        names = [n.replace("'", "\u2019") for n in names]
 
         try:
             name = names[0]
@@ -102,12 +112,12 @@ def parse_name_field(text: str, wrap_brackets=False) -> dict[str, str] | None:
             if len(names) > 0:
                 data["aliases"] = [n for n in names[1:] if n != name]
         except IndexError:
-            print(f'No name found for row field: "{text}"')
+            print(f'No name found for row field: "{parsed_text}"')
 
         return data
 
     except IndexError:
-        print(f'Could not completely parse name or aliases from: "{text}"')
+        print(f'Could not completely parse name or aliases from: "{parsed_text}"')
 
 
 class WikiTemplateParser:
