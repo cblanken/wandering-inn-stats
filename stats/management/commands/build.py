@@ -5,9 +5,9 @@ import itertools
 import json
 from pathlib import Path
 import regex
-from typing import LiteralString
+from typing import LiteralString, Any, AnyStr
 from django.core.management.base import BaseCommand, CommandError
-from django.db.models import Q
+from django.db.models import Q, Model, Field
 from django.db.models.query import QuerySet
 from django.db.utils import DataError, IntegrityError
 from django.utils.html import strip_tags
@@ -61,6 +61,7 @@ class LogCat(Enum):
     ERROR = "[error]"
     SKIPPED = "[skipped]"
     BEGIN = "[begin]"
+    UPDATED = "[updated]"
 
 
 class Command(BaseCommand):
@@ -198,7 +199,30 @@ class Command(BaseCommand):
         t = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
         self.stdout.write(f"{t} {category.value} {msg}")
 
-    def edit_field(self, s: str, desc: str = None) -> str | None:
+    def update_prop_prompt(self, old: Any, new: Any) -> tuple[Any, bool]:
+        """Prompt user to update property and return selected value and confirmation boolean"""
+        differ: bool = old != new
+        if differ:
+            self.log(
+                f"A difference in [Model] properties was found. Confirm the following property:",
+                LogCat.PROMPT,
+            )
+            print(f"> OLD: {old}")
+            print(f"> NEW: {new}")
+            while True:
+                resp = input(f"> Update? (default = no change) ([y]es/[n]o): ")
+                if regex.match(r"^[Yy][e]?[s]?$", resp):
+                    return (new, True)
+                elif resp == "" or regex.match(r"^[Nn][o]?", resp):
+                    return (old, False)
+                else:
+                    self.stdout.write(
+                        f"> That doesn't match a valid response. Please try again."
+                    )
+
+        return (old, False)
+
+    def edit_field(self, s: str, desc: str | None = None) -> str | None:
         """
         Prompt user to edit given input string `s` or accept the default.
         Returns `None` if this field should be skipped an no actions taken.
@@ -241,7 +265,7 @@ class Command(BaseCommand):
                     f"That doesn't match a valid response. Please try again."
                 )
 
-    def create_alias(self, rt: RefType, alias_name: str) -> Alias | None:
+    def get_or_create_alias(self, rt: RefType, alias_name: str) -> Alias | None:
         """Create Alias with name confirmation and logging of success/failure to console"""
         try:
             alias = Alias.objects.get(name=alias_name, ref_type=rt)
@@ -904,7 +928,7 @@ class Command(BaseCommand):
                     if rt := self.get_or_create_reftype(spell_name, RefType.SPELL):
                         if aliases := values.get("aliases"):
                             for alias_name in aliases:
-                                self.create_alias(rt, alias_name)
+                                self.get_or_create_alias(rt, alias_name)
                     else:
                         self.log(
                             self.style.ERROR(f"RefType {spell_name} was skipped"),
@@ -926,7 +950,7 @@ class Command(BaseCommand):
                     if rt := self.get_or_create_reftype(skill_name, RefType.SKILL):
                         if aliases := values.get("aliases"):
                             for alias_name in aliases:
-                                self.create_alias(rt, alias_name)
+                                self.get_or_create_alias(rt, alias_name)
                     else:
                         self.log(
                             self.style.ERROR(f"RefType {skill_name} was skipped"),
@@ -940,25 +964,23 @@ class Command(BaseCommand):
             try:
                 data = json.load(file)
             except json.JSONDecodeError:
-                self.stdout.write(
-                    self.style.ERROR(f"> Character data ({path}) could not be decoded")
+                self.log(
+                    self.style.ERROR(f"> Character data ({path}) could not be decoded"),
+                    LogCat.ERROR,
                 )
             else:
                 for name, char_data in data.items():
                     # Create Character RefType
-                    ref_type, ref_type_created = RefType.objects.get_or_create(
-                        name=name, type=RefType.CHARACTER
-                    )
-                    if ref_type_created:
-                        self.stdout.write(
-                            self.style.SUCCESS(f"> Character RefType: {name} created")
+                    ref_type = self.get_or_create_reftype(name, RefType.CHARACTER)
+
+                    if ref_type is None:
+                        self.log(
+                            self.style.ERROR(
+                                f"Unable to create RefType: {name} type={RefType.CHARACTER}"
+                            ),
+                            LogCat.ERROR,
                         )
-                    else:
-                        self.stdout.write(
-                            self.style.WARNING(
-                                f"> Character RefType: {name} already exists. Skipping creation..."
-                            )
-                        )
+                        continue
 
                     # Create alias for Character first name
                     invalid_first_names = [
@@ -1007,38 +1029,16 @@ class Command(BaseCommand):
                         and name_split[0].lower() not in invalid_first_names
                         and name_split[0] != name
                     ):
-                        try:
-                            Alias.objects.get(name=name_split[0])
-                            self.stdout.write(
-                                self.style.WARNING(
-                                    f"> Alias: {name_split[0]} already exists. Skipping creation..."
-                                )
-                            )
-                        except Alias.DoesNotExist:
-                            self.stdout.write(
-                                self.style.SUCCESS(f"> Alias: {name_split[0]} created")
-                            )
-                            Alias.objects.create(name=name_split[0], ref_type=ref_type)
+                        self.get_or_create_alias(ref_type, name_split[0])
 
                     # Create aliases from Character wiki metadata
                     aliases = char_data.get("aliases")
                     if aliases is not None:
                         for alias_name in char_data.get("aliases"):
-                            try:
-                                Alias.objects.get(name=alias_name)
-                                self.stdout.write(
-                                    self.style.WARNING(
-                                        f"> Alias: {alias_name} already exists. Skipping creation..."
-                                    )
-                                )
-                            except Alias.DoesNotExist:
-                                self.stdout.write(
-                                    self.style.SUCCESS(f"> Alias: {alias_name} created")
-                                )
-                                Alias.objects.create(name=alias_name, ref_type=ref_type)
+                            self.get_or_create_alias(ref_type, alias_name)
 
                     try:
-                        if first_hrefs := char_data.get("first_hrefs") is not None:
+                        if first_hrefs := char_data.get("first_hrefs"):
                             try:
                                 # TODO: handle multiple 'first hrefs' e.g. before and after rewrite
                                 endpoint = first_hrefs[0].split(".com")[1]
@@ -1058,25 +1058,56 @@ class Command(BaseCommand):
                     except Chapter.DoesNotExist:
                         first_ref = None
 
-                    (
-                        new_character,
-                        new_char_created,
-                    ) = Character.objects.get_or_create(
-                        ref_type=ref_type,
-                        first_chapter_appearance=first_ref,
-                        wiki_uri=char_data.get("wiki_href"),
-                        status=Character.parse_status_str(char_data.get("status")),
-                        species=Character.parse_species_str(char_data.get("species")),
-                    )
-                    if new_char_created:
-                        self.stdout.write(
-                            self.style.SUCCESS(f"> Character data: {name} created")
+                    try:
+                        new_first_chapter_appearance = first_ref
+                        new_wiki_uri = (
+                            f'https://wiki.wanderinginn.com/{char_data.get("page_url")}'
                         )
-                    else:
-                        self.stdout.write(
-                            self.style.WARNING(
-                                f"> Character data: {name} already exists. Skipping creation..."
+                        new_status = Character.parse_status_str(char_data.get("status"))
+                        new_species = Character.parse_species_str(
+                            char_data.get("species")
+                        )
+                        (char, char_created) = Character.objects.get_or_create(
+                            ref_type=ref_type
+                        )
+
+                        if char_created:
+                            char.first_chapter_appearance = new_first_chapter_appearance
+                            char.wiki_uri = new_wiki_uri
+                            char.status = new_status
+                            char.species = new_species
+                            char.save()
+                            self.log(
+                                self.style.SUCCESS(f"Character: {name} created"),
+                                LogCat.CREATED,
                             )
+                        else:
+                            # fmt: off
+                            self.log(f"Character: {name} already exists", LogCat.SKIPPED)
+                            char.first_chapter_appearance, update_confirmed = self.update_prop_prompt(char.first_chapter_appearance, new_first_chapter_appearance)
+                            if update_confirmed:
+                                self.log(f"First Appearance updated → {char.first_chapter_appearance}", LogCat.UPDATED)
+                                char.save()
+
+                            char.wiki_uri, update_confirmed = self.update_prop_prompt(char.wiki_uri, new_wiki_uri)
+                            if update_confirmed:
+                                self.log(f"Wiki URI updated → {char.wiki_uri}", LogCat.UPDATED)
+                                char.save()
+
+                            char.status, update_confirmed = self.update_prop_prompt(char.status, new_status)
+                            if update_confirmed:
+                                self.log(f"Status updated → {char.status}", LogCat.UPDATED)
+                                char.save()
+
+                            char.species, updated_confirmed = self.update_prop_prompt(char.species, new_species)
+                            if update_confirmed:
+                                self.log(f"Species updated → {char.species}", LogCat.UPDATED)
+                                char.save()
+                            # fmt: on
+
+                    except IntegrityError:
+                        print(
+                            f"There may have been a change in the Character definition or in the input file format. Unable to create Character for {ref_type}"
                         )
 
     def build_classes(self, path: Path):
@@ -1101,7 +1132,7 @@ class Command(BaseCommand):
                     ):
                         if aliases := values.get("aliases"):
                             for alias_name in aliases:
-                                self.create_alias(ref_type, alias_name)
+                                self.get_or_create_alias(ref_type, alias_name)
                     else:
                         self.log(
                             self.style.ERROR(f"RefType {class_name} was skipped"),
@@ -1125,7 +1156,7 @@ class Command(BaseCommand):
                     if loc_rt := self.get_or_create_reftype(loc_name, RefType.LOCATION):
                         if aliases := loc_data.get("aliases"):
                             for alias_name in aliases:
-                                self.create_alias(loc_rt, alias_name)
+                                self.get_or_create_alias(loc_rt, alias_name)
 
                         try:
                             loc = Location.objects.get_or_create(ref_type=loc_rt)
@@ -1258,7 +1289,7 @@ class Command(BaseCommand):
                 self.build_locations(Path(options["data_path"], "locations.json"))
 
             # Setup custom reference list override if provided
-            if custom_refs_path := options.get("custom_refs") is not None:
+            if custom_refs_path := options.get("custom_refs"):
                 self.stdout.write(
                     f'Loading custom references config file "{custom_refs_path}"'
                 )
@@ -1270,7 +1301,7 @@ class Command(BaseCommand):
                 self.build_chapter_by_id(options, chapter_id)
                 return
 
-            if chapter_id_range := options.get("chapter_id_range") is not None:
+            if chapter_id_range := options.get("chapter_id_range"):
                 try:
                     start, end = [int(x) for x in chapter_id_range.split(",")]
                 except ValueError as exc:

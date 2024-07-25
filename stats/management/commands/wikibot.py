@@ -12,7 +12,7 @@ from IPython.core.debugger import set_trace
 DATA_DIR = Path("data")
 
 
-def save_as_json(data: dict[str], path: Path):
+def save_as_json(data: dict[str, list], path: Path):
     path = Path(DATA_DIR, path)
     with open(path, "w", encoding="utf-8") as fp:
         json.dump(data, fp, indent=2)
