@@ -61,8 +61,10 @@ def test_parens_not_category():
     assert parsed_fields.get("name") == "Break a (Fake) Leg"
 
 
-def test_parens_not_category():
-    """Does not remove internal parens which are part of the name"""
-    parsed_fields = parse_name_field("[Break a (Fake) Leg]")
-    assert parsed_fields.get("name") == "Break a (Fake) Leg"
-    "[(Name): Basic Training]"
+def test_citation_link():
+    """Parses citation links. Citation link text should not be included in the name field."""
+    parsed_fields = parse_name_field(
+        "Everfire Shield<ref>[https://wanderinginn.com/2020/02/26/7-10-k/ Chapter 7.10 K]</ref>"
+    )
+    assert parsed_fields.get("name") == "Everfire Shield"
+    assert parsed_fields.get("citations") == ["Chapter 7.10 K"]

@@ -22,7 +22,9 @@ def save_as_json(data: dict[str, list], path: Path):
 class Command(BaseCommand):
     """Wiki scraper bot command"""
 
-    help = "Update database from chapter source HTML and other metadata files"
+    help = """
+    Command for handling TWI Wiki data extraction.
+    """
 
     def add_arguments(self, parser):
         parser.add_argument(

@@ -10,7 +10,7 @@ from .parse import (
     SkillTableParser,
     SpellTableParser,
 )
-from pywikibot.textlib import Section
+from pywikibot.textlib import Section, extract_sections
 
 
 def get_aliases(page: pwb.Page) -> list[str] | None:
@@ -84,7 +84,7 @@ class TwiBot(SingleSiteBot):
             print("Missing sections or table on [Class] list page")
             raise e
 
-    def treat_skills(self, page: pwb.Page):
+    def treat_skills(self, page: pwb.Page) -> dict | None:
         """
         Treat skill pages in the format of "Skills Effect/XXX" where XXX represents the first
         letter of the skills. These pages should have skills listed in a consistent table format
@@ -100,9 +100,8 @@ class TwiBot(SingleSiteBot):
 
     def treat_spells(self, page: pwb.Page) -> dict | None:
         self.current_page = page
-        content = pwb.textlib.extract_sections(
-            pwb.Page(self.site, "Spells#List of Spells").text, self.site
-        )
+
+        content = extract_sections(pwb.Page(self.site, "Spells").text, self.site)
         spell_lists: list[Section] = list(
             filter(
                 lambda s: re.match(
@@ -130,15 +129,17 @@ class TwiBot(SingleSiteBot):
 
     def treat_artifacts(self, page: pwb.Page) -> dict | None:
         self.current_page = page
-        content = pwb.textlib.extract_sections(page.text, self.site)
+        content = extract_sections(page.text, self.site)
         artifact_sections = filter(
             lambda s: re.match(r"^===\s*[#A-Z]\s*===$", s.title.strip()),
             content.sections,
         )
         data = {}
         try:
-            for s in artifact_sections:
-                data |= ArtifactListParser(wtp.parse(s.content).get_lists()[0]).parse()
+            for section in artifact_sections:
+                data |= ArtifactListParser(
+                    wtp.parse(section.content).get_lists()[0]
+                ).parse()
         except IndexError as e:
             print("An Artifact section doesn't have an item list")
             raise e

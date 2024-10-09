@@ -9,6 +9,10 @@ import wikitextparser as wtp
 from bs4 import BeautifulSoup
 
 
+class ParseError(RuntimeError):
+    """A Wikibot parsing error occurred"""
+
+
 RE_LINEBREAK = re.compile(r"(?:linebreak|<[\s]*br[\s]*/?>)|(?:newline|[\s]*\n[\s]*)")
 RE_PARENS_CATEGORY_MATCH_START = re.compile(r".*(\(.*\))\s*\]?$")
 RE_PARENS_CATEGORY_MATCH_END = re.compile(r"^\[?[\s]*(\(.*\)).*")
@@ -49,22 +53,30 @@ def replace_br_with_space(text: str) -> str:
     return re.sub(re.compile(r"<br[ ]?/>"), " ", text)
 
 
-def parse_name_field(text: str, wrap_brackets=False) -> dict[str, str] | None:
+def parse_name_field(text: str, wrap_brackets=False) -> dict[str, str]:
     """
-    Parse name field from tables and lists. Parse out aliases and categories.
+    Parse name field from tables and lists. Parse out aliases, categories and citations.
     Returns data in the form of:
     ```
     {
-        name: "name",
-        aliases: ["alias1", "alias2", ...],
-        category: "category",
+        name: "Name",
+        aliases: ["Alias1", "Alias2", ...],
+        category: "Category",
+        citations: ["Chapter A", "Chapter B", ...],
     }
     ```
     """
     data = {}
+    data.setdefault("citations", [])
     data.setdefault("categories", [])
     parsed_text = text
     try:
+        # Parse citations
+        tags = wtp.parse(parsed_text).get_tags()
+        for tag in tags:
+            if tag.name == "ref":
+                data["citations"].append(tag.plain_text())
+                parsed_text = parsed_text.replace(str(tag), "")
 
         # Split line breaks <br> and <br/> or newlines '\n'
         lines = re.split(RE_LINEBREAK, parsed_text)
@@ -124,7 +136,7 @@ def parse_name_field(text: str, wrap_brackets=False) -> dict[str, str] | None:
         return data
 
     except IndexError:
-        print(f'Could not completely parse name or aliases from: "{parsed_text}"')
+        raise ParseError(f'Names and/or aliases could not be parsed from "{text}"')
 
 
 class WikiTemplateParser:
@@ -299,38 +311,18 @@ class SpellTableParser(WikiTableParser):
 
 
 class ArtifactListParser(WikiListParser):
-    @staticmethod
-    def parse_row(row: list[str]) -> dict[str] | None:
-        wl = wtp.parse(row[0]).wikilinks
-        if wl:
-            name = wl[0].title
-        else:
-            name = row[0]
-
-        tags = wtp.parse(row[0]).get_tags("ref")
-        if tags:
-            ref_text = tags[0].plain_text()
-            name = wtp.remove_markup(name)
-            name = name.replace(ref_text, "")
-
-        name, *aliases = slash_split(name)
-
-        data = {"name": name}
-        if aliases:
-            data["aliases"] = aliases
-
-        return data
-
-    def parse(self) -> dict | None:
+    def parse(self) -> dict:
         parsed_data = {}
         for item in self.wikilist.items:
-            parsed_row = parse_name_field(item)
-
-            name = parsed_row.get("name")
+            parsed_name = parse_name_field(item)
+            name = parsed_name.get("name")
             parsed_data[name] = {}
 
-            if aliases := parsed_row.get("aliases"):
+            if aliases := parsed_name.get("aliases"):
                 parsed_data[name]["aliases"] = aliases
+
+            if citations := parsed_name.get("citations"):
+                parsed_data[name]["citations"] = citations
 
             # TODO wikibot: expand links for more data on artifacts with their own pages
         return parsed_data
