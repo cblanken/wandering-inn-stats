@@ -382,23 +382,21 @@ class Character(models.Model):
     status = models.CharField(max_length=2, choices=STATUSES, null=True)
     species = models.CharField(max_length=2, choices=SPECIES, null=True)
 
-    # TODO: correctly parse poorly formatted alternates instead
-    # of lumping into UNKNOWN
     @staticmethod
-    def parse_status_str(s: str):
-        if s is None:
+    def parse_status_str(status: str):
+        if status is None:
             return Character.UNKNOWN
-        match s.strip():
-            case "Alive" | "alive":
-                return Character.ALIVE
-            case "Deceased" | "deceased" | "Dead" | "dead":
-                return Character.DEAD
-            case "Undead" | "undead":
-                return Character.UNDEAD
-            case "Unknown" | "unknown" | "Unclear" | "unclear":
-                return Character.UNKNOWN
-            case _:
-                return Character.UNKNOWN
+        status = status.strip()
+        if re.match(r"[Aa]live", status):
+            return Character.ALIVE
+        elif re.match(r"[Uu]ndead", status):
+            return Character.UNDEAD
+        elif re.match(r"([Dd]ead|[Dd]eceased)", status):
+            return Character.DEAD
+        elif re.match(r"([Uu]nknown|[Uu]n-?clear)", status):
+            return Character.UNKNOWN
+        else:
+            return Character.UNKNOWN
 
     @staticmethod
     def parse_species_str(s: str):
@@ -454,7 +452,7 @@ class Spell(models.Model):
 class Alias(models.Model):
     """RefType aliases / alternate names"""
 
-    name = models.TextField(unique=True)
+    name = models.TextField()
     ref_type = models.ForeignKey(RefType, on_delete=models.CASCADE)
 
     class Meta:
