@@ -126,7 +126,7 @@ def parse_name_field(text: str, wrap_brackets=False) -> dict[str, str]:
         names = [n.replace("'", "\u2019") for n in names]
 
         try:
-            name = names[0]
+            name = names[0].strip()
             data["name"] = name
             if len(names) > 0:
                 data["aliases"] = [n for n in names[1:] if n != name]

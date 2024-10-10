@@ -1,6 +1,12 @@
 from stats.wikibot.parse import parse_name_field
 
 
+def test_list_strip_surrounding_whitespace():
+    """Parses out surrounding whitespace from items of a wikitext list"""
+    name = parse_name_field(" * Ser Dalius ").get("name")
+    assert name == "Ser Dalius"
+
+
 def test_nowiki_tags():
     """Parses out <nowiki> tags"""
     assert (
