@@ -46,22 +46,29 @@ from stats.build_utils import (
 
 class LogCat(Enum):
     """Log categories for log message prefixes
+    - `INFO`    general information
+    - `WARN`    warnings for potential problems or errors
+    - `ERROR`     an error occurred
     - `EXISTS`  RefTypes, Aliases, TextRefs etc. that already exist
-    - `NEW`     Operations that successfully created a new model instance
+    - `NEW`     an item was detected that doesn't already exist and may be created
+    - `CREATED` operations that successfully created a new model instance
     - `PREFIX`  RefType items that exist as prefixes usually with a trailing "..."
     - `PROMPT`  user prompts
     - `SKIPPED` user initiated skip
     - `BEGIN`   start of a new section
     """
 
-    EXISTS = "[exists]"
-    CREATED = "[new]"
-    PREFIX = "[prefix]"
-    PROMPT = "[prompt]"
-    ERROR = "[error]"
-    SKIPPED = "[skipped]"
-    BEGIN = "[begin]"
-    UPDATED = "[updated]"
+    INFO = "INFO"
+    WARN = "WARN"
+    ERROR = "ERROR"
+    EXISTS = "EXISTS"
+    NEW = "NEW"
+    CREATED = "CREATED"
+    PREFIX = "PREFIX"
+    PROMPT = "PROMPT"
+    SKIPPED = "SKIP"
+    BEGIN = "BEGIN"
+    UPDATED = "UPDATE"
 
 
 class Command(BaseCommand):
@@ -197,14 +204,26 @@ class Command(BaseCommand):
 
     def log(self, msg: str, category: LogCat):
         t = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
-        self.stdout.write(f"{t} {category.value} {msg}")
+        match category:
+            case LogCat.INFO | LogCat.EXISTS:
+                style = self.style.NOTICE
+            case LogCat.WARN | LogCat.SKIPPED:
+                style = self.style.WARNING
+            case LogCat.NEW | LogCat.BEGIN | LogCat.CREATED:
+                style = self.style.SUCCESS
 
-    def update_prop_prompt(self, old: Any, new: Any) -> tuple[Any, bool]:
+        full_msg = f"{t} {category.value:<10} {style(msg)}"
+        self.stdout.write(full_msg)
+
+    def update_prop_prompt(
+        self, old: Any, new: Any, property: str | None
+    ) -> tuple[Any, bool]:
         """Prompt user to update property and return selected value and confirmation boolean"""
         differ: bool = old != new
+        prop = property or "property"
         if differ:
             self.log(
-                f"A difference in [Model] properties was found. Confirm the following property:",
+                f"A difference in [{prop}] was found.",
                 LogCat.PROMPT,
             )
             print(f"> OLD: {old}")
@@ -222,7 +241,7 @@ class Command(BaseCommand):
 
         return (old, False)
 
-    def edit_field(self, s: str, desc: str | None = None) -> str | None:
+    def edit_field(self, field: str, desc: str | None = None) -> str | None:
         """
         Prompt user to edit given input string `s` or accept the default.
         Returns `None` if this field should be skipped an no actions taken.
@@ -231,22 +250,22 @@ class Command(BaseCommand):
         - `s`: field text to be confirmed or edited
         - `desc`: description of field
         """
-        self.log(f'Confirming {desc} "{s}"', LogCat.PROMPT)
+        self.log(f'Confirming {desc} "{field}"', LogCat.PROMPT)
         while True:
             edit_resp = prompt(
-                f'> Would you like to edit the {desc} "{self.style.WARNING(s)}"? ([y]es/[n]o/[s]kip): ',
+                f'> Would you like to edit the {desc} "{self.style.WARNING(field)}"? ([y]es/[n]o/[s]kip): ',
                 sound=self.prompt_sound,
             ).strip()
 
             if regex.match(r"^[Yy][e]?[s]?$", edit_resp):
                 name_resp = prompt(
-                    f"> Edit {desc}? (default={self.style.WARNING(s)}): ",
+                    f"> Edit {desc}? (default={self.style.WARNING(field)}): ",
                     sound=self.prompt_sound,
                 )
                 if name_resp.strip() == "":
-                    return s
+                    return field
 
-                if s != name_resp:
+                if field != name_resp:
                     confirm = input(
                         f"> Is {self.style.WARNING(name_resp)} correct? (y/n): "
                     )
@@ -255,11 +274,11 @@ class Command(BaseCommand):
                     else:
                         continue
                 else:
-                    return s
+                    return field
             elif regex.match(r"^[Ss][k]?[i]?[p]?", edit_resp):
                 return None
             elif edit_resp == "" or regex.match(r"^[Nn][o]?", edit_resp):
-                return s
+                return field
             else:
                 self.stdout.write(
                     f"That doesn't match a valid response. Please try again."
@@ -268,6 +287,7 @@ class Command(BaseCommand):
     def get_or_create_alias(self, rt: RefType, alias_name: str) -> Alias | None:
         """Create Alias with name confirmation and logging of success/failure to console"""
         try:
+            alias_name = alias_name.strip()
             alias = Alias.objects.get(name=alias_name, ref_type=rt)
             self.log(
                 f'Alias: "{alias_name}" already exists for Reftype "{rt.name}"',
@@ -276,16 +296,12 @@ class Command(BaseCommand):
         except Alias.DoesNotExist:
             if new_name := self.edit_field(alias_name, "Alias name"):
                 self.log(
-                    self.style.SUCCESS(
-                        f'Alias: "{new_name}" to RefType "{rt.name}" created'
-                    ),
+                    f'Alias: "{new_name}" to RefType "{rt.name}" created',
                     LogCat.CREATED,
                 )
                 alias = Alias.objects.create(name=new_name, ref_type=rt)
             else:
-                self.log(
-                    self.style.ERROR(f"Alias {alias_name} was skipped"), LogCat.SKIPPED
-                )
+                self.log(f"Alias {alias_name} was skipped", LogCat.SKIPPED)
                 alias = None
 
         return alias
@@ -310,6 +326,7 @@ class Command(BaseCommand):
                 )
                 return alias.ref_type
             except Alias.DoesNotExist:
+                self.log(f'RefType: "{rt_name}" doesn\'t exist. Create?', LogCat.NEW)
                 edited_name = self.edit_field(rt_name, "RefType name")
                 if edited_name is None:
                     return
@@ -319,7 +336,7 @@ class Command(BaseCommand):
                 )
                 if rt_created:
                     self.log(
-                        self.style.SUCCESS(f"RefType: {rt} created"), LogCat.CREATED
+                        self.style.SUCCESS(f'RefType: "{rt}" created'), LogCat.CREATED
                     )
                 else:
                     self.log(f'RefType: "{edited_name}" already exists', LogCat.EXISTS)
@@ -334,20 +351,18 @@ class Command(BaseCommand):
             # Ensure textref did not detect a innocuous word from the disambiguation list
             if text_ref.text in options["disambiguation_list"]:
                 if options.get("skip_disambiguation"):
-                    self.stdout.write(
-                        self.style.WARNING(
-                            f"> Disambiguation found but check is disabled (--skip-disambiguation). Skipping..."
-                        )
+                    self.log(
+                        "Disambiguation found but check is disabled (--skip-disambiguation).",
+                        LogCat.WARN,
                     )
                     return None
 
                 for exception in options["disambiguation_exceptions"]:
                     pattern = regex.compile(exception)
                     if pattern.search(text_ref.line_text):
-                        self.stdout.write(
-                            self.style.WARNING(
-                                f"> {exception} is in disambiguation exceptions list. Skipping..."
-                            )
+                        self.log(
+                            f"> {exception} is in the disambiguation exceptions list. Skipping...",
+                            LogCat.SKIPPED,
                         )
                         return None
 
@@ -359,28 +374,20 @@ class Command(BaseCommand):
 
                 # Skip by default
                 if ans.lower() == "y" or len(ans) == 0:
-                    self.stdout.write(
-                        self.style.WARNING(f"> {text_ref.text} skipped...")
-                    )
+                    self.log(f"> {text_ref.text} skipped...", LogCat.SKIPPED)
                     return None
 
             try:
                 ref_type = RefType.objects.get(name=text_ref.text)
-
-                self.stdout.write(
-                    self.style.WARNING(
-                        f"> RefType: {text_ref.text} already exists. Skipping creation..."
-                    )
-                )
+                self.log(f"RefType: {text_ref.text} already exists.", LogCat.INFO)
                 return ref_type
             except RefType.DoesNotExist:
                 ref_type = None
             except RefType.MultipleObjectsReturned:
                 ref_types = RefType.objects.filter(name=text_ref.text)
-                self.stdout.write(
-                    self.style.WARNING(
-                        f"> Multiple RefType(s) exist for the name: {text_ref.text}..."
-                    )
+                self.log(
+                    f"Multiple RefType(s) exist for the name: {text_ref.text}...",
+                    LogCat.WARN,
                 )
                 ref_type = select_ref_type_from_qs(ref_types, sound=True)
                 return ref_type
@@ -389,10 +396,9 @@ class Command(BaseCommand):
             try:
                 alias = Alias.objects.get(name=text_ref.text)
                 if alias:
-                    self.stdout.write(
-                        self.style.WARNING(
-                            f'> Alias exists for {text_ref.text} already. Reftype="{alias.ref_type.name}". Skipping creation...'
-                        )
+                    self.log(
+                        f'Alias exists for {text_ref.text} already. Reftype="{alias.ref_type.name}". Skipping creation...',
+                        LogCat.SKIPPED,
                     )
                     return alias.ref_type
             except Alias.DoesNotExist:
@@ -442,22 +448,20 @@ class Command(BaseCommand):
                 alias, created = Alias.objects.get_or_create(
                     name=text_ref.text, ref_type=ref_type
                 )
-                prelude = f"> RefType: {text_ref.text} did not exist, but it is a alternative form of {ref_type.name}. "
+                prelude = f"RefType: {text_ref.text} did not exist, but it is a alternative form of {ref_type.name}. "
                 if created:
-                    self.stdout.write(
-                        self.style.SUCCESS(
-                            f"{prelude}No existing Alias was found, so one was created."
-                        )
+                    self.log(
+                        f"{prelude}No existing Alias was found, so one was created.",
+                        LogCat.CREATED,
                     )
                 else:
-                    self.stdout.write(
-                        self.style.WARNING(
-                            f"{prelude}An existing Alias was found, so none were created."
-                        )
+                    self.log(
+                        f"{prelude}An existing Alias was found, so none were created.",
+                        LogCat.SKIPPED,
                     )
                 return alias.ref_type
 
-            # Could not find existing RefType or Alias or alternate form so intialize type for new RefType
+            # Could not find existing RefType or Alias or alternate form so intialize new RefType
 
             # Check for [Skill] or [Class] acquisition messages
             skill_obtained_pattern = regex.compile(
@@ -516,27 +520,25 @@ class Command(BaseCommand):
 
             # RefType was NOT categorized, so skip
             if new_type is None:
-                self.stdout.write(self.style.WARNING(f"> {text_ref.text} skipped..."))
+                self.log(f"{text_ref.text} skipped...", LogCat.SKIPPED)
                 return None
 
             # Create RefType
             try:
                 new_ref_type = RefType(name=text_ref.text, type=new_type)
                 new_ref_type.save()
-                self.stdout.write(self.style.SUCCESS(f"> {new_ref_type} created"))
+                self.log(f"> {new_ref_type} created", LogCat.CREATED)
                 return new_ref_type
             except IntegrityError as exc:
-                self.stdout.write(
-                    self.style.WARNING(
-                        f"> {strip_tags(text_ref.text)} already exists. Skipping..."
-                    )
+                self.log(
+                    f"{strip_tags(text_ref.text)} already exists. Skipping...",
+                    LogCat.SKIPPED,
                 )
                 return None
             except DataError as exc:
-                self.stdout.write(
-                    self.style.WARNING(
-                        f'Failed to create RefType from {text_ref.text} and with RefType: "{new_type}". {exc}\nSkipping...'
-                    )
+                self.log(
+                    f'Failed to create RefType from {text_ref.text} and with RefType: "{new_type}". {exc}',
+                    LogCat.SKIPPED,
                 )
                 return None
 
@@ -595,8 +597,9 @@ class Command(BaseCommand):
                         .replace(";", "")
                     )
                 except ValueError:
-                    self.stdout.write(
-                        "Color span found but colored text is outside the current context range."
+                    self.log(
+                        "Color span found but colored text is outside the current context range.",
+                        LogCat.WARN,
                     )
                     return None
 
@@ -605,17 +608,16 @@ class Command(BaseCommand):
                     return matching_colors[0]
                 else:
                     if options.get("skip_textref_color_select"):
-                        self.stdout.write(
-                            self.style.WARNING(
-                                "> TextRef color selection disabled. Skipping selection."
-                            )
+                        self.log(
+                            "> TextRef color selection disabled. Skipping selection.",
+                            LogCat.SKIPPED,
                         )
                         return None
 
-                    self.stdout.write(
-                        f"Unable to automatically select color for TextRef: {text_ref}"
+                    self.log(
+                        f"Unable to automatically select color for TextRef: {text_ref}",
+                        LogCat.PROMPT,
                     )
-
                     return self.select_color_from_options(
                         matching_colors, options.get("prompt_sound")
                     )
@@ -641,8 +643,9 @@ class Command(BaseCommand):
         """Build individual Chapter by ID"""
         try:
             chapter = Chapter.objects.get(number=chapter_num)
-            self.stdout.write(
-                f"\nPopulating chapter data for existing chapter (id={chapter_num}): {chapter.title} ..."
+            self.log(
+                f"Populating chapter data for existing chapter (id={chapter_num}): {chapter.title} ...",
+                LogCat.INFO,
             )
             chapter_dir = Path(glob(f"./data/*/*/*/{chapter.title}")[0])
             self.build_chapter(
@@ -652,12 +655,9 @@ class Command(BaseCommand):
                 chapter_num,
             )
         except Chapter.DoesNotExist as exc:
-            self.stdout.write(
-                self.style.WARNING(
-                    f"> Chapter (id) {chapter_num} does not exist in database and cannot be created \
-                            with just a chapter number/id. Please run a regular build with \
-                            `--skip-text-refs` to build all Chapter records from the available data."
-                )
+            self.log(
+                f"Chapter (id) {chapter_num} does not exist in database and cannot be created with just a chapter number/id. Please run a regular build with `--skip-text-refs` to build all Chapter records from the available data.",
+                LogCat.WARN,
             )
             chapter_dir = Path(glob(f"./data/*/*/*/{chapter.title}")[0])
             self.build_chapter(
@@ -667,10 +667,9 @@ class Command(BaseCommand):
                 chapter_num,
             )
         except IndexError:
-            self.stdout.write(
-                self.style.WARNING(
-                    f"> Chapter (id): {chapter_num} source file does not exist. Skipping..."
-                )
+            self.log(
+                f"Chapter (id): {chapter_num} source file does not exist. Skipping...",
+                LogCat.SKIPPED,
             )
         return
 
@@ -683,10 +682,9 @@ class Command(BaseCommand):
     ):
         src_chapter: SrcChapter = SrcChapter(src_path)
         if src_chapter.metadata is None:
-            self.stdout.write(
-                self.style.WARNING(
-                    f"> Missing metadata for Chapter: {src_chapter.title}. Skipping..."
-                )
+            self.log(
+                f"Missing metadata for Chapter: {src_chapter.title}. Skipping...",
+                LogCat.SKIPPED,
             )
             return
 
@@ -729,12 +727,11 @@ class Command(BaseCommand):
             return
 
         if ref_type_updated:
-            self.stdout.write(self.style.SUCCESS(f"> Chapter created: {chapter}"))
+            self.log(f"Chapter created: {chapter}", LogCat.CREATED)
         else:
-            self.stdout.write(
-                self.style.WARNING(
-                    f'> Chapter "{src_chapter.title}" already exists. Chapter updated.'
-                )
+            self.log(
+                f'Chapter "{src_chapter.title}" already exists. Chapter updated.',
+                LogCat.UPDATED,
             )
 
         if options.get("skip_text_refs"):
@@ -795,21 +792,15 @@ class Command(BaseCommand):
         for i in line_range:
             image_tag_pattern = regex.compile(r".*((<a href)|(<img )).*")
             if image_tag_pattern.match(src_chapter.lines[i]):
-                self.stdout.write(
-                    self.style.WARNING(f"> Line {i} contains an <img> tag. Skipping...")
-                )
+                self.log(f"Line {i} contains an <img> tag. Skipping...", LogCat.SKIPPED)
                 continue
             elif src_chapter.lines[i].startswith(r"<div class="):
-                self.stdout.write(
-                    self.style.WARNING(
-                        f"> Line {i} is entry-content <div>. Skipping..."
-                    )
+                self.log(
+                    f"Line {i} is an entry-content <div>. Skipping...", LogCat.SKIPPED
                 )
                 continue
             elif src_chapter.lines[i].strip() == "":
-                self.stdout.write(
-                    self.style.WARNING(f"> Line {i} is empty. Skipping...")
-                )
+                self.log(f"Line {i} is empty. Skipping...", LogCat.SKIPPED)
 
             # Create ChapterLine if it doesn't already exist
             try:
@@ -817,18 +808,20 @@ class Command(BaseCommand):
                     chapter=chapter, line_number=i, text=src_chapter.lines[i]
                 )
             except IntegrityError:
-                self.stdout.write(self.style.WARNING(f"{src_chapter.lines[i]}"))
-                response = prompt(
-                    f"> An existing chapter line ({i}) in chapter {chapter} was found with different text. Continue? (y/n): ",
-                    sound=True,
+                self.log(
+                    f"An existing chapter line ({i}) in chapter {chapter} was found with different text.",
+                    LogCat.PROMPT,
                 )
+                response = prompt("Continue? (y/n): ", sound=True)
+
                 if response.strip().lower() == "y":
                     continue
                 else:
+                    self.log(f"Build was aborted", LogCat.ERROR)
                     raise CommandError("Build aborted.")
 
             if created:
-                self.stdout.write(self.style.SUCCESS(f"> Creating line {i:>3}..."))
+                self.log(f"Created line {i:>3}", LogCat.CREATED)
 
             text_refs = src_chapter.gen_text_refs(
                 i,
@@ -845,9 +838,7 @@ class Command(BaseCommand):
                         start_column=text_ref.start_column,
                         end_column=text_ref.end_column,
                     )
-                    self.stdout.write(
-                        self.style.WARNING("> TextRef already exists. Skipping...")
-                    )
+                    self.log("TextRef already exists. Skipping...", LogCat.SKIPPED)
                     continue
                 except TextRef.DoesNotExist:
                     ref_type = self.get_or_create_ref_type_from_text_ref(
@@ -876,14 +867,11 @@ class Command(BaseCommand):
                     },
                 )
                 if ref_type_created:
-                    self.stdout.write(
-                        self.style.SUCCESS(f"> TextRef: {text_ref.type.name} created")
-                    )
+                    self.log(f"TextRef: {text_ref.type.name} created", LogCat.CREATED)
                 else:
-                    self.stdout.write(
-                        self.style.WARNING(
-                            f"> TextRef: {text_ref.type.name} @line {text_ref.chapter_line.line_number} updated..."
-                        )
+                    self.log(
+                        f"TextRef: {text_ref.type.name} @line {text_ref.chapter_line.line_number} updated",
+                        LogCat.UPDATED,
                     )
 
     def build_color_categories(self):
@@ -920,9 +908,7 @@ class Command(BaseCommand):
             try:
                 spell_data = json.load(file)
             except json.JSONDecodeError:
-                self.stdout.write(
-                    self.style.ERROR(f"[Spell] data ({path}) could not be decoded")
-                )
+                self.log(f"[Spell] data ({path}) could not be decoded", LogCat.ERROR)
             else:
                 for spell_name, values in spell_data.items():
                     if rt := self.get_or_create_reftype(spell_name, RefType.SPELL):
@@ -942,9 +928,7 @@ class Command(BaseCommand):
             try:
                 skill_data = json.load(file)
             except json.JSONDecodeError:
-                self.stdout.write(
-                    self.style.ERROR(f"> [Skill] data ({path}) could not be decoded")
-                )
+                self.log(f"[Skill] data ({path}) could not be decoded", LogCat.ERROR)
             else:
                 for skill_name, values in skill_data.items():
                     if rt := self.get_or_create_reftype(skill_name, RefType.SKILL):
@@ -965,7 +949,7 @@ class Command(BaseCommand):
                 data = json.load(file)
             except json.JSONDecodeError:
                 self.log(
-                    self.style.ERROR(f"> Character data ({path}) could not be decoded"),
+                    self.style.ERROR(f"Character data ({path}) could not be decoded"),
                     LogCat.ERROR,
                 )
             else:
@@ -1078,31 +1062,29 @@ class Command(BaseCommand):
                             char.species = new_species
                             char.save()
                             self.log(
-                                self.style.SUCCESS(f"Character: {name} created"),
+                                self.style.SUCCESS(f'Character: "{name}" created'),
                                 LogCat.CREATED,
                             )
                         else:
                             # fmt: off
-                            self.log(f"Character: {name} already exists", LogCat.SKIPPED)
-                            char.first_chapter_appearance, update_confirmed = self.update_prop_prompt(char.first_chapter_appearance, new_first_chapter_appearance)
+                            self.log(f'Character: "{name}" already exists', LogCat.SKIPPED)
+                            char.first_chapter_appearance, update_confirmed = self.update_prop_prompt(char.first_chapter_appearance, new_first_chapter_appearance, "first_chapter_appearance")
                             if update_confirmed:
-                                self.log(f"First Appearance updated → {char.first_chapter_appearance}", LogCat.UPDATED)
-                                char.save()
+                                self.log(f"First Appearance updated to {char.first_chapter_appearance}", LogCat.UPDATED)
 
-                            char.wiki_uri, update_confirmed = self.update_prop_prompt(char.wiki_uri, new_wiki_uri)
+                            char.wiki_uri, update_confirmed = self.update_prop_prompt(char.wiki_uri, new_wiki_uri, "wiki_uri")
                             if update_confirmed:
-                                self.log(f"Wiki URI updated → {char.wiki_uri}", LogCat.UPDATED)
-                                char.save()
+                                self.log(f"Wiki URI updated to {char.wiki_uri}", LogCat.UPDATED)
 
-                            char.status, update_confirmed = self.update_prop_prompt(char.status, new_status)
+                            char.status, update_confirmed = self.update_prop_prompt(char.status, new_status, "status")
                             if update_confirmed:
-                                self.log(f"Status updated → {char.status}", LogCat.UPDATED)
-                                char.save()
+                                self.log(f"Status updated to {char.status}", LogCat.UPDATED)
 
-                            char.species, updated_confirmed = self.update_prop_prompt(char.species, new_species)
+                            char.species, update_confirmed = self.update_prop_prompt(char.species, new_species, "species")
                             if update_confirmed:
-                                self.log(f"Species updated → {char.species}", LogCat.UPDATED)
-                                char.save()
+                                self.log(f"Species updated to {char.species}", LogCat.UPDATED)
+
+                            char.save()
                             # fmt: on
 
                     except IntegrityError:
@@ -1182,12 +1164,9 @@ class Command(BaseCommand):
                     # Lines starting with '#' act as comments
                     return [x.strip() for x in f.readlines() if x[0] != "#"]
             except OSError as e:
-                self.stdout.write(
-                    self.style.ERROR(
-                        f"Could not read disambiguation.cfg config file! {e}"
-                    )
+                self.log(
+                    f"Could not read disambiguation.cfg config file! {e}", LogCat.ERROR
                 )
-
                 return None
 
         return None
@@ -1215,17 +1194,15 @@ class Command(BaseCommand):
                             )
 
                 for qs in found_reftypes:
-                    self.stdout.write(
-                        self.style.SUCCESS(
-                            f'Type: {qs.type:>3} | Name: "{qs.name}" found → {qs}'
-                        )
+                    self.log(
+                        f'Type: {qs.type:>3} | Name: "{qs.name}" found → {qs}',
+                        LogCat.INFO,
                     )
 
                 for qs in missing_reftypes:
-                    self.stdout.write(
-                        self.style.WARNING(
-                            f'Type: {qs[0]:>3} | Name: "{qs[1]}" does not exist. Make sure there isn\'t a typo'
-                        )
+                    self.log(
+                        f'Type: {qs[0]:>3} | Name: "{qs[1]}" does not exist. Make sure there isn\'t a typo',
+                        LogCat.WARN,
                     )
 
                 if len(missing_reftypes):
@@ -1269,7 +1246,7 @@ class Command(BaseCommand):
                 Path(config_root, "disambiguation_exceptions.cfg")
             )
 
-            self.stdout.write("Building DB...")
+            self.log("Building DB...", LogCat.INFO)
 
             # Build from static data
             if not options.get("skip_colors"):
@@ -1290,8 +1267,9 @@ class Command(BaseCommand):
 
             # Setup custom reference list override if provided
             if custom_refs_path := options.get("custom_refs"):
-                self.stdout.write(
-                    f'Loading custom references config file "{custom_refs_path}"'
+                self.log(
+                    f'Loading custom references config file "{custom_refs_path}"',
+                    LogCat.INFO,
                 )
                 options["custom_refs"] = self.get_custom_compiled_patterns(
                     custom_refs_path
@@ -1318,7 +1296,7 @@ class Command(BaseCommand):
             if options.get("skip_volumes"):
                 return
 
-            self.stdout.write("\nPopulating chapter data by volume...")
+            self.log("Populating chapter data by volume...", LogCat.INFO)
             vol_root = Path(options["data_path"], "volumes")
             meta_path = Path(vol_root)
             volumes_metadata = get_metadata(meta_path)
@@ -1342,12 +1320,11 @@ class Command(BaseCommand):
                     title=src_vol.title, number=vol_num
                 )
                 if ref_type_created:
-                    self.stdout.write(self.style.SUCCESS(f"> Volume created: {volume}"))
+                    self.log(f"Volume created: {volume}", LogCat.CREATED)
                 else:
-                    self.stdout.write(
-                        self.style.WARNING(
-                            f"> Record for {src_vol.title} already exists. Skipping creation..."
-                        )
+                    self.log(
+                        f"> Record for {src_vol.title} already exists. Skipping creation...",
+                        LogCat.SKIPPED,
                     )
 
                 # Build books
@@ -1361,13 +1338,13 @@ class Command(BaseCommand):
                         title=book_title, number=book_num, volume=volume
                     )
                     if book_created:
-                        self.stdout.write(self.style.SUCCESS(f"> Book created: {book}"))
+                        self.log(f"Book created: {book}", LogCat.CREATED)
                     else:
-                        self.stdout.write(
-                            self.style.WARNING(
-                                f"> Record for {book_title} already exists. Skipping creation..."
-                            )
+                        self.log(
+                            f"Record for {book_title} already exists. Skipped.",
+                            LogCat.SKIPPED,
                         )
+
                     # Build chapters
                     for chapter_title in src_book.chapters:
                         path = Path(src_book.path, chapter_title)
