@@ -64,7 +64,10 @@ class Book(models.Model):
         constraints = [
             models.UniqueConstraint(
                 fields=["volume", "title"], name="unique_volume_and_title"
-            )
+            ),
+            models.UniqueConstraint(
+                fields=["volume", "number"], name="unique_volume_and_book_num"
+            ),
         ]
 
     def __str__(self):

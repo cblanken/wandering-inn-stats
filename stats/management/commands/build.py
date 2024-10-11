@@ -205,12 +205,14 @@ class Command(BaseCommand):
     def log(self, msg: str, category: LogCat):
         t = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
         match category:
-            case LogCat.INFO | LogCat.EXISTS:
-                style = self.style.NOTICE
             case LogCat.WARN | LogCat.SKIPPED:
                 style = self.style.WARNING
             case LogCat.NEW | LogCat.BEGIN | LogCat.CREATED:
                 style = self.style.SUCCESS
+            case LogCat.ERROR:
+                style = self.style.ERROR
+            case _:
+                style = lambda x: x
 
         full_msg = f"{t} {category.value:<10} {style(msg)}"
         self.stdout.write(full_msg)
@@ -688,10 +690,6 @@ class Command(BaseCommand):
             )
             return
 
-        # TODO: Fix this DB call to guarantee it won't create a new chapter
-        # if a chapter with the same chapter title or source_url already exists
-        # the `number` parameter may change if new chapters are added earlier in the
-        # ToC (like for rewrites) or if they are deleted/condensed
         try:
             chapter, ref_type_updated = Chapter.objects.update_or_create(
                 title=src_chapter.title,
@@ -723,8 +721,14 @@ class Command(BaseCommand):
                     ),
                 },
             )
-        except IntegrityError:
-            return
+        except IntegrityError as e:
+            self.log(
+                f'A DB integrity error occurred. Chapter "{src_chapter.title}" could not be created.',
+                LogCat.ERROR,
+            )
+            raise CommandError(
+                f"Chapter integrity failed when building a chapter. The indexing of the source chapters may have been changed.\n{e}"
+            )
 
         if ref_type_updated:
             self.log(f"Chapter created: {chapter}", LogCat.CREATED)
@@ -1323,7 +1327,7 @@ class Command(BaseCommand):
                     self.log(f"Volume created: {volume}", LogCat.CREATED)
                 else:
                     self.log(
-                        f"> Record for {src_vol.title} already exists. Skipping creation...",
+                        f"Record for {src_vol.title} already exists. Skipping creation...",
                         LogCat.SKIPPED,
                     )
 
@@ -1335,8 +1339,11 @@ class Command(BaseCommand):
                             f"Unable to read book ({book_title}) metadata file. Exiting..."
                         )
                     book, book_created = Book.objects.get_or_create(
-                        title=book_title, number=book_num, volume=volume
+                        number=book_num, volume=volume
                     )
+                    book.title = book_title
+                    book.save()
+
                     if book_created:
                         self.log(f"Book created: {book}", LogCat.CREATED)
                     else:
