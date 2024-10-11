@@ -59,7 +59,7 @@ class TwiBot(SingleSiteBot):
             # TODO
             print("NO CHARACTER INFOBOX FOUND")
 
-    def treat_location(self, page: pwb.Page) -> dict | None:
+    def treat_location(self, page: pwb.Page) -> dict:
         self.current_page = page
         return {
             page.title(): {

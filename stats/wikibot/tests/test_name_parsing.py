@@ -74,3 +74,13 @@ def test_citation_link():
     )
     assert parsed_fields.get("name") == "Everfire Shield"
     assert parsed_fields.get("citations") == ["Chapter 7.10 K"]
+
+
+def test_citation_link_with_bracketed_name():
+    """Parses citation links. Citation link text should not be included in the name field."""
+    parsed_fields = parse_name_field(
+        '[Flame Scythe]<ref name="6.57">[https://wanderinginn.com/2019/11/16/6-57/ Chapter 6.57]</ref>',
+        wrap_brackets=True,
+    )
+    assert parsed_fields.get("name") == "[Flame Scythe]"
+    assert parsed_fields.get("citations") == ["Chapter 6.57"]

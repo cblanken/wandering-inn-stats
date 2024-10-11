@@ -27,8 +27,8 @@ def params_to_dict(params: list[str]) -> dict[str, str]:
 def parse_list(text: str) -> list[str]:
     # Split line breaks <br> and <br/> or newlines '\n'
     lines = re.split(RE_LINEBREAK, text)
-    lines = [mwp.parse(x).strip_code() for x in lines if x.strip() != ""]
-    return lines
+    lines = [parse_name_field(x) for x in lines if x.strip() != ""]
+    return [line["name"] for line in lines]
 
 
 def slash_split(text: str) -> list[str]:
@@ -174,7 +174,7 @@ class WikiListParser:
 
 
 class CharInfoBoxParser(WikiTemplateParser):
-    def parse(self) -> dict | None:
+    def parse(self) -> dict:
         # Parse first appearance hyperlinks
         if first_hrefs := self.params.get("first appearance"):
             wikitext = wtp.parse(self.site.expand_text(first_hrefs))
@@ -289,13 +289,14 @@ class SpellTableParser(WikiTableParser):
         super().__init__(table)
 
     @staticmethod
-    def parse_row(row: list[str]) -> dict[str] | None:
+    def parse_row(row: list[str]) -> dict[str, str | list[str]]:
         parsed_name = parse_name_field(row[0], wrap_brackets=True)
-        parsed_row = {"tier": strip_ref_tags(replace_br_with_space(row[1].strip()))}
+        parsed_row: dict[str, str | list[str]] = {
+            "tier": strip_ref_tags(replace_br_with_space(row[1].strip()))
+        }
         if aliases := parsed_name.get("aliases"):
             parsed_row["aliases"] = aliases
         if categories := parsed_name.get("categories"):
-            # parsed_row["category"] = replace_br_with_space(categories)
             parsed_row["categories"] = categories
         if effect := strip_ref_tags(row[2].strip()):
             parsed_row["effect"] = replace_br_with_space(effect)

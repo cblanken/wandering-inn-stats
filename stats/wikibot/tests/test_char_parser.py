@@ -1,8 +1,8 @@
 import pytest
 from stats.wikibot.parse import CharInfoBoxParser
-from pywikibot import Site
+from pywikibot.site import APISite
 
-site = Site(code="en", fam="twi")
+site = APISite(code="en", fam="twi")
 
 """
 Aliases
@@ -24,7 +24,7 @@ def test_infobox_no_aliases():
 def test_infobox_Bird_aliases():
     """
     Properly parses template (with wikitextparser) from Bird page (mwparserfromhell 0.6.6 fails to parse the
-    Infobox_character parameters from the template template). Also properly split aliases by newline '\n'
+    Infobox_character parameters from the template). Also properly split aliases by newline '\n'
     """
     assert CharInfoBoxParser(
         [
@@ -58,12 +58,13 @@ def test_infobox_aliases():
     """
     assert CharInfoBoxParser(
         [
-            "aliases=Kasigna of the End<br />God/Goddess of Death<br />Goddess of the Afterlife<br />The Three Women in One<br />Three-In-One<br />One-In-Three<br/>The Maiden<br/>The Mother<br/>The Matriarch<br/>Corpsemother<br/>The Final Judge<br/>Kaligma"
+            "aliases=Kasigna of the End<br />God of Death<br />Goddess of Death<br />Goddess of the Afterlife<br />The Three Women in One<br />Three-In-One<br />One-In-Three<br/>The Maiden<br/>The Mother<br/>The Matriarch<br/>Corpsemother<br/>The Final Judge<br/>Kaligma"
         ],
         site,
     ).parse().get("aliases") == [
         "Kasigna of the End",
-        "God/Goddess of Death",
+        "God of Death",
+        "Goddess of Death",
         "Goddess of the Afterlife",
         "The Three Women in One",
         "Three-In-One",
@@ -79,7 +80,7 @@ def test_infobox_aliases():
 
 def test_infobox_ref_code_in_aliases():
     """
-    Strip <ref> codes from aliases
+    Strip self closing <ref> tags from aliases
     """
     assert CharInfoBoxParser(
         [
@@ -87,16 +88,28 @@ def test_infobox_ref_code_in_aliases():
         ],
         site,
     ).parse().get("aliases") == [
-        "Cara O'Sullivan",
-        "'Humble Actor'",
+        "Cara O’Sullivan",
+        "’Humble Actor’",
         "Queen of Pop",
         "Siren of Songs",
         "Baroness of the Beat",
         "Singer of Terandria",
         "Singer of Afiele",
         "Gravesinger of Afiele",
-        "Sid (Nickname)",
+        "Sid",
     ]
+
+
+def test_infobox_ref_code_in_single_alias():
+    """
+    Strip <ref> codes from single alias
+    """
+    assert CharInfoBoxParser(
+        [
+            "aliases=Imani-cook<ref>[https://wanderinginn.com/2021/01/10/8-00/ Chapter 8.00]</ref>"
+        ],
+        site,
+    ).parse().get("aliases") == ["Imani-cook"]
 
 
 """
