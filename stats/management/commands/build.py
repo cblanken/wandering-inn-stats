@@ -405,6 +405,11 @@ class Command(BaseCommand):
                     return alias.ref_type
             except Alias.DoesNotExist:
                 pass
+            except Alias.MultipleObjectsReturned as e:
+                self.log(
+                    f'Multiple aliases found for name: "{text_ref.text}"', LogCat.ERROR
+                )
+                raise CommandError(f"Aliases must be consolidated. {e}")
 
             # Check for alternate forms of RefType (titlecase, pluralized, gendered, etc.)
             ref_name = text_ref.text[1:-1] if text_ref.is_bracketed else text_ref.text
