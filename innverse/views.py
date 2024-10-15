@@ -34,11 +34,13 @@ class HeadlineStat:
         value: int | float | str,
         caption: str = "",
         units: str = "",
+        popup_info: str | None = None,
     ):
         self.title = title
         self.value = value
         self.units = units
         self.caption = caption
+        self.popup_info = popup_info
 
 
 @cache_page(60 * 60 * 24)
@@ -82,7 +84,12 @@ def overview(request: HtmxHttpRequest) -> HttpResponse:
         context = {
             "gallery": charts.word_count_charts,
             "stats": [
-                HeadlineStat("Total Word Count", f"{total_wc:,}", units=" words"),
+                HeadlineStat(
+                    "Total Word Count",
+                    f"{total_wc:,}",
+                    units=" words",
+                    popup_info="The word count for each chapter is calculated by counting the tokens between spaces over the entire text. This is a simple approach, and doesn't account for any of the punctuation-related edge cases. For this reason, you may notice discrepancies between these word counts those posted elsewhere.",
+                ),
                 HeadlineStat(
                     "Median Word Count per Chapter",
                     f"{round(median_chapter_word_count):,}",
@@ -194,12 +201,14 @@ def characters(request: HtmxHttpRequest) -> HttpResponse:
                         ),
                     ),
                     units=" character mentions",
+                    popup_info="This is not a count of unique character mentions. It is the total number of mentions for the given chapter. So if a character is mentioned several times throughout the chapter, each instance counts towards the total.",
                 ),
                 HeadlineStat(
                     "Number of Character Species",
                     f"{species_count:,}",
                     f"out of {len(Character.SPECIES)} known species",
                     units=" species",
+                    popup_info='Many species are referenced throughout TWI, but for some species, no specific characters have been mentioned. It\'s possible that they simply haven\'t been encountered yet and may pop up in the future, such as some of the many Lizardfolk variants. However, many of the known species are simply extinct. This is what causes the discrepancy between the character "species" count and the "known species".\nThe "known species" count includes all species. Even those that have no associated characters.',
                 ),
             ],
             "table": table,
@@ -256,6 +265,7 @@ def classes(request: HtmxHttpRequest) -> HttpResponse:
                     f"{len(longest_class_name_by_chars.name)}",
                     f"{longest_class_name_by_chars.name}",
                     units=" letters",
+                    popup_info="This count includes punctuation as well as letters.",
                 ),
                 HeadlineStat(
                     "Chapter with the Most Class Mentions",
@@ -269,6 +279,7 @@ def classes(request: HtmxHttpRequest) -> HttpResponse:
                         ),
                     ),
                     units=" [Class] mentions",
+                    popup_info="This count includes every instance of a mentioned [Class]. Meaning if a [Class] occurs multiple times throughout a chapter, each instance is counted.",
                 ),
             ],
             "table": table,
@@ -326,6 +337,7 @@ def skills(request: HtmxHttpRequest) -> HttpResponse:
                     f"{len(longest_skill_name_by_chars.name)}",
                     f"{longest_skill_name_by_chars.name}",
                     units=" letters",
+                    popup_info="This count includes punctuation as well as letters.",
                 ),
                 HeadlineStat(
                     "Chapter with the Most [Skill] Mentions",
@@ -339,6 +351,7 @@ def skills(request: HtmxHttpRequest) -> HttpResponse:
                         ),
                     ),
                     units=" [Skill] mentions",
+                    popup_info="This count includes every instance of a mentioned [Skill]. Meaning if a [Skill] occurs multiple times throughout a chapter, each instance is counted.",
                 ),
             ],
             "table": table,
@@ -395,6 +408,7 @@ def magic(request: HtmxHttpRequest) -> HttpResponse:
                     f"{len(longest_spell_name_by_chars.name)}",
                     f"{longest_spell_name_by_chars.name}",
                     units=" letters",
+                    popup_info="This count includes punctuation as well as letters.",
                 ),
                 HeadlineStat(
                     "Chapter with the Most [Spell] Mentions",
@@ -408,6 +422,7 @@ def magic(request: HtmxHttpRequest) -> HttpResponse:
                         ),
                     ),
                     units=" [Spell] mentions",
+                    popup_info="This count includes every instance of a mentioned [Spell]. Meaning if a [Spell] occurs multiple times throughout a chapter, each instance is counted.",
                 ),
             ],
             "table": table,
