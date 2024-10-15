@@ -7,10 +7,11 @@ from pathlib import Path
 from pprint import pformat
 from subprocess import Popen, TimeoutExpired
 import time
-from typing import Iterable, Literal
+from typing import Iterable, Literal, TypeVar, Generic, Sequence
 import regex
 from django.core.management.base import CommandError
 from django.db.models.query import QuerySet
+from django.db.models import Model
 from processing import Pattern
 from stats.models import Alias, RefType
 from django.core.management.base import CommandError
@@ -264,6 +265,47 @@ def select_ref_type(sound: bool = False) -> str | None:
                 return None  # skip with confirmation
 
             return ref_type
+
+    except KeyboardInterrupt as exc:
+        print("")
+        raise CommandError(
+            "Build interrupted with Ctrl-C (Keyboard Interrupt)."
+        ) from exc
+    except EOFError as exc:
+        print("")
+        raise CommandError("Build interrupted with Ctrl-D (EOF).") from exc
+
+
+T = TypeVar("T", bound=Model)
+
+
+def select_item_from_qs(qs: QuerySet[T], sound=False) -> T | None:
+    if len(qs) < 2:
+        raise ValueError("To select from a Queryset, it cannot be empty")
+    try:
+        while True:
+            for i, record in enumerate(qs):
+                print(f"{i}: {record}")
+
+            sel: str = prompt(
+                f"Select one of the above records (leave empty to skip): ",
+                sound,
+            )
+
+            sel = sel.strip()
+            try:
+                sel_i = int(sel)
+            except ValueError:
+                sel_i = -1  # invalid selection
+
+            if sel_i >= 0 and sel_i < len(qs):
+                return qs[sel_i]
+            else:
+                print("Invalid selection.")
+                yes_no = prompt("Try again (y/n): ", sound)
+                if yes_no.lower() == "y":
+                    continue
+                return None  # skip with confirmation
 
     except KeyboardInterrupt as exc:
         print("")

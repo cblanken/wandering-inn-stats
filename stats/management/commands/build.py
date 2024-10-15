@@ -39,6 +39,7 @@ from stats.build_utils import (
     prompt,
     select_ref_type,
     select_ref_type_from_qs,
+    select_item_from_qs,
     COLOR_CATEGORY,
     COLORS,
 )
@@ -376,7 +377,7 @@ class Command(BaseCommand):
 
                 # Skip by default
                 if ans.lower() == "y" or len(ans) == 0:
-                    self.log(f"> {text_ref.text} skipped...", LogCat.SKIPPED)
+                    self.log(f"{text_ref.text} skipped...", LogCat.SKIPPED)
                     return None
 
             try:
@@ -407,9 +408,12 @@ class Command(BaseCommand):
                 pass
             except Alias.MultipleObjectsReturned as e:
                 self.log(
-                    f'Multiple aliases found for name: "{text_ref.text}"', LogCat.ERROR
+                    f'Multiple aliases found for name: "{text_ref.text}"', LogCat.WARN
                 )
-                raise CommandError(f"Aliases must be consolidated. {e}")
+                aliases = Alias.objects.filter(name=text_ref.text)
+                alias = select_item_from_qs(aliases)
+                if alias is not None:
+                    return alias.ref_type
 
             # Check for alternate forms of RefType (titlecase, pluralized, gendered, etc.)
             ref_name = text_ref.text[1:-1] if text_ref.is_bracketed else text_ref.text
@@ -534,7 +538,7 @@ class Command(BaseCommand):
             try:
                 new_ref_type = RefType(name=text_ref.text, type=new_type)
                 new_ref_type.save()
-                self.log(f"> {new_ref_type} created", LogCat.CREATED)
+                self.log(f"{new_ref_type} created", LogCat.CREATED)
                 return new_ref_type
             except IntegrityError as exc:
                 self.log(
@@ -548,40 +552,6 @@ class Command(BaseCommand):
                     LogCat.SKIPPED,
                 )
                 return None
-
-    def select_color_from_options(
-        self, matching_colors: QuerySet[Color], prompt_sound: bool
-    ) -> Color | None:
-        for i, col in enumerate(matching_colors):
-            self.stdout.write(f"{i}: {col}")
-        skip = False
-
-        sel: str
-        index: int
-        while True:
-            try:
-                sel = prompt(
-                    "Select color (leave empty to skip): ",
-                    prompt_sound,
-                )
-                if sel.strip() == "":
-                    skip = True
-                    break
-
-                index = int(sel)
-            except ValueError:
-                self.stdout.write("> Invalid selection. Please try again.")
-                continue
-            else:
-                if index >= 0 and index < len(matching_colors):
-                    break
-                self.stdout.write("> Invalid selection. Please try again.")
-
-        if skip:
-            self.stdout.write(self.style.WARNING("> No color selection provided"))
-            return None
-
-        return matching_colors[i]
 
     def detect_textref_color(self, options, text_ref) -> Color | None:
         # Detect TextRef color
@@ -616,7 +586,7 @@ class Command(BaseCommand):
                 else:
                     if options.get("skip_textref_color_select"):
                         self.log(
-                            "> TextRef color selection disabled. Skipping selection.",
+                            "TextRef color selection disabled. Skipping selection.",
                             LogCat.SKIPPED,
                         )
                         return None
@@ -625,9 +595,16 @@ class Command(BaseCommand):
                         f"Unable to automatically select color for TextRef: {text_ref}",
                         LogCat.PROMPT,
                     )
-                    return self.select_color_from_options(
-                        matching_colors, options.get("prompt_sound")
-                    )
+
+                    try:
+                        return select_item_from_qs(matching_colors)
+                    except ValueError:
+                        # TODO: add option to create new Color
+                        self.log(
+                            f'No available Colors match "{rgb_hex}".',
+                            LogCat.WARN,
+                        )
+                        return None
 
             except IndexError:
                 print("Can't get color. Invalid TextRef context index")
