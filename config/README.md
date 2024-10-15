@@ -9,8 +9,11 @@ actions that would be impractical to provide as CLI arguments.
 ## `custom-refs.json`
 
 An object with the following form to allowlist specific RefTypes to be
-processes. This is useful for speeding up builds when only a small set of
+processed. This is useful for speeding up builds when only a small set of
 RefTypes need to be rebuilt.
+
+This can be enabled in the build script with the `--custom-refs <CUSTOM_REFS>`
+flag. Where `<CUSTOM_REFSL>` is the path to the config file.
 
 ### Example
 ```json
@@ -58,4 +61,5 @@ Shield Spider
 Spear Spider
 ```
 
-TODO: it may be more practical to compose these all into a single JSON or Yaml configuration file.
+TODO: it may be more practical to compose these all into a single JSON or Toml
+configuration file.
