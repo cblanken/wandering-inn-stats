@@ -17,22 +17,6 @@ def __chapter_counts(rt: RefType) -> QuerySet:
 def histogram(rt: RefType) -> Figure:
     chapter_counts = __chapter_counts(rt)
 
-    title = "Total mentions"
-    if chapter_counts:
-        return px.histogram(
-            chapter_counts,
-            title=title,
-            x="chapter_line__chapter__title",
-            y="count",
-            labels={"chapter_line__chapter__title": "title", "count": "mentions"},
-            cumulative=True,
-        )
-    else:
-        return px.histogram([], title=title, cumulative=True)
-
-
-def histogram_cumulative(rt: RefType) -> Figure:
-    chapter_counts = __chapter_counts(rt)
     title = "Mentions"
     if chapter_counts:
         return px.histogram(
@@ -41,9 +25,25 @@ def histogram_cumulative(rt: RefType) -> Figure:
             x="chapter_line__chapter__title",
             y="count",
             labels={"chapter_line__chapter__title": "title", "count": "mentions"},
-        )
+        ).update_layout(DEFAULT_LAYOUT)
     else:
         return px.histogram([], title=title)
+
+
+def histogram_cumulative(rt: RefType) -> Figure:
+    chapter_counts = __chapter_counts(rt)
+    title = "Total Mentions"
+    if chapter_counts:
+        return px.histogram(
+            chapter_counts,
+            title=title,
+            x="chapter_line__chapter__title",
+            y="count",
+            labels={"chapter_line__chapter__title": "title", "count": "mentions"},
+            cumulative=True,
+        ).update_layout(DEFAULT_LAYOUT)
+    else:
+        return px.histogram([], title=title, cumulative=True)
 
 
 def most_mentions_by_chapter(rt: RefType) -> Figure:
@@ -57,6 +57,6 @@ def most_mentions_by_chapter(rt: RefType) -> Figure:
             x="chapter_line__chapter__title",
             y="count",
             labels={"count": "mentions", "chapter_line__chapter__title": "title"},
-        )
+        ).update_layout(DEFAULT_LAYOUT)
     else:
         return px.bar([], title=title)

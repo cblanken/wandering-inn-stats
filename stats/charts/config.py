@@ -8,11 +8,11 @@ DEFAULT_DISCRETE_COLORS = [
 
 DEFAULT_LAYOUT = {
     "font": {
-        "family": "Courier New, mono",
+        "family": 'Hack, "Courier New", mono',
         "size": 16,
     },
     "title_font": {
-        "family": "Courier New, mono",
+        "family": 'Hack, "Courier New", mono',
         "size": 32,
     },
     "margin": {
