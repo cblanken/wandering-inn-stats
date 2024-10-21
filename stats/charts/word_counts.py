@@ -2,7 +2,7 @@ from django.db.models import Q
 from plotly.graph_objects import Figure
 import plotly.express as px
 import numpy as np
-from stats.models import Chapter
+from stats.models import Chapter, Book
 from .config import DEFAULT_LAYOUT
 
 chapter_data = (
@@ -116,13 +116,13 @@ def word_count_by_book() -> Figure:
     # Word counts grouped by book
     book_wc_data = (
         Chapter.objects.filter(~Q(book__title__contains="Unreleased"))
-        .values("book", "book__title", "id", "title", "word_count")
+        .values("book", "book__title", "book__title_short", "id", "title", "word_count")
         .order_by("book", "number")
     )
 
     book_wc_fig = px.bar(
         book_wc_data,
-        x="book__title",
+        x="book__title_short",
         y="word_count",
         color="book",
         color_continuous_scale=px.colors.qualitative.Vivid,
@@ -136,8 +136,10 @@ def word_count_by_book() -> Figure:
     )
 
     book_wc_fig.update_traces(
-        customdata=np.stack((book_wc_data.values_list("title"),), axis=-1),
-        hovertemplate="<b>Book</b>: %{x}<br>"
+        customdata=np.stack(
+            (book_wc_data.values_list("title", "book__title"),), axis=-1
+        ),
+        hovertemplate="<b>Book</b>: %{customdata[1]}<br>"
         + "<b>Chapter</b>: %{customdata[0]}<br>"
         + "<b>Word Count</b>: %{y}"
         + "<extra></extra>",
@@ -161,7 +163,9 @@ def word_count_by_volume() -> Figure:
     )
     volume_wc_fig.update_layout(
         DEFAULT_LAYOUT,
-        xaxis={"title": "Volume"},
+        xaxis={
+            "title": "Volume",
+        },
         yaxis={"title": "Word Count"},
         showlegend=False,
         coloraxis_showscale=False,
