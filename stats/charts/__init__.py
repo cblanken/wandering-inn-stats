@@ -78,7 +78,8 @@ class ChartGalleryItem:
         caption: str,
         filetype: Filetype,
         get_fig: Callable[[], Figure],
-        subdir: Path = "",
+        subdir: Path = Path(),
+        popup_info: str | None = None,
     ):
         self.title = title
         self.title_slug = slugify(title)
@@ -88,6 +89,7 @@ class ChartGalleryItem:
         self.static_url = f"{settings.STATIC_URL}{self.static_path}"
         self.path = get_thumbnail_path(self.title_slug, filetype, subdir)
         self.get_fig: Callable[[], Figure] = get_fig
+        self.popup_info: str | None = popup_info
 
 
 def get_reftype_gallery(rt: RefType) -> list[ChartGalleryItem]:
@@ -96,14 +98,14 @@ def get_reftype_gallery(rt: RefType) -> list[ChartGalleryItem]:
             "Total mentions",
             "",
             Filetype.SVG,
-            lambda rt=rt: rt_histogram(rt),
+            lambda rt=rt: rt_histogram_cumulative(rt),
             subdir=Path(slugify(rt.type), rt.slug),
         ),
         ChartGalleryItem(
             "Mentions",
             "",
             Filetype.SVG,
-            lambda rt=rt: rt_histogram_cumulative(rt),
+            lambda rt=rt: rt_histogram(rt),
             subdir=Path(slugify(rt.type), rt.slug),
         ),
         ChartGalleryItem(
@@ -129,12 +131,34 @@ word_count_charts: list[ChartGalleryItem] = [
 
 
 character_charts: list[ChartGalleryItem] = [
-    ChartGalleryItem("Character Mentions", "", Filetype.SVG, character_text_refs),
     ChartGalleryItem(
-        "Unique Characters per Chapter", "", Filetype.SVG, character_counts_per_chapter
+        "Character Mentions",
+        "",
+        Filetype.SVG,
+        character_text_refs,
+        popup_info="This chart lists the most mentioned characters. Each character's mention count is the total number of times a character has been mentioned by name or by one of their aliases. To see more details, check out the character specific pages linked in the table below.",
     ),
-    ChartGalleryItem("Character Species", "", Filetype.SVG, characters_by_species),
-    ChartGalleryItem("Character Statuses", "", Filetype.SVG, characters_by_status),
+    ChartGalleryItem(
+        "Unique Characters per Chapter",
+        "",
+        Filetype.SVG,
+        character_counts_per_chapter,
+        popup_info="This chart counts how many different characters appear in each chapter. Note this one may take a moment to load the interactive chart due to all the calculations required.",
+    ),
+    ChartGalleryItem(
+        "Character Species",
+        "",
+        Filetype.SVG,
+        characters_by_species,
+        popup_info="This chart shows the most common species for all the characters. Check out the interactive chart to see precise counts.",
+    ),
+    ChartGalleryItem(
+        "Character Statuses",
+        "",
+        Filetype.SVG,
+        characters_by_status,
+        popup_info='This chart shows the ratio of character statuses including: "Alive", "Deceased", "Undead" and "Unknown". Please note that while some characters\' statuses are specified as "Unknown" in the TWI Wiki, it is also the default for characters with a blank status or a status that is poorly formatted in the Wiki data. Each character\'s status can be found in the table below.',
+    ),
 ]
 
 
