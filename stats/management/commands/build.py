@@ -672,6 +672,11 @@ class Command(BaseCommand):
             )
             return
 
+        if src_chapter.metadata.get("word_count", 0) < 30:
+            raise CommandError(
+                f'The length of chapter "{src_chapter.title}" is very short. It may be locked behind a password and should not be imported into the database in it\'s current state.'
+            )
+
         try:
             chapter, ref_type_updated = Chapter.objects.update_or_create(
                 title=src_chapter.title,

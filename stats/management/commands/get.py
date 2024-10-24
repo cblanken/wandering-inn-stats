@@ -5,12 +5,12 @@ from pathlib import Path
 import random
 import time
 from django.core.management.base import BaseCommand, CommandError
-from processing import get
+from processing import get, PatreonChapterError
 
 
 class Command(BaseCommand):
-    help = "Download Wandering Inn data including volumes, books, chapters, characters etc."
-    last_download: float = 0.0
+    help = "Download Wandering Inn source text and metadata including volumes, books, chapters"
+    last_download: float = 0
     session = get.Session()
 
     def add_arguments(self, parser):
@@ -57,27 +57,6 @@ class Command(BaseCommand):
         parser.add_argument(
             "-m", "--metadata-only", action="store_true", help="Download only metadata"
         )
-        parser.add_argument(
-            "--classes",
-            action="store_true",
-            help="Download class information from wiki",
-        )
-        parser.add_argument(
-            "--skills", action="store_true", help="Download skill information from wiki"
-        )
-        parser.add_argument(
-            "--spells", action="store_true", help="Download spell information from wiki"
-        )
-        parser.add_argument(
-            "--chars",
-            action="store_true",
-            help="Download character information from wiki",
-        )
-        parser.add_argument(
-            "--locs",
-            action="store_true",
-            help="Download location information from wiki",
-        )
 
     def save_file(
         self,
@@ -101,85 +80,6 @@ class Command(BaseCommand):
             self.stdout.write(self.style.WARNING(warn_msg))
 
         return was_saved
-
-    def download_wiki_info(self, options: dict[str, str]):
-        root_path = options.get("root")
-        if root_path is None:
-            return
-
-        # Get class info
-        if options.get("classes"):
-            self.stdout.write("Downloading class information...")
-            classes = self.session.get_class_list()
-
-            class_data_path = Path(root_path, "classes.txt")
-            self.save_file(
-                text="\n".join(classes),
-                path=class_data_path,
-                clobber=bool(options.get("clobber")),
-                success_msg=f"Character data saved to {class_data_path}",
-                warn_msg=f"{class_data_path} already exists. Not saving...",
-            )
-
-        # Get skill info
-        if options.get("skills"):
-            self.stdout.write("Downloading skill information...")
-            skills = self.session.get_skill_list()
-
-            skill_data_path = Path(root_path, "skills.txt")
-            self.save_file(
-                text="\n".join(skills),
-                path=skill_data_path,
-                clobber=bool(options.get("clobber")),
-                success_msg=f"Character data saved to {skill_data_path}",
-                warn_msg=f"{skill_data_path} already exists. Not saving...",
-            )
-
-        # Get spell info
-        if options.get("spells"):
-            self.stdout.write("Downloading spell information...")
-            spells = self.session.get_spell_list()
-
-            spell_data_path = Path(root_path, "spells.txt")
-            self.save_file(
-                text="\n".join(spells),
-                path=spell_data_path,
-                clobber=bool(options.get("clobber")),
-                success_msg=f"Spell data saved to {spell_data_path}",
-                warn_msg=f"{spell_data_path} already exists. Not saving...",
-            )
-
-        # Get location info
-        if options.get("locs"):
-            self.stdout.write("Downloading location information...")
-            locs_by_alpha = self.session.get_all_locations_by_alpha()
-            data = {}
-            for locs in locs_by_alpha.values():
-                for loc in locs.items():
-                    data[loc[0]] = {"url": loc[1]}
-
-            loc_data_path = Path(root_path, "locations.json")
-            self.save_file(
-                text=json.dumps(data, sort_keys=True, indent=4),
-                path=loc_data_path,
-                clobber=bool(options.get("clobber")),
-                success_msg=f"Location data saved to {loc_data_path}",
-                warn_msg=f"{loc_data_path} already exists. Not saving...",
-            )
-
-        # Get character info
-        if options.get("chars"):
-            self.stdout.write("Downloading character information...")
-            data = self.session.get_all_character_data()
-
-            char_data_path = Path(root_path, "characters.json")
-            self.save_file(
-                text=json.dumps(data, sort_keys=True, indent=4),
-                path=char_data_path,
-                clobber=bool(options.get("clobber")),
-                success_msg=f"Character data saved to {char_data_path}",
-                warn_msg=f"{char_data_path} already exists. Not saving...",
-            )
 
     def download_chapter(
         self,
@@ -224,7 +124,15 @@ class Command(BaseCommand):
             self.session.reset_tries()
             return
 
-        data = get.parse_chapter(chapter_response)
+        try:
+            data = get.parse_chapter_response(chapter_response)
+        except PatreonChapterError:
+            self.stdout.write(
+                self.style.WARNING(
+                    f"Patreon locked chapter detected. Skipping download for {chapter_title}"
+                )
+            )
+            return
 
         if (
             data.get("html") is None
@@ -334,9 +242,8 @@ class Command(BaseCommand):
                     "Volume data is empty. The Table of Contents may have changed..."
                 )
             )
-        self.last_download: int = 0
 
-        def download_last_chapter():
+        def download_latest_chapter():
             # TODO
             pass
 
@@ -401,8 +308,6 @@ class Command(BaseCommand):
                 # Download selected volume
                 path = Path(volume_root, v_title)
                 self.download_volume(toc, options, v_title, path)
-
-            self.download_wiki_info(options)
 
         except KeyboardInterrupt as exc:
             # TODO: file / partial download cleanup
