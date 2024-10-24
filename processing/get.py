@@ -19,8 +19,6 @@ from fake_useragent import UserAgent
 from processing import PatreonChapterError
 
 BASE_URL: str = "https://www.wanderinginn.com"
-WIKI_URL: str = "https://thewanderinginn.fandom.com"
-# WIKI_URL: str = "https://wiki.wanderinginn.com"
 
 
 def remove_bracketed_ref_number(s: str) -> str:
@@ -106,31 +104,6 @@ class Session:
             time.sleep(controller.get_newnym_wait())
 
 
-def parse_author_note(lines: list[str]) -> str:
-    # Parse chapter plaintext and Author's Note if it exists
-    authors_note_re = re.compile(r"Author['|’]s [N|n]ote.*")
-
-    # Determine line index from the end for start of Author's note
-    authors_note_lines = []
-    i = 0
-    while i < len(lines):
-        if authors_note_re.match(lines[i].strip()):
-            # Found start of Author's Note
-            empty_line_cnt = 0
-            for j, authors_note_line in enumerate(lines[i:]):
-                if len(authors_note_line.strip()):  # detect empty line
-                    empty_line_cnt += 1
-                    continue
-                if empty_line_cnt > 1:
-                    authors_note_lines = lines[i : i + j + 2]
-                    i += j + 1
-                    break
-
-        i += 1
-
-    return "\n".join(authors_note_lines).strip()
-
-
 def extract_chapter_content(soup: BeautifulSoup) -> Tag:
     content = soup.select_one(".entry-content")
     if content is None:
@@ -151,18 +124,43 @@ def parse_chapter_content(soup: BeautifulSoup) -> dict:
     content_lines: list[str] = [element.get_text() for element in content.children][:-2]
 
     authors_note_re = re.compile(r"Author['|’]s [N|n]ote.*")
-    pre_note_re = re.compile(r"^\(.*\)$")
+    parens_pre_note_start_re = re.compile(r"^\(.*")
+    parens_pre_note_end_re = re.compile(r".*\)$")
+    signed_pre_note_re = re.compile(r".*[Pp]irateaba")
     chapter_lines = []
     authors_note_lines = []
-    pre_parens_lines = []
-    chapter_index = 0
+    pre_note_lines = []
 
-    for chapter_index, chapter_line in enumerate(content_lines):
-        if chapter_index < 3 and pre_note_re.match(chapter_line):
-            pre_parens_lines.append(chapter_line)
+    chapter_index = 0
+    while chapter_index < len(content_lines):
+        chapter_line = content_lines[chapter_index]
+
+        # Capture parenthesized chapter pre-note
+        if chapter_index < 10 and parens_pre_note_start_re.match(chapter_line):
+
+            # Check current and next few lines for completion of parens
+            for i in range(0, 5):
+                if parens_pre_note_end_re.match(content_lines[chapter_index + i]):
+                    pre_note_lines.append(
+                        "\n".join(content_lines[chapter_index : chapter_index + i + 1])
+                        + "\n"
+                    )
+                    chapter_index += i
+                    break
+
+            chapter_index += 1
             continue
 
-        # Detect explicit "Author's Note" indicator
+        # Capture signed chapter pre-note
+        if chapter_index < 10 and any(
+            [signed_pre_note_re.match(line) for line in chapter_line.split("\n")]
+        ):
+            pre_note_lines.extend(content_lines[: chapter_index + 1])
+            chapter_lines.clear()
+            chapter_index += 1
+            continue
+
+        # Capture note marked "Author's Note"
         if authors_note_re.match(content_lines[chapter_index].strip()):
             empty_line_cnt = 0
             for authors_note_index, author_note_line in enumerate(
@@ -171,7 +169,7 @@ def parse_chapter_content(soup: BeautifulSoup) -> dict:
                 if len(author_note_line.strip()) == 0:
                     empty_line_cnt += 1
 
-                    if empty_line_cnt > 2:
+                    if empty_line_cnt >= 2:
                         authors_note_lines = content_lines[
                             chapter_index : chapter_index + authors_note_index
                         ]
@@ -179,11 +177,12 @@ def parse_chapter_content(soup: BeautifulSoup) -> dict:
                 else:
                     empty_line_cnt = 0
 
-        else:
-            if authors_note_lines and chapter_index > int(len(content_lines) * 0.9):
-                # Stop if Author's note reached near end of chapter (last 10% of lines)
+            if chapter_index > int(len(content_lines) * 0.9):
                 break
+            else:
+                chapter_index += authors_note_index
 
+        else:
             if content_lines[chapter_index].strip() != "":
                 chapter_lines.append(content_lines[chapter_index])
 
@@ -196,13 +195,15 @@ def parse_chapter_content(soup: BeautifulSoup) -> dict:
         ).strip()
         + "\n"
     )
-    chapter_data["pre_parens_note"] = (
-        "\n".join([l.strip() for l in pre_parens_lines if not l.strip() == ""]).strip()
+    chapter_data["pre_note"] = (
+        "\n".join([l.strip() for l in pre_note_lines if not l.strip() == ""]).strip()
         + "\n"
     )
 
     try:
         word_count = len(chapter_data["text"].split())
+        if word_count < 30:
+            raise PatreonChapterError("Attempted to parse a Patreon locked chapter")
         authors_note_word_count = len(chapter_data["authors_note"].split())
         digest: str = hashlib.sha256(chapter_data["text"].encode("utf-8")).hexdigest()
         chapter_data["metadata"] = {
@@ -211,8 +212,6 @@ def parse_chapter_content(soup: BeautifulSoup) -> dict:
             "digest": digest,
         }
 
-        if word_count < 30:
-            raise PatreonChapterError("Attempted to parse a Pateron locked chapter")
     except IndexError:
         # TODO: log missing data (title, pub_time, or mod_time)
         pass
