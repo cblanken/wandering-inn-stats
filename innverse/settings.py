@@ -98,6 +98,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "innverse.context_processors.analytics",
             ],
             "builtins": ["pattern_library.loader_tags"],
         },
@@ -240,6 +241,9 @@ with open("user-password.py", "w", encoding="utf-8") as fp:
         f"('en', 'twi', {TWIKI_BOT_USER}, BotPassword('{TWIKI_BOT_NAME}', '{TWIKI_BOT_PASS}'))"
     )
 
+
+# Analytics env
+ANALYTICS_ID = env.get("ANALYTICS_ID")
 
 # Production
 TWI_PROD = env.get("TWI_PROD")
