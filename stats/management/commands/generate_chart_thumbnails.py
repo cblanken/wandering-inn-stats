@@ -33,7 +33,7 @@ class Command(BaseCommand):
 
             # Remove interactive elements before export
             fig.update_xaxes(rangeslider=dict(visible=False))
-            fig.update_layout(title=dict(text=""))
+            fig.update_layout(title=dict(text=""), showlegend=False)
 
             charts.save_thumbnail(fig, chart.path)
 
