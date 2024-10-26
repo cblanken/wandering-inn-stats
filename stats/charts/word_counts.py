@@ -1,4 +1,5 @@
 from django.db.models import Q
+import plotly.graph_objects as go
 from plotly.graph_objects import Figure
 import plotly.express as px
 import numpy as np
@@ -116,7 +117,15 @@ def word_count_by_book() -> Figure:
     # Word counts grouped by book
     book_wc_data = (
         Chapter.objects.filter(~Q(book__title__contains="Unreleased"))
-        .values("book", "book__title", "book__title_short", "id", "title", "word_count")
+        .values(
+            "book__volume__title",
+            "book",
+            "book__title",
+            "book__title_short",
+            "id",
+            "title",
+            "word_count",
+        )
         .order_by("book", "number")
     )
 
@@ -124,24 +133,23 @@ def word_count_by_book() -> Figure:
         book_wc_data,
         x="book__title_short",
         y="word_count",
-        color="book",
-        color_continuous_scale=px.colors.qualitative.Vivid,
+        color="book__volume__title",
+        color_discrete_sequence=px.colors.qualitative.Pastel,
+        labels={"book__volume__title": "Volume"},
+        hover_data=["title", "book__title", "book__volume__title", "word_count"],
     )
+
     book_wc_fig.update_layout(
         DEFAULT_LAYOUT,
         xaxis={"title": "Book"},
         yaxis={"title": "Word Count"},
-        showlegend=False,
-        coloraxis_showscale=False,
     )
 
     book_wc_fig.update_traces(
-        customdata=np.stack(
-            (book_wc_data.values_list("title", "book__title"),), axis=-1
-        ),
-        hovertemplate="<b>Book</b>: %{customdata[1]}<br>"
+        hovertemplate="<b>Word Count</b>: %{y}<br>"
         + "<b>Chapter</b>: %{customdata[0]}<br>"
-        + "<b>Word Count</b>: %{y}"
+        + "<b>Book</b>: %{customdata[1]}<br>"
+        + "<b>Volume</b>: %{customdata[2]}<br>"
         + "<extra></extra>",
     )
 
@@ -151,15 +159,22 @@ def word_count_by_book() -> Figure:
 def word_count_by_volume() -> Figure:
     # Word counts grouped by volume
     volume_wc_data = Chapter.objects.values(
-        "book__volume", "book__volume__title", "id", "title", "word_count"
+        "book__title",
+        "book__title_short",
+        "book__volume",
+        "book__volume__title",
+        "title",
+        "word_count",
     ).order_by("book__volume", "number")
 
     volume_wc_fig = px.bar(
         volume_wc_data,
         x="book__volume__title",
         y="word_count",
-        color="book__volume",
-        color_continuous_scale=px.colors.qualitative.Vivid,
+        color="book__title",
+        color_discrete_sequence=px.colors.qualitative.Pastel,
+        labels={"book__title": "Book"},
+        hover_data=["title", "book__title", "book__volume__title", "word_count"],
     )
     volume_wc_fig.update_layout(
         DEFAULT_LAYOUT,
@@ -167,14 +182,13 @@ def word_count_by_volume() -> Figure:
             "title": "Volume",
         },
         yaxis={"title": "Word Count"},
-        showlegend=False,
-        coloraxis_showscale=False,
+        showlegend=True,
     )
     volume_wc_fig.update_traces(
-        customdata=np.stack((volume_wc_data.values_list("title"),), axis=-1),
-        hovertemplate="<b>Volume</b>: %{x}<br>"
+        hovertemplate="<b>Word Count</b>: %{y}<br>"
         + "<b>Chapter</b>: %{customdata[0]}<br>"
-        + "<b>Word Count</b>: %{y}"
+        + "<b>Book</b>: %{customdata[1]}<br>"
+        + "<b>Volume</b>: %{x}<br>"
         + "<extra></extra>",
     )
 

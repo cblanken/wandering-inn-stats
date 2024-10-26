@@ -125,8 +125,20 @@ word_count_charts: list[ChartGalleryItem] = [
     ChartGalleryItem(
         "Total Word Counts over Time", "", Filetype.SVG, word_count_histogram
     ),
-    ChartGalleryItem("Word Counts by Book", "", Filetype.SVG, word_count_by_book),
-    ChartGalleryItem("Word Counts by Volume", "", Filetype.SVG, word_count_by_volume),
+    ChartGalleryItem(
+        "Word Counts by Book",
+        "",
+        Filetype.SVG,
+        word_count_by_book,
+        popup_info="Volumes often span multiple books. The bars in this chart are colored to indicate books belonging to the same volume.",
+    ),
+    ChartGalleryItem(
+        "Word Counts by Volume",
+        "",
+        Filetype.SVG,
+        word_count_by_volume,
+        popup_info="Volumes often span multiple books. Each volume bar is sectioned by color to indicate different books.",
+    ),
 ]
 
 
