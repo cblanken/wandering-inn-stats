@@ -1,4 +1,4 @@
-from django.db.models import Q
+from django.db.models import Q, Sum, Func
 import plotly.graph_objects as go
 from plotly.graph_objects import Figure
 import plotly.express as px
@@ -8,7 +8,7 @@ from .config import DEFAULT_LAYOUT
 
 chapter_data = (
     Chapter.objects.filter(is_canon=True)
-    .values("number", "title", "word_count", "post_date")
+    .values("number", "title", "word_count", "post_date", "book__volume__title")
     .order_by("number")
 )
 
@@ -28,8 +28,10 @@ def word_count_per_chapter() -> Figure:
         x="number",
         y="word_count",
         hover_data=["title", "number", "word_count", "post_date"],
-        trendline="ols",
+        trendline="lowess",
+        trendline_options=dict(frac=0.2),
         trendline_color_override="#FF8585",
+        custom_data=["title", "post_date"],
     )
 
     chapter_wc_fig.update_layout(
@@ -40,46 +42,50 @@ def word_count_per_chapter() -> Figure:
         yaxis=dict(title="Word Count"),
     )
 
-    chapter_wc_fig.update_traces(
-        customdata=np.stack((chapter_data.values_list("title", "post_date"),), axis=-1),
-        hovertemplate="<b>Chapter Title</b>: %{customdata[0]}<br>"
+    chapter_wc_fig.data[0]["hovertemplate"] = (
+        "<b>Chapter Title</b>: %{customdata[0]}<br>"
         + "<b>Chapter Number</b>: %{x}<br>"
         + "<b>Word Count</b>: %{y}<br>"
         + "<b>Post Date</b>: %{customdata[1]}"
-        + "<extra></extra>",
+        + "<extra></extra>"
     )
 
     return chapter_wc_fig
 
 
-def word_count_histogram() -> Figure:
-    sorted_posts = Chapter.objects.order_by("post_date")
-    reverse_sorted_posts = Chapter.objects.order_by("-post_date")
-    first_post = sorted_posts[0]
-    last_post = reverse_sorted_posts[0]
-
-    diff = last_post.post_date - first_post.post_date
-    chapter_wc_histogram = px.histogram(
-        chapter_data,
-        x="post_date",
-        y="word_count",
-        nbins=diff.days,
-        cumulative=True,
-        labels=dict(post_date="Post Date", word_count="Total Word Count"),
-        hover_data=["title", "number", "word_count", "post_date"],
+def word_count_cumulative() -> Figure:
+    cumulative_chapter_wc = (
+        chapter_data.annotate(
+            cumsum=Func(
+                Sum("word_count"),
+                template="%(expressions)s OVER (ORDER BY %(order_by)s)",
+                order_by="post_date",
+            )
+        )
+        .values("post_date", "cumsum")
+        .order_by("post_date")
     )
 
-    chapter_wc_histogram.update_layout(
+    chapter_wc_area = px.area(
+        cumulative_chapter_wc,
+        x="post_date",
+        y="cumsum",
+        labels=dict(
+            post_date="Post Date",
+            word_count="Total Word Count",
+        ),
+    )
+
+    chapter_wc_area.update_layout(
         DEFAULT_LAYOUT,
         xaxis=dict(title="Post Date"),
         yaxis=dict(title="Total Word Count"),
     )
 
-    return chapter_wc_histogram
+    return chapter_wc_area
 
 
 def word_count_authors_note() -> Figure:
-    # Word counts per author's note
     chapter_wc_data = (
         Chapter.objects.filter(authors_note_word_count__gt=0)
         .values("number", "title", "authors_note_word_count")
@@ -91,6 +97,7 @@ def word_count_authors_note() -> Figure:
         x="number",
         y="authors_note_word_count",
         hover_data=["title", "number", "authors_note_word_count"],
+        custom_data=["title"],
     )
 
     chapter_authors_wc_fig.update_layout(
@@ -103,7 +110,6 @@ def word_count_authors_note() -> Figure:
     )
 
     chapter_authors_wc_fig.update_traces(
-        customdata=np.stack((chapter_wc_data.values_list("title"),), axis=-1),
         hovertemplate="<b>Chapter Title</b>: %{customdata[0]}<br>"
         + "<b>Chapter Number</b>: %{x}<br>"
         + "<b>Word Count</b>: %{y}"
@@ -157,7 +163,6 @@ def word_count_by_book() -> Figure:
 
 
 def word_count_by_volume() -> Figure:
-    # Word counts grouped by volume
     volume_wc_data = Chapter.objects.values(
         "book__title",
         "book__title_short",

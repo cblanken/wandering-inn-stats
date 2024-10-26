@@ -12,7 +12,7 @@ import plotly.io as pio
 
 from .word_counts import (
     word_count_per_chapter,
-    word_count_histogram,
+    word_count_cumulative,
     word_count_by_book,
     word_count_by_volume,
 )
@@ -123,7 +123,7 @@ word_count_charts: list[ChartGalleryItem] = [
         "Word Counts by Chapter", "", Filetype.SVG, word_count_per_chapter
     ),
     ChartGalleryItem(
-        "Total Word Counts over Time", "", Filetype.SVG, word_count_histogram
+        "Total Word Counts over Time", "", Filetype.SVG, word_count_cumulative
     ),
     ChartGalleryItem(
         "Word Counts by Book",
