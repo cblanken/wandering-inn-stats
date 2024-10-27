@@ -1,31 +1,9 @@
-from django.db.models import Count, QuerySet, OuterRef, Subquery
-from django_stubs_ext import ValuesQuerySet
+from django.db.models import Count, OuterRef, Subquery, Sum, Window
 from typing import Any
 import plotly.express as px
 from plotly.graph_objects import Figure
 from stats.models import RefType, TextRef, Chapter
 from .config import DEFAULT_LAYOUT, DEFAULT_DISCRETE_COLORS
-
-
-def __chapter_counts_all(rt: RefType):
-    """Returns count of [RefType] rt for every chapter _including_ those with a zero count"""
-    rt_counts = TextRef.objects.filter(
-        type=rt, chapter_line__chapter__id=OuterRef("id")
-    ).values("id")
-    rt_counts_total = rt_counts.annotate(total=Count("id")).values("total")
-    chapters = Chapter.objects.filter(Subquery(rt_counts_total))
-
-    chapters = (
-        Chapter.objects.all()
-        .order_by("post_date")
-        .annotate(
-            # count=Subquery(rt_count_sub.annotate(count=Count("id")).values("count")[:1])
-            count=Subquery(rt_count_sub.values())
-        )
-        .values()
-    )
-
-    return
 
 
 def __chapter_counts(rt: RefType):
@@ -38,36 +16,54 @@ def __chapter_counts(rt: RefType):
     )
 
 
-def histogram(rt: RefType) -> Figure:
-    chapter_counts = __chapter_counts(rt)
+def mentions(rt: RefType) -> Figure:
+    rt_mentions_subquery = (
+        TextRef.objects.filter(type=rt, chapter_line__chapter=OuterRef("id"))
+        .values("chapter_line__chapter__id")
+        .annotate(mentions=Count("id"))
+        .values("mentions")
+    )
 
-    title = "Mentions"
-    if chapter_counts:
-        return px.histogram(
-            chapter_counts,
-            title=title,
-            x="chapter_line__chapter__title",
-            y="count",
-            labels={"chapter_line__chapter__title": "title", "count": "mentions"},
-        ).update_layout(DEFAULT_LAYOUT)
-    else:
-        return px.histogram([], title=title)
+    rt_mentions_by_chapter = Chapter.objects.annotate(
+        rt_mentions=Subquery(rt_mentions_subquery.values_list("mentions")[:1])
+    ).values("title", "rt_mentions")
+
+    return px.area(
+        rt_mentions_by_chapter,
+        x="title",
+        y="rt_mentions",
+        labels=dict(
+            title="Chapter",
+            rt_mentions="Mentions",
+        ),
+    )
 
 
-def histogram_cumulative(rt: RefType) -> Figure:
-    chapter_counts = __chapter_counts(rt)
-    title = "Total Mentions"
-    if chapter_counts:
-        return px.histogram(
-            chapter_counts,
-            title=title,
-            x="chapter_line__chapter__title",
-            y="count",
-            labels={"chapter_line__chapter__title": "title", "count": "mentions"},
-            cumulative=True,
-        ).update_layout(DEFAULT_LAYOUT)
-    else:
-        return px.histogram([], title=title, cumulative=True)
+def cumulative_mentions(rt: RefType) -> Figure:
+    rt_mentions_subquery = (
+        TextRef.objects.filter(type=rt, chapter_line__chapter=OuterRef("id"))
+        .values("chapter_line__chapter__id")
+        .annotate(mentions=Count("id"))
+        .values("mentions")
+    )
+
+    rt_mentions_by_chapter = Chapter.objects.annotate(
+        rt_mentions=Subquery(rt_mentions_subquery.values_list("mentions")[:1])
+    ).values("title", "number", "rt_mentions")
+
+    cumulative_rt_mentions = rt_mentions_by_chapter.annotate(
+        cumsum=Window(expression=Sum("rt_mentions"), order_by="number")
+    )
+
+    return px.area(
+        cumulative_rt_mentions,
+        x="title",
+        y="cumsum",
+        labels=dict(
+            title="Chapter",
+            rt_mentions="Total mentions",
+        ),
+    )
 
 
 def most_mentions_by_chapter(rt: RefType) -> Figure:
