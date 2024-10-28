@@ -1,6 +1,7 @@
 from django.core.management.base import BaseCommand, CommandError
 from stats import charts
 from stats.models import RefType
+import re
 
 
 class Command(BaseCommand):
@@ -25,6 +26,10 @@ class Command(BaseCommand):
             "--reftypes-only",
             action="store_true",
             help="Only generate thumbnails for reftype charts",
+        )
+
+        parser.add_argument(
+            "-t", "--reftype-name", help="Specify regex for RefType name"
         )
 
     def save_chart_thumbnail(self, options, chart: charts.ChartGalleryItem):
@@ -56,6 +61,10 @@ class Command(BaseCommand):
             charts.magic_charts,
             charts.location_charts,
         ]
+        if reftype_name := options.get("reftype_name", None):
+            pattern = re.compile(reftype_name)
+        else:
+            pattern = None
         try:
             if not options.get("reftypes_only"):
                 for gallery in main_chart_galleries:
@@ -70,10 +79,13 @@ class Command(BaseCommand):
                             )
 
             for rt in RefType.objects.filter(name__icontains=options.get("chart_name")):
+                if pattern and not pattern.match(rt.name):
+                    continue
+
                 print(f"> Generating gallery for: {rt.name}")
                 gallery = charts.get_reftype_gallery(rt)
                 for chart in gallery:
-                    if not chart.path.exists() or options.get("clobber"):
+                    if options.get("clobber") or not chart.path.exists():
                         self.save_chart_thumbnail(options, chart)
                     else:
                         self.stdout.write(
