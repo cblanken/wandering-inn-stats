@@ -1,9 +1,7 @@
 from django.db.models import Q, Sum, Func
-import plotly.graph_objects as go
 from plotly.graph_objects import Figure
 import plotly.express as px
-import numpy as np
-from stats.models import Chapter, Book
+from stats.models import Chapter
 from .config import DEFAULT_LAYOUT
 
 chapter_data = (
@@ -11,14 +9,6 @@ chapter_data = (
     .values("number", "title", "word_count", "post_date", "book__volume__title")
     .order_by("number")
 )
-
-
-def longest_chapter() -> Chapter:
-    chapter_data.order_by("-word_count")[0]
-
-
-def longest_interlude() -> Chapter:
-    chapter_data.filter(is_interlude=True).order_by("-word_count")[0]
 
 
 def word_count_per_chapter() -> Figure:
@@ -72,7 +62,7 @@ def word_count_cumulative() -> Figure:
         y="cumsum",
         labels=dict(
             post_date="Post Date",
-            word_count="Total Word Count",
+            cumsum="Total Word Count",
         ),
     )
 
@@ -120,7 +110,6 @@ def word_count_authors_note() -> Figure:
 
 
 def word_count_by_book() -> Figure:
-    # Word counts grouped by book
     book_wc_data = (
         Chapter.objects.filter(~Q(book__title__contains="Unreleased"))
         .values(
