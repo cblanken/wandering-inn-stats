@@ -54,7 +54,8 @@ def character_counts_per_chapter():
         char_counts_per_chapter,
         x=0,
         y=1,
-        trendline="ols",
+        trendline="lowess",
+        trendline_options=dict(frac=0.2),
         trendline_color_override="#FF8585",
     )
     char_counts_per_chapter_fig.update_layout(
@@ -66,10 +67,9 @@ def character_counts_per_chapter():
         ),
         yaxis=dict(title="Character Count"),
     )
-    char_counts_per_chapter_fig.update_traces(
-        hovertemplate="<b>Chapter</b>: %{x}<br>"
-        + "<b>Total Characters</b>: %{y}"
-        + "<extra></extra>"
+
+    char_counts_per_chapter_fig.data[0]["hovertemplate"] = (
+        "<b>Chapter</b>: %{x}<br>" + "<b>Total Characters</b>: %{y}" + "<extra></extra>"
     )
     return char_counts_per_chapter_fig
 
