@@ -102,6 +102,17 @@ class Chapter(models.Model):
     authors_note_word_count = models.PositiveBigIntegerField(default=0)
     book = models.ForeignKey(Book, on_delete=models.CASCADE)
 
+    title_short = models.GeneratedField(  # type: ignore[attr-defined]
+        expression=models.Func(
+            models.F("title"),
+            models.Value(r"^Interlude"),
+            models.Value(r"I."),
+            function="regexp_replace",
+        ),
+        output_field=models.TextField(),
+        db_persist=True,
+    )
+
     class Meta:
         ordering = ["number"]
         indexes = [

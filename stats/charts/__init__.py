@@ -25,9 +25,11 @@ from .characters import (
 )
 
 from .reftypes import (
-    histogram as rt_histogram,
-    histogram_cumulative as rt_histogram_cumulative,
-    most_mentions_by_chapter as rt_most_mentions,
+    mentions as rt_mentions,
+    cumulative_mentions as rt_cumulative_mentions,
+    most_mentions_by_chapter as rt_most_mentions_by_chapter,
+    most_mentions_by_book as rt_most_mentions_by_book,
+    most_mentions_by_volume as rt_most_mentions_by_volume,
 )
 
 from .classes import class_ref_counts
@@ -98,21 +100,37 @@ def get_reftype_gallery(rt: RefType) -> list[ChartGalleryItem]:
             "Total mentions",
             "",
             Filetype.SVG,
-            lambda rt=rt: rt_histogram_cumulative(rt),
+            lambda rt=rt: rt_cumulative_mentions(rt),
             subdir=Path(slugify(rt.type), rt.slug),
         ),
         ChartGalleryItem(
             "Mentions",
             "",
             Filetype.SVG,
-            lambda rt=rt: rt_histogram(rt),
+            lambda rt=rt: rt_mentions(rt),
             subdir=Path(slugify(rt.type), rt.slug),
         ),
         ChartGalleryItem(
-            "Most mentioned chapters",
+            "Chapters with the most mentions",
             "",
             Filetype.SVG,
-            lambda rt=rt: rt_most_mentions(rt),
+            lambda rt=rt: rt_most_mentions_by_chapter(rt),
+            subdir=Path(slugify(rt.type), rt.slug),
+            popup_info='Interlude chapters are abbreviated with "I." for readability.',
+        ),
+        ChartGalleryItem(
+            "Books with the most mentions",
+            "",
+            Filetype.SVG,
+            lambda rt=rt: rt_most_mentions_by_book(rt),
+            subdir=Path(slugify(rt.type), rt.slug),
+            popup_info="These counts only include released books, so, if mentions occur outside that range, they won't appear in this chart.",
+        ),
+        ChartGalleryItem(
+            "Volumes with the most mentions",
+            "",
+            Filetype.SVG,
+            lambda rt=rt: rt_most_mentions_by_volume(rt),
             subdir=Path(slugify(rt.type), rt.slug),
         ),
     ]
