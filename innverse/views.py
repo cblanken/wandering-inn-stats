@@ -12,7 +12,7 @@ from itertools import chain
 from typing import Iterable, Tuple
 from stats import charts
 from stats.charts import ChartGalleryItem, get_reftype_gallery
-from stats.models import Chapter, Character, RefType, RefTypeChapter, TextRef
+from stats.models import Alias, Chapter, Character, RefType, RefTypeChapter, TextRef
 from .tables import (
     ChapterRefTable,
     TextRefTable,
@@ -566,38 +566,65 @@ def reftype_stats(request: HtmxHttpRequest, name: str):
     first_mention_chapter = chapter_appearances.first()
     last_mention_chapter = chapter_appearances.last()
 
+    aliases = Alias.objects.filter(ref_type=rt).order_by("name")
+
+    match rt_type:
+        case RefType.CHARACTER:
+            character = Character.objects.get(ref_type=rt)
+            href = character.wiki_uri
+        case RefType.CLASS:
+            name = rt.name[1:-1]
+            href = f"https://wiki.wanderinginn.com/List_of_Classes/{name[0]}#:~:text={name}"
+        case RefType.SKILL:
+            name = rt.name[1:-1]
+            href = f"https://wiki.wanderinginn.com/Skills#:~:text={name}"
+        case RefType.SPELL:
+            name = rt.name[1:-1]
+            href = f"https://wiki.wanderinginn.com/Spells#:~:text={name}"
+        case RefType.LOCATION:
+            href = f"https://wiki.wanderinginn.com/{rt.name.replace(' ', '_')}"
+        case _:
+            href = None
+
     context = {
         "title": rt.name,
+        "link": render_to_string(
+            "patterns/atoms/link/link.html",
+            context=dict(text="", href=href, size=8, external=True),
+        ),
+        "aliases": aliases,
         "gallery": get_reftype_gallery(rt),
-        "stats": [
-            HeadlineStat("Total mentions", mention_count, units="mentions"),
-            HeadlineStat(
-                "First mentioned in chapter",
-                render_to_string(
-                    "patterns/atoms/link/link.html",
-                    context=dict(
-                        text=first_mention_chapter.chapter.title,
-                        href=first_mention_chapter.chapter.source_url,
-                        size=6,
-                        external=True,
+        "stats": (
+            [
+                HeadlineStat("Total mentions", mention_count, units="mentions"),
+                HeadlineStat(
+                    "First mentioned in chapter",
+                    render_to_string(
+                        "patterns/atoms/link/link.html",
+                        context=dict(
+                            text=first_mention_chapter.chapter.title,
+                            href=first_mention_chapter.chapter.source_url,
+                            size=6,
+                            external=True,
+                        ),
                     ),
                 ),
-            ),
-            HeadlineStat(
-                "Last mentioned in chapter",
-                render_to_string(
-                    "patterns/atoms/link/link.html",
-                    context=dict(
-                        text=last_mention_chapter.chapter.title,
-                        href=last_mention_chapter.chapter.source_url,
-                        size=6,
-                        external=True,
+                HeadlineStat(
+                    "Last mentioned in chapter",
+                    render_to_string(
+                        "patterns/atoms/link/link.html",
+                        context=dict(
+                            text=last_mention_chapter.chapter.title,
+                            href=last_mention_chapter.chapter.source_url,
+                            size=6,
+                            external=True,
+                        ),
                     ),
                 ),
-            ),
-        ]
-        if first_mention_chapter and last_mention_chapter
-        else None,
+            ]
+            if first_mention_chapter and last_mention_chapter
+            else None
+        ),
     }
     return render(request, "pages/reftype_page.html", context)
 
