@@ -603,10 +603,16 @@ def reftype_stats(request: HtmxHttpRequest, name: str):
 
 
 def get_search_result_table(query: dict[str, str]):
+    strict_mode = query.get("strict_mode")
     if query.get("refs_by_chapter"):
-        ref_types: QuerySet[RefType] = RefType.objects.filter(
-            Q(name__icontains=query.get("type_query")) & Q(type=query.get("type"))
-        )
+        if strict_mode:
+            ref_types: QuerySet[RefType] = RefType.objects.filter(
+                Q(name=query.get("type_query")) & Q(type=query.get("type"))
+            )
+        else:
+            ref_types: QuerySet[RefType] = RefType.objects.filter(
+                Q(name__icontains=query.get("type_query")) & Q(type=query.get("type"))
+            )
 
         reftype_chapters = RefTypeChapter.objects.filter(
             Q(type__in=ref_types)
@@ -660,9 +666,12 @@ def get_search_result_table(query: dict[str, str]):
         )
 
         if query.get("type_query"):
-            table_data = table_data.filter(
-                type__name__icontains=query.get("type_query")
-            )
+            if strict_mode:
+                table_data = table_data.filter(type__name=query.get("type_query"))
+            else:
+                table_data = table_data.filter(
+                    type__name__icontains=query.get("type_query")
+                )
 
         if query.get("text_query"):
             table_data = table_data.filter(
