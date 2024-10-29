@@ -28,6 +28,9 @@ class HtmxHttpRequest(HttpRequest):
 
 
 class HeadlineStat:
+    """The `title_text` parameter overrides the `title` in case a template
+    needs to be passed into the `title`"""
+
     def __init__(
         self,
         title: str,
@@ -87,18 +90,18 @@ def overview(request: HtmxHttpRequest) -> HttpResponse:
                 HeadlineStat(
                     "Total Word Count",
                     f"{total_wc:,}",
-                    units=" words",
+                    units="words",
                     popup_info="The word count for each chapter is calculated by counting the tokens between spaces over the entire text. This is a simple approach, and doesn't account for any of the punctuation-related edge cases. For this reason, you may notice discrepancies between these word counts those posted elsewhere.",
                 ),
                 HeadlineStat(
                     "Median Word Count per Chapter",
                     f"{round(median_chapter_word_count):,}",
-                    units=" words",
+                    units="words",
                 ),
                 HeadlineStat(
                     "Average Word Count per Chapter",
                     f"{round(avg_chapter_word_count):,}",
-                    units=" words",
+                    units="words",
                 ),
                 HeadlineStat(
                     "Longest Chapter",
@@ -111,7 +114,7 @@ def overview(request: HtmxHttpRequest) -> HttpResponse:
                             external=True,
                         ),
                     ),
-                    units=" words",
+                    units="words",
                 ),
                 HeadlineStat(
                     "Shortest Chapter",
@@ -124,7 +127,7 @@ def overview(request: HtmxHttpRequest) -> HttpResponse:
                             external=True,
                         ),
                     ),
-                    units=" words",
+                    units="words",
                 ),
             ],
             "table": table,
@@ -187,7 +190,7 @@ def characters(request: HtmxHttpRequest) -> HttpResponse:
                     "Total Number of Characters",
                     f"{chars_with_appearances:,}",
                     f"out of {chars_mentioned} total known characters",
-                    units=" character appearances",
+                    units="character appearances",
                 ),
                 HeadlineStat(
                     "Chapter with the Most Character Mentions",
@@ -200,14 +203,14 @@ def characters(request: HtmxHttpRequest) -> HttpResponse:
                             external=True,
                         ),
                     ),
-                    units=" character mentions",
+                    units="character mentions",
                     popup_info="This is not a count of unique character mentions. It is the total number of mentions for the given chapter. So if a character is mentioned several times throughout the chapter, each instance counts towards the total.",
                 ),
                 HeadlineStat(
                     "Number of Character Species",
                     f"{species_count:,}",
                     f"out of {len(Character.SPECIES)} known species",
-                    units=" species",
+                    units="species",
                     popup_info='Many species are referenced throughout TWI, but for some species, no specific characters have been mentioned. It\'s possible that they simply haven\'t been encountered yet and may pop up in the future, such as some of the many Lizardfolk variants. However, many of the known species are simply extinct. This is what causes the discrepancy between the character "species" count and the "known species".\nThe "known species" count includes all species. Even those that have no associated characters.',
                 ),
             ],
@@ -258,13 +261,13 @@ def classes(request: HtmxHttpRequest) -> HttpResponse:
                     "Longest Class Name (by words)",
                     f"{longest_class_name_by_words.word_count}",
                     f"{longest_class_name_by_words.name}",
-                    units=" words",
+                    units="words",
                 ),
                 HeadlineStat(
                     "Longest Class Name (by letters)",
                     f"{len(longest_class_name_by_chars.name)}",
                     f"{longest_class_name_by_chars.name}",
-                    units=" letters",
+                    units="letters",
                     popup_info="This count includes punctuation as well as letters.",
                 ),
                 HeadlineStat(
@@ -278,7 +281,7 @@ def classes(request: HtmxHttpRequest) -> HttpResponse:
                             external=True,
                         ),
                     ),
-                    units=" [Class] mentions",
+                    units="[Class] mentions",
                     popup_info="This count includes every instance of a mentioned [Class]. Meaning if a [Class] occurs multiple times throughout a chapter, each instance is counted.",
                 ),
             ],
@@ -330,13 +333,13 @@ def skills(request: HtmxHttpRequest) -> HttpResponse:
                     "Longest [Skill] Name (by words)",
                     f"{longest_skill_name_by_words.word_count}",
                     f"{longest_skill_name_by_words.name}",
-                    units=" words",
+                    units="words",
                 ),
                 HeadlineStat(
                     "Longest [Skill] Name (by letters)",
                     f"{len(longest_skill_name_by_chars.name)}",
                     f"{longest_skill_name_by_chars.name}",
-                    units=" letters",
+                    units="letters",
                     popup_info="This count includes punctuation as well as letters.",
                 ),
                 HeadlineStat(
@@ -350,7 +353,7 @@ def skills(request: HtmxHttpRequest) -> HttpResponse:
                             external=True,
                         ),
                     ),
-                    units=" [Skill] mentions",
+                    units="[Skill] mentions",
                     popup_info="This count includes every instance of a mentioned [Skill]. Meaning if a [Skill] occurs multiple times throughout a chapter, each instance is counted.",
                 ),
             ],
@@ -401,13 +404,13 @@ def magic(request: HtmxHttpRequest) -> HttpResponse:
                     "Longest [Spell] Name (by words)",
                     f"{longest_spell_name_by_words.word_count}",
                     f"{longest_spell_name_by_words.name}",
-                    units=" words",
+                    units="words",
                 ),
                 HeadlineStat(
                     "Longest [Spell] Name (by letters)",
                     f"{len(longest_spell_name_by_chars.name)}",
                     f"{longest_spell_name_by_chars.name}",
-                    units=" letters",
+                    units="letters",
                     popup_info="This count includes punctuation as well as letters.",
                 ),
                 HeadlineStat(
@@ -421,7 +424,7 @@ def magic(request: HtmxHttpRequest) -> HttpResponse:
                             external=True,
                         ),
                     ),
-                    units=" [Spell] mentions",
+                    units="[Spell] mentions",
                     popup_info="This count includes every instance of a mentioned [Spell]. Meaning if a [Spell] occurs multiple times throughout a chapter, each instance is counted.",
                 ),
             ],
@@ -476,7 +479,7 @@ def locations(request: HtmxHttpRequest) -> HttpResponse:
                             external=True,
                         ),
                     ),
-                    units=" Location mentions",
+                    units="Location mentions",
                 ),
             ],
             "table": table,
@@ -533,7 +536,7 @@ def reftype_interactive_chart(request: HtmxHttpRequest, name: str, chart: str):
     for c in chart_items:
         if chart == c.title_slug:
             context = {
-                "chart": c.get_fig().to_html(full_html=False, include_plotlyjs="cdn")
+                "chart": c.get_fig().to_html(full_html=False, include_plotlyjs="cdn"),
             }
             return render(request, "pages/interactive_chart.html", context)
 
@@ -547,8 +550,56 @@ def reftype_stats(request: HtmxHttpRequest, name: str):
         rt = RefType.objects.get(Q(slug__istartswith=name) & Q(type=rt_type))
     else:
         rt = RefType.objects.get(Q(slug__iexact=name) & Q(type=rt_type))
-    context = {"title": rt.name, "gallery": get_reftype_gallery(rt)}
-    return render(request, "pages/reftype_gallery.html", context)
+
+    chapter_appearances = (
+        RefType.objects.select_related("reftypecomputedview")
+        .annotate(mentions=F("reftypecomputedview__mentions"))
+        .filter(type=RefType.LOCATION)
+        .order_by(F("mentions").desc(nulls_last=True))
+    )
+
+    mention_count = TextRef.objects.filter(type=rt).count()
+
+    chapter_appearances = RefTypeChapter.objects.filter(type=rt).order_by(
+        "chapter__number"
+    )
+    first_mention_chapter = chapter_appearances.first()
+    last_mention_chapter = chapter_appearances.last()
+
+    context = {
+        "title": rt.name,
+        "gallery": get_reftype_gallery(rt),
+        "stats": [
+            HeadlineStat("Total mentions", mention_count, units="mentions"),
+            HeadlineStat(
+                "First mentioned in chapter",
+                render_to_string(
+                    "patterns/atoms/link/link.html",
+                    context=dict(
+                        text=first_mention_chapter.chapter.title,
+                        href=first_mention_chapter.chapter.source_url,
+                        size=6,
+                        external=True,
+                    ),
+                ),
+            ),
+            HeadlineStat(
+                "Last mentioned in chapter",
+                render_to_string(
+                    "patterns/atoms/link/link.html",
+                    context=dict(
+                        text=last_mention_chapter.chapter.title,
+                        href=last_mention_chapter.chapter.source_url,
+                        size=6,
+                        external=True,
+                    ),
+                ),
+            ),
+        ]
+        if first_mention_chapter and last_mention_chapter
+        else None,
+    }
+    return render(request, "pages/reftype_page.html", context)
 
 
 def get_search_result_table(query: dict[str, str]):
