@@ -36,7 +36,7 @@ function fold_header(btn) {
 
 function unfold_header(btn) {
   header.style.display = "block";
-  header.style.height = "100%";
+  header.style.height = "fit-content";
   btn.querySelector("span.uppercase").textContent = "Minimize Search";
   replace_header_fold_icon("chevron-up");
   localStorage.setItem("header_folded", false);

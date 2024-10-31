@@ -62,12 +62,12 @@ def overview(request: HtmxHttpRequest) -> HttpResponse:
     config.configure(table)
     table.paginate(
         page=request.GET.get("page", 1),
-        per_page=request.GET.get("page_size", 15),
+        per_page=request.GET.get("page_size", 25),
         orphans=5,
     )
 
     if request.htmx:
-        return render(request, table.template_name, {"table": table})
+        return render(request, table.template_name, dict(table=table))
 
     total_wc = Chapter.objects.aggregate(total_wc=Sum("word_count"))["total_wc"]
     longest_chapter = Chapter.objects.filter(is_canon=True).order_by("-word_count")[0]
@@ -170,14 +170,12 @@ def characters(request: HtmxHttpRequest) -> HttpResponse:
     config.configure(table)
     table.paginate(
         page=request.GET.get("page", 1),
-        per_page=request.GET.get("page_size", 15),
+        per_page=request.GET.get("page_size", 25),
         orphans=5,
     )
 
     if request.htmx:
-        return render(
-            request, table.template_name, context={"table": table, "search_bar": True}
-        )
+        return render(request, table.template_name, dict(table=table))
 
     char_counts = (
         TextRef.objects.filter(type__type=RefType.CHARACTER)
@@ -273,9 +271,12 @@ def classes(request: HtmxHttpRequest) -> HttpResponse:
     config.configure(table)
     table.paginate(
         page=request.GET.get("page", 1),
-        per_page=request.GET.get("page_size", 15),
+        per_page=request.GET.get("page_size", 25),
         orphans=5,
     )
+
+    if request.htmx:
+        return render(request, table.template_name, dict(table=table))
 
     longest_class_name_by_chars = rt_data.order_by("-letter_count")[0]
     longest_class_name_by_words = rt_data.order_by("-word_count")[0]
@@ -326,10 +327,7 @@ def classes(request: HtmxHttpRequest) -> HttpResponse:
         "table": table,
     }
 
-    if request.htmx:
-        return render(request, table.template_name, context)
-    else:
-        return render(request, "pages/classes.html", context)
+    return render(request, "pages/classes.html", context)
 
 
 @cache_page(60 * 60 * 24)
@@ -342,9 +340,12 @@ def skills(request: HtmxHttpRequest) -> HttpResponse:
     config.configure(table)
     table.paginate(
         page=request.GET.get("page", 1),
-        per_page=request.GET.get("page_size", 15),
+        per_page=request.GET.get("page_size", 25),
         orphans=5,
     )
+
+    if request.htmx:
+        return render(request, table.template_name, dict(table=table))
 
     longest_skill_name_by_chars = rt_data.order_by("-letter_count")[0]
     longest_skill_name_by_words = rt_data.order_by("-word_count")[0]
@@ -395,10 +396,7 @@ def skills(request: HtmxHttpRequest) -> HttpResponse:
         "table": table,
     }
 
-    if request.htmx:
-        return render(request, table.template_name, context)
-    else:
-        return render(request, "pages/skills.html", context)
+    return render(request, "pages/skills.html", context)
 
 
 @cache_page(60 * 60 * 24)
@@ -411,9 +409,12 @@ def magic(request: HtmxHttpRequest) -> HttpResponse:
     config.configure(table)
     table.paginate(
         page=request.GET.get("page", 1),
-        per_page=request.GET.get("page_size", 15),
+        per_page=request.GET.get("page_size", 25),
         orphans=5,
     )
+
+    if request.htmx:
+        return render(request, table.template_name, dict(table=table))
 
     longest_spell_name_by_chars = rt_data.order_by("-letter_count")[0]
     longest_spell_name_by_words = rt_data.order_by("-word_count")[0]
@@ -464,10 +465,7 @@ def magic(request: HtmxHttpRequest) -> HttpResponse:
         "table": table,
     }
 
-    if request.htmx:
-        return render(request, table.template_name, context)
-    else:
-        return render(request, "pages/magic.html", context)
+    return render(request, "pages/magic.html", context)
 
 
 @cache_page(60 * 60 * 24)
@@ -667,6 +665,7 @@ def reftype_stats(request: HtmxHttpRequest, name: str):
 
 def get_search_result_table(query: dict[str, str]):
     strict_mode = query.get("strict_mode")
+    query_filter = query.get("filter")
     if query.get("refs_by_chapter"):
         if strict_mode:
             ref_types: QuerySet[RefType] = RefType.objects.filter(
@@ -689,6 +688,11 @@ def get_search_result_table(query: dict[str, str]):
                 )
             )
         )
+
+        if query_filter:
+            reftype_chapters = reftype_chapters.filter(
+                type__name__icontains=query_filter
+            )
 
         table_data = []
         for rt in ref_types:
@@ -744,6 +748,13 @@ def get_search_result_table(query: dict[str, str]):
         if query.get("only_colored_refs"):
             table_data = table_data.filter(color__isnull=False)
 
+        if query_filter:
+            table_data = table_data.filter(
+                Q(name__icontains=query_filter)
+                | Q(text__icontains=query_filter)
+                | Q(title__icontains=query_filter)
+            )
+
         table = TextRefTable(table_data)
 
     return table
@@ -754,6 +765,7 @@ def search(request: HtmxHttpRequest) -> HttpResponse:
         query = request.GET.copy()
         query["first_chapter"] = query.get("first_chapter", 0)
         query["last_chapter"] = query.get("last_chapter", MAX_CHAPTER_NUM)
+        query["filter"] = query.get("q")
 
         config = RequestConfig(request)
 
@@ -762,10 +774,10 @@ def search(request: HtmxHttpRequest) -> HttpResponse:
             config.configure(table)
             table.paginate(
                 page=request.GET.get("page", 1),
-                per_page=request.GET.get("page_size", str(15)),
+                per_page=request.GET.get("page_size", 25),
                 orphans=5,
             )
-            return render(request, "tables/table_partial.html", {"table": table})
+            return render(request, table.template_name, {"table": table})
 
         form = SearchForm(query)
         if form.is_valid():
@@ -773,7 +785,7 @@ def search(request: HtmxHttpRequest) -> HttpResponse:
             config.configure(table)
             table.paginate(
                 page=request.GET.get("page", 1),
-                per_page=request.GET.get("page_size", 15),
+                per_page=request.GET.get("page_size", 25),
                 orphans=5,
             )
             export_format = request.GET.get("_export", None)
