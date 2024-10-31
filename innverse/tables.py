@@ -1,4 +1,5 @@
 import string
+from django.core.validators import EMPTY_VALUES
 from django.db.models import F, Q
 from django.db.models.query import QuerySet
 from django.utils.text import slugify
@@ -7,6 +8,9 @@ from django.template.loader import render_to_string
 from urllib.parse import quote
 import django_tables2 as tables
 from stats.models import Chapter, Character, RefType, TextRef
+
+
+EMPTY_TABLE_TEXT = "No results found for the given query"
 
 
 class TextRefTable(tables.Table):
@@ -20,7 +24,7 @@ class TextRefTable(tables.Table):
         model = TextRef
         template_name = "tables/htmx_table.html"
         fields = ("ref_name", "text", "chapter_url")
-        empty_text = "No results found for the given query. Please try again."
+        empty_text = EMPTY_TABLE_TEXT
 
     def render_ref_name(self, record: TextRef):
         if record.type.type == RefType.CHARACTER:
@@ -114,6 +118,7 @@ class ChapterRefTable(tables.Table):
     class Meta:
         template_name = "tables/htmx_table.html"
         fields = ("ref_name", "count", "chapters")
+        empty_text = EMPTY_TABLE_TEXT
 
     def render_chapters(self, record):
         return ", ".join(
@@ -161,6 +166,7 @@ class ReftypeMentionsHtmxTable(tables.Table):
         model = RefType
         template_name = "tables/htmx_table.html"
         fields = ("name", "mentions", "word_count", "letter_count")
+        empty_text = EMPTY_TABLE_TEXT
 
 
 class CharacterHtmxTable(tables.Table):
@@ -228,6 +234,7 @@ class CharacterHtmxTable(tables.Table):
         model = Character
         template_name = "tables/htmx_table.html"
         fields = ("name", "mentions", "species", "status", "first_appearance", "wiki")
+        empty_text = EMPTY_TABLE_TEXT
 
 
 class ChapterHtmxTable(tables.Table):
@@ -247,3 +254,4 @@ class ChapterHtmxTable(tables.Table):
         model = Chapter
         template_name = "tables/htmx_table.html"
         fields = ("number", "title", "word_count", "post_date", "is_interlude")
+        empty_text = EMPTY_TABLE_TEXT
