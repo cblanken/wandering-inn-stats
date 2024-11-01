@@ -8,6 +8,7 @@ from django_htmx.middleware import HtmxDetails
 from django_tables2 import RequestConfig
 from django_tables2.export.export import TableExport
 from django_tables2 import SingleTableMixin
+import datetime as dt
 from itertools import chain
 from typing import Iterable, Tuple
 from stats import charts
@@ -51,14 +52,18 @@ def overview(request: HtmxHttpRequest) -> HttpResponse:
     config = RequestConfig(request)
     query = request.GET.get("q")
     if query:
-        data = Chapter.objects.filter(is_canon=True, is_status_update=False).filter(
-            Q(title__icontains=query)
-            | Q(post_date__icontains=query)
-            | Q(word_count__icontains=query)
+        chapter_data = (
+            Chapter.objects.filter(is_canon=True, is_status_update=False)
+            .filter(
+                Q(title__icontains=query)
+                | Q(post_date__icontains=query)
+                | Q(word_count__icontains=query)
+            )
+            .order_by("post_date")
         )
     else:
-        data = Chapter.objects.filter(is_canon=True, is_status_update=False)
-    table = ChapterHtmxTable(data)
+        chapter_data = Chapter.objects.filter(is_canon=True, is_status_update=False)
+    table = ChapterHtmxTable(chapter_data)
     config.configure(table)
     table.paginate(
         page=request.GET.get("page", 1),
@@ -87,6 +92,19 @@ def overview(request: HtmxHttpRequest) -> HttpResponse:
 
     median_chapter_word_count = median(word_counts)
     avg_chapter_word_count = sum(word_counts) / len(word_counts)
+
+    first_chapter = chapter_data.first()
+    latest_chapter = chapter_data.last()
+
+    delta_since_first_chapter_release: dt.timedelta = (
+        dt.datetime.now(tz=dt.timezone.utc) - first_chapter.post_date
+    )
+    delta_since_latest_chapter_release: dt.timedelta = (
+        dt.datetime.now(tz=dt.timezone.utc) - latest_chapter.post_date
+    )
+    delta_between_first_and_last_chapters: dt.timedelta = (
+        latest_chapter.post_date - first_chapter.post_date
+    )
 
     context = {
         "gallery": charts.word_count_charts,
@@ -132,6 +150,33 @@ def overview(request: HtmxHttpRequest) -> HttpResponse:
                     ),
                 ),
                 units="words",
+            ),
+            HeadlineStat(
+                "First chapter published",
+                delta_since_first_chapter_release.days,
+                render_to_string(
+                    "patterns/atoms/link/link.html",
+                    context=dict(
+                        text=first_chapter.title,
+                        href=first_chapter.source_url,
+                        external=True,
+                    ),
+                ),
+                units="days ago",
+            ),
+            HeadlineStat(
+                "Latest chapter published",
+                delta_since_latest_chapter_release.days,
+                render_to_string(
+                    "patterns/atoms/link/link.html",
+                    context=dict(
+                        text=latest_chapter.title,
+                        href=latest_chapter.source_url,
+                        external=True,
+                    ),
+                ),
+                units="days ago",
+                popup_info="This is the last chapter analyzed by the application. It is not updated after every release, so you can expect it to be a couple chapters behind the latest public release. This allows time for updates to be made to the Wiki and reduce the need for manual analysis of new chapters.",
             ),
         ],
         "table": table,
