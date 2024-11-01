@@ -1,4 +1,136 @@
-{% load render_table from django_tables2 %}
-{% if table %}
-  {% render_table table "tables/htmx_table.html" %}
-{% endif %}
+{% comment %}
+  This table template is based off django_tables2/table.html
+  and provides styling via Tailwind classes
+{% endcomment %}
+
+{% load django_tables2 %}
+{% load i18n l10n %}
+{% block table-wrapper %}
+<div class="table-container w-full flex flex-col min-h-screen overflow-auto">
+  {% block pagination %}
+    {% if table.page and table.paginator.num_pages > 1 %}
+    <section class="pagination flex justify-between items-center">
+      <div class="flex gap-4 my-2 px-4 py-1 font-mono">
+        {% if table.page.has_previous or table.page.has_next %}
+        {% block pagination.range %}
+          {% for p in table.page|table_page_range:table.paginator %}
+            <div class="cursor-pointer {% if p == table.page.number %}active text-hl-primary underline underline-offset-8{% endif %}"
+              hx-get="{% querystring table.prefixed_page_field=p %}"
+              hx-trigger="click"
+              hx-target="div.table-container"
+              hx-swap="outerHTML"
+              hx-history="false"
+              hx-push-url="false"
+              hx-boost="true"
+            >
+              {% if p == '...' %}
+                <span>{{ p }}</span>
+              {% else %}
+                <span class="hover:underline underline-offset-8">{{ p }}</span>
+              {% endif %}
+              </div>
+          {% endfor %}
+        {% endblock pagination.range %}
+        {% endif %}
+      </div>
+      <div class="font-mono">
+        {% block pagination.previous %}
+          {% if table.page.has_previous %}
+            <button class="px-2 previous"
+                    hx-get="{% querystring table.prefixed_page_field=table.page.previous_page_number %}"
+                    hx-trigger="click"
+                    hx-target="div.table-container"
+                    hx-swap="outerHTML"
+                    hx-history="false"
+                    hx-push-url="false"
+                    hx-boost="true">
+              <div class="hover:font-extrabold hover:underline underline-offset-4"><i class="w-4 h-4 inline-block mr-2" data-feather="arrow-left"></i>{% trans 'Previous' %}</div>
+            </button>
+          {% else %}
+            <button disabled class="px-2 previous text-text-disabled">
+              <div><i class="w-4 h-4 inline-block mr-2" data-feather="arrow-left"></i>{% trans 'Previous' %}
+              </div>
+            </button>
+          {% endif %}
+        {% endblock pagination.previous %}
+        {% block pagination.next %}
+          {% if table.page.has_next %}
+            <button class="px-2 next"
+                    hx-get="{% querystring table.prefixed_page_field=table.page.next_page_number %}"
+                    hx-trigger="click"
+                    hx-target="div.table-container"
+                    hx-history="false"
+                    hx-push-url="false"
+                    hx-boost="true"
+                    hx-swap="outerHTML">
+                <div class="hover:font-extrabold hover:underline underline-offset-4">
+                {% trans 'Next' %}<i class="w-4 h-4 inline-block ml-2" data-feather="arrow-right"></i></div>
+            </button>
+          {% else %}
+            <button disabled class="px-2 next text-text-disabled">
+              <div>{% trans 'Next' %}<i class="w-4 h-4 inline-block ml-2" data-feather="arrow-right"></i></div>
+            </button>
+          {% endif %}
+        {% endblock pagination.next %}
+      </div>
+    </section>
+    {% endif %}
+  {% endblock pagination %}
+  {% block table %}
+    <table class="border-collapse border-spacing-2">
+    {% block table.thead %}
+    {% if table.show_header and table.data %}
+        <thead class="text-hl-tertiary text-xl bg-bg-secondary">
+          <tr>
+          {% for column in table.columns %}
+            <th class="relative h-8 py-2 px-8 border-2 border-bg-tertiary font-mono"
+              {% if column.orderable %}
+                hx-get="{% querystring table.prefixed_order_by_field=column.order_by_alias.next %}"
+                hx-trigger="click"
+                hx-target="div.table-container"
+                hx-swap="outerHTML"
+                hx-push-url="false"
+                hx-boost="true"
+                style="cursor: pointer;"
+              {% endif %}
+            >
+            {{ column.header }}
+            <span class="text-text-secondary">
+            {% if column.orderable %}
+              {% if "-" in column.order_by_alias %}
+                <i class="absolute right-2 top-3 {% if column.is_ordered %}text-info{% endif %}" data-feather="chevron-up"></i>
+              {% else %}
+                <i class="absolute right-2 top-3 {% if column.is_ordered %}text-info{% endif %}" data-feather="chevron-down"></i>
+              {% endif %}
+            {% endif %}
+            </span>
+            </th>
+          {% endfor %}
+          </tr>
+        </thead>
+      {% endif %}
+      {% endblock table.thead %}
+      {% block table.tbody %}
+        <tbody>
+        {% include "tables/table_body_partial.html" %}
+        </tbody>
+      {% endblock table.tbody %}
+      {% block table.tfoot %}
+      {% if table.has_footer %}
+      <tfoot {{ table.attrs.tfoot.as_html }}>
+        <tr>
+        {% for column in table.columns %}
+          <td {{ column.attrs.tf.as_html }}>{{ column.footer }}</td>
+        {% endfor %}
+        </tr>
+      </tfoot>
+      {% endif %}
+      {% endblock table.tfoot %}
+    </table>
+  {% endblock table %}
+</div>
+{% endblock table-wrapper %}
+
+<script>
+  feather.replace();
+</script>

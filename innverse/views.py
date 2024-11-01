@@ -67,7 +67,7 @@ def overview(request: HtmxHttpRequest) -> HttpResponse:
     )
 
     if request.htmx:
-        return render(request, table.template_name, dict(table=table))
+        return render(request, "tables/table_partial.html", dict(table=table))
 
     total_wc = Chapter.objects.aggregate(total_wc=Sum("word_count"))["total_wc"]
     longest_chapter = Chapter.objects.filter(is_canon=True).order_by("-word_count")[0]
@@ -175,7 +175,7 @@ def characters(request: HtmxHttpRequest) -> HttpResponse:
     )
 
     if request.htmx:
-        return render(request, table.template_name, dict(table=table))
+        return render(request, "tables/table_partial.html", dict(table=table))
 
     char_counts = (
         TextRef.objects.filter(type__type=RefType.CHARACTER)
@@ -276,7 +276,7 @@ def classes(request: HtmxHttpRequest) -> HttpResponse:
     )
 
     if request.htmx:
-        return render(request, table.template_name, dict(table=table))
+        return render(request, "tables/table_partial.html", dict(table=table))
 
     longest_class_name_by_chars = rt_data.order_by("-letter_count")[0]
     longest_class_name_by_words = rt_data.order_by("-word_count")[0]
@@ -345,7 +345,7 @@ def skills(request: HtmxHttpRequest) -> HttpResponse:
     )
 
     if request.htmx:
-        return render(request, table.template_name, dict(table=table))
+        return render(request, "tables/table_partial.html", dict(table=table))
 
     longest_skill_name_by_chars = rt_data.order_by("-letter_count")[0]
     longest_skill_name_by_words = rt_data.order_by("-word_count")[0]
@@ -414,7 +414,7 @@ def magic(request: HtmxHttpRequest) -> HttpResponse:
     )
 
     if request.htmx:
-        return render(request, table.template_name, dict(table=table))
+        return render(request, "tables/table_partial.html", dict(table=table))
 
     longest_spell_name_by_chars = rt_data.order_by("-letter_count")[0]
     longest_spell_name_by_words = rt_data.order_by("-word_count")[0]
@@ -483,7 +483,7 @@ def locations(request: HtmxHttpRequest) -> HttpResponse:
     )
 
     if request.htmx:
-        return render(request, table.template_name, {"table": table, "query": query})
+        return render(request, "tables/table_partial.html", dict(table=table))
 
     chapter_with_most_location_refs = (
         TextRef.objects.filter(type__type=RefType.LOCATION)
@@ -778,7 +778,7 @@ def search(request: HtmxHttpRequest) -> HttpResponse:
                 per_page=request.GET.get("page_size", 25),
                 orphans=5,
             )
-            return render(request, table.template_name, {"table": table})
+            return render(request, "tables/table_partial.html", dict(table=table))
 
         form = SearchForm(query)
         if form.is_valid():
