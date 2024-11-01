@@ -2,6 +2,7 @@ import string
 from django.core.validators import EMPTY_VALUES
 from django.db.models import F, Q
 from django.db.models.query import QuerySet
+from django.urls import NoReverseMatch, reverse
 from django.utils.text import slugify
 from django.utils.html import strip_tags
 from django.template.loader import render_to_string
@@ -26,36 +27,17 @@ class TextRefTable(tables.Table):
         fields = ("ref_name", "text", "chapter_url")
         empty_text = EMPTY_TABLE_TEXT
 
-    def render_ref_name(self, record: TextRef):
-        if record.type.type == RefType.CHARACTER:
+    def render_ref_name(self, record: TextRef, value):
+        try:
+            path = f"{record.type.type.lower()}-stats"
             return render_to_string(
-                "patterns/atoms/link/link.html",
-                context={
-                    "text": f"{record.type.name}",
-                    "href": f"https://wiki.wanderinginn.com/{record.type.name}",
-                    "external": True,
-                },
+                "patterns/atoms/link/stat_link.html",
+                context=dict(
+                    text=f"{value}",
+                    href=reverse(path, args=[slugify(value)]),
+                ),
             )
-        elif record.type.type == RefType.CLASS:
-            return render_to_string(
-                "patterns/atoms/link/link.html",
-                context={
-                    "text": f"{record.type.name}",
-                    "href": f"https://wiki.wanderinginn.com/List_of_Classes/{record.type.name[1]}#:~:text={record.type.name}",
-                    "external": True,
-                },
-            )
-        elif record.type.type == RefType.SPELL:
-            return render_to_string(
-                "patterns/atoms/link/link.html",
-                context={
-                    "text": f"{record.type.name}",
-                    "href": f"https://wiki.wanderinginn.com/Spells#:~:text={record.type.name}",
-                    "external": True,
-                },
-            )
-
-        else:
+        except NoReverseMatch:
             return record.type.name
 
     def render_text(self, record: TextRef):
@@ -119,6 +101,19 @@ class ChapterRefTable(tables.Table):
         template_name = "tables/htmx_table.html"
         fields = ("ref_name", "count", "chapters")
         empty_text = EMPTY_TABLE_TEXT
+
+    def render_ref_name(self, record: dict, value):
+        try:
+            path = f"{record['type'].lower()}-stats"
+            return render_to_string(
+                "patterns/atoms/link/stat_link.html",
+                context=dict(
+                    text=f"{value}",
+                    href=reverse(path, args=[slugify(value)]),
+                ),
+            )
+        except NoReverseMatch:
+            return record.type.name
 
     def render_chapters(self, record):
         return ", ".join(

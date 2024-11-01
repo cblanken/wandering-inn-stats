@@ -702,6 +702,7 @@ def get_search_result_table(query: dict[str, str]):
 
             rc_data = {
                 "name": rt.name,
+                "type": rt.type,
                 "chapter_data": chapter_data,
             }
 
