@@ -1,12 +1,17 @@
 import string
+from django.core.validators import EMPTY_VALUES
 from django.db.models import F, Q
 from django.db.models.query import QuerySet
+from django.urls import NoReverseMatch, reverse
 from django.utils.text import slugify
 from django.utils.html import strip_tags
 from django.template.loader import render_to_string
 from urllib.parse import quote
 import django_tables2 as tables
 from stats.models import Chapter, Character, RefType, TextRef
+
+
+EMPTY_TABLE_TEXT = "No results found for the given query"
 
 
 class TextRefTable(tables.Table):
@@ -20,38 +25,19 @@ class TextRefTable(tables.Table):
         model = TextRef
         template_name = "tables/htmx_table.html"
         fields = ("ref_name", "text", "chapter_url")
-        empty_text = "No results found for the given query. Please try again."
+        empty_text = EMPTY_TABLE_TEXT
 
-    def render_ref_name(self, record: TextRef):
-        if record.type.type == RefType.CHARACTER:
+    def render_ref_name(self, record: TextRef, value):
+        try:
+            path = f"{record.type.type.lower()}-stats"
             return render_to_string(
-                "patterns/atoms/link/link.html",
-                context={
-                    "text": f"{record.type.name}",
-                    "href": f"https://wiki.wanderinginn.com/{record.type.name}",
-                    "external": True,
-                },
+                "patterns/atoms/link/stat_link.html",
+                context=dict(
+                    text=f"{value}",
+                    href=reverse(path, args=[slugify(value)]),
+                ),
             )
-        elif record.type.type == RefType.CLASS:
-            return render_to_string(
-                "patterns/atoms/link/link.html",
-                context={
-                    "text": f"{record.type.name}",
-                    "href": f"https://wiki.wanderinginn.com/List_of_Classes/{record.type.name[1]}#:~:text={record.type.name}",
-                    "external": True,
-                },
-            )
-        elif record.type.type == RefType.SPELL:
-            return render_to_string(
-                "patterns/atoms/link/link.html",
-                context={
-                    "text": f"{record.type.name}",
-                    "href": f"https://wiki.wanderinginn.com/Spells#:~:text={record.type.name}",
-                    "external": True,
-                },
-            )
-
-        else:
+        except NoReverseMatch:
             return record.type.name
 
     def render_text(self, record: TextRef):
@@ -114,6 +100,20 @@ class ChapterRefTable(tables.Table):
     class Meta:
         template_name = "tables/htmx_table.html"
         fields = ("ref_name", "count", "chapters")
+        empty_text = EMPTY_TABLE_TEXT
+
+    def render_ref_name(self, record: dict, value):
+        try:
+            path = f"{record['type'].lower()}-stats"
+            return render_to_string(
+                "patterns/atoms/link/stat_link.html",
+                context=dict(
+                    text=f"{value}",
+                    href=reverse(path, args=[slugify(value)]),
+                ),
+            )
+        except NoReverseMatch:
+            return record.type.name
 
     def render_chapters(self, record):
         return ", ".join(
@@ -161,6 +161,7 @@ class ReftypeMentionsHtmxTable(tables.Table):
         model = RefType
         template_name = "tables/htmx_table.html"
         fields = ("name", "mentions", "word_count", "letter_count")
+        empty_text = EMPTY_TABLE_TEXT
 
 
 class CharacterHtmxTable(tables.Table):
@@ -228,6 +229,7 @@ class CharacterHtmxTable(tables.Table):
         model = Character
         template_name = "tables/htmx_table.html"
         fields = ("name", "mentions", "species", "status", "first_appearance", "wiki")
+        empty_text = EMPTY_TABLE_TEXT
 
 
 class ChapterHtmxTable(tables.Table):
@@ -247,3 +249,4 @@ class ChapterHtmxTable(tables.Table):
         model = Chapter
         template_name = "tables/htmx_table.html"
         fields = ("number", "title", "word_count", "post_date", "is_interlude")
+        empty_text = EMPTY_TABLE_TEXT

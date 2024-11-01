@@ -49,442 +49,476 @@ class HeadlineStat:
 @cache_page(60 * 60 * 24)
 def overview(request: HtmxHttpRequest) -> HttpResponse:
     config = RequestConfig(request)
-    data = Chapter.objects.filter(is_canon=True, is_status_update=False)
+    query = request.GET.get("q")
+    if query:
+        data = Chapter.objects.filter(is_canon=True, is_status_update=False).filter(
+            Q(title__icontains=query)
+            | Q(post_date__icontains=query)
+            | Q(word_count__icontains=query)
+        )
+    else:
+        data = Chapter.objects.filter(is_canon=True, is_status_update=False)
     table = ChapterHtmxTable(data)
     config.configure(table)
     table.paginate(
         page=request.GET.get("page", 1),
-        per_page=request.GET.get("page_size", 15),
+        per_page=request.GET.get("page_size", 25),
         orphans=5,
     )
 
     if request.htmx:
-        return render(request, "tables/table_partial.html", {"table": table})
-    else:
-        total_wc = Chapter.objects.aggregate(total_wc=Sum("word_count"))["total_wc"]
-        longest_chapter = Chapter.objects.filter(is_canon=True).order_by("-word_count")[
-            0
-        ]
-        shortest_chapter = Chapter.objects.filter(is_canon=True).order_by("word_count")[
-            0
-        ]
-        word_counts = (
-            Chapter.objects.filter(is_canon=True)
-            .order_by("word_count")
-            .values_list("word_count", flat=True)
-        )
+        return render(request, table.template_name, dict(table=table))
 
-        def median(values: list[int]) -> float:
-            length = len(values)
-            if length % 2 == 0:
-                return sum(values[int(length / 2 - 1) : int(length / 2 + 1)]) / 2.0
-            else:
-                return values[int(length / 2)]
+    total_wc = Chapter.objects.aggregate(total_wc=Sum("word_count"))["total_wc"]
+    longest_chapter = Chapter.objects.filter(is_canon=True).order_by("-word_count")[0]
+    shortest_chapter = Chapter.objects.filter(is_canon=True).order_by("word_count")[0]
+    word_counts = (
+        Chapter.objects.filter(is_canon=True)
+        .order_by("word_count")
+        .values_list("word_count", flat=True)
+    )
 
-        median_chapter_word_count = median(word_counts)
-        avg_chapter_word_count = sum(word_counts) / len(word_counts)
+    def median(values: list[int]) -> float:
+        length = len(values)
+        if length % 2 == 0:
+            return sum(values[int(length / 2 - 1) : int(length / 2 + 1)]) / 2.0
+        else:
+            return values[int(length / 2)]
 
-        context = {
-            "gallery": charts.word_count_charts,
-            "stats": [
-                HeadlineStat(
-                    "Total Word Count",
-                    f"{total_wc:,}",
-                    units="words",
-                    popup_info="The word count for each chapter is calculated by counting the tokens between spaces over the entire text. This is a simple approach, and doesn't account for any of the punctuation-related edge cases. For this reason, you may notice discrepancies between these word counts those posted elsewhere.",
-                ),
-                HeadlineStat(
-                    "Median Word Count per Chapter",
-                    f"{round(median_chapter_word_count):,}",
-                    units="words",
-                ),
-                HeadlineStat(
-                    "Average Word Count per Chapter",
-                    f"{round(avg_chapter_word_count):,}",
-                    units="words",
-                ),
-                HeadlineStat(
-                    "Longest Chapter",
-                    f"{longest_chapter.word_count:,}",
-                    render_to_string(
-                        "patterns/atoms/link/link.html",
-                        context=dict(
-                            text=longest_chapter.title,
-                            href=longest_chapter.source_url,
-                            external=True,
-                        ),
+    median_chapter_word_count = median(word_counts)
+    avg_chapter_word_count = sum(word_counts) / len(word_counts)
+
+    context = {
+        "gallery": charts.word_count_charts,
+        "stats": [
+            HeadlineStat(
+                "Total Word Count",
+                f"{total_wc:,}",
+                units="words",
+                popup_info="The word count for each chapter is calculated by counting the tokens between spaces over the entire text. This is a simple approach, and doesn't account for any of the punctuation-related edge cases. For this reason, you may notice discrepancies between these word counts those posted elsewhere.",
+            ),
+            HeadlineStat(
+                "Median Word Count per Chapter",
+                f"{round(median_chapter_word_count):,}",
+                units="words",
+            ),
+            HeadlineStat(
+                "Average Word Count per Chapter",
+                f"{round(avg_chapter_word_count):,}",
+                units="words",
+            ),
+            HeadlineStat(
+                "Longest Chapter",
+                f"{longest_chapter.word_count:,}",
+                render_to_string(
+                    "patterns/atoms/link/link.html",
+                    context=dict(
+                        text=longest_chapter.title,
+                        href=longest_chapter.source_url,
+                        external=True,
                     ),
-                    units="words",
                 ),
-                HeadlineStat(
-                    "Shortest Chapter",
-                    f"{shortest_chapter.word_count:,}",
-                    render_to_string(
-                        "patterns/atoms/link/link.html",
-                        context=dict(
-                            text=shortest_chapter.title,
-                            href=shortest_chapter.source_url,
-                            external=True,
-                        ),
+                units="words",
+            ),
+            HeadlineStat(
+                "Shortest Chapter",
+                f"{shortest_chapter.word_count:,}",
+                render_to_string(
+                    "patterns/atoms/link/link.html",
+                    context=dict(
+                        text=shortest_chapter.title,
+                        href=shortest_chapter.source_url,
+                        external=True,
                     ),
-                    units="words",
                 ),
-            ],
-            "table": table,
-        }
-        return render(request, "pages/overview.html", context)
+                units="words",
+            ),
+        ],
+        "table": table,
+    }
+    return render(request, "pages/overview.html", context)
 
 
 @cache_page(60 * 60 * 24)
 def characters(request: HtmxHttpRequest) -> HttpResponse:
     config = RequestConfig(request)
-    data = (
-        Character.objects.select_related(
-            "ref_type", "ref_type__reftypecomputedview", "first_chapter_appearance"
+    query = request.GET.get("q")
+    if query:
+        data = (
+            Character.objects.select_related(
+                "ref_type", "ref_type__reftypecomputedview", "first_chapter_appearance"
+            )
+            .filter(
+                Q(ref_type__name__icontains=query)
+                | Q(species__icontains=query)
+                | Q(status__icontains=query)
+                | Q(first_chapter_appearance__title__icontains=query)
+            )
+            .annotate(mentions=F("ref_type__reftypecomputedview__mentions"))
+            .order_by(F("mentions").desc(nulls_last=True))
         )
-        .annotate(mentions=F("ref_type__reftypecomputedview__mentions"))
-        .order_by(F("mentions").desc(nulls_last=True))
-    )
+    else:
+        data = (
+            Character.objects.select_related(
+                "ref_type", "ref_type__reftypecomputedview", "first_chapter_appearance"
+            )
+            .annotate(mentions=F("ref_type__reftypecomputedview__mentions"))
+            .order_by(F("mentions").desc(nulls_last=True))
+        )
+
     table = CharacterHtmxTable(data)
     config.configure(table)
     table.paginate(
         page=request.GET.get("page", 1),
-        per_page=request.GET.get("page_size", 15),
+        per_page=request.GET.get("page_size", 25),
         orphans=5,
     )
 
     if request.htmx:
-        return render(request, "tables/table_partial.html", {"table": table})
-    else:
-        char_counts = (
-            TextRef.objects.filter(type__type=RefType.CHARACTER)
-            .select_related("type")
-            .values("type__name", "type__character")
-            .annotate(
-                fca=F("type__character__first_chapter_appearance"),
-                count=Count("type__name"),
-            )
+        return render(request, table.template_name, dict(table=table))
+
+    char_counts = (
+        TextRef.objects.filter(type__type=RefType.CHARACTER)
+        .select_related("type")
+        .values("type__name", "type__character")
+        .annotate(
+            fca=F("type__character__first_chapter_appearance"),
+            count=Count("type__name"),
         )
+    )
 
-        chars_with_appearances = char_counts.filter(fca__isnull=False).count()
-        chars_mentioned = char_counts.count()
+    chars_with_appearances = char_counts.filter(fca__isnull=False).count()
+    chars_mentioned = char_counts.count()
 
-        species_count = Character.objects.values("species").distinct().count()
+    species_count = Character.objects.values("species").distinct().count()
 
-        chapter_with_most_char_refs = (
-            TextRef.objects.filter(type__type=RefType.CHARACTER)
-            .select_related("chapter_line__chapter")
-            .annotate(
-                title=F("chapter_line__chapter__title"),
-                url=F("chapter_line__chapter__source_url"),
-            )
-            .values("title", "url")
-            .annotate(count=Count("title"))
-            .order_by("-count")[0]
+    chapter_with_most_char_refs = (
+        TextRef.objects.filter(type__type=RefType.CHARACTER)
+        .select_related("chapter_line__chapter")
+        .annotate(
+            title=F("chapter_line__chapter__title"),
+            url=F("chapter_line__chapter__source_url"),
         )
+        .values("title", "url")
+        .annotate(count=Count("title"))
+        .order_by("-count")[0]
+    )
 
-        context = {
-            "gallery": charts.character_charts,
-            "stats": [
-                HeadlineStat(
-                    "Total Number of Characters",
-                    f"{chars_with_appearances:,}",
-                    f"out of {chars_mentioned} total known characters",
-                    units="character appearances",
-                ),
-                HeadlineStat(
-                    "Chapter with the Most Character Mentions",
-                    f"{chapter_with_most_char_refs['count']}",
-                    render_to_string(
-                        "patterns/atoms/link/link.html",
-                        context=dict(
-                            text=chapter_with_most_char_refs["title"],
-                            href=chapter_with_most_char_refs["url"],
-                            external=True,
-                        ),
+    context = {
+        "gallery": charts.character_charts,
+        "stats": [
+            HeadlineStat(
+                "Total Number of Characters",
+                f"{chars_with_appearances:,}",
+                f"out of {chars_mentioned} total known characters",
+                units="character appearances",
+            ),
+            HeadlineStat(
+                "Chapter with the Most Character Mentions",
+                f"{chapter_with_most_char_refs['count']}",
+                render_to_string(
+                    "patterns/atoms/link/link.html",
+                    context=dict(
+                        text=chapter_with_most_char_refs["title"],
+                        href=chapter_with_most_char_refs["url"],
+                        external=True,
                     ),
-                    units="character mentions",
-                    popup_info="This is not a count of unique character mentions. It is the total number of mentions for the given chapter. So if a character is mentioned several times throughout the chapter, each instance counts towards the total.",
                 ),
-                HeadlineStat(
-                    "Number of Character Species",
-                    f"{species_count:,}",
-                    f"out of {len(Character.SPECIES)} known species",
-                    units="species",
-                    popup_info='Many species are referenced throughout TWI, but for some species, no specific characters have been mentioned. It\'s possible that they simply haven\'t been encountered yet and may pop up in the future, such as some of the many Lizardfolk variants. However, many of the known species are simply extinct. This is what causes the discrepancy between the character "species" count and the "known species".\nThe "known species" count includes all species. Even those that have no associated characters.',
-                ),
-            ],
-            "table": table,
-        }
-        return render(request, "pages/characters.html", context)
+                units="character mentions",
+                popup_info="This is not a count of unique character mentions. It is the total number of mentions for the given chapter. So if a character is mentioned several times throughout the chapter, each instance counts towards the total.",
+            ),
+            HeadlineStat(
+                "Number of Character Species",
+                f"{species_count:,}",
+                f"out of {len(Character.SPECIES)} known species",
+                units="species",
+                popup_info='Many species are referenced throughout TWI, but for some species, no specific characters have been mentioned. It\'s possible that they simply haven\'t been encountered yet and may pop up in the future, such as some of the many Lizardfolk variants. However, many of the known species are simply extinct. This is what causes the discrepancy between the character "species" count and the "known species".\nThe "known species" count includes all species. Even those that have no associated characters.',
+            ),
+        ],
+        "table": table,
+    }
+    return render(request, "pages/characters.html", context)
+
+
+def get_reftype_table_data(
+    query: str | None, rt_type: str, order_by="mentions"
+) -> QuerySet[RefType]:
+    if query:
+        rt_data = (
+            RefType.objects.select_related("reftypecomputedview")
+            .annotate(mentions=F("reftypecomputedview__mentions"))
+            .filter(type=rt_type, name__icontains=query)
+            .order_by(F(order_by).desc(nulls_last=True))
+        )
+    else:
+        rt_data = (
+            RefType.objects.select_related("reftypecomputedview")
+            .annotate(mentions=F("reftypecomputedview__mentions"))
+            .filter(type=rt_type)
+            .order_by(F("mentions").desc(nulls_last=True))
+        )
+
+    return rt_data
 
 
 @cache_page(60 * 60 * 24)
 def classes(request: HtmxHttpRequest) -> HttpResponse:
     config = RequestConfig(request)
-    rt_data = (
-        RefType.objects.select_related("reftypecomputedview")
-        .annotate(mentions=F("reftypecomputedview__mentions"))
-        .filter(type=RefType.CLASS)
-        .order_by(F("mentions").desc(nulls_last=True))
-    )
+    query = request.GET.get("q")
+    rt_data = get_reftype_table_data(query, RefType.CLASS)
+
     table = ReftypeMentionsHtmxTable(rt_data)
     config.configure(table)
     table.paginate(
         page=request.GET.get("page", 1),
-        per_page=request.GET.get("page_size", 15),
+        per_page=request.GET.get("page_size", 25),
         orphans=5,
     )
 
     if request.htmx:
-        return render(request, "tables/table_partial.html", {"table": table})
-    else:
-        longest_class_name_by_chars = rt_data.order_by("-letter_count")[0]
-        longest_class_name_by_words = rt_data.order_by("-word_count")[0]
+        return render(request, table.template_name, dict(table=table))
 
-        chapter_with_most_class_refs = (
-            TextRef.objects.filter(type__type=RefType.CLASS)
-            .annotate(
-                title=F("chapter_line__chapter__title"),
-                url=F("chapter_line__chapter__source_url"),
-            )
-            .select_related("title")
-            .values("title", "url")
-            .annotate(mentions=Count("title"))
-            .order_by("-mentions")[0]
+    longest_class_name_by_chars = rt_data.order_by("-letter_count")[0]
+    longest_class_name_by_words = rt_data.order_by("-word_count")[0]
+
+    chapter_with_most_class_refs = (
+        TextRef.objects.filter(type__type=RefType.CLASS)
+        .annotate(
+            title=F("chapter_line__chapter__title"),
+            url=F("chapter_line__chapter__source_url"),
         )
+        .select_related("title")
+        .values("title", "url")
+        .annotate(mentions=Count("title"))
+        .order_by("-mentions")[0]
+    )
 
-        context = {
-            "gallery": charts.class_charts,
-            "stats": [
-                HeadlineStat(
-                    "Longest Class Name (by words)",
-                    f"{longest_class_name_by_words.word_count}",
-                    f"{longest_class_name_by_words.name}",
-                    units="words",
-                ),
-                HeadlineStat(
-                    "Longest Class Name (by letters)",
-                    f"{len(longest_class_name_by_chars.name)}",
-                    f"{longest_class_name_by_chars.name}",
-                    units="letters",
-                    popup_info="This count includes punctuation as well as letters.",
-                ),
-                HeadlineStat(
-                    "Chapter with the Most Class Mentions",
-                    f"{chapter_with_most_class_refs['mentions']}",
-                    render_to_string(
-                        "patterns/atoms/link/link.html",
-                        context=dict(
-                            text=chapter_with_most_class_refs["title"],
-                            href=chapter_with_most_class_refs["url"],
-                            external=True,
-                        ),
+    context = {
+        "gallery": charts.class_charts,
+        "stats": [
+            HeadlineStat(
+                "Longest Class Name (by words)",
+                f"{longest_class_name_by_words.word_count}",
+                f"{longest_class_name_by_words.name}",
+                units="words",
+            ),
+            HeadlineStat(
+                "Longest Class Name (by letters)",
+                f"{len(longest_class_name_by_chars.name)}",
+                f"{longest_class_name_by_chars.name}",
+                units="letters",
+                popup_info="This count includes punctuation as well as letters.",
+            ),
+            HeadlineStat(
+                "Chapter with the Most Class Mentions",
+                f"{chapter_with_most_class_refs['mentions']}",
+                render_to_string(
+                    "patterns/atoms/link/link.html",
+                    context=dict(
+                        text=chapter_with_most_class_refs["title"],
+                        href=chapter_with_most_class_refs["url"],
+                        external=True,
                     ),
-                    units="[Class] mentions",
-                    popup_info="This count includes every instance of a mentioned [Class]. Meaning if a [Class] occurs multiple times throughout a chapter, each instance is counted.",
                 ),
-            ],
-            "table": table,
-        }
-        return render(request, "pages/classes.html", context)
+                units="[Class] mentions",
+                popup_info="This count includes every instance of a mentioned [Class]. Meaning if a [Class] occurs multiple times throughout a chapter, each instance is counted.",
+            ),
+        ],
+        "table": table,
+    }
+
+    return render(request, "pages/classes.html", context)
 
 
 @cache_page(60 * 60 * 24)
 def skills(request: HtmxHttpRequest) -> HttpResponse:
     config = RequestConfig(request)
-    rt_data = (
-        RefType.objects.select_related("reftypecomputedview")
-        .annotate(mentions=F("reftypecomputedview__mentions"))
-        .filter(type=RefType.SKILL)
-        .order_by(F("mentions").desc(nulls_last=True))
-    )
+    query = request.GET.get("q")
+    rt_data = get_reftype_table_data(query, RefType.SKILL)
 
     table = ReftypeMentionsHtmxTable(rt_data)
     config.configure(table)
     table.paginate(
         page=request.GET.get("page", 1),
-        per_page=request.GET.get("page_size", 15),
+        per_page=request.GET.get("page_size", 25),
         orphans=5,
     )
 
     if request.htmx:
-        return render(request, "tables/table_partial.html", {"table": table})
-    else:
-        longest_skill_name_by_chars = rt_data.order_by("-letter_count")[0]
-        longest_skill_name_by_words = rt_data.order_by("-word_count")[0]
+        return render(request, table.template_name, dict(table=table))
 
-        chapter_with_most_skill_refs = (
-            TextRef.objects.filter(type__type=RefType.SKILL)
-            .annotate(
-                title=F("chapter_line__chapter__title"),
-                url=F("chapter_line__chapter__source_url"),
-            )
-            .select_related("title")
-            .values("title", "url")
-            .annotate(count=Count("title"))
-            .order_by("-count")[0]
+    longest_skill_name_by_chars = rt_data.order_by("-letter_count")[0]
+    longest_skill_name_by_words = rt_data.order_by("-word_count")[0]
+
+    chapter_with_most_skill_refs = (
+        TextRef.objects.filter(type__type=RefType.SKILL)
+        .annotate(
+            title=F("chapter_line__chapter__title"),
+            url=F("chapter_line__chapter__source_url"),
         )
+        .select_related("title")
+        .values("title", "url")
+        .annotate(count=Count("title"))
+        .order_by("-count")[0]
+    )
 
-        context = {
-            "gallery": charts.skill_charts,
-            "stats": [
-                HeadlineStat(
-                    "Longest [Skill] Name (by words)",
-                    f"{longest_skill_name_by_words.word_count}",
-                    f"{longest_skill_name_by_words.name}",
-                    units="words",
-                ),
-                HeadlineStat(
-                    "Longest [Skill] Name (by letters)",
-                    f"{len(longest_skill_name_by_chars.name)}",
-                    f"{longest_skill_name_by_chars.name}",
-                    units="letters",
-                    popup_info="This count includes punctuation as well as letters.",
-                ),
-                HeadlineStat(
-                    "Chapter with the Most [Skill] Mentions",
-                    f"{chapter_with_most_skill_refs['count']}",
-                    render_to_string(
-                        "patterns/atoms/link/link.html",
-                        context=dict(
-                            text=chapter_with_most_skill_refs["title"],
-                            href=chapter_with_most_skill_refs["url"],
-                            external=True,
-                        ),
+    context = {
+        "gallery": charts.skill_charts,
+        "stats": [
+            HeadlineStat(
+                "Longest [Skill] Name (by words)",
+                f"{longest_skill_name_by_words.word_count}",
+                f"{longest_skill_name_by_words.name}",
+                units="words",
+            ),
+            HeadlineStat(
+                "Longest [Skill] Name (by letters)",
+                f"{len(longest_skill_name_by_chars.name)}",
+                f"{longest_skill_name_by_chars.name}",
+                units="letters",
+                popup_info="This count includes punctuation as well as letters.",
+            ),
+            HeadlineStat(
+                "Chapter with the Most [Skill] Mentions",
+                f"{chapter_with_most_skill_refs['count']}",
+                render_to_string(
+                    "patterns/atoms/link/link.html",
+                    context=dict(
+                        text=chapter_with_most_skill_refs["title"],
+                        href=chapter_with_most_skill_refs["url"],
+                        external=True,
                     ),
-                    units="[Skill] mentions",
-                    popup_info="This count includes every instance of a mentioned [Skill]. Meaning if a [Skill] occurs multiple times throughout a chapter, each instance is counted.",
                 ),
-            ],
-            "table": table,
-        }
-        return render(request, "pages/skills.html", context)
+                units="[Skill] mentions",
+                popup_info="This count includes every instance of a mentioned [Skill]. Meaning if a [Skill] occurs multiple times throughout a chapter, each instance is counted.",
+            ),
+        ],
+        "table": table,
+    }
+
+    return render(request, "pages/skills.html", context)
 
 
 @cache_page(60 * 60 * 24)
 def magic(request: HtmxHttpRequest) -> HttpResponse:
     config = RequestConfig(request)
-    rt_data = (
-        RefType.objects.select_related("reftypecomputedview")
-        .annotate(mentions=F("reftypecomputedview__mentions"))
-        .filter(type=RefType.SPELL)
-        .order_by(F("mentions").desc(nulls_last=True))
-    )
+    query = request.GET.get("q")
+    rt_data = get_reftype_table_data(query, RefType.SPELL)
+
     table = ReftypeMentionsHtmxTable(rt_data)
     config.configure(table)
     table.paginate(
         page=request.GET.get("page", 1),
-        per_page=request.GET.get("page_size", 15),
+        per_page=request.GET.get("page_size", 25),
         orphans=5,
     )
 
     if request.htmx:
-        return render(request, "tables/table_partial.html", {"table": table})
-    else:
-        longest_spell_name_by_chars = rt_data.order_by("-letter_count")[0]
-        longest_spell_name_by_words = rt_data.order_by("-word_count")[0]
+        return render(request, table.template_name, dict(table=table))
 
-        chapter_with_most_spell_refs = (
-            TextRef.objects.filter(type__type=RefType.SPELL)
-            .annotate(
-                title=F("chapter_line__chapter__title"),
-                url=F("chapter_line__chapter__source_url"),
-            )
-            .select_related("title")
-            .values("title", "url")
-            .annotate(count=Count("title"))
-            .order_by("-count")[0]
+    longest_spell_name_by_chars = rt_data.order_by("-letter_count")[0]
+    longest_spell_name_by_words = rt_data.order_by("-word_count")[0]
+
+    chapter_with_most_spell_refs = (
+        TextRef.objects.filter(type__type=RefType.SPELL)
+        .annotate(
+            title=F("chapter_line__chapter__title"),
+            url=F("chapter_line__chapter__source_url"),
         )
+        .select_related("title")
+        .values("title", "url")
+        .annotate(count=Count("title"))
+        .order_by("-count")[0]
+    )
 
-        context = {
-            "gallery": charts.magic_charts,
-            "stats": [
-                HeadlineStat(
-                    "Longest [Spell] Name (by words)",
-                    f"{longest_spell_name_by_words.word_count}",
-                    f"{longest_spell_name_by_words.name}",
-                    units="words",
-                ),
-                HeadlineStat(
-                    "Longest [Spell] Name (by letters)",
-                    f"{len(longest_spell_name_by_chars.name)}",
-                    f"{longest_spell_name_by_chars.name}",
-                    units="letters",
-                    popup_info="This count includes punctuation as well as letters.",
-                ),
-                HeadlineStat(
-                    "Chapter with the Most [Spell] Mentions",
-                    f"{chapter_with_most_spell_refs['count']}",
-                    render_to_string(
-                        "patterns/atoms/link/link.html",
-                        context=dict(
-                            text=chapter_with_most_spell_refs["title"],
-                            href=chapter_with_most_spell_refs["url"],
-                            external=True,
-                        ),
+    context = {
+        "gallery": charts.magic_charts,
+        "stats": [
+            HeadlineStat(
+                "Longest [Spell] Name (by words)",
+                f"{longest_spell_name_by_words.word_count}",
+                f"{longest_spell_name_by_words.name}",
+                units="words",
+            ),
+            HeadlineStat(
+                "Longest [Spell] Name (by letters)",
+                f"{len(longest_spell_name_by_chars.name)}",
+                f"{longest_spell_name_by_chars.name}",
+                units="letters",
+                popup_info="This count includes punctuation as well as letters.",
+            ),
+            HeadlineStat(
+                "Chapter with the Most [Spell] Mentions",
+                f"{chapter_with_most_spell_refs['count']}",
+                render_to_string(
+                    "patterns/atoms/link/link.html",
+                    context=dict(
+                        text=chapter_with_most_spell_refs["title"],
+                        href=chapter_with_most_spell_refs["url"],
+                        external=True,
                     ),
-                    units="[Spell] mentions",
-                    popup_info="This count includes every instance of a mentioned [Spell]. Meaning if a [Spell] occurs multiple times throughout a chapter, each instance is counted.",
                 ),
-            ],
-            "table": table,
-        }
-        return render(request, "pages/magic.html", context)
+                units="[Spell] mentions",
+                popup_info="This count includes every instance of a mentioned [Spell]. Meaning if a [Spell] occurs multiple times throughout a chapter, each instance is counted.",
+            ),
+        ],
+        "table": table,
+    }
+
+    return render(request, "pages/magic.html", context)
 
 
 @cache_page(60 * 60 * 24)
 def locations(request: HtmxHttpRequest) -> HttpResponse:
     config = RequestConfig(request)
-    rt_data = (
-        RefType.objects.select_related("reftypecomputedview")
-        .annotate(mentions=F("reftypecomputedview__mentions"))
-        .filter(type=RefType.LOCATION)
-        .order_by(F("mentions").desc(nulls_last=True))
-    )
-    table = ReftypeMentionsHtmxTable(rt_data)
+    query = request.GET.get("q")
+    rt_data = get_reftype_table_data(query, RefType.LOCATION)
+
+    table = ReftypeMentionsHtmxTable(rt_data or [])
     config.configure(table)
     table.paginate(
-        page=request.GET.get("page", 1),
-        per_page=request.GET.get("page_size", 15),
+        page=int(request.GET.get("page", 1)),
+        per_page=request.GET.get("page_size", 25),
         orphans=5,
     )
 
     if request.htmx:
-        return render(request, "tables/table_partial.html", {"table": table})
-    else:
-        chapter_with_most_location_refs = (
-            TextRef.objects.filter(type__type=RefType.LOCATION)
-            .annotate(
-                title=F("chapter_line__chapter__title"),
-                url=F("chapter_line__chapter__source_url"),
-            )
-            .select_related("title")
-            .values("title", "url")
-            .annotate(count=Count("title"))
-            .order_by("-count")[0]
-        )
+        return render(request, table.template_name, {"table": table, "query": query})
 
-        context = {
-            "gallery": charts.location_charts,
-            "stats": [
-                HeadlineStat(
-                    "Chapter with the Most Location Mentions",
-                    f"{chapter_with_most_location_refs['count']}",
-                    render_to_string(
-                        "patterns/atoms/link/link.html",
-                        context=dict(
-                            text=chapter_with_most_location_refs["title"],
-                            href=chapter_with_most_location_refs["url"],
-                            external=True,
-                        ),
+    chapter_with_most_location_refs = (
+        TextRef.objects.filter(type__type=RefType.LOCATION)
+        .annotate(
+            title=F("chapter_line__chapter__title"),
+            url=F("chapter_line__chapter__source_url"),
+        )
+        .select_related("title")
+        .values("title", "url")
+        .annotate(count=Count("title"))
+        .order_by("-count")[0]
+    )
+
+    context = {
+        "gallery": charts.location_charts,
+        "stats": [
+            HeadlineStat(
+                "Chapter with the Most Location Mentions",
+                f"{chapter_with_most_location_refs['count']}",
+                render_to_string(
+                    "patterns/atoms/link/link.html",
+                    context=dict(
+                        text=chapter_with_most_location_refs["title"],
+                        href=chapter_with_most_location_refs["url"],
+                        external=True,
                     ),
-                    units="Location mentions",
                 ),
-            ],
-            "table": table,
-        }
-        return render(request, "pages/locations.html", context)
+                units="Location mentions",
+            ),
+        ],
+        "table": table,
+        "query": query,
+    }
+
+    return render(request, "pages/locations.html", context)
 
 
 def main_interactive_chart(request: HtmxHttpRequest, chart: str):
@@ -631,6 +665,7 @@ def reftype_stats(request: HtmxHttpRequest, name: str):
 
 def get_search_result_table(query: dict[str, str]):
     strict_mode = query.get("strict_mode")
+    query_filter = query.get("filter")
     if query.get("refs_by_chapter"):
         if strict_mode:
             ref_types: QuerySet[RefType] = RefType.objects.filter(
@@ -654,6 +689,11 @@ def get_search_result_table(query: dict[str, str]):
             )
         )
 
+        if query_filter:
+            reftype_chapters = reftype_chapters.filter(
+                type__name__icontains=query_filter
+            )
+
         table_data = []
         for rt in ref_types:
             chapter_data = reftype_chapters.filter(type=rt).values_list(
@@ -662,6 +702,7 @@ def get_search_result_table(query: dict[str, str]):
 
             rc_data = {
                 "name": rt.name,
+                "type": rt.type,
                 "chapter_data": chapter_data,
             }
 
@@ -708,6 +749,13 @@ def get_search_result_table(query: dict[str, str]):
         if query.get("only_colored_refs"):
             table_data = table_data.filter(color__isnull=False)
 
+        if query_filter:
+            table_data = table_data.filter(
+                Q(name__icontains=query_filter)
+                | Q(text__icontains=query_filter)
+                | Q(title__icontains=query_filter)
+            )
+
         table = TextRefTable(table_data)
 
     return table
@@ -718,6 +766,7 @@ def search(request: HtmxHttpRequest) -> HttpResponse:
         query = request.GET.copy()
         query["first_chapter"] = query.get("first_chapter", 0)
         query["last_chapter"] = query.get("last_chapter", MAX_CHAPTER_NUM)
+        query["filter"] = query.get("q")
 
         config = RequestConfig(request)
 
@@ -726,10 +775,10 @@ def search(request: HtmxHttpRequest) -> HttpResponse:
             config.configure(table)
             table.paginate(
                 page=request.GET.get("page", 1),
-                per_page=request.GET.get("page_size", str(15)),
+                per_page=request.GET.get("page_size", 25),
                 orphans=5,
             )
-            return render(request, "tables/table_partial.html", {"table": table})
+            return render(request, table.template_name, {"table": table})
 
         form = SearchForm(query)
         if form.is_valid():
@@ -737,7 +786,7 @@ def search(request: HtmxHttpRequest) -> HttpResponse:
             config.configure(table)
             table.paginate(
                 page=request.GET.get("page", 1),
-                per_page=request.GET.get("page_size", 15),
+                per_page=request.GET.get("page_size", 25),
                 orphans=5,
             )
             export_format = request.GET.get("_export", None)

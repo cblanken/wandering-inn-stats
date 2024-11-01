@@ -6,7 +6,37 @@
 {% load django_tables2 %}
 {% load i18n l10n %}
 {% block table-wrapper %}
-<div class="table-container w-full flex flex-col px-4 pb-4 overflow-auto h-fit">
+<div class="table-container w-full flex flex-col min-h-screen overflow-auto">
+  <div class="relative flex flex-row w-full mb-1">
+    <style>
+      input.htmx-request {
+        opacity: 0.5;
+        transition: opacity 500ms ease-in;
+      }
+
+      .spinner {
+        display: none;
+      }
+
+      input.htmx-request + svg,
+      input.htmx-request + i {
+        display: block;
+      }
+
+    </style>
+    <input autofocus spellcheck="false" id="query-input" name="q" placeholder="Filter" class="bg-bg-secondary h-[3rem] leading-1 grow focus:ring-0 focus:outline-none focus:border-hl-secondary border-2 focus:transition-colors text-xl font-mono"
+      type="text"
+      value="{{ form.cleaned_data.query }}"
+      hx-get="{% querystring q='br' table.prefixed_page_field=1 %}"
+      hx-trigger="keyup changed delay:400ms"
+      hx-swap="outerHTML"
+      hx-target=".table-container"
+      hx-boost="true"
+      hx-push-url="false"
+      hx-preserve="true"
+    />
+    <i class="spinner animate-spin-slow absolute right-4 pointer-events-none select-none h-full" data-feather="loader"></i>
+  </div>
   {% block pagination %}
     {% if table.page and table.paginator.num_pages > 1 %}
     <section class="pagination flex justify-between items-center">
@@ -77,8 +107,8 @@
     {% endif %}
   {% endblock pagination %}
   {% block table %}
-    <table class="border-collapse border-spacing-2 w-full overflow-auto grow">
-      {% block table.thead %}
+    <table class="border-collapse border-spacing-2">
+    {% block table.thead %}
     {% if table.show_header and table.data %}
         <thead class="text-hl-tertiary text-xl bg-bg-secondary">
           <tr>
@@ -89,6 +119,8 @@
                 hx-trigger="click"
                 hx-target="div.table-container"
                 hx-swap="outerHTML"
+                hx-push-url="false"
+                hx-boost="true"
                 style="cursor: pointer;"
               {% endif %}
             >
@@ -109,24 +141,8 @@
       {% endif %}
       {% endblock table.thead %}
       {% block table.tbody %}
-        <tbody {{ table.attrs.tbody.as_html }}>
-        {% for row in table.paginated_rows %}
-          {% block table.tbody.row %}
-          <tr class="max-h-[2rem]" {{ row.attrs.as_html }}>
-            {% for column, cell in row.items %}
-              {% autoescape off %}
-              <td class="border-2 border-bg-tertiary break-words text-center p-2 first-of-type:w-[15rem] first-of-type:max-w-[15rem]">{% if column.localize == None %}{{ cell }}{% else %}{% if column.localize %}{{ cell|localize }}{% else %}{{ cell|unlocalize }}{% endif %}{% endif %}</td>
-              {% endautoescape %}
-            {% endfor %}
-          </tr>
-          {% endblock table.tbody.row %}
-        {% empty %}
-          {% if table.empty_text %}
-          {% block table.tbody.empty_text %}
-          <tr><td class="text-warn text-2xl" colspan="{{ table.columns|length }}">{{ table.empty_text }}</td></tr>
-          {% endblock table.tbody.empty_text %}
-          {% endif %}
-        {% endfor %}
+        <tbody>
+        {% include "tables/table_body_partial.html" %}
         </tbody>
       {% endblock table.tbody %}
       {% block table.tfoot %}
@@ -144,6 +160,7 @@
   {% endblock table %}
 </div>
 {% endblock table-wrapper %}
+
 <script>
   feather.replace();
 </script>
