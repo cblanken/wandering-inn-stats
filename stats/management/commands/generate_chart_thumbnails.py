@@ -3,6 +3,10 @@ from stats import charts
 from stats.models import RefType
 import re
 
+import cProfile
+import pstats
+import io
+
 
 class Command(BaseCommand):
     help = "Generate chart thumbnails to static svg files"
@@ -36,15 +40,25 @@ class Command(BaseCommand):
         if options.get("chart_name") in str(chart.title):
             fig = chart.get_fig()
 
-            # Remove interactive elements before export
-            fig.update_xaxes(rangeslider=dict(visible=False))
-            fig.update_layout(title=dict(text=""), showlegend=False)
+            if fig:
+                # Remove interactive elements before export
+                fig.update_xaxes(rangeslider=dict(visible=False))
+                fig.update_layout(title=dict(text=""), showlegend=False)
 
-            charts.save_thumbnail(fig, chart.path)
+                chart.path.parent.mkdir(parents=True, exist_ok=True)
+                fig.write_image(file=chart.path, format="svg")
 
-            self.stdout.write(
-                self.style.SUCCESS(f'> Chart ({chart.title}) saved to "{chart.path}"')
-            )
+                self.stdout.write(
+                    self.style.SUCCESS(
+                        f'> Chart ({chart.title}) saved to "{chart.path}"'
+                    )
+                )
+            else:
+                self.stdout.write(
+                    self.style.WARNING(
+                        f"> Chart ({chart.title}) did not have enough data. Skipped."
+                    )
+                )
         else:
             self.stdout.write(
                 self.style.WARNING(
@@ -53,6 +67,9 @@ class Command(BaseCommand):
             )
 
     def handle(self, *args, **options) -> None:
+        pr = cProfile.Profile()
+        pr.enable()
+
         main_chart_galleries = [
             charts.word_count_charts,
             charts.character_charts,
@@ -66,6 +83,7 @@ class Command(BaseCommand):
         else:
             pattern = None
         try:
+
             if not options.get("reftypes_only"):
                 for gallery in main_chart_galleries:
                     for chart in gallery:
@@ -95,6 +113,11 @@ class Command(BaseCommand):
                         )
 
         except KeyboardInterrupt as exc:
+            s = io.StringIO()
+            ps = pstats.Stats(pr, stream=s).sort_stats(pstats.SortKey.CUMULATIVE)
+            ps.print_stats(25)
+            print(s.getvalue())
+
             raise CommandError(
                 "Keyboard interrupt...thumbnail generation stopped."
             ) from exc

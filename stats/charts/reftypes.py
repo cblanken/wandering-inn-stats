@@ -2,7 +2,7 @@ from django.db.models import Count, Manager, OuterRef, Subquery, Sum, Window, F
 from django.db import connection
 import plotly.express as px
 from plotly.graph_objects import Figure
-from stats.models import RefType, TextRef, Chapter
+from stats.models import Book, Chapter, RefType, TextRef, Volume
 from .config import DEFAULT_LAYOUT, DEFAULT_DISCRETE_COLORS
 
 
@@ -30,47 +30,58 @@ def __mentions_by_chapter(rt: RefType):
 
     return Chapter.objects.annotate(
         rt_mentions=Subquery(rt_mentions_subquery.values_list("mentions")[:1])
-    ).values("title", "number", "rt_mentions", "post_date")
-
-
-def mentions(rt: RefType) -> Figure:
-    rt_mentions_by_chapter = __mentions_by_chapter(rt)
-
-    return px.area(
-        rt_mentions_by_chapter,
-        x="post_date",
-        y="rt_mentions",
-        hover_data=["title", "rt_mentions", "post_date"],
-        labels=dict(
-            title="Chapter",
-            rt_mentions="Mentions",
-            post_date="Post date",
-        ),
-    ).update_layout(DEFAULT_LAYOUT)
-
-
-def cumulative_mentions(rt: RefType) -> Figure:
-    cumulative_rt_mentions = __mentions_by_chapter(rt).annotate(
-        cum_rt_mentions=Window(expression=Sum("rt_mentions"), order_by="number")
     )
 
-    return px.area(
-        cumulative_rt_mentions,
-        x="post_date",
-        y="cum_rt_mentions",
-        hover_data=["title", "cum_rt_mentions", "post_date"],
-        labels=dict(
-            title="Chapter",
-            cum_rt_mentions="Total Mentions",
-            post_date="Post date",
-        ),
-    ).update_layout(DEFAULT_LAYOUT)
+
+def mentions(rt: RefType) -> Figure | None:
+    rt_mentions_by_chapter = __mentions_by_chapter(rt).values(
+        "title", "rt_mentions", "post_date"
+    )
+
+    if rt_mentions_by_chapter:
+        return px.area(
+            rt_mentions_by_chapter,
+            x="post_date",
+            y="rt_mentions",
+            hover_data=["title", "rt_mentions", "post_date"],
+            labels=dict(
+                title="Chapter",
+                rt_mentions="Mentions",
+                post_date="Post date",
+            ),
+        ).update_layout(DEFAULT_LAYOUT)
+    else:
+        return None
 
 
-def most_mentions_by_chapter(rt: RefType) -> Figure:
+def cumulative_mentions(rt: RefType) -> Figure | None:
+    cumulative_rt_mentions = (
+        __mentions_by_chapter(rt)
+        .annotate(
+            cum_rt_mentions=Window(expression=Sum("rt_mentions"), order_by="number")
+        )
+        .values("title", "cum_rt_mentions", "post_date")
+    )
+
+    if cumulative_rt_mentions:
+        return px.area(
+            cumulative_rt_mentions,
+            x="post_date",
+            y="cum_rt_mentions",
+            hover_data=["title", "cum_rt_mentions", "post_date"],
+            labels=dict(
+                title="Chapter",
+                cum_rt_mentions="Total Mentions",
+                post_date="Post date",
+            ),
+        ).update_layout(DEFAULT_LAYOUT)
+    else:
+        return None
+
+
+def most_mentions_by_chapter(rt: RefType) -> Figure | None:
     chapter_counts = __chapter_counts(rt)
 
-    title = "Most mentions by chapter"
     if chapter_counts:
         return px.bar(
             chapter_counts.order_by("-count")[:15],
@@ -84,56 +95,83 @@ def most_mentions_by_chapter(rt: RefType) -> Figure:
             color_discrete_sequence=DEFAULT_DISCRETE_COLORS,
         ).update_layout(DEFAULT_LAYOUT)
     else:
-        return px.bar([], title=title)
+        return None
 
 
-def most_mentions_by_book(rt: RefType) -> Figure:
-    mentions_by_book = (
-        __mentions_by_chapter(rt)
-        .values("book")
-        .annotate(book_mentions=Sum("rt_mentions"))
-        .filter(book_mentions__isnull=False)
-        .values("book__title", "book__title_short", "book_mentions")
-    )
+def most_mentions_by_book(rt: RefType) -> Figure | None:
+    sql = """
+    SELECT stats_book.id, "stats_book"."title","stats_book"."title_short", SUM(
+         (SELECT COUNT(U0."id") AS "mentions"
+          FROM "stats_textref" U0
+          INNER JOIN "stats_chapterline" U1 ON (U0."chapter_line_id" = U1."id")
+          INNER JOIN "stats_chapter" U2 ON (U1."chapter_id" = U2."id")
+          WHERE (U1."chapter_id" = ("stats_chapter"."id")
+                 AND U0."type_id" = %s)
+          GROUP BY U1."chapter_id"
+          LIMIT 1)) AS "book_mentions"
+    FROM "stats_chapter"
+    INNER JOIN "stats_book" ON ("stats_chapter"."book_id" = "stats_book"."id")
+    GROUP BY "stats_book"."id"
+    ORDER BY "book_mentions" ASC
+    """
+
+    mentions_by_book = [
+        b.__dict__ for b in Book.objects.raw(sql, [rt.pk]) if b.book_mentions
+    ]
 
     if mentions_by_book:
         return px.bar(
-            mentions_by_book.order_by("-book_mentions")[:15],
+            mentions_by_book,
             x="book_mentions",
-            y="book__title_short",
+            y="title",
             labels={
                 "book_mentions": "Mentions",
-                "book__title_short": "Book",
-                "book__title": "Book (full name)",
+                "title_short": "Book",
+                "title": "Book (full name)",
             },
-            hover_data=["book__title", "book__title_short", "book_mentions"],
-            color="book__title_short",
+            hover_data=["title", "title_short", "book_mentions"],
+            orientation="h",
+            color="title_short",
             color_discrete_sequence=DEFAULT_DISCRETE_COLORS,
         ).update_layout(DEFAULT_LAYOUT)
     else:
-        return px.bar([], title="Missing data")
+        return None
 
 
-def most_mentions_by_volume(rt: RefType) -> Figure:
-    mentions_by_volume = (
-        __mentions_by_chapter(rt)
-        .values("book__volume")
-        .annotate(vol_mentions=Sum("rt_mentions"))
-        .filter(vol_mentions__isnull=False)
-        .values("book__volume__title", "vol_mentions")
-    )
+def most_mentions_by_volume(rt: RefType) -> Figure | None:
+    sql = """
+    SELECT stats_volume.id, "stats_volume"."title", SUM(
+        (SELECT COUNT(U0."id") AS "mentions"
+        FROM "stats_textref" U0
+        INNER JOIN "stats_chapterline" U1 ON (U0."chapter_line_id" = U1."id")
+        INNER JOIN "stats_chapter" U2 ON (U1."chapter_id" = U2."id")
+        WHERE (U1."chapter_id" = ("stats_chapter"."id")
+             AND U0."type_id" = %s)
+        GROUP BY U1."chapter_id"
+        LIMIT 1)) AS "vol_mentions"
+    FROM "stats_chapter"
+    INNER JOIN "stats_book" ON ("stats_chapter"."book_id" = "stats_book"."id")
+    INNER JOIN "stats_volume" ON ("stats_book"."volume_id" = "stats_volume"."id")
+    GROUP BY "stats_volume"."id"
+    ORDER BY "vol_mentions" DESC
+    """
+
+    mentions_by_volume = [
+        v.__dict__ for v in Volume.objects.raw(sql, [rt.pk]) if v.vol_mentions
+    ]
 
     if mentions_by_volume:
         return px.bar(
-            mentions_by_volume.order_by("-vol_mentions")[:15],
+            mentions_by_volume,
             x="vol_mentions",
-            y="book__volume__title",
+            y="title",
             labels={
                 "vol_mentions": "Mentions",
-                "book__volume__title": "Volume",
+                "title": "Volume",
             },
-            color="book__volume__title",
+            orientation="h",
+            color="title",
             color_discrete_sequence=DEFAULT_DISCRETE_COLORS,
         ).update_layout(DEFAULT_LAYOUT)
     else:
-        return px.bar([], title="Missing data")
+        return None

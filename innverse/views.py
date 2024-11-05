@@ -578,8 +578,11 @@ def main_interactive_chart(request: HtmxHttpRequest, chart: str):
 
     for c in chart_items:
         if chart == c.title_slug:
+            fig = c.get_fig()
             context = {
-                "chart": c.get_fig().to_html(full_html=False, include_plotlyjs="cdn")
+                "chart": fig.to_html(full_html=False, include_plotlyjs="cdn")
+                if fig
+                else None
             }
             return render(request, "pages/interactive_chart.html", context)
 
@@ -614,8 +617,11 @@ def reftype_interactive_chart(request: HtmxHttpRequest, name: str, chart: str):
 
     for c in chart_items:
         if chart == c.title_slug:
+            fig = c.get_fig()
             context = {
-                "chart": c.get_fig().to_html(full_html=False, include_plotlyjs="cdn"),
+                "chart": fig.to_html(full_html=False, include_plotlyjs="cdn")
+                if fig
+                else None
             }
             return render(request, "pages/interactive_chart.html", context)
 

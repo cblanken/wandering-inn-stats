@@ -67,19 +67,13 @@ def get_thumbnail_path(
     )
 
 
-def save_thumbnail(fig: Figure, path: Path):
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with open(path, "wb") as f:
-        f.write(fig.to_image(format="svg"))
-
-
 class ChartGalleryItem:
     def __init__(
         self,
         title: str,
         caption: str,
         filetype: Filetype,
-        get_fig: Callable[[], Figure],
+        get_fig: Callable[[], Figure | None],
         subdir: Path = Path(),
         popup_info: str | None = None,
     ):
@@ -90,7 +84,7 @@ class ChartGalleryItem:
         self.static_path = get_static_thumbnail_path(self.title_slug, filetype, subdir)
         self.static_url = f"{settings.STATIC_URL}{self.static_path}"
         self.path = get_thumbnail_path(self.title_slug, filetype, subdir)
-        self.get_fig: Callable[[], Figure] = get_fig
+        self.get_fig: Callable[[], Figure | None] = get_fig
         self.popup_info: str | None = popup_info
 
 
