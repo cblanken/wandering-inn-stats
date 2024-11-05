@@ -580,9 +580,11 @@ def main_interactive_chart(request: HtmxHttpRequest, chart: str):
         if chart == c.title_slug:
             fig = c.get_fig()
             context = {
-                "chart": fig.to_html(full_html=False, include_plotlyjs="cdn")
-                if fig
-                else None
+                "chart": (
+                    fig.to_html(full_html=False, include_plotlyjs="cdn")
+                    if fig
+                    else None
+                )
             }
             return render(request, "pages/interactive_chart.html", context)
 
@@ -619,9 +621,11 @@ def reftype_interactive_chart(request: HtmxHttpRequest, name: str, chart: str):
         if chart == c.title_slug:
             fig = c.get_fig()
             context = {
-                "chart": fig.to_html(full_html=False, include_plotlyjs="cdn")
-                if fig
-                else None
+                "chart": (
+                    fig.to_html(full_html=False, include_plotlyjs="cdn")
+                    if fig
+                    else None
+                )
             }
             return render(request, "pages/interactive_chart.html", context)
 
@@ -631,10 +635,30 @@ def reftype_interactive_chart(request: HtmxHttpRequest, name: str, chart: str):
 def reftype_stats(request: HtmxHttpRequest, name: str):
     stat_root = request.path.split("/")[1].strip().lower()
     rt_type = match_reftype_str(stat_root)
+
     if len(name) >= 100:
         rt = RefType.objects.get(Q(slug__istartswith=name) & Q(type=rt_type))
     else:
         rt = RefType.objects.get(Q(slug__iexact=name) & Q(type=rt_type))
+
+    # Table config and pagination
+    table_query = dict(
+        type=rt.type, type_query=rt.name, filter=request.GET.get("q", "")
+    )
+    table = get_search_result_table(table_query)
+
+    config = RequestConfig(request)
+
+    table = get_search_result_table(table_query)
+    config.configure(table)
+    table.paginate(
+        page=int(request.GET.get("page", 1)),
+        per_page=request.GET.get("page_size", 15),
+        orphans=5,
+    )
+
+    if request.htmx:
+        return render(request, "tables/table_partial.html", dict(table=table))
 
     chapter_appearances = (
         RefType.objects.select_related("reftypecomputedview")
@@ -671,15 +695,16 @@ def reftype_stats(request: HtmxHttpRequest, name: str):
         case _:
             href = None
 
-    context = {
-        "title": rt.name,
-        "link": render_to_string(
+    context = dict(
+        table=table,
+        title=rt.name,
+        link=render_to_string(
             "patterns/atoms/link/link.html",
             context=dict(text="", href=href, size=8, external=True),
         ),
-        "aliases": aliases,
-        "gallery": get_reftype_gallery(rt),
-        "stats": (
+        aliases=aliases,
+        gallery=get_reftype_gallery(rt),
+        stats=(
             [
                 HeadlineStat("Total mentions", mention_count, units="mentions"),
                 HeadlineStat(
@@ -710,7 +735,7 @@ def reftype_stats(request: HtmxHttpRequest, name: str):
             if first_mention_chapter and last_mention_chapter
             else None
         ),
-    }
+    )
     return render(request, "pages/reftype_page.html", context)
 
 
@@ -772,17 +797,18 @@ def get_search_result_table(query: dict[str, str]):
                 title=F("chapter_line__chapter__title"),
                 url=F("chapter_line__chapter__source_url"),
             )
-            .filter(
-                Q(type__type=query.get("type"))
-                & Q(chapter_line__chapter__number__gte=query.get("first_chapter"))
-                & Q(
-                    chapter_line__chapter__number__lte=query.get(
-                        "last_chapter",
-                        int(Chapter.objects.order_by("-number")[0].number),
-                    )
-                )
-            )
+            .filter(Q(type__type=query.get("type")))
         )
+
+        if first_chapter := query.get("first_chapter"):
+            table_data = table_data.filter(
+                chapter_line__chapter__number__gte=first_chapter
+            )
+
+        if last_chapter := query.get("last_chapter"):
+            table_data = table_data.filter(
+                chapter_line__chapter__number__lte=last_chapter
+            )
 
         if query.get("type_query"):
             if strict_mode:
