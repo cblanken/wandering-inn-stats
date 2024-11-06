@@ -46,7 +46,6 @@ class TextRefTable(tables.Table):
             self._hidden_cols = hide_cols
 
     def before_render(self, request):
-        print(self._hidden_cols)
         for i, col in enumerate(self.columns):
             if i in self._hidden_cols:
                 self.columns.hide(col.name)
@@ -150,7 +149,6 @@ class ChapterRefTable(tables.Table):
             self._hidden_cols = hide_cols
 
     def before_render(self, request):
-        print(self._hidden_cols)
         for i, col in enumerate(self.columns):
             if i in self._hidden_cols:
                 self.columns.hide(col.name)
