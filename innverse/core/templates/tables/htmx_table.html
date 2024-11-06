@@ -1,33 +1,36 @@
 {% if table %}
-  <div class="relative flex flex-row w-full mb-1">
-    <style>
-      input.htmx-request {
-        opacity: 0.5;
-        transition: opacity 500ms ease-in;
-      }
+  {% if not request.htmx %}
+    <div class="relative flex flex-row w-full mb-1">
+      <style>
+        input.htmx-request {
+          opacity: 0.5;
+          transition: opacity 500ms ease-in;
+        }
 
-      .spinner {
-        display: none;
-      }
+        .spinner {
+          display: none;
+        }
 
-      input.htmx-request + svg,
-      input.htmx-request + i {
-        display: block;
-      }
+        input.htmx-request + svg,
+        input.htmx-request + i {
+          display: block;
+        }
 
-    </style>
-    <input spellcheck="false" id="query-input" name="q" placeholder="Filter" class="bg-bg-secondary h-[3rem] leading-1 grow focus:ring-0 focus:outline-none focus:border-hl-secondary border-2 focus:transition-colors text-xl font-mono"
-      type="text"
-      value="{{ request.GET.q }}"
-      hx-get=""
-      hx-trigger="keyup changed delay:400ms"
-      hx-swap="outerHTML"
-      hx-target=".table-container"
-      hx-boost="true"
-      hx-push-url="false"
-      hx-preserve="true"
-    />
-    <i class="spinner animate-spin-slow absolute right-4 pointer-events-none select-none h-full" data-feather="loader"></i>
-  </div>
-  {% include "tables/table_partial.html" %}
+      </style>
+      <input spellcheck="false" id="query-input" name="q" placeholder="Filter" class="bg-bg-secondary h-[3rem] leading-1 grow focus:ring-0 focus:outline-none focus:border-hl-secondary border-2 focus:transition-colors text-xl font-mono"
+        type="text"
+        value="{{ request.GET.q }}"
+        hx-get=""
+        hx-trigger="keyup changed delay:400ms"
+        hx-swap="innerHTML"
+        hx-target=".table-container"
+        hx-boost="true"
+        hx-push-url="false"
+        hx-preserve="true"
+      />
+      <i class="spinner animate-spin-slow absolute right-4 pointer-events-none select-none h-full" data-feather="loader"></i>
+    </div>
+  {% endif %}
+  {% load render_table from django_tables2 %}
+  {% render_table table %}
 {% endif %}

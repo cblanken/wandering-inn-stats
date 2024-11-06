@@ -10,7 +10,7 @@ from django_tables2.export.export import TableExport
 from django_tables2 import SingleTableMixin
 import datetime as dt
 from itertools import chain
-from typing import Iterable, Tuple
+from typing import Iterable, Text, Tuple
 from stats import charts
 from stats.charts import ChartGalleryItem, get_reftype_gallery
 from stats.models import Alias, Chapter, Character, RefType, RefTypeChapter, TextRef
@@ -72,7 +72,7 @@ def overview(request: HtmxHttpRequest) -> HttpResponse:
     )
 
     if request.htmx:
-        return render(request, "tables/table_partial.html", dict(table=table))
+        return render(request, "tables/htmx_table.html", dict(table=table))
 
     total_wc = Chapter.objects.aggregate(total_wc=Sum("word_count"))["total_wc"]
     longest_chapter = Chapter.objects.filter(is_canon=True).order_by("-word_count")[0]
@@ -220,7 +220,7 @@ def characters(request: HtmxHttpRequest) -> HttpResponse:
     )
 
     if request.htmx:
-        return render(request, "tables/table_partial.html", dict(table=table))
+        return render(request, "tables/htmx_table.html", dict(table=table))
 
     char_counts = (
         TextRef.objects.filter(type__type=RefType.CHARACTER)
@@ -321,7 +321,7 @@ def classes(request: HtmxHttpRequest) -> HttpResponse:
     )
 
     if request.htmx:
-        return render(request, "tables/table_partial.html", dict(table=table))
+        return render(request, "tables/htmx_table.html", dict(table=table))
 
     longest_class_name_by_chars = rt_data.order_by("-letter_count")[0]
     longest_class_name_by_words = rt_data.order_by("-word_count")[0]
@@ -390,7 +390,7 @@ def skills(request: HtmxHttpRequest) -> HttpResponse:
     )
 
     if request.htmx:
-        return render(request, "tables/table_partial.html", dict(table=table))
+        return render(request, "tables/htmx_table.html", dict(table=table))
 
     longest_skill_name_by_chars = rt_data.order_by("-letter_count")[0]
     longest_skill_name_by_words = rt_data.order_by("-word_count")[0]
@@ -459,7 +459,7 @@ def magic(request: HtmxHttpRequest) -> HttpResponse:
     )
 
     if request.htmx:
-        return render(request, "tables/table_partial.html", dict(table=table))
+        return render(request, "tables/htmx_table.html", dict(table=table))
 
     longest_spell_name_by_chars = rt_data.order_by("-letter_count")[0]
     longest_spell_name_by_words = rt_data.order_by("-word_count")[0]
@@ -528,7 +528,7 @@ def locations(request: HtmxHttpRequest) -> HttpResponse:
     )
 
     if request.htmx:
-        return render(request, "tables/table_partial.html", dict(table=table))
+        return render(request, "tables/htmx_table.html", dict(table=table))
 
     chapter_with_most_location_refs = (
         TextRef.objects.filter(type__type=RefType.LOCATION)
@@ -645,11 +645,10 @@ def reftype_stats(request: HtmxHttpRequest, name: str):
     table_query = dict(
         type=rt.type, type_query=rt.name, filter=request.GET.get("q", "")
     )
-    table = get_search_result_table(table_query)
 
     config = RequestConfig(request)
-
     table = get_search_result_table(table_query)
+    table.hidden_cols = [0]
     config.configure(table)
     table.paginate(
         page=int(request.GET.get("page", 1)),
@@ -658,7 +657,7 @@ def reftype_stats(request: HtmxHttpRequest, name: str):
     )
 
     if request.htmx:
-        return render(request, "tables/table_partial.html", dict(table=table))
+        return render(request, "tables/htmx_table.html", dict(table=table))
 
     chapter_appearances = (
         RefType.objects.select_related("reftypecomputedview")
@@ -739,7 +738,7 @@ def reftype_stats(request: HtmxHttpRequest, name: str):
     return render(request, "pages/reftype_page.html", context)
 
 
-def get_search_result_table(query: dict[str, str]):
+def get_search_result_table(query: dict[str, str]) -> ChapterRefTable | TextRefTable:
     strict_mode = query.get("strict_mode")
     query_filter = query.get("filter")
     if query.get("refs_by_chapter"):
@@ -855,7 +854,7 @@ def search(request: HtmxHttpRequest) -> HttpResponse:
                 per_page=request.GET.get("page_size", 25),
                 orphans=5,
             )
-            return render(request, "tables/table_partial.html", dict(table=table))
+            return render(request, "tables/htmx_table.html", dict(table=table))
 
         form = SearchForm(query)
         if form.is_valid():

@@ -31,10 +31,30 @@ class TextRefTable(tables.Table):
         attrs={"th": {"style": "width: 20%;"}},
     )
 
+    @property
+    def hidden_cols(self):
+        return self._hidden_cols
+
+    @hidden_cols.setter
+    def hidden_cols(self, cols: list[int]):
+        self._hidden_cols = cols
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args)
+        self._hidden_cols = []
+        if hide_cols := kwargs.get("hidden_cols"):
+            self._hidden_cols = hide_cols
+
+    def before_render(self, request):
+        print(self._hidden_cols)
+        for i, col in enumerate(self.columns):
+            if i in self._hidden_cols:
+                self.columns.hide(col.name)
+
     class Meta:
         model = TextRef
-        template_name = "tables/htmx_table.html"
-        fields = ("ref_name", "text", "chapter_url")
+        template_name = "tables/table_partial.html"
+        fields = ("ref_name", "chapter_url", "text")
         empty_text = EMPTY_TABLE_TEXT
 
     def render_ref_name(self, record: TextRef, value):
@@ -103,12 +123,40 @@ class TextRefTable(tables.Table):
 
 
 class ChapterRefTable(tables.Table):
-    ref_name = tables.Column(accessor="name", verbose_name="Name")
-    chapters = tables.Column(accessor="chapter_data", verbose_name="Chapters")
-    count = tables.Column(accessor="count", verbose_name="Count")
+    ref_name = tables.Column(
+        accessor="name", verbose_name="Name", attrs={"th": {"style": "width: 30%;"}}
+    )
+    count = tables.Column(
+        accessor="count", verbose_name="Count", attrs={"th": {"style": "width: 10%;"}}
+    )
+    chapters = tables.Column(
+        accessor="chapter_data",
+        verbose_name="Chapters",
+        attrs={"th": {"style": "width: 60%;"}},
+    )
+
+    @property
+    def hidden_cols(self):
+        return self._hidden_cols
+
+    @hidden_cols.setter
+    def hidden_cols(self, cols: list[int]):
+        self._hidden_cols = cols
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args)
+        self._hidden_cols = []
+        if hide_cols := kwargs.get("hidden_cols"):
+            self._hidden_cols = hide_cols
+
+    def before_render(self, request):
+        print(self._hidden_cols)
+        for i, col in enumerate(self.columns):
+            if i in self._hidden_cols:
+                self.columns.hide(col.name)
 
     class Meta:
-        template_name = "tables/htmx_table.html"
+        template_name = "tables/table_partial.html"
         fields = ("ref_name", "count", "chapters")
         empty_text = EMPTY_TABLE_TEXT
 
@@ -173,7 +221,7 @@ class ReftypeMentionsHtmxTable(tables.Table):
 
     class Meta:
         model = RefType
-        template_name = "tables/htmx_table.html"
+        template_name = "tables/table_partial.html"
         fields = ("name", "mentions", "word_count", "letter_count")
         empty_text = EMPTY_TABLE_TEXT
 
@@ -256,7 +304,7 @@ class CharacterHtmxTable(tables.Table):
 
     class Meta:
         model = Character
-        template_name = "tables/htmx_table.html"
+        template_name = "tables/table_partial.html"
         fields = ("name", "mentions", "species", "first_appearance", "wiki")
         empty_text = EMPTY_TABLE_TEXT
 
@@ -281,6 +329,6 @@ class ChapterHtmxTable(tables.Table):
 
     class Meta:
         model = Chapter
-        template_name = "tables/htmx_table.html"
+        template_name = "tables/table_partial.html"
         fields = ("number", "title", "word_count", "post_date")
         empty_text = EMPTY_TABLE_TEXT
