@@ -15,10 +15,20 @@ EMPTY_TABLE_TEXT = "No results found for the given query"
 
 
 class TextRefTable(tables.Table):
-    ref_name: str = tables.Column(accessor="type__name")
-    text: str = tables.Column(accessor="chapter_line__text")
-    chapter_url: str = tables.Column(
-        accessor="chapter_line__chapter__source_url", verbose_name="Chapter"
+    ref_name = tables.Column(
+        accessor="type__name", attrs={"th": {"style": "width: 20%;"}}
+    )
+    text = tables.Column(
+        accessor="chapter_line__text",
+        attrs={
+            "th": {"style": "width: 60%;"},
+            "td": {"style": "text-align: justify; padding: 1rem;"},
+        },
+    )
+    chapter_url = tables.Column(
+        accessor="chapter_line__chapter__source_url",
+        verbose_name="Chapter",
+        attrs={"th": {"style": "width: 20%;"}},
     )
 
     class Meta:
@@ -93,9 +103,9 @@ class TextRefTable(tables.Table):
 
 
 class ChapterRefTable(tables.Table):
-    ref_name: str = tables.Column(accessor="name", verbose_name="Name")
-    chapters: str = tables.Column(accessor="chapter_data", verbose_name="Chapters")
-    count: int = tables.Column(accessor="count", verbose_name="Count")
+    ref_name = tables.Column(accessor="name", verbose_name="Name")
+    chapters = tables.Column(accessor="chapter_data", verbose_name="Chapters")
+    count = tables.Column(accessor="count", verbose_name="Count")
 
     class Meta:
         template_name = "tables/htmx_table.html"
@@ -113,7 +123,7 @@ class ChapterRefTable(tables.Table):
                 ),
             )
         except NoReverseMatch:
-            return record.type.name
+            return value
 
     def render_chapters(self, record):
         return ", ".join(
@@ -134,8 +144,12 @@ class ChapterRefTable(tables.Table):
 
 
 class ReftypeMentionsHtmxTable(tables.Table):
-    name = tables.Column(accessor="name", verbose_name="Name Stats")
-    mentions = tables.Column(accessor="mentions", verbose_name="Mentions")
+    name = tables.Column(verbose_name="Name", attrs={"th": {"style": "width: 50%"}})
+    mentions = tables.Column(
+        verbose_name="Mentions", attrs={"th": {"style": "width: 30%"}}
+    )
+    word_count = tables.Column(attrs={"th": {"style": "width: 10%"}})
+    letter_count = tables.Column(attrs={"th": {"style": "width: 10%"}})
 
     def render_name(self, record: RefType, value):
         return render_to_string(
@@ -165,14 +179,29 @@ class ReftypeMentionsHtmxTable(tables.Table):
 
 
 class CharacterHtmxTable(tables.Table):
-    name = tables.Column(accessor="ref_type__name", verbose_name="Name Stats")
+    name = tables.Column(
+        accessor="ref_type__name",
+        verbose_name="Name",
+        attrs={"th": {"style": "width: 12rem; max-width: 15rem;"}},
+    )
     first_appearance = tables.Column(
-        accessor="first_chapter_appearance", verbose_name="First appearance"
+        accessor="first_chapter_appearance",
+        verbose_name="First appearance",
+        attrs={"th": {"style": "width: 12rem; max-width: 15rem;"}},
     )
-    wiki = tables.Column(accessor="wiki_uri", verbose_name="Wiki", orderable=False)
+    wiki = tables.Column(
+        accessor="wiki_uri",
+        verbose_name="Wiki",
+        orderable=False,
+        attrs={"th": {"style": "width: 10rem; max-width: 15rem;"}},
+    )
     mentions = tables.Column(
-        accessor="ref_type__reftypecomputedview__mentions", verbose_name="Mentions"
+        accessor="ref_type__reftypecomputedview__mentions",
+        verbose_name="Mentions",
+        attrs={"th": {"style": "width: 8rem; max-width: 8rem;"}},
     )
+
+    species = tables.Column(attrs={"th": {"style": "width: 8rem; max-width: 12rem;"}})
 
     def render_name(self, record: Character, value):
         return render_to_string(
@@ -228,12 +257,17 @@ class CharacterHtmxTable(tables.Table):
     class Meta:
         model = Character
         template_name = "tables/htmx_table.html"
-        fields = ("name", "mentions", "species", "status", "first_appearance", "wiki")
+        fields = ("name", "mentions", "species", "first_appearance", "wiki")
         empty_text = EMPTY_TABLE_TEXT
 
 
 class ChapterHtmxTable(tables.Table):
-    title = tables.Column(orderable=False)
+    title = tables.Column(
+        orderable=False, attrs={"td": {"style": "width: 30%; max-width: 40%;"}}
+    )
+    number = tables.Column(attrs={"td": {"style": "width: 6rem"}})
+    word_count = tables.Column(attrs={"td": {"style": "width: 6rem"}})
+    post_date = tables.Column(attrs={"td": {"style": "width: 18rem"}})
 
     def render_title(self, record: Chapter, value):
         return render_to_string(
@@ -248,5 +282,5 @@ class ChapterHtmxTable(tables.Table):
     class Meta:
         model = Chapter
         template_name = "tables/htmx_table.html"
-        fields = ("number", "title", "word_count", "post_date", "is_interlude")
+        fields = ("number", "title", "word_count", "post_date")
         empty_text = EMPTY_TABLE_TEXT
