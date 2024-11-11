@@ -1,15 +1,31 @@
 from django.db.models import Count
 import plotly.express as px
-from stats.models import RefType, TextRef
+from plotly.graph_objects import Figure
+from stats.models import RefType, TextRef, Chapter
 from .config import DEFAULT_LAYOUT, DEFAULT_DISCRETE_COLORS
 
 
-def class_ref_counts():
+def class_ref_counts(
+    first_chapter: Chapter | None = None, last_chapter: Chapter | None = None
+) -> Figure | None:
+
+    class_refs = TextRef.objects.filter(type__type=RefType.CLASS)
+
+    if first_chapter:
+        class_refs = class_refs.filter(
+            chapter_line__chapter__number__gte=first_chapter.number
+        )
+
+    if last_chapter:
+        class_refs = class_refs.filter(
+            chapter_line__chapter__number__lte=last_chapter.number
+        )
+
     class_refs = (
-        TextRef.objects.filter(type__type=RefType.CLASS)
-        .values("type__name")
+        class_refs.values("type__name")
         .annotate(class_instance_cnt=Count("type__name"))
-    ).order_by("-class_instance_cnt")[:15]
+        .order_by("-class_instance_cnt")[:15]
+    )
 
     class_refs_count_fig = px.bar(
         class_refs,
@@ -17,7 +33,7 @@ def class_ref_counts():
         y="type__name",
         color="type__name",
         color_discrete_sequence=DEFAULT_DISCRETE_COLORS,
-        text_auto=".3s",
+        text_auto="d",
         labels=dict(type__name="Class", class_instance_cnt="Count"),
     )
     class_refs_count_fig.update_layout(DEFAULT_LAYOUT)

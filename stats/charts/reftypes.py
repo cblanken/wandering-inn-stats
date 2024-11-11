@@ -1,12 +1,22 @@
-from django.db.models import Count, Manager, OuterRef, Subquery, Sum, Window, F
+from django.db.models import (
+    Count,
+    OuterRef,
+    Subquery,
+    Sum,
+    Window,
+    F,
+)
 from django.db import connection
 import plotly.express as px
 from plotly.graph_objects import Figure
 from stats.models import Book, Chapter, RefType, TextRef, Volume
+from stats.queries import apply_chapter_filter
 from .config import DEFAULT_LAYOUT, DEFAULT_DISCRETE_COLORS
 
 
-def __chapter_counts(rt: RefType):
+def __chapter_counts(
+    rt: RefType,
+):
     """Returns count of [RefType] rt for every chapter _excluding_ those with a zero count"""
     return (
         TextRef.objects.filter(type=rt)
@@ -16,15 +26,21 @@ def __chapter_counts(rt: RefType):
             "chapter_line__chapter__title",
             "chapter_line__chapter__title_short",
         )
-        .annotate(count=Count("chapter_line__chapter"))
+        .annotate(
+            count=Count("chapter_line__chapter"),
+            number=F("chapter_line__chapter__number"),
+        )
     )
 
 
-def __mentions_by_chapter(rt: RefType):
+def __mentions_by_chapter(
+    rt: RefType,
+):
     rt_mentions_subquery = (
-        TextRef.objects.filter(type=rt, chapter_line__chapter=OuterRef("id"))
+        TextRef.objects.select_related("chapter_line__chapter")
+        .filter(type=rt, chapter_line__chapter=OuterRef("id"))
         .values("chapter_line__chapter")
-        .annotate(mentions=Count("id"))
+        .annotate(mentions=Count("id"), chapter=F("chapter_line__chapter"))
         .values("mentions")
     )
 
@@ -33,9 +49,17 @@ def __mentions_by_chapter(rt: RefType):
     )
 
 
-def mentions(rt: RefType) -> Figure | None:
+def mentions(
+    rt: RefType,
+    first_chapter: Chapter | None = None,
+    last_chapter: Chapter | None = None,
+) -> Figure | None:
     rt_mentions_by_chapter = __mentions_by_chapter(rt).values(
-        "title", "rt_mentions", "post_date"
+        "title", "rt_mentions", "post_date", "number"
+    )
+
+    rt_mentions_by_chapter = apply_chapter_filter(
+        rt_mentions_by_chapter, first_chapter, last_chapter
     )
 
     if rt_mentions_by_chapter:
@@ -54,17 +78,25 @@ def mentions(rt: RefType) -> Figure | None:
         return None
 
 
-def cumulative_mentions(rt: RefType) -> Figure | None:
+def cumulative_mentions(
+    rt: RefType,
+    first_chapter: Chapter | None = None,
+    last_chapter: Chapter | None = None,
+) -> Figure | None:
     cumulative_rt_mentions = (
         __mentions_by_chapter(rt)
         .annotate(
             cum_rt_mentions=Window(expression=Sum("rt_mentions"), order_by="number")
         )
-        .values("title", "cum_rt_mentions", "post_date")
+        .values("title", "cum_rt_mentions", "post_date", "number")
+    )
+
+    cumulative_rt_mentions = apply_chapter_filter(
+        cumulative_rt_mentions, first_chapter, last_chapter
     )
 
     if cumulative_rt_mentions:
-        return px.area(
+        fig = px.area(
             cumulative_rt_mentions,
             x="post_date",
             y="cum_rt_mentions",
@@ -74,13 +106,23 @@ def cumulative_mentions(rt: RefType) -> Figure | None:
                 cum_rt_mentions="Total Mentions",
                 post_date="Post date",
             ),
-        ).update_layout(DEFAULT_LAYOUT)
+        ).update_layout(
+            DEFAULT_LAYOUT,
+        )
+
+        return fig
     else:
         return None
 
 
-def most_mentions_by_chapter(rt: RefType) -> Figure | None:
+def most_mentions_by_chapter(
+    rt: RefType,
+    first_chapter: Chapter | None = None,
+    last_chapter: Chapter | None = None,
+) -> Figure | None:
     chapter_counts = __chapter_counts(rt)
+
+    chapter_counts = apply_chapter_filter(chapter_counts, first_chapter, last_chapter)
 
     if chapter_counts:
         return px.bar(
@@ -98,7 +140,11 @@ def most_mentions_by_chapter(rt: RefType) -> Figure | None:
         return None
 
 
-def most_mentions_by_book(rt: RefType) -> Figure | None:
+def most_mentions_by_book(
+    rt: RefType,
+    first_chapter: Chapter | None = None,
+    last_chapter: Chapter | None = None,
+) -> Figure | None:
     sql = """
     SELECT stats_book.id, "stats_book"."title","stats_book"."title_short", SUM(
          (SELECT COUNT(U0."id") AS "mentions"
@@ -111,13 +157,31 @@ def most_mentions_by_book(rt: RefType) -> Figure | None:
           LIMIT 1)) AS "book_mentions"
     FROM "stats_chapter"
     INNER JOIN "stats_book" ON ("stats_chapter"."book_id" = "stats_book"."id")
+    """
+
+    # WHERE clause
+    if first_chapter and last_chapter:
+        sql += """WHERE stats_chapter.number >= %s AND stats_chapter.number <= %s"""
+    elif first_chapter:
+        sql += """WHERE stats_chapter.number >= %s"""
+    elif last_chapter:
+        sql += """WHERE stats_chapter.number <= %s"""
+
+    sql += """
     GROUP BY "stats_book"."id"
     ORDER BY "book_mentions" ASC
     """
 
-    mentions_by_book = [
-        b.__dict__ for b in Book.objects.raw(sql, [rt.pk]) if b.book_mentions
-    ]
+    if first_chapter and last_chapter:
+        qs = Book.objects.raw(sql, [rt.pk, first_chapter.number, last_chapter.number])
+    elif first_chapter:
+        qs = Book.objects.raw(sql, [rt.pk, first_chapter.number])
+    elif last_chapter:
+        qs = Book.objects.raw(sql, [rt.pk, last_chapter.number])
+    else:
+        qs = Book.objects.raw(sql, [rt.pk])
+
+    mentions_by_book = [b.__dict__ for b in qs if b.book_mentions]
 
     if mentions_by_book:
         return px.bar(
@@ -138,7 +202,11 @@ def most_mentions_by_book(rt: RefType) -> Figure | None:
         return None
 
 
-def most_mentions_by_volume(rt: RefType) -> Figure | None:
+def most_mentions_by_volume(
+    rt: RefType,
+    first_chapter: Chapter | None = None,
+    last_chapter: Chapter | None = None,
+) -> Figure | None:
     sql = """
     SELECT stats_volume.id, "stats_volume"."title", SUM(
         (SELECT COUNT(U0."id") AS "mentions"
@@ -152,13 +220,31 @@ def most_mentions_by_volume(rt: RefType) -> Figure | None:
     FROM "stats_chapter"
     INNER JOIN "stats_book" ON ("stats_chapter"."book_id" = "stats_book"."id")
     INNER JOIN "stats_volume" ON ("stats_book"."volume_id" = "stats_volume"."id")
+    """
+
+    # WHERE clause
+    if first_chapter and last_chapter:
+        sql += """WHERE stats_chapter.number >= %s AND stats_chapter.number <= %s"""
+    elif first_chapter:
+        sql += """WHERE stats_chapter.number >= %s"""
+    elif last_chapter:
+        sql += """WHERE stats_chapter.number <= %s"""
+
+    sql += """
     GROUP BY "stats_volume"."id"
     ORDER BY "vol_mentions" DESC
     """
 
-    mentions_by_volume = [
-        v.__dict__ for v in Volume.objects.raw(sql, [rt.pk]) if v.vol_mentions
-    ]
+    if first_chapter and last_chapter:
+        qs = Volume.objects.raw(sql, [rt.pk, first_chapter.number, last_chapter.number])
+    elif first_chapter:
+        qs = Volume.objects.raw(sql, [rt.pk, first_chapter.number])
+    elif last_chapter:
+        qs = Volume.objects.raw(sql, [rt.pk, last_chapter.number])
+    else:
+        qs = Volume.objects.raw(sql, [rt.pk])
+
+    mentions_by_volume = [v.__dict__ for v in qs if v.vol_mentions]
 
     if mentions_by_volume:
         return px.bar(
