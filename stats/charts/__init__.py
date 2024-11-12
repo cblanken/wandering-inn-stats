@@ -73,6 +73,7 @@ class ChartGalleryItem:
         get_fig: Callable[[], Figure | None],
         subdir: Path = Path(),
         popup_info: str | None = None,
+        has_chapter_filter: bool = True,
     ):
         self.title = title
         self.title_slug = slugify(title)
@@ -83,6 +84,7 @@ class ChartGalleryItem:
         self.path = get_thumbnail_path(self.title_slug, filetype, subdir)
         self.get_fig: Callable[[], Figure | None] = get_fig
         self.popup_info: str | None = popup_info
+        self.has_chapter_filter = has_chapter_filter
 
 
 def get_reftype_gallery(
@@ -188,6 +190,7 @@ def get_character_charts(
             Filetype.SVG,
             characters_by_species,
             popup_info="This chart shows the most common species for all the characters. Check out the interactive chart to see precise counts.",
+            has_chapter_filter=False,
         ),
         ChartGalleryItem(
             "Character Statuses",
@@ -195,6 +198,7 @@ def get_character_charts(
             Filetype.SVG,
             characters_by_status,
             popup_info='This chart shows the ratio of character statuses including: "Alive", "Deceased", "Undead" and "Unknown". Please note that while some characters\' statuses are specified as "Unknown" in the TWI Wiki, it is also the default for characters with a blank status or a status that is poorly formatted in the Wiki data.',
+            has_chapter_filter=False,
         ),
     ]
 
