@@ -1,15 +1,29 @@
 from django.db.models import Count
 import plotly.express as px
-from stats.models import RefType, TextRef
+from stats.models import RefType, TextRef, Chapter
 from .config import DEFAULT_LAYOUT, DEFAULT_DISCRETE_COLORS
 
 
-def spell_ref_counts():
+def spell_ref_counts(
+    first_chapter: Chapter | None = None, last_chapter: Chapter | None = None
+):
+    spell_refs = TextRef.objects.filter(type__type=RefType.SPELL)
+
+    if first_chapter:
+        spell_refs = spell_refs.filter(
+            chapter_line__chapter__number__gte=first_chapter.number
+        )
+
+    if last_chapter:
+        spell_refs = spell_refs.filter(
+            chapter_line__chapter__number__lte=last_chapter.number
+        )
+
     spell_refs = (
-        TextRef.objects.filter(type__type=RefType.SPELL)
-        .values("type__name")
+        spell_refs.values("type__name")
         .annotate(spell_instance_cnt=Count("type__name"))
-    ).order_by("-spell_instance_cnt")[:15]
+        .order_by("-spell_instance_cnt")[:15]
+    )
 
     spell_refs_count_fig = px.bar(
         spell_refs,
@@ -20,6 +34,7 @@ def spell_ref_counts():
         text_auto=True,
         labels=dict(type__name="Spell", spell_instance_cnt="Count"),
     )
+
     spell_refs_count_fig.update_layout(DEFAULT_LAYOUT)
     spell_refs_count_fig.update_traces(
         textfont=dict(size=20),

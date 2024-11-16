@@ -1,5 +1,4 @@
-from django.core.cache import cache
-from django.db.models import Count, F, Q, QuerySet, Sum, Func, Value, IntegerField
+from django.db.models import Count, F, Q, QuerySet, Sum
 from django.http import HttpRequest, HttpResponse, Http404
 from django.shortcuts import render
 from django.template.loader import render_to_string
@@ -7,10 +6,9 @@ from django.views.decorators.cache import cache_page
 from django_htmx.middleware import HtmxDetails
 from django_tables2 import RequestConfig
 from django_tables2.export.export import TableExport
-from django_tables2 import SingleTableMixin
 import datetime as dt
 from itertools import chain
-from typing import Iterable, Text, Tuple
+from typing import Iterable, Tuple
 from stats import charts
 from stats.charts import ChartGalleryItem, get_reftype_gallery
 from stats.models import Alias, Chapter, Character, RefType, RefTypeChapter, TextRef
@@ -21,7 +19,7 @@ from .tables import (
     CharacterHtmxTable,
     ReftypeMentionsHtmxTable,
 )
-from .forms import SearchForm, MAX_CHAPTER_NUM
+from .forms import ChapterFilterForm, SearchForm, MAX_CHAPTER_NUM
 
 
 class HtmxHttpRequest(HttpRequest):
@@ -45,6 +43,30 @@ class HeadlineStat:
         self.units = units
         self.caption = caption
         self.popup_info = popup_info
+
+
+def parse_chapter_params(req: HttpRequest) -> Tuple[Chapter | None, Chapter | None]:
+    first_chapter_num = last_chapter_num = None
+    try:
+        if num := req.GET.get("first_chapter"):
+            first_chapter_num = int(num)
+        if num := req.GET.get("last_chapter"):
+            last_chapter_num = int(num)
+    except (ValueError, TypeError):
+        # TODO: log error
+        pass
+
+    first_chapter = last_chapter = None
+    try:
+        if first_chapter_num:
+            first_chapter = Chapter.objects.get(number=first_chapter_num)
+        if last_chapter_num:
+            last_chapter = Chapter.objects.get(number=last_chapter_num)
+    except Chapter.DoesNotExist:
+        # TODO log error / render error message
+        pass
+
+    return (first_chapter, last_chapter)
 
 
 @cache_page(60 * 60 * 24)
@@ -107,7 +129,7 @@ def overview(request: HtmxHttpRequest) -> HttpResponse:
     )
 
     context = {
-        "gallery": charts.word_count_charts,
+        "gallery": charts.get_word_count_charts(),
         "stats": [
             HeadlineStat(
                 "Total Word Count",
@@ -250,7 +272,7 @@ def characters(request: HtmxHttpRequest) -> HttpResponse:
     )
 
     context = {
-        "gallery": charts.character_charts,
+        "gallery": charts.get_character_charts(),
         "stats": [
             HeadlineStat(
                 "Total Number of Characters",
@@ -339,7 +361,7 @@ def classes(request: HtmxHttpRequest) -> HttpResponse:
     )
 
     context = {
-        "gallery": charts.class_charts,
+        "gallery": charts.get_class_charts(),
         "stats": [
             HeadlineStat(
                 "Longest Class Name (by words)",
@@ -408,7 +430,7 @@ def skills(request: HtmxHttpRequest) -> HttpResponse:
     )
 
     context = {
-        "gallery": charts.skill_charts,
+        "gallery": charts.get_skill_charts(),
         "stats": [
             HeadlineStat(
                 "Longest [Skill] Name (by words)",
@@ -477,7 +499,7 @@ def magic(request: HtmxHttpRequest) -> HttpResponse:
     )
 
     context = {
-        "gallery": charts.magic_charts,
+        "gallery": charts.get_magic_charts(),
         "stats": [
             HeadlineStat(
                 "Longest [Spell] Name (by words)",
@@ -542,8 +564,13 @@ def locations(request: HtmxHttpRequest) -> HttpResponse:
         .order_by("-count")[0]
     )
 
+    if request.GET.get("first_chapter") or request.GET.get("last_chapter"):
+        form = ChapterFilterForm(request.GET)
+    else:
+        form = ChapterFilterForm()
+
     context = {
-        "gallery": charts.location_charts,
+        "gallery": charts.get_location_charts(),
         "stats": [
             HeadlineStat(
                 "Chapter with the Most Location Mentions",
@@ -561,20 +588,29 @@ def locations(request: HtmxHttpRequest) -> HttpResponse:
         ],
         "table": table,
         "query": query,
+        "form": form,
     }
 
     return render(request, "pages/locations.html", context)
 
 
 def main_interactive_chart(request: HtmxHttpRequest, chart: str):
+    first_chapter, last_chapter = parse_chapter_params(request)
+
     chart_items: Iterable[ChartGalleryItem] = chain(
-        charts.word_count_charts,
-        charts.character_charts,
-        charts.class_charts,
-        charts.skill_charts,
-        charts.magic_charts,
-        charts.location_charts,
+        charts.get_word_count_charts(first_chapter, last_chapter),
+        charts.get_character_charts(first_chapter, last_chapter),
+        charts.get_class_charts(first_chapter, last_chapter),
+        charts.get_skill_charts(first_chapter, last_chapter),
+        charts.get_magic_charts(first_chapter, last_chapter),
+        charts.get_location_charts(first_chapter, last_chapter),
     )
+
+    if request.GET.get("first_chapter") or request.GET.get("last_chapter"):
+        form = ChapterFilterForm(request.GET)
+        # TODO check for valid params
+    else:
+        form = ChapterFilterForm()
 
     for c in chart_items:
         if chart == c.title_slug:
@@ -584,7 +620,9 @@ def main_interactive_chart(request: HtmxHttpRequest, chart: str):
                     fig.to_html(full_html=False, include_plotlyjs="cdn")
                     if fig
                     else None
-                )
+                ),
+                "form": form,
+                "has_chapter_filter": c.has_chapter_filter,
             }
             return render(request, "pages/interactive_chart.html", context)
 
@@ -615,18 +653,30 @@ def reftype_interactive_chart(request: HtmxHttpRequest, name: str, chart: str):
     else:
         rt = RefType.objects.get(Q(slug__iexact=name) & Q(type=rt_type))
 
-    chart_items = get_reftype_gallery(rt)
+    if request.GET.get("first_chapter") or request.GET.get("last_chapter"):
+        form = ChapterFilterForm(request.GET)
+        # TODO check for valid params
+    else:
+        form = ChapterFilterForm()
+
+    first_chapter, last_chapter = parse_chapter_params(request)
+
+    chart_items = get_reftype_gallery(rt, first_chapter, last_chapter)
 
     for c in chart_items:
         if chart == c.title_slug:
             fig = c.get_fig()
+
             context = {
                 "chart": (
                     fig.to_html(full_html=False, include_plotlyjs="cdn")
                     if fig
                     else None
-                )
+                ),
+                "form": form,
+                "has_chapter_filter": c.has_chapter_filter,
             }
+
             return render(request, "pages/interactive_chart.html", context)
 
     raise Http404()

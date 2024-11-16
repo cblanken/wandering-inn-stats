@@ -1,15 +1,29 @@
 from django.db.models import Count
 import plotly.express as px
-from stats.models import RefType, TextRef
+from stats.models import RefType, TextRef, Chapter
 from .config import DEFAULT_LAYOUT, DEFAULT_DISCRETE_COLORS
 
 
-def location_ref_counts():
+def location_ref_counts(
+    first_chapter: Chapter | None = None, last_chapter: Chapter | None = None
+):
+    location_refs = TextRef.objects.filter(type__type=RefType.LOCATION)
+
+    if first_chapter:
+        location_refs = location_refs.filter(
+            chapter_line__chapter__number__gte=first_chapter.number
+        )
+
+    if last_chapter:
+        location_refs = location_refs.filter(
+            chapter_line__chapter__number__lte=last_chapter.number
+        )
+
     location_refs = (
-        TextRef.objects.filter(type__type=RefType.LOCATION)
-        .values("type__name")
+        location_refs.values("type__name")
         .annotate(location_instance_cnt=Count("type__name"))
-    ).order_by("-location_instance_cnt")[:15]
+        .order_by("-location_instance_cnt")[:15]
+    )
 
     location_refs_count_fig = px.bar(
         location_refs,

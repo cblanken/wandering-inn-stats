@@ -14,17 +14,45 @@ MAX_CHAPTER_NUM = (
 
 def get_chapters():
     yield (0, "--- First Chapter ---")
+    i = 0
     for tup in (
         (c["number"], c["title"])
         for c in Chapter.objects.values("number", "title").order_by("number")
     ):
+        i += 1
         yield tup
-    yield (MAX_CHAPTER_NUM + 1, "--- Last Chapter ---")
+    yield (i, "--- Last Chapter ---")
 
 
 select_input_tailwind_classes = "bg-bg-primary text-text-primary border-none"
+select_input_styles = "max-width: 15rem"
 checkbox_tailwind_classes = "bg-bg-tertiary"
 integer_input_tailwind_classes = "bg-bg-tertiary"
+
+
+class ChapterFilterForm(forms.Form):
+    chapter_choices = list(get_chapters())
+    max_choice = len(chapter_choices) - 2
+
+    first_chapter = forms.TypedChoiceField(
+        label="First Chapter",
+        choices=chapter_choices,
+        required=False,
+        initial=0,
+        widget=forms.Select(
+            attrs={"class": select_input_tailwind_classes, "style": select_input_styles}
+        ),
+    )
+
+    last_chapter = forms.TypedChoiceField(
+        label="Last Chapter",
+        choices=chapter_choices,
+        required=False,
+        initial=max_choice,
+        widget=forms.Select(
+            attrs={"class": select_input_tailwind_classes, "style": select_input_styles}
+        ),
+    )
 
 
 class SearchForm(forms.Form):
@@ -39,6 +67,7 @@ class SearchForm(forms.Form):
     text_query = forms.CharField(label="Text Query", max_length=100, required=False)
 
     chapter_choices = list(get_chapters())
+    max_choice = len(chapter_choices) - 2
 
     first_chapter = forms.TypedChoiceField(
         label="First Chapter",
@@ -51,9 +80,8 @@ class SearchForm(forms.Form):
     last_chapter = forms.TypedChoiceField(
         label="Last Chapter",
         choices=chapter_choices,
-        empty_value=str(MAX_CHAPTER_NUM),
         required=True,
-        initial=MAX_CHAPTER_NUM + 1,
+        initial=max_choice,
         widget=forms.Select(attrs={"class": select_input_tailwind_classes}),
     )
 
@@ -62,7 +90,7 @@ class SearchForm(forms.Form):
         required=False,
         initial=15,
         min_value=10,
-        max_value=999999,
+        max_value=9999,
         widget=forms.NumberInput(
             attrs={"class": integer_input_tailwind_classes, "style": "width: 5rem"}
         ),

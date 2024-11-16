@@ -1,14 +1,27 @@
 from django.db.models import Q, Count, Max
 import plotly.express as px
 import numpy as np
-from stats.models import Character, RefType, TextRef
+from stats.models import Character, RefType, TextRef, Chapter
 from .config import DEFAULT_LAYOUT, DEFAULT_DISCRETE_COLORS
 
 
-def character_text_refs():
+def character_text_refs(
+    first_chapter: Chapter | None = None, last_chapter: Chapter | None = None
+):
+    character_text_refs = TextRef.objects.filter(Q(type__type=RefType.CHARACTER))
+
+    if first_chapter:
+        character_text_refs = character_text_refs.filter(
+            chapter_line__chapter__number__gte=first_chapter.number
+        )
+
+    if last_chapter:
+        character_text_refs = character_text_refs.filter(
+            chapter_line__chapter__number__lte=last_chapter.number
+        )
+
     character_text_refs = (
-        TextRef.objects.filter(Q(type__type=RefType.CHARACTER))
-        .values("type__name")
+        character_text_refs.values("type__name")
         .annotate(char_instance_cnt=Count("type__name"))
         .order_by("-char_instance_cnt")
     )
@@ -22,7 +35,7 @@ def character_text_refs():
         y="type__name",
         color="type__name",
         color_discrete_sequence=DEFAULT_DISCRETE_COLORS,
-        text_auto=".3s",
+        text_auto="d",
         labels={"type__name": "Name", "char_instance_cnt": "Mentions"},
     )
 
@@ -32,22 +45,42 @@ def character_text_refs():
     return char_refs_count_fig
 
 
-def character_counts_per_chapter():
+def character_counts_per_chapter(
+    first_chapter: Chapter | None = None, last_chapter: Chapter | None = None
+):
+    def get_text_refs(num):
+        tr = TextRef.objects.filter(
+            Q(chapter_line__chapter__number=num) & Q(type__type="CH")
+        )
+        if first_chapter:
+            tr = tr.filter(chapter_line__chapter__number__gte=first_chapter.number)
+
+        if last_chapter:
+            tr = tr.filter(chapter_line__chapter__number__lte=last_chapter.number)
+
+        return tr
+
+    if first_chapter:
+        min_chapter: int = first_chapter.number
+    else:
+        min_chapter: int = 0
+
+    if last_chapter:
+        max_chapter: int = last_chapter.number
+    else:
+        max_chapter: int = TextRef.objects.values().aggregate(
+            max=Max("chapter_line__chapter__number")
+        )["max"]
+
     char_counts_per_chapter = [
         (
             num,
-            TextRef.objects.filter(
-                Q(chapter_line__chapter__number=num) & Q(type__type="CH")
-            )
+            get_text_refs(num)
             .values("type__name")
             .annotate(cnt=Count("type__name"))
             .count(),
         )
-        for num in range(
-            TextRef.objects.values().aggregate(
-                max=Max("chapter_line__chapter__number")
-            )["max"]
-        )
+        for num in range(min_chapter, max_chapter)
     ]
 
     char_counts_per_chapter_fig = px.scatter(
@@ -69,7 +102,9 @@ def character_counts_per_chapter():
     )
 
     char_counts_per_chapter_fig.data[0]["hovertemplate"] = (
-        "<b>Chapter</b>: %{x}<br>" + "<b>Total Characters</b>: %{y}" + "<extra></extra>"
+        "<b>Chapter Number</b>: %{x}<br>"
+        + "<b>Total Characters</b>: %{y}<br>"
+        + "<extra></extra>"
     )
     return char_counts_per_chapter_fig
 

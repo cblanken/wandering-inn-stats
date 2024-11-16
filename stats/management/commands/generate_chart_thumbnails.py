@@ -71,12 +71,12 @@ class Command(BaseCommand):
         pr.enable()
 
         main_chart_galleries = [
-            charts.word_count_charts,
-            charts.character_charts,
-            charts.class_charts,
-            charts.skill_charts,
-            charts.magic_charts,
-            charts.location_charts,
+            charts.get_word_count_charts(),
+            charts.get_character_charts(),
+            charts.get_class_charts(),
+            charts.get_skill_charts(),
+            charts.get_magic_charts(),
+            charts.get_location_charts(),
         ]
         if reftype_name := options.get("reftype_name", None):
             pattern = re.compile(reftype_name)

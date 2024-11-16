@@ -4,17 +4,22 @@ import plotly.express as px
 from stats.models import Chapter
 from .config import DEFAULT_LAYOUT
 
-chapter_data = (
-    Chapter.objects.filter(is_canon=True)
-    .values("number", "title", "word_count", "post_date", "book__volume__title")
-    .order_by("number")
-)
+chapter_data = Chapter.objects.filter(is_canon=True).order_by("number")
 
 
-def word_count_per_chapter() -> Figure:
+def word_count_per_chapter(
+    first_chapter: Chapter | None = None, last_chapter: Chapter | None = None
+) -> Figure:
+    word_counts = chapter_data
+    if first_chapter:
+        word_counts = word_counts.filter(number__gte=first_chapter.number)
+
+    if last_chapter:
+        word_counts = word_counts.filter(number__lte=last_chapter.number)
+
     """Word counts per chapter"""
     chapter_wc_fig = px.scatter(
-        chapter_data,
+        word_counts.values("word_count", "post_date", "number", "title"),
         x="number",
         y="word_count",
         hover_data=["title", "number", "word_count", "post_date"],
@@ -43,7 +48,10 @@ def word_count_per_chapter() -> Figure:
     return chapter_wc_fig
 
 
-def word_count_cumulative() -> Figure:
+def word_count_cumulative(
+    first_chapter: Chapter | None = None, last_chapter: Chapter | None = None
+) -> Figure:
+
     cumulative_chapter_wc = (
         chapter_data.annotate(
             cumsum=Func(
@@ -55,6 +63,16 @@ def word_count_cumulative() -> Figure:
         .values("post_date", "cumsum")
         .order_by("post_date")
     )
+
+    if first_chapter:
+        cumulative_chapter_wc = cumulative_chapter_wc.filter(
+            number__gte=first_chapter.number
+        )
+
+    if last_chapter:
+        cumulative_chapter_wc = cumulative_chapter_wc.filter(
+            number__lte=last_chapter.number
+        )
 
     chapter_wc_area = px.area(
         cumulative_chapter_wc,
@@ -109,7 +127,9 @@ def word_count_authors_note() -> Figure:
     return chapter_authors_wc_fig
 
 
-def word_count_by_book() -> Figure:
+def word_count_by_book(
+    first_chapter: Chapter | None = None, last_chapter: Chapter | None = None
+) -> Figure:
     book_wc_data = (
         Chapter.objects.filter(~Q(book__title__contains="Unreleased"))
         .values(
@@ -123,6 +143,12 @@ def word_count_by_book() -> Figure:
         )
         .order_by("book", "number")
     )
+
+    if first_chapter:
+        book_wc_data = book_wc_data.filter(number__gte=first_chapter.number)
+
+    if last_chapter:
+        book_wc_data = book_wc_data.filter(number__lte=last_chapter.number)
 
     book_wc_fig = px.bar(
         book_wc_data,
@@ -151,7 +177,9 @@ def word_count_by_book() -> Figure:
     return book_wc_fig
 
 
-def word_count_by_volume() -> Figure:
+def word_count_by_volume(
+    first_chapter: Chapter | None = None, last_chapter: Chapter | None = None
+) -> Figure:
     volume_wc_data = Chapter.objects.values(
         "book__title",
         "book__title_short",
@@ -160,6 +188,12 @@ def word_count_by_volume() -> Figure:
         "title",
         "word_count",
     ).order_by("book__volume", "number")
+
+    if first_chapter:
+        volume_wc_data = volume_wc_data.filter(number__gte=first_chapter.number)
+
+    if last_chapter:
+        volume_wc_data = volume_wc_data.filter(number__lte=last_chapter.number)
 
     volume_wc_fig = px.bar(
         volume_wc_data,
