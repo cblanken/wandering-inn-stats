@@ -2,10 +2,12 @@ from django.db.models import Count, F, Q, QuerySet, Sum
 from django.http import HttpRequest, HttpResponse, Http404
 from django.shortcuts import render
 from django.template.loader import render_to_string
+from django.utils.text import slugify
 from django.views.decorators.cache import cache_page
 from django_htmx.middleware import HtmxDetails
 from django_tables2 import RequestConfig
 from django_tables2.export.export import TableExport
+from django.urls import NoReverseMatch, reverse
 import datetime as dt
 from itertools import chain
 from typing import Iterable, Tuple
@@ -594,6 +596,160 @@ def locations(request: HtmxHttpRequest) -> HttpResponse:
     return render(request, "pages/locations.html", context)
 
 
+def chapter_stats(request: HtmxHttpRequest, number: int) -> HttpResponse:
+    try:
+        chapter = Chapter.objects.get(number=number)
+        number = int(number)
+    except (Chapter.DoesNotExist, ValueError):
+        raise Http404()
+
+    table_filter = request.GET.get("q", "")
+    table_query = dict(
+        first_chapter=chapter.number, last_chapter=chapter.number, filter=table_filter
+    )
+
+    config = RequestConfig(request)
+    table = get_search_result_table(table_query)
+    table.hidden_cols = [1]
+
+    config.configure(table)
+
+    table.paginate(
+        page=int(request.GET.get("page", 1)),
+        per_page=request.GET.get("page_size", 25),
+        orphans=5,
+    )
+
+    if request.htmx:
+        return render(request, "tables/htmx_table.html", dict(table=table))
+
+    textrefs = TextRef.objects.select_related("chapter_line__chapter", "type").filter(
+        chapter_line__chapter__number=number
+    )
+    rt_counts = (
+        textrefs.values("type")
+        .annotate(count=Count("type"))
+        .order_by("-count")
+        .values("type__type", "type__name", "count")
+    )
+
+    most_mentioned_character = rt_counts.filter(type__type=RefType.CHARACTER).first()
+    most_mentioned_class = rt_counts.filter(type__type=RefType.CLASS).first()
+    most_mentioned_skill = rt_counts.filter(type__type=RefType.SKILL).first()
+    most_mentioned_spell = rt_counts.filter(type__type=RefType.SPELL).first()
+    most_mentioned_location = rt_counts.filter(type__type=RefType.LOCATION).first()
+
+    context = {
+        "title": chapter.title,
+        "heading": render_to_string(
+            "patterns/atoms/link/link.html",
+            context=dict(
+                text=f"Chapter {chapter.title}"
+                if len(chapter.title) < 10
+                else f"{chapter.title}",
+                href=chapter.source_url,
+                external=True,
+                size=8,
+            ),
+        ),
+        "table": table,
+        "stats": [
+            HeadlineStat(
+                "Most mentioned character",
+                f"{most_mentioned_character.get('count') if most_mentioned_character else 'None Mentioned'}",
+                render_to_string(
+                    "patterns/atoms/link/stat_link.html",
+                    context=dict(
+                        text=f"{most_mentioned_character.get('type__name')}",
+                        href=reverse(
+                            f'{most_mentioned_character.get("type__type").lower()}-stats',
+                            args=[slugify(most_mentioned_character.get("type__name"))],
+                        ),
+                        fit=True,
+                    ),
+                ),
+                units="mentions",
+            )
+            if most_mentioned_character
+            else None,
+            HeadlineStat(
+                "Most mentioned class",
+                f"{most_mentioned_class.get('count') if most_mentioned_class else 'None Mentioned'}",
+                render_to_string(
+                    "patterns/atoms/link/stat_link.html",
+                    context=dict(
+                        text=f"{most_mentioned_class.get('type__name')}",
+                        href=reverse(
+                            f'{most_mentioned_class.get("type__type").lower()}-stats',
+                            args=[slugify(most_mentioned_class.get("type__name"))],
+                        ),
+                        fit=True,
+                    ),
+                ),
+                units="mentions",
+            )
+            if most_mentioned_class
+            else None,
+            HeadlineStat(
+                "Most mentioned skill",
+                f"{most_mentioned_skill.get('count') if most_mentioned_skill else 'None Mentioned'}",
+                render_to_string(
+                    "patterns/atoms/link/stat_link.html",
+                    context=dict(
+                        text=f"{most_mentioned_skill.get('type__name')}",
+                        href=reverse(
+                            f'{most_mentioned_skill.get("type__type").lower()}-stats',
+                            args=[slugify(most_mentioned_skill.get("type__name"))],
+                        ),
+                        fit=True,
+                    ),
+                ),
+                units="mentions",
+            )
+            if most_mentioned_skill
+            else None,
+            HeadlineStat(
+                "Most mentioned spell",
+                f"{most_mentioned_spell.get('count') if most_mentioned_spell else 'None Mentioned'}",
+                render_to_string(
+                    "patterns/atoms/link/stat_link.html",
+                    context=dict(
+                        text=f"{most_mentioned_spell.get('type__name')}",
+                        href=reverse(
+                            f'{most_mentioned_spell.get("type__type").lower()}-stats',
+                            args=[slugify(most_mentioned_spell.get("type__name"))],
+                        ),
+                        fit=True,
+                    ),
+                ),
+                units="mentions",
+            )
+            if most_mentioned_spell
+            else None,
+            HeadlineStat(
+                "Most mentioned location",
+                f"{most_mentioned_location.get('count') if most_mentioned_location else 'None Mentioned'}",
+                render_to_string(
+                    "patterns/atoms/link/stat_link.html",
+                    context=dict(
+                        text=f"{most_mentioned_location.get('type__name')}",
+                        href=reverse(
+                            f'{most_mentioned_location.get("type__type").lower()}-stats',
+                            args=[slugify(most_mentioned_location.get("type__name"))],
+                        ),
+                        fit=True,
+                    ),
+                ),
+                units="mentions",
+            )
+            if most_mentioned_location
+            else None,
+        ],
+        "query": table_filter,
+    }
+    return render(request, "pages/chapter_page.html", context)
+
+
 def main_interactive_chart(request: HtmxHttpRequest, chart: str):
     first_chapter, last_chapter = parse_chapter_params(request)
 
@@ -838,16 +994,17 @@ def get_search_result_table(query: dict[str, str]) -> ChapterRefTable | TextRefT
 
         table = ChapterRefTable(table_data)
     else:
-        table_data = (
-            TextRef.objects.select_related("type", "chapter_line__chapter")
-            .annotate(
-                name=F("type__name"),
-                text=F("chapter_line__text"),
-                title=F("chapter_line__chapter__title"),
-                url=F("chapter_line__chapter__source_url"),
-            )
-            .filter(Q(type__type=query.get("type")))
+        table_data = TextRef.objects.select_related(
+            "type", "chapter_line__chapter"
+        ).annotate(
+            name=F("type__name"),
+            text=F("chapter_line__text"),
+            title=F("chapter_line__chapter__title"),
+            url=F("chapter_line__chapter__source_url"),
         )
+
+        if reftype := query.get("type"):
+            table_data = table_data.filter(Q(type__type=reftype))
 
         if first_chapter := query.get("first_chapter"):
             table_data = table_data.filter(

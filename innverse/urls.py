@@ -43,8 +43,11 @@ urlpatterns = [
     # Search / misc
     path("search/", views.search, name="search"),
     path("about/", views.about, name="about"),
-    path("stats/", include("stats.urls")),
+    # Chapters
+    path("chapter/<slug:number>", views.chapter_stats, name="chapters"),
+    # Plugins
     path("admin/", admin.site.urls),
+    path("stats/", include("stats.urls")),
     path("__debug__/", include("debug_toolbar.urls")),
     path("__reload__", include("django_browser_reload.urls")),
 ]
