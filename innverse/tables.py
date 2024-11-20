@@ -260,11 +260,10 @@ class CharacterHtmxTable(tables.Table):
 
     def render_first_appearance(self, record: Character, value):
         return render_to_string(
-            "patterns/atoms/link/link.html",
+            "patterns/atoms/link/stat_link.html",
             context={
                 "text": f"{value.title}",
-                "href": f"{value.source_url}",
-                "external": True,
+                "href": reverse("chapters", args=[value.number]),
             },
         )
 
@@ -317,11 +316,10 @@ class ChapterHtmxTable(tables.Table):
 
     def render_title(self, record: Chapter, value):
         return render_to_string(
-            "patterns/atoms/link/link.html",
+            "patterns/atoms/link/stat_link.html",
             context={
                 "text": f"{value}",
-                "href": f"{record.source_url}",
-                "external": True,
+                "href": reverse("chapters", args=[record.number]),
             },
         )
 

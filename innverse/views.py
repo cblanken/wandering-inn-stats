@@ -137,7 +137,7 @@ def overview(request: HtmxHttpRequest) -> HttpResponse:
                 "Total Word Count",
                 f"{total_wc:,}",
                 units="words",
-                popup_info="The word count for each chapter is calculated by counting the tokens between spaces over the entire text. This is a simple approach, and doesn't account for any of the punctuation-related edge cases. For this reason, you may notice discrepancies between these word counts those posted elsewhere.",
+                popup_info="The word count for each chapter is calculated by counting the tokens between spaces over the entire text. This is a simple approach, and doesn't account for any of the punctuation-related edge cases. For this reason, you may notice differences between these word counts those posted elsewhere.",
             ),
             HeadlineStat(
                 "Median Word Count per Chapter",
@@ -153,11 +153,11 @@ def overview(request: HtmxHttpRequest) -> HttpResponse:
                 "Longest Chapter",
                 f"{longest_chapter.word_count:,}",
                 render_to_string(
-                    "patterns/atoms/link/link.html",
+                    "patterns/atoms/link/stat_link.html",
                     context=dict(
                         text=longest_chapter.title,
-                        href=longest_chapter.source_url,
-                        external=True,
+                        href=reverse("chapters", args=[longest_chapter.number]),
+                        fit=True,
                     ),
                 ),
                 units="words",
@@ -166,11 +166,11 @@ def overview(request: HtmxHttpRequest) -> HttpResponse:
                 "Shortest Chapter",
                 f"{shortest_chapter.word_count:,}",
                 render_to_string(
-                    "patterns/atoms/link/link.html",
+                    "patterns/atoms/link/stat_link.html",
                     context=dict(
                         text=shortest_chapter.title,
-                        href=shortest_chapter.source_url,
-                        external=True,
+                        href=reverse("chapters", args=[shortest_chapter.number]),
+                        fit=True,
                     ),
                 ),
                 units="words",
@@ -179,29 +179,33 @@ def overview(request: HtmxHttpRequest) -> HttpResponse:
                 "First chapter published",
                 delta_since_first_chapter_release.days,
                 render_to_string(
-                    "patterns/atoms/link/link.html",
+                    "patterns/atoms/link/stat_link.html",
                     context=dict(
                         text=first_chapter.title,
-                        href=first_chapter.source_url,
-                        external=True,
+                        href=reverse("chapters", args=[first_chapter.number]),
+                        fit=True,
                     ),
                 ),
                 units="days ago",
-            ),
+            )
+            if first_chapter
+            else None,
             HeadlineStat(
                 "Latest chapter published",
                 delta_since_latest_chapter_release.days,
                 render_to_string(
-                    "patterns/atoms/link/link.html",
+                    "patterns/atoms/link/stat_link.html",
                     context=dict(
                         text=latest_chapter.title,
-                        href=latest_chapter.source_url,
-                        external=True,
+                        href=reverse("chapters", args=[latest_chapter.number]),
+                        fit=True,
                     ),
                 ),
                 units="days ago",
                 popup_info="This is the last chapter analyzed by the application. It is not updated after every release, so you can expect it to be a couple chapters behind the latest public release. This allows time for updates to be made to the Wiki and reduce the need for manual analysis of new chapters.",
-            ),
+            )
+            if latest_chapter
+            else None,
         ],
         "table": table,
     }
@@ -267,8 +271,9 @@ def characters(request: HtmxHttpRequest) -> HttpResponse:
         .annotate(
             title=F("chapter_line__chapter__title"),
             url=F("chapter_line__chapter__source_url"),
+            number=F("chapter_line__chapter__number"),
         )
-        .values("title", "url")
+        .values("title", "url", "number")
         .annotate(count=Count("title"))
         .order_by("-count")[0]
     )
@@ -286,11 +291,13 @@ def characters(request: HtmxHttpRequest) -> HttpResponse:
                 "Chapter with the Most Character Mentions",
                 f"{chapter_with_most_char_refs['count']}",
                 render_to_string(
-                    "patterns/atoms/link/link.html",
+                    "patterns/atoms/link/stat_link.html",
                     context=dict(
                         text=chapter_with_most_char_refs["title"],
-                        href=chapter_with_most_char_refs["url"],
-                        external=True,
+                        href=reverse(
+                            "chapters", args=[chapter_with_most_char_refs.get("number")]
+                        ),
+                        fit=True,
                     ),
                 ),
                 units="character mentions",
@@ -355,9 +362,10 @@ def classes(request: HtmxHttpRequest) -> HttpResponse:
         .annotate(
             title=F("chapter_line__chapter__title"),
             url=F("chapter_line__chapter__source_url"),
+            number=F("chapter_line__chapter__number"),
         )
         .select_related("title")
-        .values("title", "url")
+        .values("title", "url", "number")
         .annotate(mentions=Count("title"))
         .order_by("-mentions")[0]
     )
@@ -368,13 +376,31 @@ def classes(request: HtmxHttpRequest) -> HttpResponse:
             HeadlineStat(
                 "Longest Class Name (by words)",
                 f"{longest_class_name_by_words.word_count}",
-                f"{longest_class_name_by_words.name}",
+                render_to_string(
+                    "patterns/atoms/link/stat_link.html",
+                    context=dict(
+                        text=f"{longest_class_name_by_words.name}",
+                        href=reverse(
+                            "cl-stats", args=[longest_class_name_by_words.slug]
+                        ),
+                        fit=True,
+                    ),
+                ),
                 units="words",
             ),
             HeadlineStat(
                 "Longest Class Name (by letters)",
                 f"{len(longest_class_name_by_chars.name)}",
-                f"{longest_class_name_by_chars.name}",
+                render_to_string(
+                    "patterns/atoms/link/stat_link.html",
+                    context=dict(
+                        text=f"{longest_class_name_by_chars.name}",
+                        href=reverse(
+                            "cl-stats", args=[longest_class_name_by_chars.slug]
+                        ),
+                        fit=True,
+                    ),
+                ),
                 units="letters",
                 popup_info="This count includes punctuation as well as letters.",
             ),
@@ -382,11 +408,14 @@ def classes(request: HtmxHttpRequest) -> HttpResponse:
                 "Chapter with the Most Class Mentions",
                 f"{chapter_with_most_class_refs['mentions']}",
                 render_to_string(
-                    "patterns/atoms/link/link.html",
+                    "patterns/atoms/link/stat_link.html",
                     context=dict(
                         text=chapter_with_most_class_refs["title"],
-                        href=chapter_with_most_class_refs["url"],
-                        external=True,
+                        href=reverse(
+                            "chapters",
+                            args=[chapter_with_most_class_refs.get("number")],
+                        ),
+                        fit=True,
                     ),
                 ),
                 units="[Class] mentions",
@@ -424,9 +453,10 @@ def skills(request: HtmxHttpRequest) -> HttpResponse:
         .annotate(
             title=F("chapter_line__chapter__title"),
             url=F("chapter_line__chapter__source_url"),
+            number=F("chapter_line__chapter__number"),
         )
         .select_related("title")
-        .values("title", "url")
+        .values("title", "url", "number")
         .annotate(count=Count("title"))
         .order_by("-count")[0]
     )
@@ -437,13 +467,31 @@ def skills(request: HtmxHttpRequest) -> HttpResponse:
             HeadlineStat(
                 "Longest [Skill] Name (by words)",
                 f"{longest_skill_name_by_words.word_count}",
-                f"{longest_skill_name_by_words.name}",
+                render_to_string(
+                    "patterns/atoms/link/stat_link.html",
+                    context=dict(
+                        text=f"{longest_skill_name_by_words.name}",
+                        href=reverse(
+                            "sk-stats", args=[longest_skill_name_by_words.slug]
+                        ),
+                        fit=True,
+                    ),
+                ),
                 units="words",
             ),
             HeadlineStat(
                 "Longest [Skill] Name (by letters)",
                 f"{len(longest_skill_name_by_chars.name)}",
-                f"{longest_skill_name_by_chars.name}",
+                render_to_string(
+                    "patterns/atoms/link/stat_link.html",
+                    context=dict(
+                        text=f"{longest_skill_name_by_chars.name}",
+                        href=reverse(
+                            "sk-stats", args=[longest_skill_name_by_chars.slug]
+                        ),
+                        fit=True,
+                    ),
+                ),
                 units="letters",
                 popup_info="This count includes punctuation as well as letters.",
             ),
@@ -451,11 +499,13 @@ def skills(request: HtmxHttpRequest) -> HttpResponse:
                 "Chapter with the Most [Skill] Mentions",
                 f"{chapter_with_most_skill_refs['count']}",
                 render_to_string(
-                    "patterns/atoms/link/link.html",
+                    "patterns/atoms/link/stat_link.html",
                     context=dict(
                         text=chapter_with_most_skill_refs["title"],
-                        href=chapter_with_most_skill_refs["url"],
-                        external=True,
+                        href=reverse(
+                            "chapters", args=[chapter_with_most_skill_refs["number"]]
+                        ),
+                        fit=True,
                     ),
                 ),
                 units="[Skill] mentions",
@@ -493,9 +543,10 @@ def magic(request: HtmxHttpRequest) -> HttpResponse:
         .annotate(
             title=F("chapter_line__chapter__title"),
             url=F("chapter_line__chapter__source_url"),
+            number=F("chapter_line__chapter__number"),
         )
         .select_related("title")
-        .values("title", "url")
+        .values("title", "url", "number")
         .annotate(count=Count("title"))
         .order_by("-count")[0]
     )
@@ -506,13 +557,31 @@ def magic(request: HtmxHttpRequest) -> HttpResponse:
             HeadlineStat(
                 "Longest [Spell] Name (by words)",
                 f"{longest_spell_name_by_words.word_count}",
-                f"{longest_spell_name_by_words.name}",
+                render_to_string(
+                    "patterns/atoms/link/stat_link.html",
+                    context=dict(
+                        text=f"{longest_spell_name_by_words.name}",
+                        href=reverse(
+                            "sp-stats", args=[longest_spell_name_by_words.slug]
+                        ),
+                        fit=True,
+                    ),
+                ),
                 units="words",
             ),
             HeadlineStat(
                 "Longest [Spell] Name (by letters)",
                 f"{len(longest_spell_name_by_chars.name)}",
-                f"{longest_spell_name_by_chars.name}",
+                render_to_string(
+                    "patterns/atoms/link/stat_link.html",
+                    context=dict(
+                        text=f"{longest_spell_name_by_chars.name}",
+                        href=reverse(
+                            "sp-stats", args=[longest_spell_name_by_chars.slug]
+                        ),
+                        fit=True,
+                    ),
+                ),
                 units="letters",
                 popup_info="This count includes punctuation as well as letters.",
             ),
@@ -520,11 +589,13 @@ def magic(request: HtmxHttpRequest) -> HttpResponse:
                 "Chapter with the Most [Spell] Mentions",
                 f"{chapter_with_most_spell_refs['count']}",
                 render_to_string(
-                    "patterns/atoms/link/link.html",
+                    "patterns/atoms/link/stat_link.html",
                     context=dict(
                         text=chapter_with_most_spell_refs["title"],
-                        href=chapter_with_most_spell_refs["url"],
-                        external=True,
+                        href=reverse(
+                            "chapters", args=[chapter_with_most_spell_refs["number"]]
+                        ),
+                        fit=True,
                     ),
                 ),
                 units="[Spell] mentions",
@@ -559,9 +630,10 @@ def locations(request: HtmxHttpRequest) -> HttpResponse:
         .annotate(
             title=F("chapter_line__chapter__title"),
             url=F("chapter_line__chapter__source_url"),
+            number=F("chapter_line__chapter__number"),
         )
         .select_related("title")
-        .values("title", "url")
+        .values("title", "url", "number")
         .annotate(count=Count("title"))
         .order_by("-count")[0]
     )
@@ -578,11 +650,13 @@ def locations(request: HtmxHttpRequest) -> HttpResponse:
                 "Chapter with the Most Location Mentions",
                 f"{chapter_with_most_location_refs['count']}",
                 render_to_string(
-                    "patterns/atoms/link/link.html",
+                    "patterns/atoms/link/stat_link.html",
                     context=dict(
                         text=chapter_with_most_location_refs["title"],
-                        href=chapter_with_most_location_refs["url"],
-                        external=True,
+                        href=reverse(
+                            "chapters", args=[chapter_with_most_location_refs["number"]]
+                        ),
+                        fit=True,
                     ),
                 ),
                 units="Location mentions",
@@ -843,7 +917,7 @@ def reftype_stats(request: HtmxHttpRequest, name: str):
     rt_type = match_reftype_str(stat_root)
 
     if len(name) >= 100:
-        rt = RefType.objects.get(Q(slug__istartswith=name) & Q(type=rt_type))
+        rt = RefType.objects.get(Q(slug__istartswith=name[:100]) & Q(type=rt_type))
     else:
         rt = RefType.objects.get(Q(slug__iexact=name) & Q(type=rt_type))
 
@@ -915,24 +989,26 @@ def reftype_stats(request: HtmxHttpRequest, name: str):
                 HeadlineStat(
                     "First mentioned in chapter",
                     render_to_string(
-                        "patterns/atoms/link/link.html",
+                        "patterns/atoms/link/stat_link.html",
                         context=dict(
                             text=first_mention_chapter.chapter.title,
-                            href=first_mention_chapter.chapter.source_url,
-                            size=6,
-                            external=True,
+                            href=reverse(
+                                "chapters", args=[first_mention_chapter.chapter.number]
+                            ),
+                            fit=True,
                         ),
                     ),
                 ),
                 HeadlineStat(
                     "Last mentioned in chapter",
                     render_to_string(
-                        "patterns/atoms/link/link.html",
+                        "patterns/atoms/link/stat_link.html",
                         context=dict(
                             text=last_mention_chapter.chapter.title,
-                            href=last_mention_chapter.chapter.source_url,
-                            size=6,
-                            external=True,
+                            href=reverse(
+                                "chapters", args=[last_mention_chapter.chapter.number]
+                            ),
+                            fit=True,
                         ),
                     ),
                 ),
