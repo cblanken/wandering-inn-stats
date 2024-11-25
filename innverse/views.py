@@ -4,7 +4,6 @@ from django.http import HttpRequest, HttpResponse, Http404
 from django.shortcuts import render
 from django.template.loader import render_to_string
 from django.utils.text import slugify
-from django.views.decorators.cache import cache_page
 from django_htmx.middleware import HtmxDetails
 from django_tables2 import RequestConfig
 from django_tables2.export.export import TableExport
@@ -72,7 +71,6 @@ def parse_chapter_params(req: HttpRequest) -> Tuple[Chapter | None, Chapter | No
     return (first_chapter, last_chapter)
 
 
-@cache_page(60 * 60 * 24)
 def overview(request: HtmxHttpRequest) -> HttpResponse:
     config = RequestConfig(request)
     query = request.GET.get("q")
@@ -263,7 +261,6 @@ def overview(request: HtmxHttpRequest) -> HttpResponse:
     return render(request, "pages/overview.html", context)
 
 
-@cache_page(60 * 60 * 24)
 def characters(request: HtmxHttpRequest) -> HttpResponse:
     config = RequestConfig(request)
     query = request.GET.get("q")
@@ -388,7 +385,6 @@ def get_reftype_table_data(
     return rt_data
 
 
-@cache_page(60 * 60 * 24)
 def classes(request: HtmxHttpRequest) -> HttpResponse:
     config = RequestConfig(request)
     query = request.GET.get("q")
@@ -482,7 +478,6 @@ def classes(request: HtmxHttpRequest) -> HttpResponse:
     return render(request, "pages/classes.html", context)
 
 
-@cache_page(60 * 60 * 24)
 def skills(request: HtmxHttpRequest) -> HttpResponse:
     config = RequestConfig(request)
     query = request.GET.get("q")
@@ -575,7 +570,6 @@ def skills(request: HtmxHttpRequest) -> HttpResponse:
     return render(request, "pages/skills.html", context)
 
 
-@cache_page(60 * 60 * 24)
 def magic(request: HtmxHttpRequest) -> HttpResponse:
     config = RequestConfig(request)
     query = request.GET.get("q")
@@ -668,7 +662,6 @@ def magic(request: HtmxHttpRequest) -> HttpResponse:
     return render(request, "pages/magic.html", context)
 
 
-@cache_page(60 * 60 * 24)
 def locations(request: HtmxHttpRequest) -> HttpResponse:
     config = RequestConfig(request)
     query = request.GET.get("q")
@@ -1232,6 +1225,5 @@ def search(request: HtmxHttpRequest) -> HttpResponse:
         return render(request, "pages/search.html", {"form": SearchForm()})
 
 
-@cache_page(60 * 60 * 24)
 def about(request: HtmxHttpRequest) -> HttpResponse:
     return render(request, "pages/about.html")
