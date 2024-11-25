@@ -1,4 +1,5 @@
-from django.db.models import Count, F, Q, QuerySet, Sum
+from django.db.models import Count, F, Q, QuerySet, Sum, Window
+from django.db.models.functions import Lag
 from django.http import HttpRequest, HttpResponse, Http404
 from django.shortcuts import render
 from django.template.loader import render_to_string
@@ -130,6 +131,26 @@ def overview(request: HtmxHttpRequest) -> HttpResponse:
         latest_chapter.post_date - first_chapter.post_date
     )
 
+    longest_release_gap_chapters = (
+        Chapter.objects.annotate(
+            prev_chapter_number=Window(expression=Lag("number", offset=1)),
+            prev_post_date=Window(
+                expression=Lag("post_date", offset=1), order_by="post_date"
+            ),
+        )
+        .annotate(release_cadence=F("post_date") - F("prev_post_date"))
+        .filter(release_cadence__isnull=False)
+        .order_by("-release_cadence")
+    )
+
+    longest_release_chapter_to = longest_release_gap_chapters.first()
+    longest_release_chapter_from = Chapter.objects.get(
+        number=longest_release_chapter_to.prev_chapter_number
+    )
+    longest_release_gap: dt.timedelta = (
+        longest_release_chapter_to.post_date - longest_release_chapter_from.post_date
+    )
+
     context = {
         "gallery": charts.get_word_count_charts(),
         "stats": [
@@ -191,7 +212,7 @@ def overview(request: HtmxHttpRequest) -> HttpResponse:
             if first_chapter
             else None,
             HeadlineStat(
-                "Latest chapter published",
+                "Latest chapter analyzed",
                 delta_since_latest_chapter_release.days,
                 render_to_string(
                     "patterns/atoms/link/stat_link.html",
@@ -206,6 +227,36 @@ def overview(request: HtmxHttpRequest) -> HttpResponse:
             )
             if latest_chapter
             else None,
+            HeadlineStat(
+                "Total canon chapters published",
+                chapter_data.count(),
+                units="chapters",
+            ),
+            HeadlineStat(
+                "Longest chapter release gap",
+                f"{longest_release_gap.days} days and {longest_release_gap.seconds // 3600} hours",
+                render_to_string(
+                    "patterns/atoms/link/stat_link.html",
+                    context=dict(
+                        text=longest_release_chapter_from.title,
+                        href=reverse(
+                            "chapters", args=[longest_release_chapter_from.number]
+                        ),
+                        fit=True,
+                    ),
+                )
+                + "<div>→</div>"
+                + render_to_string(
+                    "patterns/atoms/link/stat_link.html",
+                    context=dict(
+                        text=longest_release_chapter_to.title,
+                        href=reverse(
+                            "chapters", args=[longest_release_chapter_to.number]
+                        ),
+                        fit=True,
+                    ),
+                ),
+            ),
         ],
         "table": table,
     }
@@ -384,6 +435,7 @@ def classes(request: HtmxHttpRequest) -> HttpResponse:
                             "cl-stats", args=[longest_class_name_by_words.slug]
                         ),
                         fit=True,
+                        no_icon=True,
                     ),
                 ),
                 units="words",
@@ -399,6 +451,7 @@ def classes(request: HtmxHttpRequest) -> HttpResponse:
                             "cl-stats", args=[longest_class_name_by_chars.slug]
                         ),
                         fit=True,
+                        no_icon=True,
                     ),
                 ),
                 units="letters",
@@ -416,6 +469,7 @@ def classes(request: HtmxHttpRequest) -> HttpResponse:
                             args=[chapter_with_most_class_refs.get("number")],
                         ),
                         fit=True,
+                        no_icon=True,
                     ),
                 ),
                 units="[Class] mentions",
@@ -475,6 +529,7 @@ def skills(request: HtmxHttpRequest) -> HttpResponse:
                             "sk-stats", args=[longest_skill_name_by_words.slug]
                         ),
                         fit=True,
+                        no_icon=True,
                     ),
                 ),
                 units="words",
@@ -490,6 +545,7 @@ def skills(request: HtmxHttpRequest) -> HttpResponse:
                             "sk-stats", args=[longest_skill_name_by_chars.slug]
                         ),
                         fit=True,
+                        no_icon=True,
                     ),
                 ),
                 units="letters",
@@ -506,6 +562,7 @@ def skills(request: HtmxHttpRequest) -> HttpResponse:
                             "chapters", args=[chapter_with_most_skill_refs["number"]]
                         ),
                         fit=True,
+                        no_icon=True,
                     ),
                 ),
                 units="[Skill] mentions",
@@ -565,6 +622,7 @@ def magic(request: HtmxHttpRequest) -> HttpResponse:
                             "sp-stats", args=[longest_spell_name_by_words.slug]
                         ),
                         fit=True,
+                        no_icon=True,
                     ),
                 ),
                 units="words",
@@ -580,6 +638,7 @@ def magic(request: HtmxHttpRequest) -> HttpResponse:
                             "sp-stats", args=[longest_spell_name_by_chars.slug]
                         ),
                         fit=True,
+                        no_icon=True,
                     ),
                 ),
                 units="letters",
@@ -596,6 +655,7 @@ def magic(request: HtmxHttpRequest) -> HttpResponse:
                             "chapters", args=[chapter_with_most_spell_refs["number"]]
                         ),
                         fit=True,
+                        no_icon=True,
                     ),
                 ),
                 units="[Spell] mentions",
@@ -657,6 +717,7 @@ def locations(request: HtmxHttpRequest) -> HttpResponse:
                             "chapters", args=[chapter_with_most_location_refs["number"]]
                         ),
                         fit=True,
+                        no_icon=True,
                     ),
                 ),
                 units="Location mentions",
@@ -996,6 +1057,7 @@ def reftype_stats(request: HtmxHttpRequest, name: str):
                                 "chapters", args=[first_mention_chapter.chapter.number]
                             ),
                             fit=True,
+                            no_icon=True,
                         ),
                     ),
                 ),
@@ -1009,6 +1071,7 @@ def reftype_stats(request: HtmxHttpRequest, name: str):
                                 "chapters", args=[last_mention_chapter.chapter.number]
                             ),
                             fit=True,
+                            no_icon=True,
                         ),
                     ),
                 ),
@@ -1124,7 +1187,7 @@ def search(request: HtmxHttpRequest) -> HttpResponse:
     if request.method == "GET" and bool(request.GET):
         query = request.GET.copy()
         query["first_chapter"] = query.get("first_chapter", 0)
-        query["last_chapter"] = query.get("last_chapter", MAX_CHAPTER_NUM)
+        query["last_chapter"] = query.get("last_chapter", MAX_CHAPTER_NUM + 1)
         query["filter"] = query.get("q")
 
         config = RequestConfig(request)
