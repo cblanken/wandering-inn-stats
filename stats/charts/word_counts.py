@@ -1,4 +1,4 @@
-from django.db.models import Q, Sum, Func
+from django.db.models import Q, Sum, Func, F
 from plotly.graph_objects import Figure
 import plotly.express as px
 from stats.models import Chapter
@@ -180,14 +180,12 @@ def word_count_by_book(
 def word_count_by_volume(
     first_chapter: Chapter | None = None, last_chapter: Chapter | None = None
 ) -> Figure:
-    volume_wc_data = Chapter.objects.values(
-        "book__title",
-        "book__title_short",
-        "book__volume",
-        "book__volume__title",
-        "title",
-        "word_count",
-    ).order_by("book__volume", "number")
+    volume_wc_data = (
+        Chapter.objects.values("book")
+        .annotate(book_word_count=Sum("word_count"))
+        .values("book__title", "book_word_count", "book__volume__title")
+        .order_by("book__volume__number", "book__number")
+    )
 
     if first_chapter:
         volume_wc_data = volume_wc_data.filter(number__gte=first_chapter.number)
@@ -198,11 +196,15 @@ def word_count_by_volume(
     volume_wc_fig = px.bar(
         volume_wc_data,
         x="book__volume__title",
-        y="word_count",
+        y="book_word_count",
         color="book__title",
         color_discrete_sequence=px.colors.qualitative.Pastel,
-        labels={"book__title": "Book"},
-        hover_data=["title", "book__title", "book__volume__title", "word_count"],
+        labels={
+            "book__title": "Book",
+            "book__volume__title": "Volume",
+            "book_word_count": "Word count",
+        },
+        custom_data=["book__title"],
     )
     volume_wc_fig.update_layout(
         DEFAULT_LAYOUT,
@@ -214,8 +216,7 @@ def word_count_by_volume(
     )
     volume_wc_fig.update_traces(
         hovertemplate="<b>Word Count</b>: %{y}<br>"
-        + "<b>Chapter</b>: %{customdata[0]}<br>"
-        + "<b>Book</b>: %{customdata[1]}<br>"
+        + "<b>Book</b>: %{customdata[0]}<br>"
         + "<b>Volume</b>: %{x}<br>"
         + "<extra></extra>",
     )

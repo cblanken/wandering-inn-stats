@@ -15,6 +15,10 @@ DEFAULT_LAYOUT = {
         "family": 'Hack, "Courier New", mono',
         "size": 32,
     },
+    "hoverlabel": dict(
+        font_size=16,
+        font_family='Hack, "Courier New", mono',
+    ),
     "margin": {
         "pad": 10,
     },
