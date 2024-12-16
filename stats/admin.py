@@ -71,7 +71,7 @@ class TextRefAdmin(admin.ModelAdmin):
 class RefTypeChapterAdmin(admin.ModelAdmin):
     list_display = ["type", "chapter"]
     list_filter = ["chapter__title"]
-    search_fields = ["type", "chapter__title"]
+    search_fields = ["type__name", "chapter__title"]
     autocomplete_fields = ["type"]
 
 
