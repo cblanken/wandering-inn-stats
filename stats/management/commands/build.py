@@ -329,7 +329,10 @@ class Command(BaseCommand):
                 )
                 return alias.ref_type
             except Alias.DoesNotExist:
-                self.log(f'RefType: "{rt_name}" doesn\'t exist. Create?', LogCat.NEW)
+                self.log(
+                    f'RefType: "{rt_name} ({rt_type})" doesn\'t exist. Create?',
+                    LogCat.NEW,
+                )
                 edited_name = self.edit_field(rt_name, "RefType name")
                 if edited_name is None:
                     return
