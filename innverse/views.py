@@ -7,7 +7,7 @@ from django.utils.text import slugify
 from django_htmx.middleware import HtmxDetails
 from django_tables2 import RequestConfig
 from django_tables2.export.export import TableExport
-from django.urls import NoReverseMatch, reverse
+from django.urls import reverse
 import datetime as dt
 from itertools import chain
 from typing import Iterable, Tuple
