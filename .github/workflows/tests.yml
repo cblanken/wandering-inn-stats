@@ -9,39 +9,30 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Install gobject-introspection dep for meson build of pygobject
         run: |
           sudo apt-get -y update
-          sudo apt-get -y install libgirepository1.0-dev
+          sudo apt-get -y install libgirepository-2.0-dev
 
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.7.2"
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
-
-      - name: Install Poetry
-        uses: snok/install-poetry@v1
-        with:
-          virtualenvs-create: true
-          virtualenvs-in-project: true
-          virtualenvs-path: .venv
-          installer-parallel: true
-
-      - name: Load cached venv
-        id: cached-poetry-dependencies
-        uses: actions/cache@v4
-        with:
-          path: .venv
-          key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
+          python-version-file: ".python-version"
 
       - name: Install dependencies
-        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
-        run: poetry install --no-interaction --no-root
+        run: uv sync --locked --all-extras --dev
 
       - name: Run tests
         env:
@@ -50,4 +41,4 @@ jobs:
           PYWIKIBOT_USER: ${{ secrets.PYWIKIBOT_USER }}
           PYWIKIBOT_BOT_NAME : ${{ secrets.PYWIKIBOT_BOT_NAME }}
           PYWIKIBOT_PASS: ${{ secrets.PYWIKIBOT_PASS }}
-        run: poetry run pytest
+        run: uv run pytest
