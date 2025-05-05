@@ -1,1 +1,0 @@
-schemacrawler --user=postgres --password=password --host=localhost --port=5432 -i standard -c schema --server postgresql --database=innverse --output-format=scdot --output-file="$PWD/innverse_schema.dot"
