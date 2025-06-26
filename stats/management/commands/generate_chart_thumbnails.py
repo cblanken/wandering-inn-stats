@@ -1,11 +1,14 @@
+import cProfile
+import io
+import pstats
+import re
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from os import cpu_count
+
 from django.core.management.base import BaseCommand, CommandError
+
 from stats import charts
 from stats.models import RefType
-import re
-
-import cProfile
-import pstats
-import io
 
 
 class Command(BaseCommand):
@@ -66,10 +69,22 @@ class Command(BaseCommand):
                 )
             )
 
+    def gen_rt_gallery(self, rt: RefType, options):
+        print(f"> Generating gallery for: {rt.name}")
+        gallery = charts.get_reftype_gallery(rt)
+        for chart in gallery:
+            if options.get("clobber") or not chart.path.exists():
+                self.save_chart_thumbnail(options, chart)
+            else:
+                self.stdout.write(
+                    self.style.WARNING(
+                        f"> Thumbnail for {rt.name} already exists at {chart.static_path}"
+                    )
+                )
+
     def handle(self, *args, **options) -> None:
         pr = cProfile.Profile()
         pr.enable()
-
         main_chart_galleries = [
             charts.get_word_count_charts(),
             charts.get_character_charts(),
@@ -83,7 +98,6 @@ class Command(BaseCommand):
         else:
             pattern = None
         try:
-
             if not options.get("reftypes_only"):
                 for gallery in main_chart_galleries:
                     for chart in gallery:
@@ -96,21 +110,16 @@ class Command(BaseCommand):
                                 )
                             )
 
-            for rt in RefType.objects.filter(name__icontains=options.get("chart_name")):
-                if pattern and not pattern.match(rt.name):
-                    continue
-
-                print(f"> Generating gallery for: {rt.name}")
-                gallery = charts.get_reftype_gallery(rt)
-                for chart in gallery:
-                    if options.get("clobber") or not chart.path.exists():
-                        self.save_chart_thumbnail(options, chart)
-                    else:
-                        self.stdout.write(
-                            self.style.WARNING(
-                                f"> Thumbnail for {rt.name} already exists at {chart.static_path}"
-                            )
-                        )
+            with ThreadPoolExecutor(max_workers=cpu_count() - 1) as executor:
+                reftypes = RefType.objects.filter(
+                    name__icontains=options.get("chart_name")
+                )
+                future_to_rt = {
+                    executor.submit(self.gen_rt_gallery, rt, options): rt
+                    for rt in reftypes
+                }
+                for future in as_completed(future_to_rt):
+                    data = future.result()
 
         except KeyboardInterrupt as exc:
             s = io.StringIO()
