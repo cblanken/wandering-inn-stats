@@ -265,8 +265,6 @@ else:
     if TWI_PROD:
         CACHES = {
             "default": {
-                # "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
-                # "LOCATION": "twi-stats-cache",
                 "BACKEND": "django.core.cache.backends.memcached.PyMemcacheCache",
                 "LOCATION": env.get("TWI_CACHE_URI", "127.0.0.1:11211"),
                 "TIMEOUT": 300,
