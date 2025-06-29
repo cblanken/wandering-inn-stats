@@ -37,6 +37,20 @@ testpaths = [
   "stats/wikibot/tests",
 ]
 
+[tool.poe]
+executor.type = "uv"
+
+[tool.poe.tasks]
+build-chapters.cmd = "python manage.py build --skip-wiki-all --skip-colors --skip-text-refs ./data"
+build-wiki.cmd = "python manage.py build --skip-colors --skip-text-refs ./data"
+makemigrations.cmd = "python manage.py makemigrations"
+migrate.cmd = "python manage.py migrate stats"
+tailwind-start.cmd = "python manage.py tailwind start"
+gen-thumbnails.cmd = "python manage.py generate_chart_thumbnails"
+serve-static.cmd = "python -m http.server 8080 -d /tmp/twi-stats/"
+run-dev.cmd = "python manage.py runserver 9999"
+run-debug.shell = "PYTHONBREAKPOINT=ipdb.set_trace python manage.py runserver 9999"
+run-prod.cmd = "python -m gunicorn innverse.asgi:application -k uvicorn.workers.UvicornWorker"
 
 [project]
 name = "innverse-stats"
@@ -103,4 +117,5 @@ dev = [
     "pytest<9.0.0,>=8.2.2",
     "pytest-django<5.0.0,>=4.8.0",
     "djlint<2.0.0,>=1.35.2",
+    "poethepoet>=0.35.0",
 ]
