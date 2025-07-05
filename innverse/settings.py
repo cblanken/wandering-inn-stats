@@ -152,6 +152,14 @@ STATIC_ROOT = env.get("TWI_STATIC_ROOT", "/tmp/twi-stats/static/")
 
 STATICFILES_DIRS = [BASE_DIR / "innverse/static"]
 
+STORAGES = {
+    "default": {
+        "BACKEND": "django.core.files.storage.FileSystemStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.ManifestStaticFilesStorage",
+    },
+}
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
