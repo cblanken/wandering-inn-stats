@@ -1,31 +1,23 @@
 """Utility functions and classes for build script"""
 
-import asyncio
-from asyncio.subprocess import PIPE, STDOUT
 from enum import Enum
 from pathlib import Path
 from pprint import pformat
 from subprocess import Popen, TimeoutExpired
-import time
-from typing import Iterable, Literal, TypeVar, Generic, Sequence
+from typing import Iterable, Literal, TypeVar
 import regex
 from django.core.management.base import CommandError
 from django.db.models.query import QuerySet
 from django.db.models import Model
 from processing import Pattern
 from stats.models import Alias, RefType
-from django.core.management.base import CommandError
 
 
 def build_reftype_pattern(ref: RefType):
     """Create an OR'ed regex of a Reftype's name and its aliases"""
     return [
         ref.name,
-        *[
-            alias.name
-            for alias in Alias.objects.filter(ref_type=ref)
-            if "(" not in alias.name
-        ],
+        *[alias.name for alias in Alias.objects.filter(ref_type=ref) if "(" not in alias.name],
     ]
 
 
@@ -209,9 +201,7 @@ COLORS: list[Color] = [
 
 def match_ref_type(type_str: str) -> Literal[2] | None:
     try:
-        matches = list(
-            filter(lambda rt: rt[0] == type_str.strip()[:2].upper(), RefType.TYPES)
-        )
+        matches = list(filter(lambda rt: rt[0] == type_str.strip()[:2].upper(), RefType.TYPES))
 
         # Return matching RefType shortcode from RefType.TYPES
         if matches:
@@ -228,7 +218,7 @@ def match_ref_type(type_str: str) -> Literal[2] | None:
 def play_sound():
     sound_path = Path("stats/sounds/alert.mp3")
     try:
-        proc = Popen(["/usr/bin/mpg123", "-q", sound_path])
+        Popen(["/usr/bin/mpg123", "-q", sound_path])
     except OSError as e:
         print(f"! - Alert sound file {sound_path} could not be played. {e}")
     except TimeoutExpired:
@@ -268,9 +258,7 @@ def select_ref_type(sound: bool = False) -> str | None:
 
     except KeyboardInterrupt as exc:
         print("")
-        raise CommandError(
-            "Build interrupted with Ctrl-C (Keyboard Interrupt)."
-        ) from exc
+        raise CommandError("Build interrupted with Ctrl-C (Keyboard Interrupt).") from exc
     except EOFError as exc:
         print("")
         raise CommandError("Build interrupted with Ctrl-D (EOF).") from exc
@@ -288,7 +276,7 @@ def select_item_from_qs(qs: QuerySet[T], sound=False) -> T | None:
                 print(f"{i}: {record}")
 
             sel: str = prompt(
-                f"Select one of the above records (leave empty to skip): ",
+                "Select one of the above records (leave empty to skip): ",
                 sound,
             )
 
@@ -309,17 +297,13 @@ def select_item_from_qs(qs: QuerySet[T], sound=False) -> T | None:
 
     except KeyboardInterrupt as exc:
         print("")
-        raise CommandError(
-            "Build interrupted with Ctrl-C (Keyboard Interrupt)."
-        ) from exc
+        raise CommandError("Build interrupted with Ctrl-C (Keyboard Interrupt).") from exc
     except EOFError as exc:
         print("")
         raise CommandError("Build interrupted with Ctrl-D (EOF).") from exc
 
 
-def select_ref_type_from_qs(
-    qs: QuerySet[RefType], sound: bool = False
-) -> RefType | None:
+def select_ref_type_from_qs(qs: QuerySet[RefType], sound: bool = False) -> RefType | None:
     """Interactive selection of an existing set of RefType(s)"""
     try:
         while True:
@@ -350,9 +334,7 @@ def select_ref_type_from_qs(
 
     except KeyboardInterrupt as exc:
         print("")
-        raise CommandError(
-            "Build interrupted with Ctrl-C (Keyboard Interrupt)."
-        ) from exc
+        raise CommandError("Build interrupted with Ctrl-C (Keyboard Interrupt).") from exc
     except EOFError as exc:
         print("")
         raise CommandError("Build interrupted with Ctrl-D (EOF).") from exc

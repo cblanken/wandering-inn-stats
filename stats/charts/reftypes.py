@@ -6,7 +6,6 @@ from django.db.models import (
     Window,
     F,
 )
-from django.db import connection
 import plotly.express as px
 from plotly.graph_objects import Figure
 from stats.models import Book, Chapter, RefType, TextRef, Volume
@@ -44,9 +43,7 @@ def __mentions_by_chapter(
         .values("mentions")
     )
 
-    return Chapter.objects.annotate(
-        rt_mentions=Subquery(rt_mentions_subquery.values_list("mentions")[:1])
-    )
+    return Chapter.objects.annotate(rt_mentions=Subquery(rt_mentions_subquery.values_list("mentions")[:1]))
 
 
 def mentions(
@@ -54,13 +51,9 @@ def mentions(
     first_chapter: Chapter | None = None,
     last_chapter: Chapter | None = None,
 ) -> Figure | None:
-    rt_mentions_by_chapter = __mentions_by_chapter(rt).values(
-        "title", "rt_mentions", "post_date", "number"
-    )
+    rt_mentions_by_chapter = __mentions_by_chapter(rt).values("title", "rt_mentions", "post_date", "number")
 
-    rt_mentions_by_chapter = apply_chapter_filter(
-        rt_mentions_by_chapter, first_chapter, last_chapter
-    )
+    rt_mentions_by_chapter = apply_chapter_filter(rt_mentions_by_chapter, first_chapter, last_chapter)
 
     if rt_mentions_by_chapter:
         return px.area(
@@ -85,15 +78,11 @@ def cumulative_mentions(
 ) -> Figure | None:
     cumulative_rt_mentions = (
         __mentions_by_chapter(rt)
-        .annotate(
-            cum_rt_mentions=Window(expression=Sum("rt_mentions"), order_by="number")
-        )
+        .annotate(cum_rt_mentions=Window(expression=Sum("rt_mentions"), order_by="number"))
         .values("title", "cum_rt_mentions", "post_date", "number")
     )
 
-    cumulative_rt_mentions = apply_chapter_filter(
-        cumulative_rt_mentions, first_chapter, last_chapter
-    )
+    cumulative_rt_mentions = apply_chapter_filter(cumulative_rt_mentions, first_chapter, last_chapter)
 
     if cumulative_rt_mentions:
         fig = px.area(

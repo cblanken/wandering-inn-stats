@@ -77,11 +77,7 @@ def overview(request: HtmxHttpRequest) -> HttpResponse:
     if query:
         chapter_data = (
             Chapter.objects.filter(is_canon=True, is_status_update=False)
-            .filter(
-                Q(title__icontains=query)
-                | Q(post_date__icontains=query)
-                | Q(word_count__icontains=query)
-            )
+            .filter(Q(title__icontains=query) | Q(post_date__icontains=query) | Q(word_count__icontains=query))
             .order_by("post_date")
         )
     else:
@@ -100,11 +96,7 @@ def overview(request: HtmxHttpRequest) -> HttpResponse:
     total_wc = Chapter.objects.aggregate(total_wc=Sum("word_count"))["total_wc"]
     longest_chapter = Chapter.objects.filter(is_canon=True).order_by("-word_count")[0]
     shortest_chapter = Chapter.objects.filter(is_canon=True).order_by("word_count")[0]
-    word_counts = (
-        Chapter.objects.filter(is_canon=True)
-        .order_by("word_count")
-        .values_list("word_count", flat=True)
-    )
+    word_counts = Chapter.objects.filter(is_canon=True).order_by("word_count").values_list("word_count", flat=True)
 
     def median(values: list[int]) -> float:
         length = len(values)
@@ -119,22 +111,14 @@ def overview(request: HtmxHttpRequest) -> HttpResponse:
     first_chapter = chapter_data.first()
     latest_chapter = chapter_data.last()
 
-    delta_since_first_chapter_release: dt.timedelta = (
-        dt.datetime.now(tz=dt.timezone.utc) - first_chapter.post_date
-    )
-    delta_since_latest_chapter_release: dt.timedelta = (
-        dt.datetime.now(tz=dt.timezone.utc) - latest_chapter.post_date
-    )
-    delta_between_first_and_last_chapters: dt.timedelta = (
-        latest_chapter.post_date - first_chapter.post_date
-    )
+    delta_since_first_chapter_release: dt.timedelta = dt.datetime.now(tz=dt.timezone.utc) - first_chapter.post_date
+    delta_since_latest_chapter_release: dt.timedelta = dt.datetime.now(tz=dt.timezone.utc) - latest_chapter.post_date
+    latest_chapter.post_date - first_chapter.post_date
 
     longest_release_gap_chapters = (
         Chapter.objects.annotate(
             prev_chapter_number=Window(expression=Lag("number", offset=1)),
-            prev_post_date=Window(
-                expression=Lag("post_date", offset=1), order_by="post_date"
-            ),
+            prev_post_date=Window(expression=Lag("post_date", offset=1), order_by="post_date"),
         )
         .annotate(release_cadence=F("post_date") - F("prev_post_date"))
         .filter(release_cadence__isnull=False)
@@ -142,12 +126,8 @@ def overview(request: HtmxHttpRequest) -> HttpResponse:
     )
 
     longest_release_chapter_to = longest_release_gap_chapters.first()
-    longest_release_chapter_from = Chapter.objects.get(
-        number=longest_release_chapter_to.prev_chapter_number
-    )
-    longest_release_gap: dt.timedelta = (
-        longest_release_chapter_to.post_date - longest_release_chapter_from.post_date
-    )
+    longest_release_chapter_from = Chapter.objects.get(number=longest_release_chapter_to.prev_chapter_number)
+    longest_release_gap: dt.timedelta = longest_release_chapter_to.post_date - longest_release_chapter_from.post_date
 
     context = {
         "gallery": charts.get_word_count_charts(),
@@ -237,9 +217,7 @@ def overview(request: HtmxHttpRequest) -> HttpResponse:
                     "patterns/atoms/link/stat_link.html",
                     context=dict(
                         text=longest_release_chapter_from.title,
-                        href=reverse(
-                            "chapters", args=[longest_release_chapter_from.number]
-                        ),
+                        href=reverse("chapters", args=[longest_release_chapter_from.number]),
                         fit=True,
                     ),
                 )
@@ -248,9 +226,7 @@ def overview(request: HtmxHttpRequest) -> HttpResponse:
                     "patterns/atoms/link/stat_link.html",
                     context=dict(
                         text=longest_release_chapter_to.title,
-                        href=reverse(
-                            "chapters", args=[longest_release_chapter_to.number]
-                        ),
+                        href=reverse("chapters", args=[longest_release_chapter_to.number]),
                         fit=True,
                     ),
                 ),
@@ -266,9 +242,7 @@ def characters(request: HtmxHttpRequest) -> HttpResponse:
     query = request.GET.get("q")
     if query:
         data = (
-            Character.objects.select_related(
-                "ref_type", "ref_type__reftypecomputedview", "first_chapter_appearance"
-            )
+            Character.objects.select_related("ref_type", "ref_type__reftypecomputedview", "first_chapter_appearance")
             .filter(
                 Q(ref_type__name__icontains=query)
                 | Q(species__icontains=query)
@@ -280,9 +254,7 @@ def characters(request: HtmxHttpRequest) -> HttpResponse:
         )
     else:
         data = (
-            Character.objects.select_related(
-                "ref_type", "ref_type__reftypecomputedview", "first_chapter_appearance"
-            )
+            Character.objects.select_related("ref_type", "ref_type__reftypecomputedview", "first_chapter_appearance")
             .annotate(mentions=F("ref_type__reftypecomputedview__mentions"))
             .order_by(F("mentions").desc(nulls_last=True))
         )
@@ -342,9 +314,7 @@ def characters(request: HtmxHttpRequest) -> HttpResponse:
                     "patterns/atoms/link/stat_link.html",
                     context=dict(
                         text=chapter_with_most_char_refs["title"],
-                        href=reverse(
-                            "chapters", args=[chapter_with_most_char_refs.get("number")]
-                        ),
+                        href=reverse("chapters", args=[chapter_with_most_char_refs.get("number")]),
                         fit=True,
                     ),
                 ),
@@ -364,9 +334,7 @@ def characters(request: HtmxHttpRequest) -> HttpResponse:
     return render(request, "pages/characters.html", context)
 
 
-def get_reftype_table_data(
-    query: str | None, rt_type: str, order_by="mentions"
-) -> QuerySet[RefType]:
+def get_reftype_table_data(query: str | None, rt_type: str, order_by="mentions") -> QuerySet[RefType]:
     if query:
         rt_data = (
             RefType.objects.select_related("reftypecomputedview")
@@ -427,9 +395,7 @@ def classes(request: HtmxHttpRequest) -> HttpResponse:
                     "patterns/atoms/link/stat_link.html",
                     context=dict(
                         text=f"{longest_class_name_by_words.name}",
-                        href=reverse(
-                            "cl-stats", args=[longest_class_name_by_words.slug]
-                        ),
+                        href=reverse("cl-stats", args=[longest_class_name_by_words.slug]),
                         fit=True,
                         no_icon=True,
                     ),
@@ -443,9 +409,7 @@ def classes(request: HtmxHttpRequest) -> HttpResponse:
                     "patterns/atoms/link/stat_link.html",
                     context=dict(
                         text=f"{longest_class_name_by_chars.name}",
-                        href=reverse(
-                            "cl-stats", args=[longest_class_name_by_chars.slug]
-                        ),
+                        href=reverse("cl-stats", args=[longest_class_name_by_chars.slug]),
                         fit=True,
                         no_icon=True,
                     ),
@@ -520,9 +484,7 @@ def skills(request: HtmxHttpRequest) -> HttpResponse:
                     "patterns/atoms/link/stat_link.html",
                     context=dict(
                         text=f"{longest_skill_name_by_words.name}",
-                        href=reverse(
-                            "sk-stats", args=[longest_skill_name_by_words.slug]
-                        ),
+                        href=reverse("sk-stats", args=[longest_skill_name_by_words.slug]),
                         fit=True,
                         no_icon=True,
                     ),
@@ -536,9 +498,7 @@ def skills(request: HtmxHttpRequest) -> HttpResponse:
                     "patterns/atoms/link/stat_link.html",
                     context=dict(
                         text=f"{longest_skill_name_by_chars.name}",
-                        href=reverse(
-                            "sk-stats", args=[longest_skill_name_by_chars.slug]
-                        ),
+                        href=reverse("sk-stats", args=[longest_skill_name_by_chars.slug]),
                         fit=True,
                         no_icon=True,
                     ),
@@ -553,9 +513,7 @@ def skills(request: HtmxHttpRequest) -> HttpResponse:
                     "patterns/atoms/link/stat_link.html",
                     context=dict(
                         text=chapter_with_most_skill_refs["title"],
-                        href=reverse(
-                            "chapters", args=[chapter_with_most_skill_refs["number"]]
-                        ),
+                        href=reverse("chapters", args=[chapter_with_most_skill_refs["number"]]),
                         fit=True,
                         no_icon=True,
                     ),
@@ -612,9 +570,7 @@ def magic(request: HtmxHttpRequest) -> HttpResponse:
                     "patterns/atoms/link/stat_link.html",
                     context=dict(
                         text=f"{longest_spell_name_by_words.name}",
-                        href=reverse(
-                            "sp-stats", args=[longest_spell_name_by_words.slug]
-                        ),
+                        href=reverse("sp-stats", args=[longest_spell_name_by_words.slug]),
                         fit=True,
                         no_icon=True,
                     ),
@@ -628,9 +584,7 @@ def magic(request: HtmxHttpRequest) -> HttpResponse:
                     "patterns/atoms/link/stat_link.html",
                     context=dict(
                         text=f"{longest_spell_name_by_chars.name}",
-                        href=reverse(
-                            "sp-stats", args=[longest_spell_name_by_chars.slug]
-                        ),
+                        href=reverse("sp-stats", args=[longest_spell_name_by_chars.slug]),
                         fit=True,
                         no_icon=True,
                     ),
@@ -645,9 +599,7 @@ def magic(request: HtmxHttpRequest) -> HttpResponse:
                     "patterns/atoms/link/stat_link.html",
                     context=dict(
                         text=chapter_with_most_spell_refs["title"],
-                        href=reverse(
-                            "chapters", args=[chapter_with_most_spell_refs["number"]]
-                        ),
+                        href=reverse("chapters", args=[chapter_with_most_spell_refs["number"]]),
                         fit=True,
                         no_icon=True,
                     ),
@@ -706,9 +658,7 @@ def locations(request: HtmxHttpRequest) -> HttpResponse:
                     "patterns/atoms/link/stat_link.html",
                     context=dict(
                         text=chapter_with_most_location_refs["title"],
-                        href=reverse(
-                            "chapters", args=[chapter_with_most_location_refs["number"]]
-                        ),
+                        href=reverse("chapters", args=[chapter_with_most_location_refs["number"]]),
                         fit=True,
                         no_icon=True,
                     ),
@@ -732,9 +682,7 @@ def chapter_stats(request: HtmxHttpRequest, number: int) -> HttpResponse:
         raise Http404()
 
     table_filter = request.GET.get("q", "")
-    table_query = dict(
-        first_chapter=chapter.number, last_chapter=chapter.number, filter=table_filter
-    )
+    table_query = dict(first_chapter=chapter.number, last_chapter=chapter.number, filter=table_filter)
 
     config = RequestConfig(request)
     table = get_search_result_table(table_query)
@@ -772,9 +720,7 @@ def chapter_stats(request: HtmxHttpRequest, number: int) -> HttpResponse:
         "heading": render_to_string(
             "patterns/atoms/link/link.html",
             context=dict(
-                text=f"Chapter {chapter.title}"
-                if len(chapter.title) < 10
-                else f"{chapter.title}",
+                text=f"Chapter {chapter.title}" if len(chapter.title) < 10 else f"{chapter.title}",
                 href=chapter.source_url,
                 external=True,
                 size=8,
@@ -790,7 +736,7 @@ def chapter_stats(request: HtmxHttpRequest, number: int) -> HttpResponse:
                     context=dict(
                         text=f"{most_mentioned_character.get('type__name')}",
                         href=reverse(
-                            f'{most_mentioned_character.get("type__type").lower()}-stats',
+                            f"{most_mentioned_character.get('type__type').lower()}-stats",
                             args=[slugify(most_mentioned_character.get("type__name"))],
                         ),
                         fit=True,
@@ -808,7 +754,7 @@ def chapter_stats(request: HtmxHttpRequest, number: int) -> HttpResponse:
                     context=dict(
                         text=f"{most_mentioned_class.get('type__name')}",
                         href=reverse(
-                            f'{most_mentioned_class.get("type__type").lower()}-stats',
+                            f"{most_mentioned_class.get('type__type').lower()}-stats",
                             args=[slugify(most_mentioned_class.get("type__name"))],
                         ),
                         fit=True,
@@ -826,7 +772,7 @@ def chapter_stats(request: HtmxHttpRequest, number: int) -> HttpResponse:
                     context=dict(
                         text=f"{most_mentioned_skill.get('type__name')}",
                         href=reverse(
-                            f'{most_mentioned_skill.get("type__type").lower()}-stats',
+                            f"{most_mentioned_skill.get('type__type').lower()}-stats",
                             args=[slugify(most_mentioned_skill.get("type__name"))],
                         ),
                         fit=True,
@@ -844,7 +790,7 @@ def chapter_stats(request: HtmxHttpRequest, number: int) -> HttpResponse:
                     context=dict(
                         text=f"{most_mentioned_spell.get('type__name')}",
                         href=reverse(
-                            f'{most_mentioned_spell.get("type__type").lower()}-stats',
+                            f"{most_mentioned_spell.get('type__type').lower()}-stats",
                             args=[slugify(most_mentioned_spell.get("type__name"))],
                         ),
                         fit=True,
@@ -862,7 +808,7 @@ def chapter_stats(request: HtmxHttpRequest, number: int) -> HttpResponse:
                     context=dict(
                         text=f"{most_mentioned_location.get('type__name')}",
                         href=reverse(
-                            f'{most_mentioned_location.get("type__type").lower()}-stats',
+                            f"{most_mentioned_location.get('type__type').lower()}-stats",
                             args=[slugify(most_mentioned_location.get("type__name"))],
                         ),
                         fit=True,
@@ -900,11 +846,7 @@ def main_interactive_chart(request: HtmxHttpRequest, chart: str):
         if chart == c.title_slug:
             fig = c.get_fig()
             context = {
-                "chart": (
-                    fig.to_html(full_html=False, include_plotlyjs="cdn")
-                    if fig
-                    else None
-                ),
+                "chart": (fig.to_html(full_html=False, include_plotlyjs="cdn") if fig else None),
                 "form": form,
                 "has_chapter_filter": c.has_chapter_filter,
             }
@@ -952,11 +894,7 @@ def reftype_interactive_chart(request: HtmxHttpRequest, name: str, chart: str):
             fig = c.get_fig()
 
             context = {
-                "chart": (
-                    fig.to_html(full_html=False, include_plotlyjs="cdn")
-                    if fig
-                    else None
-                ),
+                "chart": (fig.to_html(full_html=False, include_plotlyjs="cdn") if fig else None),
                 "form": form,
                 "has_chapter_filter": c.has_chapter_filter,
             }
@@ -976,9 +914,7 @@ def reftype_stats(request: HtmxHttpRequest, name: str):
         rt = RefType.objects.get(Q(slug__iexact=name) & Q(type=rt_type))
 
     # Table config and pagination
-    table_query = dict(
-        type=rt.type, type_query=rt.name, filter=request.GET.get("q", "")
-    )
+    table_query = dict(type=rt.type, type_query=rt.name, filter=request.GET.get("q", ""))
 
     config = RequestConfig(request)
     table = get_search_result_table(table_query)
@@ -1002,9 +938,7 @@ def reftype_stats(request: HtmxHttpRequest, name: str):
 
     mention_count = TextRef.objects.filter(type=rt).count()
 
-    chapter_appearances = RefTypeChapter.objects.filter(type=rt).order_by(
-        "chapter__number"
-    )
+    chapter_appearances = RefTypeChapter.objects.filter(type=rt).order_by("chapter__number")
     first_mention_chapter = chapter_appearances.first()
     last_mention_chapter = chapter_appearances.last()
 
@@ -1046,9 +980,7 @@ def reftype_stats(request: HtmxHttpRequest, name: str):
                         "patterns/atoms/link/stat_link.html",
                         context=dict(
                             text=first_mention_chapter.chapter.title,
-                            href=reverse(
-                                "chapters", args=[first_mention_chapter.chapter.number]
-                            ),
+                            href=reverse("chapters", args=[first_mention_chapter.chapter.number]),
                             fit=True,
                             no_icon=True,
                         ),
@@ -1060,9 +992,7 @@ def reftype_stats(request: HtmxHttpRequest, name: str):
                         "patterns/atoms/link/stat_link.html",
                         context=dict(
                             text=last_mention_chapter.chapter.title,
-                            href=reverse(
-                                "chapters", args=[last_mention_chapter.chapter.number]
-                            ),
+                            href=reverse("chapters", args=[last_mention_chapter.chapter.number]),
                             fit=True,
                             no_icon=True,
                         ),
@@ -1095,23 +1025,17 @@ def get_search_result_table(query: dict[str, str]) -> ChapterRefTable | TextRefT
             & Q(
                 chapter__number__lte=query.get(
                     "last_chapter",
-                    int(
-                        Chapter.objects.values_list("number").order_by("-number")[0][0]
-                    ),
+                    int(Chapter.objects.values_list("number").order_by("-number")[0][0]),
                 )
             )
         )
 
         if query_filter:
-            reftype_chapters = reftype_chapters.filter(
-                type__name__icontains=query_filter
-            )
+            reftype_chapters = reftype_chapters.filter(type__name__icontains=query_filter)
 
         table_data = []
         for rt in ref_types:
-            chapter_data = reftype_chapters.filter(type=rt).values_list(
-                "chapter__title", "chapter__source_url"
-            )
+            chapter_data = reftype_chapters.filter(type=rt).values_list("chapter__title", "chapter__source_url")
 
             rc_data = {
                 "name": rt.name,
@@ -1126,9 +1050,7 @@ def get_search_result_table(query: dict[str, str]) -> ChapterRefTable | TextRefT
 
         table = ChapterRefTable(table_data)
     else:
-        table_data = TextRef.objects.select_related(
-            "type", "chapter_line__chapter"
-        ).annotate(
+        table_data = TextRef.objects.select_related("type", "chapter_line__chapter").annotate(
             name=F("type__name"),
             text=F("chapter_line__text"),
             title=F("chapter_line__chapter__title"),
@@ -1139,36 +1061,26 @@ def get_search_result_table(query: dict[str, str]) -> ChapterRefTable | TextRefT
             table_data = table_data.filter(Q(type__type=reftype))
 
         if first_chapter := query.get("first_chapter"):
-            table_data = table_data.filter(
-                chapter_line__chapter__number__gte=first_chapter
-            )
+            table_data = table_data.filter(chapter_line__chapter__number__gte=first_chapter)
 
         if last_chapter := query.get("last_chapter"):
-            table_data = table_data.filter(
-                chapter_line__chapter__number__lte=last_chapter
-            )
+            table_data = table_data.filter(chapter_line__chapter__number__lte=last_chapter)
 
         if query.get("type_query"):
             if strict_mode:
                 table_data = table_data.filter(type__name=query.get("type_query"))
             else:
-                table_data = table_data.filter(
-                    type__name__icontains=query.get("type_query")
-                )
+                table_data = table_data.filter(type__name__icontains=query.get("type_query"))
 
         if query.get("text_query"):
-            table_data = table_data.filter(
-                chapter_line__text__icontains=query.get("text_query")
-            )
+            table_data = table_data.filter(chapter_line__text__icontains=query.get("text_query"))
 
         if query.get("only_colored_refs"):
             table_data = table_data.filter(color__isnull=False)
 
         if query_filter:
             table_data = table_data.filter(
-                Q(name__icontains=query_filter)
-                | Q(text__icontains=query_filter)
-                | Q(title__icontains=query_filter)
+                Q(name__icontains=query_filter) | Q(text__icontains=query_filter) | Q(title__icontains=query_filter)
             )
 
         table = TextRefTable(table_data)
@@ -1219,7 +1131,7 @@ def search(request: HtmxHttpRequest) -> HttpResponse:
             return render(
                 request,
                 "pages/search_error.html",
-                {"error": f"Invalid search parameter provided. Please try again."},
+                {"error": "Invalid search parameter provided. Please try again."},
             )
     else:
         return render(request, "pages/search.html", {"form": SearchForm()})

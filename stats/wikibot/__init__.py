@@ -1,4 +1,3 @@
-from pprint import pprint
 import regex as re
 import pywikibot as pwb
 import wikitextparser as wtp
@@ -38,9 +37,7 @@ class TwiBot(SingleSiteBot):
         # Find character infobox
         infoboxes = list(
             filter(
-                lambda t: re.match(
-                    r"^Template:Infobox[\s_]character$", t[0].title().strip()
-                ),
+                lambda t: re.match(r"^Template:Infobox[\s_]character$", t[0].title().strip()),
                 page.templatesWithParams(),
             )
         )
@@ -137,9 +134,7 @@ class TwiBot(SingleSiteBot):
         data = {}
         try:
             for section in artifact_sections:
-                data |= ArtifactListParser(
-                    wtp.parse(section.content).get_lists()[0]
-                ).parse()
+                data |= ArtifactListParser(wtp.parse(section.content).get_lists()[0]).parse()
         except IndexError as e:
             print("An Artifact section doesn't have an item list")
             raise e

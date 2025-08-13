@@ -1,25 +1,18 @@
 from django.db.models import Count
 import plotly.express as px
 from plotly.graph_objects import Figure
-import numpy as np
 from stats.models import RefType, TextRef, Chapter
 from .config import DEFAULT_LAYOUT, DEFAULT_DISCRETE_COLORS
 
 
-def skill_ref_counts(
-    first_chapter: Chapter | None, last_chapter: Chapter | None
-) -> Figure | None:
+def skill_ref_counts(first_chapter: Chapter | None, last_chapter: Chapter | None) -> Figure | None:
     skill_refs = TextRef.objects.filter(type__type=RefType.SKILL)
 
     if first_chapter:
-        skill_refs = skill_refs.filter(
-            chapter_line__chapter__number__gte=first_chapter.number
-        )
+        skill_refs = skill_refs.filter(chapter_line__chapter__number__gte=first_chapter.number)
 
     if last_chapter:
-        skill_refs = skill_refs.filter(
-            chapter_line__chapter__number__lte=last_chapter.number
-        )
+        skill_refs = skill_refs.filter(chapter_line__chapter__number__lte=last_chapter.number)
 
     skill_refs = (
         skill_refs.values("type__name")

@@ -15,10 +15,7 @@ MAX_CHAPTER_NUM = (
 def get_chapters():
     yield (0, "--- First Chapter ---")
     i = 0
-    for tup in (
-        (c["number"], c["title"])
-        for c in Chapter.objects.values("number", "title").order_by("number")
-    ):
+    for tup in ((c["number"], c["title"]) for c in Chapter.objects.values("number", "title").order_by("number")):
         i += 1
         yield tup
     yield (i, "--- Last Chapter ---")
@@ -39,9 +36,7 @@ class ChapterFilterForm(forms.Form):
         choices=chapter_choices,
         required=False,
         initial=0,
-        widget=forms.Select(
-            attrs={"class": select_input_tailwind_classes, "style": select_input_styles}
-        ),
+        widget=forms.Select(attrs={"class": select_input_tailwind_classes, "style": select_input_styles}),
     )
 
     last_chapter = forms.TypedChoiceField(
@@ -49,9 +44,7 @@ class ChapterFilterForm(forms.Form):
         choices=chapter_choices,
         required=False,
         initial=max_choice,
-        widget=forms.Select(
-            attrs={"class": select_input_tailwind_classes, "style": select_input_styles}
-        ),
+        widget=forms.Select(attrs={"class": select_input_tailwind_classes, "style": select_input_styles}),
     )
 
 
@@ -91,9 +84,7 @@ class SearchForm(forms.Form):
         initial=15,
         min_value=10,
         max_value=9999,
-        widget=forms.NumberInput(
-            attrs={"class": integer_input_tailwind_classes, "style": "width: 5rem"}
-        ),
+        widget=forms.NumberInput(attrs={"class": integer_input_tailwind_classes, "style": "width: 5rem"}),
     )
 
     only_colored_refs = forms.BooleanField(

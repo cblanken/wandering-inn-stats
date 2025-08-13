@@ -1,4 +1,3 @@
-import pytest
 from stats.wikibot.parse import SkillTableParser
 
 
@@ -17,7 +16,7 @@ def test_no_aliases():
                 "[https://wanderinginn.com/2022/08/30/9-12/ 9.12]",
             ]
         )
-    ).get("aliases") == None
+    ).get("aliases") is None
 
 
 def test_no_parse_category_as_alias():
@@ -30,7 +29,7 @@ def test_no_parse_category_as_alias():
                 "[https://wanderinginn.com/2023/07/16/9-54-c/ 9.54 C]",
             ]
         )
-    ).get("aliases") == None
+    ).get("aliases") is None
 
 
 """

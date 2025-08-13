@@ -1,7 +1,6 @@
 import abc
 from itertools import chain
 import regex as re
-import pywikibot as pwb
 from pywikibot.textlib import extract_templates_and_params
 from pywikibot.site import APISite
 import mwparserfromhell as mwp
@@ -82,13 +81,13 @@ def parse_name_field(text: str, wrap_brackets=False) -> dict[str, str]:
         lines = re.split(RE_LINEBREAK, parsed_text)
 
         # Strip tags
-        lines = [mwp.parse(l).strip_code() for l in lines]
+        lines = [mwp.parse(line).strip_code() for line in lines]
 
         # Remove any leftover delimiters
         lines = [remove_list_delimiters(x) if "/" in x[:2] else x for x in lines]
 
         # Chain together names
-        names = list(chain.from_iterable([slash_split(l) for l in lines]))
+        names = list(chain.from_iterable([slash_split(line) for line in lines]))
 
         not_alias_indexes = []
         for i, n in enumerate(names):
@@ -111,9 +110,7 @@ def parse_name_field(text: str, wrap_brackets=False) -> dict[str, str]:
             del names[i]
 
         # Remove wiki code including [[Links]] and empty names
-        names = [
-            wtp.remove_markup(mwp.parse(n).strip_code()) for n in names if len(n) > 0
-        ]
+        names = [wtp.remove_markup(mwp.parse(n).strip_code()) for n in names if len(n) > 0]
 
         # Process brackets to catch inconsistent bracket splitting
         # Remove brackets
@@ -179,7 +176,7 @@ class CharInfoBoxParser(WikiTemplateParser):
         if first_hrefs := self.params.get("first appearance"):
             wikitext = wtp.parse(self.site.expand_text(first_hrefs))
             if ext_links := wikitext.external_links:
-                first_hrefs = [l.url for l in ext_links]
+                first_hrefs = [link.url for link in ext_links]
         else:
             first_hrefs = None
 
@@ -195,9 +192,7 @@ class CharInfoBoxParser(WikiTemplateParser):
         if status is not None:
             status_templates = extract_templates_and_params(self.params.get("status"))
             if len(status_templates) > 0:
-                status = re.sub(
-                    r"<[\s]*br[\s]*/?>", " ", status_templates[0][1].get("1")
-                ).strip()
+                status = re.sub(r"<[\s]*br[\s]*/?>", " ", status_templates[0][1].get("1")).strip()
             else:
                 soup = BeautifulSoup(self.params.get("status"), "html.parser")
                 status = soup.text.strip()
@@ -239,10 +234,7 @@ class ClassesTableParser(WikiTableParser):
         if re.search(r"\s*\.\.\.\s*\]?\s*$", parsed_name.get("name")):
             parsed_row["is_prefix"] = True
 
-        links = [
-            wl.title
-            for wl in chain.from_iterable([wtp.parse(col).wikilinks for col in row])
-        ]
+        links = [wl.title for wl in chain.from_iterable([wtp.parse(col).wikilinks for col in row])]
 
         if links:
             parsed_row["links_to"] = links
@@ -291,9 +283,7 @@ class SpellTableParser(WikiTableParser):
     @staticmethod
     def parse_row(row: list[str]) -> dict[str, str | list[str]]:
         parsed_name = parse_name_field(row[0], wrap_brackets=True)
-        parsed_row: dict[str, str | list[str]] = {
-            "tier": strip_ref_tags(replace_br_with_space(row[1].strip()))
-        }
+        parsed_row: dict[str, str | list[str]] = {"tier": strip_ref_tags(replace_br_with_space(row[1].strip()))}
         if aliases := parsed_name.get("aliases"):
             parsed_row["aliases"] = aliases
         if categories := parsed_name.get("categories"):

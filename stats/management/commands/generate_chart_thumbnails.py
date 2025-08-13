@@ -35,9 +35,7 @@ class Command(BaseCommand):
             help="Only generate thumbnails for reftype charts",
         )
 
-        parser.add_argument(
-            "-t", "--reftype-name", help="Specify regex for RefType name"
-        )
+        parser.add_argument("-t", "--reftype-name", help="Specify regex for RefType name")
 
     def save_chart_thumbnail(self, options, chart: charts.ChartGalleryItem):
         if options.get("chart_name") in str(chart.title):
@@ -51,22 +49,12 @@ class Command(BaseCommand):
                 chart.path.parent.mkdir(parents=True, exist_ok=True)
                 fig.write_image(file=chart.path, format="svg")
 
-                self.stdout.write(
-                    self.style.SUCCESS(
-                        f'> Chart ({chart.title}) saved to "{chart.path}"'
-                    )
-                )
+                self.stdout.write(self.style.SUCCESS(f'> Chart ({chart.title}) saved to "{chart.path}"'))
             else:
-                self.stdout.write(
-                    self.style.WARNING(
-                        f"> Chart ({chart.title}) did not have enough data. Skipped."
-                    )
-                )
+                self.stdout.write(self.style.WARNING(f"> Chart ({chart.title}) did not have enough data. Skipped."))
         else:
             self.stdout.write(
-                self.style.WARNING(
-                    f'> Chart ({chart.title}) did not match chart-name: "{options.get("chart_name")}"'
-                )
+                self.style.WARNING(f'> Chart ({chart.title}) did not match chart-name: "{options.get("chart_name")}"')
             )
 
     def gen_rt_gallery(self, rt: RefType, options):
@@ -77,9 +65,7 @@ class Command(BaseCommand):
                 self.save_chart_thumbnail(options, chart)
             else:
                 self.stdout.write(
-                    self.style.WARNING(
-                        f"> Thumbnail for {rt.name} already exists at {chart.static_path}"
-                    )
+                    self.style.WARNING(f"> Thumbnail for {rt.name} already exists at {chart.static_path}")
                 )
 
     def handle(self, *args, **options) -> None:
@@ -94,9 +80,9 @@ class Command(BaseCommand):
             charts.get_location_charts(),
         ]
         if reftype_name := options.get("reftype_name", None):
-            pattern = re.compile(reftype_name)
+            re.compile(reftype_name)
         else:
-            pattern = None
+            pass
         try:
             if not options.get("reftypes_only"):
                 for gallery in main_chart_galleries:
@@ -111,15 +97,10 @@ class Command(BaseCommand):
                             )
 
             with ThreadPoolExecutor(max_workers=cpu_count() - 1) as executor:
-                reftypes = RefType.objects.filter(
-                    name__icontains=options.get("chart_name")
-                )
-                future_to_rt = {
-                    executor.submit(self.gen_rt_gallery, rt, options): rt
-                    for rt in reftypes
-                }
+                reftypes = RefType.objects.filter(name__icontains=options.get("chart_name"))
+                future_to_rt = {executor.submit(self.gen_rt_gallery, rt, options): rt for rt in reftypes}
                 for future in as_completed(future_to_rt):
-                    data = future.result()
+                    future.result()
 
         except KeyboardInterrupt as exc:
             s = io.StringIO()
@@ -127,6 +108,4 @@ class Command(BaseCommand):
             ps.print_stats(25)
             print(s.getvalue())
 
-            raise CommandError(
-                "Keyboard interrupt...thumbnail generation stopped."
-            ) from exc
+            raise CommandError("Keyboard interrupt...thumbnail generation stopped.") from exc

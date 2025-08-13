@@ -1,4 +1,3 @@
-import pytest
 from stats.wikibot.parse import CharInfoBoxParser
 from pywikibot.site import APISite
 
@@ -11,14 +10,12 @@ Aliases
 
 def test_infobox_single_alias():
     """Parses infobox with only a single name into a singleton list"""
-    assert CharInfoBoxParser(["aliases=BlackMage"], site).parse().get("aliases") == [
-        "BlackMage"
-    ]
+    assert CharInfoBoxParser(["aliases=BlackMage"], site).parse().get("aliases") == ["BlackMage"]
 
 
 def test_infobox_no_aliases():
     """Parses infobox without any aliases into an empty list"""
-    assert CharInfoBoxParser(["aliases="], site).parse().get("aliases") == None
+    assert CharInfoBoxParser(["aliases="], site).parse().get("aliases") is None
 
 
 def test_infobox_Bird_aliases():
@@ -105,9 +102,7 @@ def test_infobox_ref_code_in_single_alias():
     Strip <ref> codes from single alias
     """
     assert CharInfoBoxParser(
-        [
-            "aliases=Imani-cook<ref>[https://wanderinginn.com/2021/01/10/8-00/ Chapter 8.00]</ref>"
-        ],
+        ["aliases=Imani-cook<ref>[https://wanderinginn.com/2021/01/10/8-00/ Chapter 8.00]</ref>"],
         site,
     ).parse().get("aliases") == ["Imani-cook"]
 
@@ -119,9 +114,7 @@ First appearance / first_href
 
 def test_infobox_no_first_appearance():
     """Parses infobox with no first appearance links"""
-    assert (
-        CharInfoBoxParser(["first appearance="], site).parse().get("first_href") is None
-    )
+    assert CharInfoBoxParser(["first appearance="], site).parse().get("first_href") is None
 
 
 def test_infobox_multiple_first_hrefs():
@@ -146,9 +139,7 @@ Status
 def test_infobox_status_linebreaks():
     """Parses infobox with multiple status split by linebreaks <br>"""
     assert (
-        CharInfoBoxParser(["status={{Status|Deceased<br />(''Soul Consumed'')}}"], site)
-        .parse()
-        .get("status")
+        CharInfoBoxParser(["status={{Status|Deceased<br />(''Soul Consumed'')}}"], site).parse().get("status")
         == "Deceased (''Soul Consumed'')"
     )
 

@@ -1,7 +1,4 @@
-import string
-from django.core.validators import EMPTY_VALUES
-from django.db.models import F, Q
-from django.db.models.query import QuerySet
+from django.db.models import F
 from django.urls import NoReverseMatch, reverse
 from django.utils.text import slugify
 from django.utils.html import strip_tags
@@ -15,9 +12,7 @@ EMPTY_TABLE_TEXT = "No results found for the given query"
 
 
 class TextRefTable(tables.Table):
-    ref_name = tables.Column(
-        accessor="type__name", attrs={"th": {"style": "width: 20%;"}}
-    )
+    ref_name = tables.Column(accessor="type__name", attrs={"th": {"style": "width: 20%;"}})
     text = tables.Column(
         accessor="chapter_line__text",
         attrs={
@@ -70,7 +65,6 @@ class TextRefTable(tables.Table):
             return record.type.name
 
     def render_text(self, record: TextRef):
-        name = record.type.name
         text = record.chapter_line.text
         first = strip_tags(text[: record.start_column])
         highlight = text[record.start_column : record.end_column]
@@ -85,22 +79,16 @@ class TextRefTable(tables.Table):
         # Using the full text or a strict character count appears to run into issues when linking
         # with a TextFragment, either with too long URLs or unfinished words
         offset = 25
-        fragment_start = (
-            record.start_column - offset if record.start_column > offset else 0
-        )
+        fragment_start = record.start_column - offset if record.start_column > offset else 0
         fragment_end = (
             record.end_column + offset
             if len(record.chapter_line.text) > record.end_column + offset
             else len(record.chapter_line.text) - 1
         )
         front_word_cutoff_cnt = 0 if fragment_start == 0 else 1
-        end_word_cutoff_cnt = (
-            len(record.chapter_line.text)
-            if fragment_end == len(record.chapter_line.text) - 1
-            else -1
-        )
+        end_word_cutoff_cnt = len(record.chapter_line.text) if fragment_end == len(record.chapter_line.text) - 1 else -1
 
-        source_url_with_fragment = f'{value}#:~:text={quote(" ".join(strip_tags(record.chapter_line.text[fragment_start:fragment_end]).split(" ")[front_word_cutoff_cnt:end_word_cutoff_cnt]))}'
+        source_url_with_fragment = f"{value}#:~:text={quote(' '.join(strip_tags(record.chapter_line.text[fragment_start:fragment_end]).split(' ')[front_word_cutoff_cnt:end_word_cutoff_cnt]))}"
 
         return render_to_string(
             "patterns/atoms/link/link.html",
@@ -122,12 +110,8 @@ class TextRefTable(tables.Table):
 
 
 class ChapterRefTable(tables.Table):
-    ref_name = tables.Column(
-        accessor="name", verbose_name="Name", attrs={"th": {"style": "width: 30%;"}}
-    )
-    count = tables.Column(
-        accessor="count", verbose_name="Count", attrs={"th": {"style": "width: 10%;"}}
-    )
+    ref_name = tables.Column(accessor="name", verbose_name="Name", attrs={"th": {"style": "width: 30%;"}})
+    count = tables.Column(accessor="count", verbose_name="Count", attrs={"th": {"style": "width: 10%;"}})
     chapters = tables.Column(
         accessor="chapter_data",
         verbose_name="Chapters",
@@ -191,9 +175,7 @@ class ChapterRefTable(tables.Table):
 
 class ReftypeMentionsHtmxTable(tables.Table):
     name = tables.Column(verbose_name="Name", attrs={"th": {"style": "width: 50%"}})
-    mentions = tables.Column(
-        verbose_name="Mentions", attrs={"th": {"style": "width: 30%"}}
-    )
+    mentions = tables.Column(verbose_name="Mentions", attrs={"th": {"style": "width: 30%"}})
     word_count = tables.Column(attrs={"th": {"style": "width: 10%"}})
     letter_count = tables.Column(attrs={"th": {"style": "width: 10%"}})
 
@@ -207,12 +189,8 @@ class ReftypeMentionsHtmxTable(tables.Table):
         )
 
     def order_mentions(self, queryset, is_descending):
-        queryset = queryset.annotate(
-            mentions=F("reftypecomputedview__mentions")
-        ).order_by(
-            F("mentions").desc(nulls_last=True)
-            if is_descending
-            else F("mentions").asc()
+        queryset = queryset.annotate(mentions=F("reftypecomputedview__mentions")).order_by(
+            F("mentions").desc(nulls_last=True) if is_descending else F("mentions").asc()
         )
 
         return (queryset, True)
@@ -278,23 +256,15 @@ class CharacterHtmxTable(tables.Table):
         )
 
     def order_mentions(self, queryset, is_descending):
-        queryset = queryset.annotate(
-            mentions=F("ref_type__reftypecomputedview__mentions")
-        ).order_by(
-            F("mentions").desc(nulls_last=True)
-            if is_descending
-            else F("mentions").asc()
+        queryset = queryset.annotate(mentions=F("ref_type__reftypecomputedview__mentions")).order_by(
+            F("mentions").desc(nulls_last=True) if is_descending else F("mentions").asc()
         )
 
         return (queryset, True)
 
     def order_first_appearance(self, queryset, is_descending):
-        queryset = queryset.annotate(
-            chapter_num=F("first_chapter_appearance__number")
-        ).order_by(
-            F("chapter_num").desc(nulls_last=True)
-            if is_descending
-            else F("chapter_num").asc()
+        queryset = queryset.annotate(chapter_num=F("first_chapter_appearance__number")).order_by(
+            F("chapter_num").desc(nulls_last=True) if is_descending else F("chapter_num").asc()
         )
 
         return (queryset, True)
@@ -307,9 +277,7 @@ class CharacterHtmxTable(tables.Table):
 
 
 class ChapterHtmxTable(tables.Table):
-    title = tables.Column(
-        orderable=False, attrs={"td": {"style": "width: 30%; max-width: 40%;"}}
-    )
+    title = tables.Column(orderable=False, attrs={"td": {"style": "width: 30%; max-width: 40%;"}})
     number = tables.Column(attrs={"td": {"style": "width: 6rem"}})
     word_count = tables.Column(attrs={"td": {"style": "width: 6rem"}})
     post_date = tables.Column(attrs={"td": {"style": "width: 18rem"}})

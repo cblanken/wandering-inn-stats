@@ -1,4 +1,3 @@
-from django.contrib.postgres.fields import ArrayField
 from django.core.validators import RegexValidator
 from django.db import models
 from django.db.models.functions import Length
@@ -28,9 +27,7 @@ class Color(models.Model):
         max_length=6,
         validators=[RegexValidator(r"^[a-zA-Z\d]{6}$")],
     )
-    category = models.ForeignKey(
-        ColorCategory, on_delete=models.CASCADE, verbose_name="Color Category"
-    )
+    category = models.ForeignKey(ColorCategory, on_delete=models.CASCADE, verbose_name="Color Category")
 
     class Meta:
         ordering = ["rgb"]
@@ -41,6 +38,7 @@ class Color(models.Model):
 
 class Volume(models.Model):
     "Model for volumes"
+
     number = models.PositiveIntegerField(unique=True, verbose_name="Volume Number")
     title = models.TextField(unique=True, verbose_name="Volume Title")
     summary = models.TextField(default="")
@@ -54,6 +52,7 @@ class Volume(models.Model):
 
 class Book(models.Model):
     "Model for books"
+
     number = models.PositiveBigIntegerField(verbose_name="Book Number")
     title = models.TextField(verbose_name="Book Title")
     volume = models.ForeignKey(Volume, on_delete=models.CASCADE)
@@ -75,12 +74,8 @@ class Book(models.Model):
     class Meta:
         ordering = ["volume", "number"]
         constraints = [
-            models.UniqueConstraint(
-                fields=["volume", "title"], name="unique_volume_and_title"
-            ),
-            models.UniqueConstraint(
-                fields=["volume", "number"], name="unique_volume_and_book_num"
-            ),
+            models.UniqueConstraint(fields=["volume", "title"], name="unique_volume_and_title"),
+            models.UniqueConstraint(fields=["volume", "number"], name="unique_volume_and_book_num"),
         ]
 
     def __str__(self):
@@ -89,6 +84,7 @@ class Book(models.Model):
 
 class Chapter(models.Model):
     "Model for book chapters"
+
     number = models.PositiveBigIntegerField(unique=True)
     title = models.TextField(verbose_name="Chapter Title", unique=True)
     is_interlude = models.BooleanField()
@@ -161,9 +157,7 @@ class RefType(models.Model):
     slug = models.TextField(default="")
     word_count = models.GeneratedField(  # type: ignore[attr-defined]
         expression=models.Func(
-            models.Func(
-                models.F("name"), models.Value(r"\s+"), function="regexp_split_to_array"
-            ),
+            models.Func(models.F("name"), models.Value(r"\s+"), function="regexp_split_to_array"),
             1,
             function="array_length",
         ),
@@ -171,19 +165,13 @@ class RefType(models.Model):
         db_persist=True,
     )
     letter_count = models.GeneratedField(  # type: ignore[attr-defined]
-        expression=models.Func(
-            "name", arity=1, function="length", output_field=models.IntegerField()
-        ),
+        expression=models.Func("name", arity=1, function="length", output_field=models.IntegerField()),
         output_field=models.IntegerField(),
         db_persist=True,
     )
 
     class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=["name", "type"], name="unique_name_and_type"
-            )
-        ]
+        constraints = [models.UniqueConstraint(fields=["name", "type"], name="unique_name_and_type")]
         indexes = [
             models.Index(fields=["name"]),
             models.Index(fields=["type"]),
@@ -402,9 +390,7 @@ class Character(models.Model):
     ]
 
     ref_type = models.OneToOneField(RefType, on_delete=models.CASCADE, primary_key=True)
-    first_chapter_appearance = models.ForeignKey(
-        Chapter, on_delete=models.CASCADE, null=True
-    )
+    first_chapter_appearance = models.ForeignKey(Chapter, on_delete=models.CASCADE, null=True)
     wiki_uri = models.URLField(null=True)
     status = models.CharField(max_length=2, choices=STATUSES, null=True)
     species = models.CharField(max_length=2, choices=SPECIES, null=True)
@@ -485,9 +471,7 @@ class Alias(models.Model):
     class Meta:
         verbose_name_plural = "Aliases"
         ordering = ["name"]
-        constraints = [
-            models.UniqueConstraint(fields=["name", "ref_type"], name="unique_alias")
-        ]
+        constraints = [models.UniqueConstraint(fields=["name", "ref_type"], name="unique_alias")]
 
     def __str__(self) -> str:
         return f"(Alias: {self.name} - RefType: {self.ref_type})"
@@ -503,11 +487,7 @@ class ChapterLine(models.Model):
     class Meta:
         verbose_name_plural = "Chapter Lines"
         ordering = ["chapter", "line_number"]
-        constraints = [
-            models.UniqueConstraint(
-                fields=["chapter", "line_number"], name="unique_chapter_and_line"
-            )
-        ]
+        constraints = [models.UniqueConstraint(fields=["chapter", "line_number"], name="unique_chapter_and_line")]
 
     def __str__(self):
         return f"(Chapter: ({self.chapter.number}) {self.chapter.title}, Line: {self.line_number}, Text: {self.text})"
@@ -566,9 +546,7 @@ class RefTypeComputedView(models.Model):
     Contains any additional RefType data that requires long running computations, to be materialized as needed
     """
 
-    ref_type = models.OneToOneField(
-        RefType, on_delete=models.DO_NOTHING, primary_key=True, db_column="ref_type"
-    )
+    ref_type = models.OneToOneField(RefType, on_delete=models.DO_NOTHING, primary_key=True, db_column="ref_type")
     mentions = models.PositiveIntegerField()
     # first_mention_chapter = models.ForeignKey(Chapter, on_delete=models.CASCADE)
 

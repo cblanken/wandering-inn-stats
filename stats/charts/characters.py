@@ -5,20 +5,14 @@ from stats.models import Character, RefType, TextRef, Chapter
 from .config import DEFAULT_LAYOUT, DEFAULT_DISCRETE_COLORS
 
 
-def character_text_refs(
-    first_chapter: Chapter | None = None, last_chapter: Chapter | None = None
-):
+def character_text_refs(first_chapter: Chapter | None = None, last_chapter: Chapter | None = None):
     character_text_refs = TextRef.objects.filter(Q(type__type=RefType.CHARACTER))
 
     if first_chapter:
-        character_text_refs = character_text_refs.filter(
-            chapter_line__chapter__number__gte=first_chapter.number
-        )
+        character_text_refs = character_text_refs.filter(chapter_line__chapter__number__gte=first_chapter.number)
 
     if last_chapter:
-        character_text_refs = character_text_refs.filter(
-            chapter_line__chapter__number__lte=last_chapter.number
-        )
+        character_text_refs = character_text_refs.filter(chapter_line__chapter__number__lte=last_chapter.number)
 
     character_text_refs = (
         character_text_refs.values("type__name")
@@ -45,13 +39,9 @@ def character_text_refs(
     return char_refs_count_fig
 
 
-def character_counts_per_chapter(
-    first_chapter: Chapter | None = None, last_chapter: Chapter | None = None
-):
+def character_counts_per_chapter(first_chapter: Chapter | None = None, last_chapter: Chapter | None = None):
     def get_text_refs(num):
-        tr = TextRef.objects.filter(
-            Q(chapter_line__chapter__number=num) & Q(type__type="CH")
-        )
+        tr = TextRef.objects.filter(Q(chapter_line__chapter__number=num) & Q(type__type="CH"))
         if first_chapter:
             tr = tr.filter(chapter_line__chapter__number__gte=first_chapter.number)
 
@@ -68,17 +58,12 @@ def character_counts_per_chapter(
     if last_chapter:
         max_chapter: int = last_chapter.number
     else:
-        max_chapter: int = TextRef.objects.values().aggregate(
-            max=Max("chapter_line__chapter__number")
-        )["max"]
+        max_chapter: int = TextRef.objects.values().aggregate(max=Max("chapter_line__chapter__number"))["max"]
 
     char_counts_per_chapter = [
         (
             num,
-            get_text_refs(num)
-            .values("type__name")
-            .annotate(cnt=Count("type__name"))
-            .count(),
+            get_text_refs(num).values("type__name").annotate(cnt=Count("type__name")).count(),
         )
         for num in range(min_chapter, max_chapter)
     ]
@@ -102,9 +87,7 @@ def character_counts_per_chapter(
     )
 
     char_counts_per_chapter_fig.data[0]["hovertemplate"] = (
-        "<b>Chapter Number</b>: %{x}<br>"
-        + "<b>Total Characters</b>: %{y}<br>"
-        + "<extra></extra>"
+        "<b>Chapter Number</b>: %{x}<br>" + "<b>Total Characters</b>: %{y}<br>" + "<extra></extra>"
     )
     return char_counts_per_chapter_fig
 
@@ -123,9 +106,7 @@ def characters_by_species():
     # TODO: make this more robust and performant
     # currently scans Character.SPECIES choices tuple to match human-readable string
     for c in characters:
-        c["species"] = Character.SPECIES[
-            [x[0] for x in Character.SPECIES].index(c["species"])
-        ][1]
+        c["species"] = Character.SPECIES[[x[0] for x in Character.SPECIES].index(c["species"])][1]
 
     chars_by_species_fig = px.bar(
         characters,
@@ -156,9 +137,7 @@ def characters_by_status():
     )
 
     for c in characters:
-        c["status"] = Character.STATUSES[
-            [x[0] for x in Character.STATUSES].index(c["status"])
-        ][1]
+        c["status"] = Character.STATUSES[[x[0] for x in Character.STATUSES].index(c["status"])][1]
 
     chars_by_status_fig = px.pie(
         characters,
@@ -170,9 +149,7 @@ def characters_by_status():
         textposition="auto",
         textinfo="label+percent",
         customdata=np.stack((characters.values_list("status", "status_cnt"),), axis=-1),
-        hovertemplate="<b>Status</b>: %{label}<br>"
-        + "<b>Characters</b>: %{value}"
-        + "<extra></extra>",
+        hovertemplate="<b>Status</b>: %{label}<br>" + "<b>Characters</b>: %{value}" + "<extra></extra>",
     )
 
     return chars_by_status_fig

@@ -45,9 +45,7 @@ class Filetype(Enum):
     JPG = "jpg"
 
 
-def get_static_thumbnail_path(
-    filename: str, filetype: Filetype, extra_path: Path = ""
-) -> Path:
+def get_static_thumbnail_path(filename: str, filetype: Filetype, extra_path: Path = "") -> Path:
     return Path(
         "charts",
         filetype.value,
@@ -56,12 +54,8 @@ def get_static_thumbnail_path(
     )
 
 
-def get_thumbnail_path(
-    filename: str, filetype: Filetype, extra_path: Path = ""
-) -> Path:
-    return Path(
-        "stats", "static", get_static_thumbnail_path(filename, filetype, extra_path)
-    )
+def get_thumbnail_path(filename: str, filetype: Filetype, extra_path: Path = "") -> Path:
+    return Path("stats", "static", get_static_thumbnail_path(filename, filetype, extra_path))
 
 
 class ChartGalleryItem:

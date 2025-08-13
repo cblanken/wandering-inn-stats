@@ -10,9 +10,7 @@ def test_list_strip_surrounding_whitespace():
 def test_nowiki_tags():
     """Parses out <nowiki> tags"""
     assert (
-        parse_name_field(
-            "<nowiki>[</nowiki>[[Beast Tamers|Beast Tamer]]<nowiki>]</nowiki>"
-        ).get("name")
+        parse_name_field("<nowiki>[</nowiki>[[Beast Tamers|Beast Tamer]]<nowiki>]</nowiki>").get("name")
         == "Beast Tamer"
     )
 
@@ -40,9 +38,7 @@ def test_category_removed_and_consumes_surrounding_space_and_punctuation():
     assert parsed_fields.get("categories") == ["Ants"]
 
     # Category at end with extra whitespace
-    parsed_fields = parse_name_field(
-        "[Abler Bodied Animals          (Ants)            ]"
-    )
+    parsed_fields = parse_name_field("[Abler Bodied Animals          (Ants)            ]")
     assert parsed_fields.get("name") == "Abler Bodied Animals"
     assert parsed_fields.get("categories") == ["Ants"]
 

@@ -1,13 +1,13 @@
 import pytest
 from processing.get import parse_chapter_content
-from bs4 import BeautifulSoup, Tag
+from bs4 import BeautifulSoup
 from pathlib import Path
 
 
 @pytest.fixture()
 def ch1_html_content() -> BeautifulSoup:
     """Sample chapter #1"""
-    with open(Path(__file__).parent / "samples/8.00/8.00.html", encoding="utf-8") as fp:
+    with Path.open(Path(__file__).parent / "samples/8.00/8.00.html", encoding="utf-8") as fp:
         soup = BeautifulSoup(fp)
         soup.get("html")
         return soup
@@ -16,34 +16,28 @@ def ch1_html_content() -> BeautifulSoup:
 @pytest.fixture()
 def ch1_text_content() -> str:
     """Sample Author's Note #1"""
-    with open(Path(__file__).parent / "samples/8.00/8.00.txt", encoding="utf-8") as fp:
+    with Path.open(Path(__file__).parent / "samples/8.00/8.00.txt", encoding="utf-8") as fp:
         return fp.read()
 
 
 @pytest.fixture
 def ch1_authors_note() -> str:
     """Sample Author's Note #1"""
-    with open(
-        Path(__file__).parent / "samples/8.00/8.00_authors_note.txt", encoding="utf-8"
-    ) as fp:
+    with Path.open(Path(__file__).parent / "samples/8.00/8.00_authors_note.txt", encoding="utf-8") as fp:
         return fp.read()
 
 
 @pytest.fixture
 def ch1_pre_note() -> str:
     """Sample parenthesized note #1"""
-    with open(
-        Path(__file__).parent / "samples/8.00/8.00_pre_note.txt", encoding="utf-8"
-    ) as fp:
+    with Path.open(Path(__file__).parent / "samples/8.00/8.00_pre_note.txt", encoding="utf-8") as fp:
         return fp.read()
 
 
 @pytest.fixture()
 def ch2_html_content() -> BeautifulSoup:
     """Sample chapter #2"""
-    with open(
-        Path(__file__).parent / "samples/TheRoots3/chapter.html", encoding="utf-8"
-    ) as fp:
+    with Path.open(Path(__file__).parent / "samples/TheRoots3/chapter.html", encoding="utf-8") as fp:
         soup = BeautifulSoup(fp)
         soup.get("html")
         return soup
@@ -52,36 +46,28 @@ def ch2_html_content() -> BeautifulSoup:
 @pytest.fixture()
 def ch2_text_content() -> str:
     """Sample Author's Note #2"""
-    with open(
-        Path(__file__).parent / "samples/TheRoots3/chapter.txt", encoding="utf-8"
-    ) as fp:
+    with Path.open(Path(__file__).parent / "samples/TheRoots3/chapter.txt", encoding="utf-8") as fp:
         return fp.read()
 
 
 @pytest.fixture
 def ch2_authors_note() -> str:
     """Sample Author's Note #2"""
-    with open(
-        Path(__file__).parent / "samples/TheRoots3/authors_note.txt", encoding="utf-8"
-    ) as fp:
+    with Path.open(Path(__file__).parent / "samples/TheRoots3/authors_note.txt", encoding="utf-8") as fp:
         return fp.read()
 
 
 @pytest.fixture
 def ch2_pre_note() -> str:
     """Sample pre note #2"""
-    with open(
-        Path(__file__).parent / "samples/TheRoots3/pre_note.txt", encoding="utf-8"
-    ) as fp:
+    with Path.open(Path(__file__).parent / "samples/TheRoots3/pre_note.txt", encoding="utf-8") as fp:
         return fp.read()
 
 
 @pytest.fixture()
 def ch3_html_content() -> BeautifulSoup:
     """Sample chapter #3"""
-    with open(
-        Path(__file__).parent / "samples/10.22_R/chapter.html", encoding="utf-8"
-    ) as fp:
+    with Path.open(Path(__file__).parent / "samples/10.22_R/chapter.html", encoding="utf-8") as fp:
         soup = BeautifulSoup(fp)
         soup.get("html")
         return soup
@@ -90,18 +76,14 @@ def ch3_html_content() -> BeautifulSoup:
 @pytest.fixture()
 def ch3_text_content() -> str:
     """Sample chapter #3"""
-    with open(
-        Path(__file__).parent / "samples/10.22_R/chapter.txt", encoding="utf-8"
-    ) as fp:
+    with Path.open(Path(__file__).parent / "samples/10.22_R/chapter.txt", encoding="utf-8") as fp:
         return fp.read()
 
 
 @pytest.fixture()
 def ch3_authors_note() -> str:
     """Sample chapter #3"""
-    with open(
-        Path(__file__).parent / "samples/10.22_R/authors_note.txt", encoding="utf-8"
-    ) as fp:
+    with Path.open(Path(__file__).parent / "samples/10.22_R/authors_note.txt", encoding="utf-8") as fp:
         return fp.read()
 
 
@@ -181,9 +163,7 @@ def test_signed_pre_note_not_in_chapter_text(ch2_html_content):
 # ------------------------------------------------------------------------
 # ch3 tests
 # ------------------------------------------------------------------------
-def test_parens_pre_note_and_pre_authors_note(
-    ch3_html_content, ch3_authors_note, ch3_text_content
-):
+def test_parens_pre_note_and_pre_authors_note(ch3_html_content, ch3_authors_note, ch3_text_content):
     """A chapter may have a parenthesized pre-note in addition to an Author's note
     at the start of the chapter"""
     data = parse_chapter_content(ch3_html_content)

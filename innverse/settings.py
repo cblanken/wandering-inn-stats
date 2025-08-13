@@ -16,9 +16,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = env.get("TWI_KEY")
 if SECRET_KEY is None:
-    raise Exception(
-        "The secret key ('TWI_KEY\") must be available in the environment to run this application!"
-    )
+    raise Exception("The secret key ('TWI_KEY\") must be available in the environment to run this application!")
 
 ALLOWED_HOSTS = ["localhost", "127.0.0.1", env.get("TWI_INTERNAL_HOST")]
 
@@ -167,9 +165,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 REST_FRAMEWORK = {
     # Use Django's standard `django.contrib.auth` permissions,
     # or allow read-only access for unauthenticated users.
-    "DEFAULT_PERMISSION_CLASSES": [
-        "rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly"
-    ]
+    "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly"]
 }
 
 TAILWIND_APP_NAME = "theme"
@@ -244,10 +240,8 @@ LOGGING = {
 TWIKI_BOT_USER = env.get("PYWIKIBOT_USER")
 TWIKI_BOT_NAME = env.get("PYWIKIBOT_BOT_NAME")
 TWIKI_BOT_PASS = env.get("PYWIKIBOT_PASS")
-with open("user-password.py", "w", encoding="utf-8") as fp:
-    fp.write(
-        f"('en', 'twi', {TWIKI_BOT_USER}, BotPassword('{TWIKI_BOT_NAME}', '{TWIKI_BOT_PASS}'))"
-    )
+with Path.open(Path("user-password.py"), "w", encoding="utf-8") as fp:
+    fp.write(f"('en', 'twi', {TWIKI_BOT_USER}, BotPassword('{TWIKI_BOT_NAME}', '{TWIKI_BOT_PASS}'))")
 
 
 # Analytics env

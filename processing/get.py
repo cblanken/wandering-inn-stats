@@ -7,10 +7,9 @@ from itertools import chain
 import hashlib
 import random
 import re
-import string
 from sys import stderr
 import time
-from bs4 import BeautifulSoup, ResultSet, Tag
+from bs4 import BeautifulSoup, Tag
 import requests
 import requests.exceptions
 from stem import Signal
@@ -56,9 +55,7 @@ class Session:
         if tor_enabled:
             self.set_tor_proxy(proxy_ip)
 
-    def get(
-        self, url: str, timeout: int = 10, ignore_throttle: bool = False
-    ) -> requests.Response | None:
+    def get(self, url: str, timeout: int = 10, ignore_throttle: bool = False) -> requests.Response | None:
         """Perform a GET request to [url]"""
         resp = None
         # Add jitter to throttle time
@@ -137,14 +134,10 @@ def parse_chapter_content(soup: BeautifulSoup) -> dict:
 
         # Capture parenthesized chapter pre-note
         if chapter_index < 10 and parens_pre_note_start_re.match(chapter_line):
-
             # Check current and next few lines for completion of parens
             for i in range(0, 5):
                 if parens_pre_note_end_re.match(content_lines[chapter_index + i]):
-                    pre_note_lines.append(
-                        "\n".join(content_lines[chapter_index : chapter_index + i + 1])
-                        + "\n"
-                    )
+                    pre_note_lines.append("\n".join(content_lines[chapter_index : chapter_index + i + 1]) + "\n")
                     chapter_index += i
                     break
 
@@ -152,9 +145,7 @@ def parse_chapter_content(soup: BeautifulSoup) -> dict:
             continue
 
         # Capture signed chapter pre-note
-        if chapter_index < 10 and any(
-            [signed_pre_note_re.match(line) for line in chapter_line.split("\n")]
-        ):
+        if chapter_index < 10 and any([signed_pre_note_re.match(line) for line in chapter_line.split("\n")]):
             pre_note_lines.extend(content_lines[: chapter_index + 1])
             chapter_lines.clear()
             chapter_index += 1
@@ -163,16 +154,12 @@ def parse_chapter_content(soup: BeautifulSoup) -> dict:
         # Capture note marked "Author's Note"
         if authors_note_re.match(content_lines[chapter_index].strip()):
             empty_line_cnt = 0
-            for authors_note_index, author_note_line in enumerate(
-                content_lines[chapter_index:]
-            ):
+            for authors_note_index, author_note_line in enumerate(content_lines[chapter_index:]):
                 if len(author_note_line.strip()) == 0:
                     empty_line_cnt += 1
 
                     if empty_line_cnt >= 2:
-                        authors_note_lines = content_lines[
-                            chapter_index : chapter_index + authors_note_index
-                        ]
+                        authors_note_lines = content_lines[chapter_index : chapter_index + authors_note_index]
                         break
                 else:
                     empty_line_cnt = 0
@@ -188,16 +175,12 @@ def parse_chapter_content(soup: BeautifulSoup) -> dict:
 
         chapter_index += 1
 
-    chapter_data["text"] = "\n".join([l.strip() for l in chapter_lines]).strip() + "\n"
+    chapter_data["text"] = "\n".join([line.strip() for line in chapter_lines]).strip() + "\n"
     chapter_data["authors_note"] = (
-        "\n".join(
-            [l.strip() for l in authors_note_lines if not l.strip() == ""]
-        ).strip()
-        + "\n"
+        "\n".join([line.strip() for line in authors_note_lines if not line.strip() == ""]).strip() + "\n"
     )
     chapter_data["pre_note"] = (
-        "\n".join([l.strip() for l in pre_note_lines if not l.strip() == ""]).strip()
-        + "\n"
+        "\n".join([line.strip() for line in pre_note_lines if not line.strip() == ""]).strip() + "\n"
     )
 
     try:
@@ -233,12 +216,8 @@ def parse_chapter_response(response: requests.Response) -> dict:
 
     try:
         title = soup.select(".entry-title")[0].get_text()
-        pub_time = soup.select("meta[property='article:published_time']")[0].get(
-            "content"
-        )
-        mod_time = soup.select("meta[property='article:modified_time']")[0].get(
-            "content"
-        )
+        pub_time = soup.select("meta[property='article:published_time']")[0].get("content")
+        mod_time = soup.select("meta[property='article:modified_time']")[0].get("content")
         dl_time: str = str(datetime.now().astimezone())
 
         chapter_data["html"] = str(soup.select_one(".entry-content"))
@@ -260,7 +239,7 @@ def save_file(filepath: Path, text: str, clobber: bool = False):
     if filepath.exists() and not clobber:
         return False
 
-    with open(filepath, "w", encoding="utf-8") as file:
+    with filepath.open("w", encoding="utf-8") as file:
         file.write(text)
         return True
 
@@ -299,10 +278,7 @@ class TableOfContents:
         if self.soup is None:
             return []
 
-        return [
-            f"https://{self.domain}" + link.get("href")
-            for link in self.soup.select(".chapter-entry a")
-        ]
+        return [f"https://{self.domain}" + link.get("href") for link in self.soup.select(".chapter-entry a")]
 
     def __get_volume_data(self) -> OrderedDict[str, OrderedDict[str, str]]:
         """Return dictionary containing tuples (volume_title, chapter_indexes)

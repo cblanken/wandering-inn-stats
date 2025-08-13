@@ -1,13 +1,12 @@
 import datetime as dt
 from enum import Enum
-from glob import glob
 import itertools
 import json
 from pathlib import Path
 import regex
-from typing import LiteralString, Any, AnyStr
+from typing import LiteralString, Any
 from django.core.management.base import BaseCommand, CommandError
-from django.db.models import Q, Model, Field
+from django.db.models import Q
 from django.db.models.query import QuerySet
 from django.db.utils import DataError, IntegrityError
 from django.utils.html import strip_tags
@@ -29,7 +28,6 @@ from processing import (
     Book as SrcBook,
     Chapter as SrcChapter,
     TextRef as SrcTextRef,
-    Pattern,
     get_metadata,
 )
 
@@ -218,9 +216,7 @@ class Command(BaseCommand):
         full_msg = f"{t} {category.value:<10} {style(msg)}"
         self.stdout.write(full_msg)
 
-    def update_prop_prompt(
-        self, old: Any, new: Any, property: str | None
-    ) -> tuple[Any, bool]:
+    def update_prop_prompt(self, old: Any, new: Any, property: str | None) -> tuple[Any, bool]:
         """Prompt user to update property and return selected value and confirmation boolean"""
         differ: bool = old != new
         prop = property or "property"
@@ -232,15 +228,13 @@ class Command(BaseCommand):
             print(f"> OLD: {old}")
             print(f"> NEW: {new}")
             while True:
-                resp = input(f"> Update? (default = no change) ([y]es/[n]o): ")
+                resp = input("> Update? (default = no change) ([y]es/[n]o): ")
                 if regex.match(r"^[Yy][e]?[s]?$", resp):
                     return (new, True)
                 elif resp == "" or regex.match(r"^[Nn][o]?", resp):
                     return (old, False)
                 else:
-                    self.stdout.write(
-                        f"> That doesn't match a valid response. Please try again."
-                    )
+                    self.stdout.write("> That doesn't match a valid response. Please try again.")
 
         return (old, False)
 
@@ -269,9 +263,7 @@ class Command(BaseCommand):
                     return field
 
                 if field != name_resp:
-                    confirm = input(
-                        f"> Is {self.style.WARNING(name_resp)} correct? (y/n): "
-                    )
+                    confirm = input(f"> Is {self.style.WARNING(name_resp)} correct? (y/n): ")
                     if regex.match(r"^[Yy][e]?[s]?$", confirm):
                         return name_resp
                     else:
@@ -283,9 +275,7 @@ class Command(BaseCommand):
             elif edit_resp == "" or regex.match(r"^[Nn][o]?", edit_resp):
                 return field
             else:
-                self.stdout.write(
-                    f"That doesn't match a valid response. Please try again."
-                )
+                self.stdout.write("That doesn't match a valid response. Please try again.")
 
     def get_or_create_alias(self, rt: RefType, alias_name: str) -> Alias | None:
         """Create Alias with name confirmation and logging of success/failure to console"""
@@ -309,9 +299,7 @@ class Command(BaseCommand):
 
         return alias
 
-    def get_or_create_reftype(
-        self, rt_name: str, rt_type: LiteralString
-    ) -> RefType | None:
+    def get_or_create_reftype(self, rt_name: str, rt_type: LiteralString) -> RefType | None:
         """
         Get an existing or create a new RefType with name confirmation and logging of success/failure to console or
         links to an existing Alias of the given `rt_name`.
@@ -324,9 +312,7 @@ class Command(BaseCommand):
             # Check for a matching Alias
             try:
                 alias = Alias.objects.get(name=rt_name, ref_type__type=rt_type)
-                self.log(
-                    f'RefType: "{rt_name}" already exists as an Alias', LogCat.EXISTS
-                )
+                self.log(f'RefType: "{rt_name}" already exists as an Alias', LogCat.EXISTS)
                 return alias.ref_type
             except Alias.DoesNotExist:
                 self.log(
@@ -337,20 +323,14 @@ class Command(BaseCommand):
                 if edited_name is None:
                     return
 
-                rt, rt_created = RefType.objects.get_or_create(
-                    name=edited_name, type=rt_type
-                )
+                rt, rt_created = RefType.objects.get_or_create(name=edited_name, type=rt_type)
                 if rt_created:
-                    self.log(
-                        self.style.SUCCESS(f'RefType: "{rt}" created'), LogCat.CREATED
-                    )
+                    self.log(self.style.SUCCESS(f'RefType: "{rt}" created'), LogCat.CREATED)
                 else:
                     self.log(f'RefType: "{edited_name}" already exists', LogCat.EXISTS)
                 return rt
 
-    def get_or_create_ref_type_from_text_ref(
-        self, options, text_ref: SrcTextRef
-    ) -> RefType | None:
+    def get_or_create_ref_type_from_text_ref(self, options, text_ref: SrcTextRef) -> RefType | None:
         """Check for existing RefType of TextRef and create backing RefType and Aliases as needed"""
         text_ref.text = strip_tags(text_ref.text)
         while True:  # loop for retries from select RefType prompt
@@ -409,10 +389,8 @@ class Command(BaseCommand):
                     return alias.ref_type
             except Alias.DoesNotExist:
                 pass
-            except Alias.MultipleObjectsReturned as e:
-                self.log(
-                    f'Multiple aliases found for name: "{text_ref.text}"', LogCat.WARN
-                )
+            except Alias.MultipleObjectsReturned:
+                self.log(f'Multiple aliases found for name: "{text_ref.text}"', LogCat.WARN)
                 aliases = Alias.objects.filter(name=text_ref.text)
                 alias = select_item_from_qs(aliases)
                 if alias is not None:
@@ -424,27 +402,15 @@ class Command(BaseCommand):
             candidates = [text_ref.text.title()]
             singular_ref_type_qs = None
             if ref_name.endswith("s"):
-                candidates.append(
-                    f"[{ref_name[:-1]}]" if text_ref.is_bracketed else ref_name[:-1]
-                )
+                candidates.append(f"[{ref_name[:-1]}]" if text_ref.is_bracketed else ref_name[:-1])
             if ref_name.endswith("es"):
-                candidates.append(
-                    f"[{ref_name[:-2]}]" if text_ref.is_bracketed else ref_name[:-2]
-                )
+                candidates.append(f"[{ref_name[:-2]}]" if text_ref.is_bracketed else ref_name[:-2])
             if ref_name.endswith("ies"):
-                candidates.append(
-                    f"[{ref_name[:-3]}y]" if text_ref.is_bracketed else ref_name[:-3]
-                )
+                candidates.append(f"[{ref_name[:-3]}y]" if text_ref.is_bracketed else ref_name[:-3])
             if ref_name.endswith("men"):
-                candidates.append(
-                    f"[{ref_name[:-3]}man]" if text_ref.is_bracketed else ref_name[:-3]
-                )
+                candidates.append(f"[{ref_name[:-3]}man]" if text_ref.is_bracketed else ref_name[:-3])
             if ref_name.endswith("women"):
-                candidates.append(
-                    f"[{ref_name[:-5]}woman]"
-                    if text_ref.is_bracketed
-                    else ref_name[:-5]
-                )
+                candidates.append(f"[{ref_name[:-5]}woman]" if text_ref.is_bracketed else ref_name[:-5])
 
             for c in candidates:
                 singular_ref_type_qs = RefType.objects.filter(name=c)
@@ -459,9 +425,7 @@ class Command(BaseCommand):
                     continue
 
                 # Create Alias to base RefType
-                alias, created = Alias.objects.get_or_create(
-                    name=text_ref.text, ref_type=ref_type
-                )
+                alias, created = Alias.objects.get_or_create(name=text_ref.text, ref_type=ref_type)
                 prelude = f"RefType: {text_ref.text} did not exist, but it is a alternative form of {ref_type.name}. "
                 if created:
                     self.log(
@@ -478,25 +442,17 @@ class Command(BaseCommand):
             # Could not find existing RefType or Alias or alternate form so intialize new RefType
 
             # Check for [Skill] or [Class] acquisition messages
-            skill_obtained_pattern = regex.compile(
-                r"^\[Skill.*([Oo]btained|[Ll]earned).*\]$"
-            )
+            skill_obtained_pattern = regex.compile(r"^\[Skill.*([Oo]btained|[Ll]earned).*\]$")
             skill_change_pattern = regex.compile(r"^\[Skill [Cc]hange .*[.!]\]$")
 
             class_obtained_pattern = regex.compile(r"^\[.*Class\W[Oo]btained.*\]$")
             level_up_pattern = regex.compile(r"^\[.*[Ll]evel \d{1,2}.*[.!]\]$")
-            class_consolidation_pattern = regex.compile(
-                r"^\[Class [Cc]onsolidat.*[.!]\]$"
-            )
-            class_upgrade_pattern = regex.compile(
-                r"^\[Condition[s]? [Mm]et.*[Cc]lass[.!]\]$"
-            )
+            class_consolidation_pattern = regex.compile(r"^\[Class [Cc]onsolidat.*[.!]\]$")
+            class_upgrade_pattern = regex.compile(r"^\[Condition[s]? [Mm]et.*[Cc]lass[.!]\]$")
 
             spell_obtained_pattern = regex.compile(r"^\[Spell.*[Oo]btained.*\]$")
 
-            if skill_obtained_pattern.match(
-                text_ref.text
-            ) or skill_change_pattern.match(text_ref.text):
+            if skill_obtained_pattern.match(text_ref.text) or skill_change_pattern.match(text_ref.text):
                 new_type = RefType.SKILL_UPDATE
             elif (
                 class_obtained_pattern.match(text_ref.text)
@@ -543,7 +499,7 @@ class Command(BaseCommand):
                 new_ref_type.save()
                 self.log(f"{new_ref_type} created", LogCat.CREATED)
                 return new_ref_type
-            except IntegrityError as exc:
+            except IntegrityError:
                 self.log(
                     f"{strip_tags(text_ref.text)} already exists. Skipping...",
                     LogCat.SKIPPED,
@@ -565,11 +521,7 @@ class Command(BaseCommand):
                 try:
                     rgb_hex: str = (
                         text_ref.context[
-                            i
-                            + text_ref.context[i:].index("#")
-                            + 1 : i
-                            + text_ref.context[i:].index(">")
-                            - 1
+                            i + text_ref.context[i:].index("#") + 1 : i + text_ref.context[i:].index(">") - 1
                         ]
                         .strip()
                         .upper()
@@ -617,9 +569,7 @@ class Command(BaseCommand):
                 raise
             except KeyboardInterrupt as exc:
                 print("")
-                raise CommandError(
-                    "Build interrupted with Ctrl-C (Keyboard Interrupt)."
-                ) from exc
+                raise CommandError("Build interrupted with Ctrl-C (Keyboard Interrupt).") from exc
             except EOFError as exc:
                 print("")
                 raise CommandError("Build interrupted with Ctrl-D (EOF).") from exc
@@ -628,25 +578,24 @@ class Command(BaseCommand):
 
     def build_chapter_by_id(self, options, chapter_num: int):
         """Build individual Chapter by ID"""
+        chapter_dir = list(Path.glob(Path("./data"), "*/*/*/{chapter.title}"))[0]
         try:
             chapter = Chapter.objects.get(number=chapter_num)
             self.log(
                 f"Populating chapter data for existing chapter (id={chapter_num}): {chapter.title} ...",
                 LogCat.INFO,
             )
-            chapter_dir = Path(glob(f"./data/*/*/*/{chapter.title}")[0])
             self.build_chapter(
                 options,
                 chapter.book,
                 chapter_dir,
                 chapter_num,
             )
-        except Chapter.DoesNotExist as exc:
+        except Chapter.DoesNotExist:
             self.log(
                 f"Chapter (id) {chapter_num} does not exist in database and cannot be created with just a chapter number/id. Please run a regular build with `--skip-text-refs` to build all Chapter records from the available data.",
                 LogCat.WARN,
             )
-            chapter_dir = Path(glob(f"./data/*/*/*/{chapter.title}")[0])
             self.build_chapter(
                 options,
                 chapter.book,
@@ -691,24 +640,16 @@ class Command(BaseCommand):
                     "is_interlude": "interlude" in src_chapter.title.lower(),
                     "source_url": src_chapter.metadata.get("url", ""),
                     "post_date": dt.datetime.fromisoformat(
-                        src_chapter.metadata.get(
-                            "pub_time", dt.datetime.now().isoformat()
-                        )
+                        src_chapter.metadata.get("pub_time", dt.datetime.now().isoformat())
                     ),
                     "last_update": dt.datetime.fromisoformat(
-                        src_chapter.metadata.get(
-                            "mod_time", dt.datetime.now().isoformat()
-                        )
+                        src_chapter.metadata.get("mod_time", dt.datetime.now().isoformat())
                     ),
                     "download_date": dt.datetime.fromisoformat(
-                        src_chapter.metadata.get(
-                            "dl_time", dt.datetime.now().isoformat()
-                        )
+                        src_chapter.metadata.get("dl_time", dt.datetime.now().isoformat())
                     ),
                     "word_count": src_chapter.metadata.get("word_count", 0),
-                    "authors_note_word_count": src_chapter.metadata.get(
-                        "authors_note_word_count", 0
-                    ),
+                    "authors_note_word_count": src_chapter.metadata.get("authors_note_word_count", 0),
                 },
             )
         except IntegrityError as e:
@@ -748,10 +689,7 @@ class Command(BaseCommand):
 
             # Compile location names for TextRef search
             location_patterns = (
-                [
-                    "|".join(build_reftype_pattern(loc))
-                    for loc in RefType.objects.filter(type=RefType.LOCATION)
-                ]
+                ["|".join(build_reftype_pattern(loc)) for loc in RefType.objects.filter(type=RefType.LOCATION)]
                 if not options.get("skip_ref_locs")
                 else []
             )
@@ -779,9 +717,7 @@ class Command(BaseCommand):
                 print(f"start: {start}, end: {end}")
                 line_range = range(start, end)
             except ValueError as exc:
-                raise CommandError(
-                    f"Invalid chapter line range provided: {line_range}"
-                ) from exc
+                raise CommandError(f"Invalid chapter line range provided: {line_range}") from exc
 
         for i in line_range:
             image_tag_pattern = regex.compile(r".*((<a href)|(<img )).*")
@@ -789,9 +725,7 @@ class Command(BaseCommand):
                 self.log(f"Line {i} contains an <img> tag. Skipping...", LogCat.SKIPPED)
                 continue
             elif src_chapter.lines[i].startswith(r"<div class="):
-                self.log(
-                    f"Line {i} is an entry-content <div>. Skipping...", LogCat.SKIPPED
-                )
+                self.log(f"Line {i} is an entry-content <div>. Skipping...", LogCat.SKIPPED)
                 continue
             elif src_chapter.lines[i].strip() == "":
                 self.log(f"Line {i} is empty. Skipping...", LogCat.SKIPPED)
@@ -811,7 +745,7 @@ class Command(BaseCommand):
                 if response.strip().lower() == "y":
                     continue
                 else:
-                    self.log(f"Build was aborted", LogCat.ERROR)
+                    self.log("Build was aborted", LogCat.ERROR)
                     raise CommandError("Build aborted.")
 
             if created:
@@ -835,9 +769,7 @@ class Command(BaseCommand):
                     self.log("TextRef already exists. Skipping...", LogCat.SKIPPED)
                     continue
                 except TextRef.DoesNotExist:
-                    ref_type = self.get_or_create_ref_type_from_text_ref(
-                        options, text_ref
-                    )
+                    ref_type = self.get_or_create_ref_type_from_text_ref(options, text_ref)
 
                     # RefType creation could not complete or was skipped
                     if ref_type is None:
@@ -898,7 +830,7 @@ class Command(BaseCommand):
     def build_spells(self, path: Path):
         """Populate spell types from wiki data"""
         self.log("Populating spell RefType(s)...", LogCat.BEGIN)
-        with open(path, encoding="utf-8") as file:
+        with Path.open(path, encoding="utf-8") as file:
             try:
                 spell_data = json.load(file)
             except json.JSONDecodeError:
@@ -918,7 +850,7 @@ class Command(BaseCommand):
     def build_skills(self, path: Path):
         # Populate skills from wiki data
         self.log("Populating skill RefType(s)...", LogCat.BEGIN)
-        with open(path, encoding="utf-8") as file:
+        with Path.open(path, encoding="utf-8") as file:
             try:
                 skill_data = json.load(file)
             except json.JSONDecodeError:
@@ -938,7 +870,7 @@ class Command(BaseCommand):
     def build_characters(self, path: Path):
         # Populate characters from wiki data
         self.log("Populating character RefType(s)...", LogCat.BEGIN)
-        with open(path, encoding="utf-8") as file:
+        with Path.open(path, encoding="utf-8") as file:
             try:
                 data = json.load(file)
             except json.JSONDecodeError:
@@ -953,9 +885,7 @@ class Command(BaseCommand):
 
                     if ref_type is None:
                         self.log(
-                            self.style.ERROR(
-                                f"Unable to create RefType: {name} type={RefType.CHARACTER}"
-                            ),
+                            self.style.ERROR(f"Unable to create RefType: {name} type={RefType.CHARACTER}"),
                             LogCat.ERROR,
                         )
                         continue
@@ -1038,16 +968,10 @@ class Command(BaseCommand):
 
                     try:
                         new_first_chapter_appearance = first_ref
-                        new_wiki_uri = (
-                            f'https://wiki.wanderinginn.com/{char_data.get("page_url")}'
-                        )
+                        new_wiki_uri = f"https://wiki.wanderinginn.com/{char_data.get('page_url')}"
                         new_status = Character.parse_status_str(char_data.get("status"))
-                        new_species = Character.parse_species_str(
-                            char_data.get("species")
-                        )
-                        (char, char_created) = Character.objects.get_or_create(
-                            ref_type=ref_type
-                        )
+                        new_species = Character.parse_species_str(char_data.get("species"))
+                        (char, char_created) = Character.objects.get_or_create(ref_type=ref_type)
 
                         if char_created:
                             char.first_chapter_appearance = new_first_chapter_appearance
@@ -1089,7 +1013,7 @@ class Command(BaseCommand):
     def build_classes(self, path: Path):
         # Populate class types from wiki data
         self.log("Populating class RefType(s)...", LogCat.BEGIN)
-        with open(path, encoding="utf-8") as file:
+        with Path.open(path, encoding="utf-8") as file:
             try:
                 class_data = json.load(file)
             except json.JSONDecodeError:
@@ -1103,9 +1027,7 @@ class Command(BaseCommand):
                         self.log(f'RefType: "{class_name}" is a prefix', LogCat.PREFIX)
                         continue
 
-                    if ref_type := self.get_or_create_reftype(
-                        class_name, RefType.CLASS
-                    ):
+                    if ref_type := self.get_or_create_reftype(class_name, RefType.CLASS):
                         if aliases := values.get("aliases"):
                             for alias_name in aliases:
                                 self.get_or_create_alias(ref_type, alias_name)
@@ -1118,7 +1040,7 @@ class Command(BaseCommand):
     def build_locations(self, path: Path):
         # Populate location types from wiki data
         self.log("Populating location RefType(s)...", LogCat.BEGIN)
-        with open(path, encoding="utf-8") as file:
+        with Path.open(path, encoding="utf-8") as file:
             try:
                 loc_data = json.load(file)
             except json.JSONDecodeError:
@@ -1145,9 +1067,7 @@ class Command(BaseCommand):
                             loc.wiki_uri = loc_data.get("url")
                             loc.save()
                             self.log(
-                                self.style.SUCCESS(
-                                    f'Location: "{loc_rt.name}" created'
-                                ),
+                                self.style.SUCCESS(f'Location: "{loc_rt.name}" created'),
                                 LogCat.CREATED,
                             )
 
@@ -1158,20 +1078,16 @@ class Command(BaseCommand):
                     # Lines starting with '#' act as comments
                     return [x.strip() for x in f.readlines() if x[0] != "#"]
             except OSError as e:
-                self.log(
-                    f"Could not read disambiguation.cfg config file! {e}", LogCat.ERROR
-                )
+                self.log(f"Could not read disambiguation.cfg config file! {e}", LogCat.ERROR)
                 return None
 
         return None
 
-    def get_custom_compiled_patterns(
-        self, filepath: Path | None = None
-    ) -> regex.Pattern:
+    def get_custom_compiled_patterns(self, filepath: Path | None = None) -> regex.Pattern:
         try:
             if filepath is None:
                 filepath = Path("config/custom-refs.json")
-            with open(filepath, "r", encoding="utf-8") as f:
+            with Path.open(filepath, "r", encoding="utf-8") as f:
                 data = json.load(f)
                 found_reftypes = []
                 missing_reftypes = []
@@ -1204,20 +1120,14 @@ class Command(BaseCommand):
                         "Some reftypes provided in the custom ref config file did not find any existing RefTypes. There are probably some typos. Fix them and try again."
                     )
 
-                patterns = [
-                    "|".join(build_reftype_pattern(rt)) for rt in found_reftypes
-                ]
+                patterns = ["|".join(build_reftype_pattern(rt)) for rt in found_reftypes]
 
                 return compile_textref_patterns(patterns=patterns)
 
         except json.JSONDecodeError as e:
-            raise CommandError(
-                f'Build error. Unable to parse JSON file: "{filepath}"'
-            ) from e
+            raise CommandError(f'Build error. Unable to parse JSON file: "{filepath}"') from e
         except OSError as e:
-            raise CommandError(
-                f'Build error. Unable to open custom ref list file: "{filepath}"'
-            ) from e
+            raise CommandError(f'Build error. Unable to open custom ref list file: "{filepath}"') from e
 
     def handle(self, *args, **options) -> None:
         self.prompt_sound = bool(options.get("prompt_sound"))
@@ -1233,9 +1143,7 @@ class Command(BaseCommand):
             config_root = Path(options.get("config_dir", "config"))
 
             # Disambiguation configs
-            options["disambiguation_list"] = self.read_config_file(
-                Path(config_root, "disambiguation.cfg")
-            )
+            options["disambiguation_list"] = self.read_config_file(Path(config_root, "disambiguation.cfg"))
             options["disambiguation_exceptions"] = self.read_config_file(
                 Path(config_root, "disambiguation_exceptions.cfg")
             )
@@ -1265,9 +1173,7 @@ class Command(BaseCommand):
                     f'Loading custom references config file "{custom_refs_path}"',
                     LogCat.INFO,
                 )
-                options["custom_refs"] = self.get_custom_compiled_patterns(
-                    custom_refs_path
-                )
+                options["custom_refs"] = self.get_custom_compiled_patterns(custom_refs_path)
 
             if chapter_id := options.get("chapter_id") is not None:
                 self.build_chapter_by_id(options, chapter_id)
@@ -1277,9 +1183,7 @@ class Command(BaseCommand):
                 try:
                     start, end = [int(x) for x in chapter_id_range.split(",")]
                 except ValueError as exc:
-                    raise CommandError(
-                        f"Invalid chapter ID range provided: {chapter_id_range}."
-                    ) from exc
+                    raise CommandError(f"Invalid chapter ID range provided: {chapter_id_range}.") from exc
 
                 for i in range(start, end):
                     self.build_chapter_by_id(options, i)
@@ -1295,24 +1199,16 @@ class Command(BaseCommand):
             meta_path = Path(vol_root)
             volumes_metadata = get_metadata(meta_path)
             if volumes_metadata is None:
-                raise CommandError(
-                    f"Unable to read top-level volumes metadata file. Exiting..."
-                )
+                raise CommandError("Unable to read top-level volumes metadata file. Exiting...")
 
-            volumes = sorted(
-                list(volumes_metadata["volumes"].items()), key=lambda x: x[1]
-            )
+            volumes = sorted(list(volumes_metadata["volumes"].items()), key=lambda x: x[1])
 
             chapter_num = 0
             for vol_title, vol_num in volumes:
                 src_vol: SrcVolume = SrcVolume(Path(vol_root, vol_title))
                 if src_vol.metadata is None:
-                    raise CommandError(
-                        f"Unable to read volume ({vol_title}) metadata file. Exiting..."
-                    )
-                volume, ref_type_created = Volume.objects.get_or_create(
-                    title=src_vol.title, number=vol_num
-                )
+                    raise CommandError(f"Unable to read volume ({vol_title}) metadata file. Exiting...")
+                volume, ref_type_created = Volume.objects.get_or_create(title=src_vol.title, number=vol_num)
                 if ref_type_created:
                     self.log(f"Volume created: {volume}", LogCat.CREATED)
                 else:
@@ -1325,12 +1221,8 @@ class Command(BaseCommand):
                 for book_num, book_title in enumerate(src_vol.books):
                     src_book: SrcBook = SrcBook(Path(src_vol.path, book_title))
                     if src_book.metadata is None:
-                        raise CommandError(
-                            f"Unable to read book ({book_title}) metadata file. Exiting..."
-                        )
-                    book, book_created = Book.objects.get_or_create(
-                        number=book_num, volume=volume
-                    )
+                        raise CommandError(f"Unable to read book ({book_title}) metadata file. Exiting...")
+                    book, book_created = Book.objects.get_or_create(number=book_num, volume=volume)
                     book.title = book_title
                     book.save()
 

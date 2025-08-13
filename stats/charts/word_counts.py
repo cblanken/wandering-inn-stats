@@ -1,4 +1,4 @@
-from django.db.models import Q, Sum, Func, F
+from django.db.models import Q, Sum, Func
 from plotly.graph_objects import Figure
 import plotly.express as px
 from stats.models import Chapter
@@ -7,9 +7,7 @@ from .config import DEFAULT_LAYOUT
 chapter_data = Chapter.objects.filter(is_canon=True).order_by("number")
 
 
-def word_count_per_chapter(
-    first_chapter: Chapter | None = None, last_chapter: Chapter | None = None
-) -> Figure:
+def word_count_per_chapter(first_chapter: Chapter | None = None, last_chapter: Chapter | None = None) -> Figure:
     word_counts = chapter_data
     if first_chapter:
         word_counts = word_counts.filter(number__gte=first_chapter.number)
@@ -31,9 +29,7 @@ def word_count_per_chapter(
 
     chapter_wc_fig.update_layout(
         DEFAULT_LAYOUT,
-        xaxis=dict(
-            title="Chapter Number", rangeslider=dict(visible=True), type="linear"
-        ),
+        xaxis=dict(title="Chapter Number", rangeslider=dict(visible=True), type="linear"),
         yaxis=dict(title="Word Count"),
     )
 
@@ -48,10 +44,7 @@ def word_count_per_chapter(
     return chapter_wc_fig
 
 
-def word_count_cumulative(
-    first_chapter: Chapter | None = None, last_chapter: Chapter | None = None
-) -> Figure:
-
+def word_count_cumulative(first_chapter: Chapter | None = None, last_chapter: Chapter | None = None) -> Figure:
     cumulative_chapter_wc = (
         chapter_data.annotate(
             cumsum=Func(
@@ -65,14 +58,10 @@ def word_count_cumulative(
     )
 
     if first_chapter:
-        cumulative_chapter_wc = cumulative_chapter_wc.filter(
-            number__gte=first_chapter.number
-        )
+        cumulative_chapter_wc = cumulative_chapter_wc.filter(number__gte=first_chapter.number)
 
     if last_chapter:
-        cumulative_chapter_wc = cumulative_chapter_wc.filter(
-            number__lte=last_chapter.number
-        )
+        cumulative_chapter_wc = cumulative_chapter_wc.filter(number__lte=last_chapter.number)
 
     chapter_wc_area = px.area(
         cumulative_chapter_wc,
@@ -127,9 +116,7 @@ def word_count_authors_note() -> Figure:
     return chapter_authors_wc_fig
 
 
-def word_count_by_book(
-    first_chapter: Chapter | None = None, last_chapter: Chapter | None = None
-) -> Figure:
+def word_count_by_book(first_chapter: Chapter | None = None, last_chapter: Chapter | None = None) -> Figure:
     book_wc_data = (
         Chapter.objects.filter(~Q(book__title__contains="Unreleased"))
         .values(
@@ -177,9 +164,7 @@ def word_count_by_book(
     return book_wc_fig
 
 
-def word_count_by_volume(
-    first_chapter: Chapter | None = None, last_chapter: Chapter | None = None
-) -> Figure:
+def word_count_by_volume(first_chapter: Chapter | None = None, last_chapter: Chapter | None = None) -> Figure:
     volume_wc_data = (
         Chapter.objects.values("book")
         .annotate(book_word_count=Sum("word_count"))

@@ -25,19 +25,11 @@ class Command(BaseCommand):
                         ref_type_chapter_created,
                     ) = RefTypeChapter.objects.get_or_create(type=rt, chapter=c)
                     if ref_type_chapter_created:
-                        self.stdout.write(
-                            self.style.SUCCESS(
-                                f"Created RefTypeChapter for {rt.name} - {c.title}"
-                            )
-                        )
+                        self.stdout.write(self.style.SUCCESS(f"Created RefTypeChapter for {rt.name} - {c.title}"))
                     else:
                         self.stdout.write(
-                            self.style.WARNING(
-                                f"RefTypeChapter for {rt.name} - {c.title} already exists."
-                            )
+                            self.style.WARNING(f"RefTypeChapter for {rt.name} - {c.title} already exists.")
                         )
 
             except KeyboardInterrupt as exc:
-                raise CommandError(
-                    "Update paused. Keyboard interrupt received."
-                ) from exc
+                raise CommandError("Update paused. Keyboard interrupt received.") from exc

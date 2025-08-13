@@ -1,5 +1,19 @@
 from django.contrib import admin
-from .models import *
+from .models import (
+    Chapter,
+    Book,
+    Volume,
+    Alias,
+    ChapterLine,
+    Color,
+    ColorCategory,
+    RefType,
+    RefTypeComputedView,
+    TextRef,
+    RefTypeChapter,
+    Location,
+    Character,
+)
 
 
 # Admin model settings

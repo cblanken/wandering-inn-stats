@@ -1,4 +1,3 @@
-import pytest
 from stats.wikibot.parse import SpellTableParser
 
 
@@ -9,11 +8,7 @@ Aliases
 
 def test_no_aliases():
     """Parses table row without any aliases"""
-    assert (
-        SpellTableParser.parse_row(
-            ["[Zone of No Transference]", "Unknown", "", "", None]
-        )
-    ).get("aliases") == None
+    assert (SpellTableParser.parse_row(["[Zone of No Transference]", "Unknown", "", "", None])).get("aliases") is None
 
 
 def test_alias_with_br_and_forward_slash_delimiter():
@@ -33,11 +28,9 @@ def test_alias_with_br_and_forward_slash_delimiter():
 
 def test_alias_with_br_no_delimiter():
     """Parses table row with name containing a linebreak '</br>' without any other delimiter"""
-    assert (
-        SpellTableParser.parse_row(
-            ["[Wind Blast]<br />[Windblast]", "Unknown", "", "", None]
-        ).get("aliases")
-    ) == ["[Windblast]"]
+    assert (SpellTableParser.parse_row(["[Wind Blast]<br />[Windblast]", "Unknown", "", "", None]).get("aliases")) == [
+        "[Windblast]"
+    ]
 
 
 def test_strip_tier_ref_tags():

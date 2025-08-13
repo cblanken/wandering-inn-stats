@@ -1,20 +1,18 @@
 import json
 from pathlib import Path
 import regex as re
-from pprint import pprint
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
 import pywikibot as pwb
 from stats.models import RefType
 from stats.wikibot import bot
 
-from IPython.core.debugger import set_trace
 
 DATA_DIR = Path("data")
 
 
 def save_as_json(data: dict[str, list], path: Path):
     path = Path(DATA_DIR, path)
-    with open(path, "w", encoding="utf-8") as fp:
+    with Path.open(path, "w", encoding="utf-8") as fp:
         json.dump(data, fp, indent=2)
 
 
@@ -33,9 +31,7 @@ class Command(BaseCommand):
             help="Path in the file system where any scraped data is saved to disk. \
                 This includes category data, Characters, Classes, Skills, Spells etc.",
         )
-        parser.add_argument(
-            "-a", "--all", action="store_true", help="Scrape all categories"
-        )
+        parser.add_argument("-a", "--all", action="store_true", help="Scrape all categories")
         parser.add_argument(
             f"--{RefType.CHARACTER}",
             f"--{RefType.CHARACTER}".lower(),

@@ -1,4 +1,3 @@
-import pytest
 from stats.wikibot.parse import ClassesTableParser
 
 
@@ -19,7 +18,7 @@ def test_name_with_nowiki():
                 "[https://wanderinginn.com/2017/06/14/2-03-g/ 2.36 G], [https://wanderinginn.com/2020/09/02/7-43-g/ 7.43 G]",
             ]
         )
-    ).get("aliases") == None
+    ).get("aliases") is None
 
 
 """
@@ -40,7 +39,7 @@ def test_no_aliases():
                 "[https://wanderinginn.com/2019/11/12/6-56/ 6.56], [https://wanderinginn.com/2019/12/14/6-63-p/ 6.63 P]",
             ]
         )
-    ).get("aliases") == None
+    ).get("aliases") is None
 
 
 def test_aliases_delimited_by_forward_slash():
@@ -90,7 +89,7 @@ def test_class_prefix_with_space():
                 "[https://wanderinginn.com/2023/03/29/interlude-the-spitoon/ 9.Spitoon]",
             ]
         )
-    ).get("is_prefix") == True
+    ).get("is_prefix")
 
 
 def test_class_prefix_no_space():
@@ -105,4 +104,4 @@ def test_class_prefix_no_space():
                 "[https://wanderinginn.com/2022/06/28/9-03/ 9.03], [https://wanderinginn.com/2022/07/10/9-05-npr/ 9.05 NPR]",
             ]
         )
-    ).get("is_prefix") == True
+    ).get("is_prefix")

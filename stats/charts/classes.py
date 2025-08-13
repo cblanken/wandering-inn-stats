@@ -5,21 +5,14 @@ from stats.models import RefType, TextRef, Chapter
 from .config import DEFAULT_LAYOUT, DEFAULT_DISCRETE_COLORS
 
 
-def class_ref_counts(
-    first_chapter: Chapter | None = None, last_chapter: Chapter | None = None
-) -> Figure | None:
-
+def class_ref_counts(first_chapter: Chapter | None = None, last_chapter: Chapter | None = None) -> Figure | None:
     class_refs = TextRef.objects.filter(type__type=RefType.CLASS)
 
     if first_chapter:
-        class_refs = class_refs.filter(
-            chapter_line__chapter__number__gte=first_chapter.number
-        )
+        class_refs = class_refs.filter(chapter_line__chapter__number__gte=first_chapter.number)
 
     if last_chapter:
-        class_refs = class_refs.filter(
-            chapter_line__chapter__number__lte=last_chapter.number
-        )
+        class_refs = class_refs.filter(chapter_line__chapter__number__lte=last_chapter.number)
 
     class_refs = (
         class_refs.values("type__name")

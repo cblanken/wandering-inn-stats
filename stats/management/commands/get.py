@@ -2,7 +2,6 @@
 
 import json
 from pathlib import Path
-import random
 import time
 from django.core.management.base import BaseCommand, CommandError
 from processing import get, PatreonChapterError
@@ -17,9 +16,7 @@ class Command(BaseCommand):
         parser.add_argument("volume", nargs="?", type=str, help="Volume to download")
         parser.add_argument("book", nargs="?", type=str, help="Book to download")
         parser.add_argument("chapter", nargs="?", type=str, help="Chapter to download")
-        parser.add_argument(
-            "-a", "--all", action="store_true", help="Download all volumes"
-        )
+        parser.add_argument("-a", "--all", action="store_true", help="Download all volumes")
         parser.add_argument(
             "-i",
             "--index",
@@ -34,9 +31,7 @@ class Command(BaseCommand):
             help="Randomized delay betweeen (0.5 to 1.5) times. By default, 5 seconds",
         )
         # TODO: update --jitter to use `const` argument type option
-        parser.add_argument(
-            "-r", "--root", default="./data", help="Root path of downloaded data"
-        )
+        parser.add_argument("-r", "--root", default="./data", help="Root path of downloaded data")
         parser.add_argument(
             "--volume_root",
             default="volumes",
@@ -54,9 +49,7 @@ class Command(BaseCommand):
             action="store_true",
             help="Download only the most recently released chapter",
         )
-        parser.add_argument(
-            "-m", "--metadata-only", action="store_true", help="Download only metadata"
-        )
+        parser.add_argument("-m", "--metadata-only", action="store_true", help="Download only metadata")
 
     def save_file(
         self,
@@ -103,16 +96,9 @@ class Command(BaseCommand):
         authors_note_path = Path(chapter_path, f"{chapter_title}_authors_note.txt")
         meta_path = Path(chapter_path, "metadata.json")
 
-        if (
-            not options.get("clobber")
-            and src_path.exists()
-            and txt_path.exists()
-            and meta_path.exists()
-        ):
+        if not options.get("clobber") and src_path.exists() and txt_path.exists() and meta_path.exists():
             self.stdout.write(
-                self.style.NOTICE(
-                    f'> All chapter files exist for chapter: "{chapter_title}". Skipping...'
-                )
+                self.style.NOTICE(f'> All chapter files exist for chapter: "{chapter_title}". Skipping...')
             )
             return
 
@@ -128,17 +114,11 @@ class Command(BaseCommand):
             data = get.parse_chapter_response(chapter_response)
         except PatreonChapterError:
             self.stdout.write(
-                self.style.WARNING(
-                    f"Patreon locked chapter detected. Skipping download for {chapter_title}"
-                )
+                self.style.WARNING(f"Patreon locked chapter detected. Skipping download for {chapter_title}")
             )
             return
 
-        if (
-            data.get("html") is None
-            or data.get("text") is None
-            or data.get("metadata") is None
-        ):
+        if data.get("html") is None or data.get("text") is None or data.get("metadata") is None:
             self.stdout.write(self.style.WARNING("Some data could not be parsed from:"))
             self.stdout.write(f"HTTP Response:\n {chapter_response}")
             self.stdout.write(f"Skipping download for {chapter_title} → {chapter_href}")
@@ -185,9 +165,7 @@ class Command(BaseCommand):
 
         self.last_download = time.time()
 
-    def download_book(
-        self, toc, options, volume_title: str, book_title: str, book_path: Path
-    ):
+    def download_book(self, toc, options, volume_title: str, book_title: str, book_path: Path):
         book_path.mkdir(parents=True, exist_ok=True)
         chapters = toc.volume_data[volume_title][book_title]
 
@@ -207,9 +185,7 @@ class Command(BaseCommand):
 
         for chapter_title in chapters:
             chapter_path = Path(book_path, chapter_title)
-            self.download_chapter(
-                toc, options, volume_title, book_title, chapter_title, chapter_path
-            )
+            self.download_chapter(toc, options, volume_title, book_title, chapter_title, chapter_path)
 
     def download_volume(self, toc, options, volume_title: str, volume_path: Path):
         volume_path.mkdir(parents=True, exist_ok=True)
@@ -237,11 +213,7 @@ class Command(BaseCommand):
         # TODO: fix Keyboard Exception not working
         toc = get.TableOfContents(self.session)
         if len(toc.volume_data) == 0:
-            self.stdout.write(
-                self.style.WARNING(
-                    "Volume data is empty. The Table of Contents may have changed..."
-                )
-            )
+            self.stdout.write(self.style.WARNING("Volume data is empty. The Table of Contents may have changed..."))
 
         def download_latest_chapter():
             # TODO
@@ -263,9 +235,7 @@ class Command(BaseCommand):
             volume_root = options.get("volume_root", "")
 
             if root == "" or volume_root == "":
-                raise CommandError(
-                    f"An invalid `root` {root} or `volume root` {volume_root} was provided."
-                )
+                raise CommandError(f"An invalid `root` {root} or `volume root` {volume_root} was provided.")
 
             root = Path(root)
             root.mkdir(exist_ok=True)
@@ -290,9 +260,7 @@ class Command(BaseCommand):
                 )
 
                 # Download all volumes
-                for i, (volume_title, books) in list(
-                    enumerate(toc.volume_data.items())
-                ):
+                for i, (volume_title, books) in list(enumerate(toc.volume_data.items())):
                     # TODO: check for empty volume_title
                     volume_path = Path(volume_root, f"{volume_title}")
                     self.download_volume(toc, options, volume_title, volume_path)

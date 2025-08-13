@@ -16,9 +16,7 @@ Including another URLconf
 
 from django.urls import path, include
 from django.contrib.auth import get_user_model
-from django.db.models import Sum
 from rest_framework import permissions, routers, serializers, viewsets
-from rest_framework.response import Response
 from stats.models import Chapter
 
 
@@ -58,9 +56,7 @@ class LongestChaptersViewSet(viewsets.ModelViewSet):
 router = routers.DefaultRouter()
 router.register(r"users", UserViewSet)
 router.register(r"chapters", ChapterViewSet, basename="chapters")
-router.register(
-    r"longest-chapters", LongestChaptersViewSet, basename="longest-chapters"
-)
+router.register(r"longest-chapters", LongestChaptersViewSet, basename="longest-chapters")
 
 # Wire up our API using automatic URL routing.
 # Additionally, we include login URLs for the browsable API.

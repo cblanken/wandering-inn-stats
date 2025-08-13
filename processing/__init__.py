@@ -23,22 +23,14 @@ class Pattern:
     SPELL_UPDATED = regex.compile(r"\[[Ss]pell" + OBTAINED_SUFFIX)
 
     @staticmethod
-    def _or(
-        patterns: list[regex.Pattern[str]], prefix="", suffix=""
-    ) -> regex.Pattern[str] | None:
+    def _or(patterns: list[regex.Pattern[str]], prefix="", suffix="") -> regex.Pattern[str] | None:
         if len(patterns) == 0:
             return None
         if len(patterns) == 1:
-            new_pattern = regex.compile(
-                prefix + r"(?P<or_center>" + patterns[0].pattern + r")" + suffix
-            )
+            new_pattern = regex.compile(prefix + r"(?P<or_center>" + patterns[0].pattern + r")" + suffix)
         else:
             new_pattern = regex.compile(
-                prefix
-                + r"(?P<or_center>"
-                + "|".join([f"({p.pattern})" for p in patterns])
-                + r")"
-                + suffix
+                prefix + r"(?P<or_center>" + "|".join([f"({p.pattern})" for p in patterns]) + r")" + suffix
             )
         return new_pattern
 
@@ -91,7 +83,7 @@ class TextRef:
 def get_metadata(path: Path, filename: str = "metadata.json") -> dict | None:
     """Return dictionary of metadata from a JSON file"""
     try:
-        with open(Path(path, filename), "r", encoding="utf-8") as file:
+        with Path.open(Path(path, filename), "r", encoding="utf-8") as file:
             return json.load(file)
     except json.JSONDecodeError as exc:
         print(f'Metadata file at "{path}" could not be decoded.', file=sys.stderr)
@@ -118,7 +110,7 @@ class Chapter:
 
         if src_path.exists():
             self.src_path = src_path
-            with open(self.src_path, "r", encoding="utf-8") as file:
+            with src_path.open("r", encoding="utf-8") as file:
                 self.lines = file.readlines()
         else:
             self.lines = []
@@ -209,10 +201,7 @@ class Book:
         if self.metadata is None:
             return
         self.title: str = self.metadata.get("title")
-        self.chapters: list[str] = [
-            x[0]
-            for x in sorted(list(self.metadata["chapters"].items()), key=lambda x: x[1])
-        ]
+        self.chapters: list[str] = [x[0] for x in sorted(list(self.metadata["chapters"].items()), key=lambda x: x[1])]
 
     def __str__(self):
         return f"{self.title}: {self.path}"
@@ -227,10 +216,7 @@ class Volume:
         if self.metadata is None:
             return
         self.title: str = self.metadata["title"]
-        self.books: list[str] = [
-            x[0]
-            for x in sorted(list(self.metadata["books"].items()), key=lambda x: x[1])
-        ]
+        self.books: list[str] = [x[0] for x in sorted(list(self.metadata["books"].items()), key=lambda x: x[1])]
 
     def print_all_text_refs(self):
         """Print all text references found by `generate_all_text_refs` generator"""
