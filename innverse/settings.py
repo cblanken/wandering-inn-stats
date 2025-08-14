@@ -146,7 +146,7 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = env.get("TWI_STATIC_URL", "static/")
-STATIC_ROOT = env.get("TWI_STATIC_ROOT", "/tmp/twi-stats/static/")
+STATIC_ROOT = env.get("TWI_STATIC_ROOT", "/tmp/twi-stats/static/")  # noqa: S108
 
 STATICFILES_DIRS = [BASE_DIR / "innverse/static"]
 

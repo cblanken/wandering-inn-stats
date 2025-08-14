@@ -251,7 +251,10 @@ class TableOfContents:
         self.domain: str = "www.wanderinginn.com"
         self.url: str = f"https://{self.domain}/table-of-contents"
         if session:
-            assert isinstance(session, Session)
+            if not isinstance(session, Session):
+                raise TypeError(
+                    "The session argument must be an appropriate Session type to retrieve the table of contents"
+                )
             self.response = session.get(self.url)
         else:
             self.response = requests.get(self.url, timeout=10)
