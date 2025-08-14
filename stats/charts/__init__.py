@@ -128,7 +128,8 @@ def get_reftype_gallery(
 
 
 def get_word_count_charts(
-    first_chapter: Chapter | None = None, last_chapter: Chapter | None = None
+    first_chapter: Chapter | None = None,
+    last_chapter: Chapter | None = None,
 ) -> list[ChartGalleryItem]:
     return [
         ChartGalleryItem(
@@ -161,7 +162,8 @@ def get_word_count_charts(
 
 
 def get_character_charts(
-    first_chapter: Chapter | None = None, last_chapter: Chapter | None = None
+    first_chapter: Chapter | None = None,
+    last_chapter: Chapter | None = None,
 ) -> list[ChartGalleryItem]:
     return [
         ChartGalleryItem(
@@ -198,7 +200,8 @@ def get_character_charts(
 
 
 def get_class_charts(
-    first_chapter: Chapter | None = None, last_chapter: Chapter | None = None
+    first_chapter: Chapter | None = None,
+    last_chapter: Chapter | None = None,
 ) -> list[ChartGalleryItem]:
     return [
         ChartGalleryItem(
@@ -206,12 +209,13 @@ def get_class_charts(
             "",
             Filetype.SVG,
             lambda: class_ref_counts(first_chapter, last_chapter),
-        )
+        ),
     ]
 
 
 def get_skill_charts(
-    first_chapter: Chapter | None = None, last_chapter: Chapter | None = None
+    first_chapter: Chapter | None = None,
+    last_chapter: Chapter | None = None,
 ) -> list[ChartGalleryItem]:
     return [
         ChartGalleryItem(
@@ -219,12 +223,13 @@ def get_skill_charts(
             "",
             Filetype.SVG,
             lambda: skill_ref_counts(first_chapter, last_chapter),
-        )
+        ),
     ]
 
 
 def get_magic_charts(
-    first_chapter: Chapter | None = None, last_chapter: Chapter | None = None
+    first_chapter: Chapter | None = None,
+    last_chapter: Chapter | None = None,
 ) -> list[ChartGalleryItem]:
     return [
         ChartGalleryItem(
@@ -237,7 +242,8 @@ def get_magic_charts(
 
 
 def get_location_charts(
-    first_chapter: Chapter | None = None, last_chapter: Chapter | None = None
+    first_chapter: Chapter | None = None,
+    last_chapter: Chapter | None = None,
 ) -> list[ChartGalleryItem]:
     return [
         ChartGalleryItem(

@@ -55,7 +55,7 @@ def test_infobox_aliases():
     """
     assert CharInfoBoxParser(
         [
-            "aliases=Kasigna of the End<br />God of Death<br />Goddess of Death<br />Goddess of the Afterlife<br />The Three Women in One<br />Three-In-One<br />One-In-Three<br/>The Maiden<br/>The Mother<br/>The Matriarch<br/>Corpsemother<br/>The Final Judge<br/>Kaligma"
+            "aliases=Kasigna of the End<br />God of Death<br />Goddess of Death<br />Goddess of the Afterlife<br />The Three Women in One<br />Three-In-One<br />One-In-Three<br/>The Maiden<br/>The Mother<br/>The Matriarch<br/>Corpsemother<br/>The Final Judge<br/>Kaligma",
         ],
         site,
     ).parse().get("aliases") == [
@@ -81,7 +81,7 @@ def test_infobox_ref_code_in_aliases():
     """
     assert CharInfoBoxParser(
         [
-            "aliases=Cara O'Sullivan<br/>\n'Humble Actor'<br/>\nQueen of Pop<br/>\nSiren of Songs<br/>\nBaroness of the Beat<br/>\nSinger of Terandria<br/>\nSinger of Afiele<br/>\nGravesinger of Afiele<br/>\nSid (''Nickname'')<ref name=\"GS1.01\"/>"
+            "aliases=Cara O'Sullivan<br/>\n'Humble Actor'<br/>\nQueen of Pop<br/>\nSiren of Songs<br/>\nBaroness of the Beat<br/>\nSinger of Terandria<br/>\nSinger of Afiele<br/>\nGravesinger of Afiele<br/>\nSid (''Nickname'')<ref name=\"GS1.01\"/>",
         ],
         site,
     ).parse().get("aliases") == [
@@ -149,7 +149,7 @@ def test_infobox_status_html_spoiler():
     assert (
         CharInfoBoxParser(
             [
-                'status=<div class="mw-collapsible mw-collapsed" data-expandtext="Show Spoiler" data-collapsetext="Hide Spoiler">Alive</div>'
+                'status=<div class="mw-collapsible mw-collapsed" data-expandtext="Show Spoiler" data-collapsetext="Hide Spoiler">Alive</div>',
             ],
             site,
         )
@@ -164,7 +164,7 @@ def test_infobox_status_strips_whitespace():
     assert (
         CharInfoBoxParser(
             [
-                'status=<div class="mw-collapsible mw-collapsed" data-expandtext="Show Spoiler" data-collapsetext="Hide Spoiler">\nUnknown</div>'
+                'status=<div class="mw-collapsible mw-collapsed" data-expandtext="Show Spoiler" data-collapsetext="Hide Spoiler">\nUnknown</div>',
             ],
             site,
         )

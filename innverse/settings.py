@@ -116,7 +116,7 @@ DATABASES = {
         "PASSWORD": env.get("TWI_DB_PASS", "password"),
         "HOST": env.get("TWI_DB_HOST", "127.0.0.1"),
         "PORT": env.get("TWI_DB_PORT", "5432"),
-    }
+    },
 }
 
 # Password validation
@@ -165,7 +165,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 REST_FRAMEWORK = {
     # Use Django's standard `django.contrib.auth` permissions,
     # or allow read-only access for unauthenticated users.
-    "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly"]
+    "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly"],
 }
 
 TAILWIND_APP_NAME = "theme"
@@ -261,7 +261,7 @@ if DISABLE_CACHE:
     CACHES = {
         "default": {
             "BACKEND": "django.core.cache.backends.dummy.DummyCache",
-        }
+        },
     }
 else:
     if TWI_PROD:
@@ -279,11 +279,11 @@ else:
                     "default_noreply": False,
                     "serde": pymemcache.serde.pickle_serde,
                 },
-            }
+            },
         }
     else:
         CACHES = {
             "default": {
                 "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
-            }
+            },
         }

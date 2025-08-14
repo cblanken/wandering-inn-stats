@@ -61,11 +61,11 @@ def mentions(
             x="post_date",
             y="rt_mentions",
             hover_data=["title", "rt_mentions", "post_date"],
-            labels=dict(
-                title="Chapter",
-                rt_mentions="Mentions",
-                post_date="Post date",
-            ),
+            labels={
+                "title": "Chapter",
+                "rt_mentions": "Mentions",
+                "post_date": "Post date",
+            },
         ).update_layout(DEFAULT_LAYOUT)
     else:
         return None
@@ -90,11 +90,11 @@ def cumulative_mentions(
             x="post_date",
             y="cum_rt_mentions",
             hover_data=["title", "cum_rt_mentions", "post_date"],
-            labels=dict(
-                title="Chapter",
-                cum_rt_mentions="Total Mentions",
-                post_date="Post date",
-            ),
+            labels={
+                "title": "Chapter",
+                "cum_rt_mentions": "Total Mentions",
+                "post_date": "Post date",
+            },
         ).update_layout(
             DEFAULT_LAYOUT,
         )

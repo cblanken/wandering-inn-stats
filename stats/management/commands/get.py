@@ -98,7 +98,7 @@ class Command(BaseCommand):
 
         if not options.get("clobber") and src_path.exists() and txt_path.exists() and meta_path.exists():
             self.stdout.write(
-                self.style.NOTICE(f'> All chapter files exist for chapter: "{chapter_title}". Skipping...')
+                self.style.NOTICE(f'> All chapter files exist for chapter: "{chapter_title}". Skipping...'),
             )
             return
 
@@ -114,7 +114,7 @@ class Command(BaseCommand):
             data = get.parse_chapter_response(chapter_response)
         except PatreonChapterError:
             self.stdout.write(
-                self.style.WARNING(f"Patreon locked chapter detected. Skipping download for {chapter_title}")
+                self.style.WARNING(f"Patreon locked chapter detected. Skipping download for {chapter_title}"),
             )
             return
 
@@ -224,7 +224,7 @@ class Command(BaseCommand):
         try:
             if toc.response is None:
                 raise CommandError(
-                    f"The table of contents ({toc.url}) could not be downloaded.\nCheck your network connection and confirm the host hasn't been IP blocked."
+                    f"The table of contents ({toc.url}) could not be downloaded.\nCheck your network connection and confirm the host hasn't been IP blocked.",
                 )
 
             v_title: str = options.get("volume", "")

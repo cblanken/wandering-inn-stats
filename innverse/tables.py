@@ -56,10 +56,10 @@ class TextRefTable(tables.Table):
             path = f"{record.type.type.lower()}-stats"
             return render_to_string(
                 "patterns/atoms/link/stat_link.html",
-                context=dict(
-                    text=f"{value}",
-                    href=reverse(path, args=[slugify(value)]),
-                ),
+                context={
+                    "text": f"{value}",
+                    "href": reverse(path, args=[slugify(value)]),
+                },
             )
         except NoReverseMatch:
             return record.type.name
@@ -147,10 +147,10 @@ class ChapterRefTable(tables.Table):
             path = f"{record['type'].lower()}-stats"
             return render_to_string(
                 "patterns/atoms/link/stat_link.html",
-                context=dict(
-                    text=f"{value}",
-                    href=reverse(path, args=[slugify(value)]),
-                ),
+                context={
+                    "text": f"{value}",
+                    "href": reverse(path, args=[slugify(value)]),
+                },
             )
         except NoReverseMatch:
             return value
@@ -166,7 +166,7 @@ class ChapterRefTable(tables.Table):
                     },
                 )
                 for chapter in record["chapter_data"].order_by("chapter_id")
-            ]
+            ],
         )
 
     def value_chapters(self, record) -> str:
@@ -190,7 +190,7 @@ class ReftypeMentionsHtmxTable(tables.Table):
 
     def order_mentions(self, queryset, is_descending):
         queryset = queryset.annotate(mentions=F("reftypecomputedview__mentions")).order_by(
-            F("mentions").desc(nulls_last=True) if is_descending else F("mentions").asc()
+            F("mentions").desc(nulls_last=True) if is_descending else F("mentions").asc(),
         )
 
         return (queryset, True)
@@ -257,14 +257,14 @@ class CharacterHtmxTable(tables.Table):
 
     def order_mentions(self, queryset, is_descending):
         queryset = queryset.annotate(mentions=F("ref_type__reftypecomputedview__mentions")).order_by(
-            F("mentions").desc(nulls_last=True) if is_descending else F("mentions").asc()
+            F("mentions").desc(nulls_last=True) if is_descending else F("mentions").asc(),
         )
 
         return (queryset, True)
 
     def order_first_appearance(self, queryset, is_descending):
         queryset = queryset.annotate(chapter_num=F("first_chapter_appearance__number")).order_by(
-            F("chapter_num").desc(nulls_last=True) if is_descending else F("chapter_num").asc()
+            F("chapter_num").desc(nulls_last=True) if is_descending else F("chapter_num").asc(),
         )
 
         return (queryset, True)

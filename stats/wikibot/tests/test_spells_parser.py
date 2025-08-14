@@ -21,7 +21,7 @@ def test_alias_with_br_and_forward_slash_delimiter():
                 "",
                 "[https://wanderinginn.com/2021/04/04/interlude-paradigm-shift-pt-2/ Paradigm Shift (Pt. 2)]",
                 None,
-            ]
+            ],
         ).get("aliases")
     ) == ["[Sword Saint - Edge of Heart’s Fire]"]
 
@@ -29,7 +29,7 @@ def test_alias_with_br_and_forward_slash_delimiter():
 def test_alias_with_br_no_delimiter():
     """Parses table row with name containing a linebreak '</br>' without any other delimiter"""
     assert (SpellTableParser.parse_row(["[Wind Blast]<br />[Windblast]", "Unknown", "", "", None]).get("aliases")) == [
-        "[Windblast]"
+        "[Windblast]",
     ]
 
 
@@ -43,6 +43,6 @@ def test_strip_tier_ref_tags():
                 "",
                 "",
                 None,
-            ]
+            ],
         ).get("tier")
     ) == "6"

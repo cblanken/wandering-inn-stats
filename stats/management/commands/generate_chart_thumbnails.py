@@ -43,8 +43,8 @@ class Command(BaseCommand):
 
             if fig:
                 # Remove interactive elements before export
-                fig.update_xaxes(rangeslider=dict(visible=False))
-                fig.update_layout(title=dict(text=""), showlegend=False)
+                fig.update_xaxes(rangeslider={"visible": False})
+                fig.update_layout(title={"text": ""}, showlegend=False)
 
                 chart.path.parent.mkdir(parents=True, exist_ok=True)
                 fig.write_image(file=chart.path, format="svg")
@@ -54,7 +54,7 @@ class Command(BaseCommand):
                 self.stdout.write(self.style.WARNING(f"> Chart ({chart.title}) did not have enough data. Skipped."))
         else:
             self.stdout.write(
-                self.style.WARNING(f'> Chart ({chart.title}) did not match chart-name: "{options.get("chart_name")}"')
+                self.style.WARNING(f'> Chart ({chart.title}) did not match chart-name: "{options.get("chart_name")}"'),
             )
 
     def gen_rt_gallery(self, rt: RefType, options):
@@ -65,7 +65,7 @@ class Command(BaseCommand):
                 self.save_chart_thumbnail(options, chart)
             else:
                 self.stdout.write(
-                    self.style.WARNING(f"> Thumbnail for {rt.name} already exists at {chart.static_path}")
+                    self.style.WARNING(f"> Thumbnail for {rt.name} already exists at {chart.static_path}"),
                 )
 
     def handle(self, *args, **options) -> None:
@@ -92,8 +92,8 @@ class Command(BaseCommand):
                         else:
                             self.stdout.write(
                                 self.style.WARNING(
-                                    f"> Thumbnail for {chart.title} already exists at {chart.static_path}"
-                                )
+                                    f"> Thumbnail for {chart.title} already exists at {chart.static_path}",
+                                ),
                             )
 
             with ThreadPoolExecutor(max_workers=cpu_count() - 1) as executor:

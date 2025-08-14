@@ -91,7 +91,7 @@ def overview(request: HtmxHttpRequest) -> HttpResponse:
     )
 
     if request.htmx:
-        return render(request, "tables/htmx_table.html", dict(table=table))
+        return render(request, "tables/htmx_table.html", {"table": table})
 
     total_wc = Chapter.objects.aggregate(total_wc=Sum("word_count"))["total_wc"]
     longest_chapter = Chapter.objects.filter(is_canon=True).order_by("-word_count")[0]
@@ -153,11 +153,11 @@ def overview(request: HtmxHttpRequest) -> HttpResponse:
                 f"{longest_chapter.word_count:,}",
                 render_to_string(
                     "patterns/atoms/link/stat_link.html",
-                    context=dict(
-                        text=longest_chapter.title,
-                        href=reverse("chapters", args=[longest_chapter.number]),
-                        fit=True,
-                    ),
+                    context={
+                        "text": longest_chapter.title,
+                        "href": reverse("chapters", args=[longest_chapter.number]),
+                        "fit": True,
+                    },
                 ),
                 units="words",
             ),
@@ -166,11 +166,11 @@ def overview(request: HtmxHttpRequest) -> HttpResponse:
                 f"{shortest_chapter.word_count:,}",
                 render_to_string(
                     "patterns/atoms/link/stat_link.html",
-                    context=dict(
-                        text=shortest_chapter.title,
-                        href=reverse("chapters", args=[shortest_chapter.number]),
-                        fit=True,
-                    ),
+                    context={
+                        "text": shortest_chapter.title,
+                        "href": reverse("chapters", args=[shortest_chapter.number]),
+                        "fit": True,
+                    },
                 ),
                 units="words",
             ),
@@ -179,11 +179,11 @@ def overview(request: HtmxHttpRequest) -> HttpResponse:
                 delta_since_first_chapter_release.days,
                 render_to_string(
                     "patterns/atoms/link/stat_link.html",
-                    context=dict(
-                        text=first_chapter.title,
-                        href=reverse("chapters", args=[first_chapter.number]),
-                        fit=True,
-                    ),
+                    context={
+                        "text": first_chapter.title,
+                        "href": reverse("chapters", args=[first_chapter.number]),
+                        "fit": True,
+                    },
                 ),
                 units="days ago",
             )
@@ -194,11 +194,11 @@ def overview(request: HtmxHttpRequest) -> HttpResponse:
                 delta_since_latest_chapter_release.days,
                 render_to_string(
                     "patterns/atoms/link/stat_link.html",
-                    context=dict(
-                        text=latest_chapter.title,
-                        href=reverse("chapters", args=[latest_chapter.number]),
-                        fit=True,
-                    ),
+                    context={
+                        "text": latest_chapter.title,
+                        "href": reverse("chapters", args=[latest_chapter.number]),
+                        "fit": True,
+                    },
                 ),
                 units="days ago",
                 popup_info="This is the last chapter analyzed by the application. It is not updated after every release, so you can expect it to be a couple chapters behind the latest public release. This allows time for updates to be made to the Wiki and reduce the need for manual analysis of new chapters.",
@@ -215,20 +215,20 @@ def overview(request: HtmxHttpRequest) -> HttpResponse:
                 f"{longest_release_gap.days} days and {longest_release_gap.seconds // 3600} hours",
                 render_to_string(
                     "patterns/atoms/link/stat_link.html",
-                    context=dict(
-                        text=longest_release_chapter_from.title,
-                        href=reverse("chapters", args=[longest_release_chapter_from.number]),
-                        fit=True,
-                    ),
+                    context={
+                        "text": longest_release_chapter_from.title,
+                        "href": reverse("chapters", args=[longest_release_chapter_from.number]),
+                        "fit": True,
+                    },
                 )
                 + "<div>→</div>"
                 + render_to_string(
                     "patterns/atoms/link/stat_link.html",
-                    context=dict(
-                        text=longest_release_chapter_to.title,
-                        href=reverse("chapters", args=[longest_release_chapter_to.number]),
-                        fit=True,
-                    ),
+                    context={
+                        "text": longest_release_chapter_to.title,
+                        "href": reverse("chapters", args=[longest_release_chapter_to.number]),
+                        "fit": True,
+                    },
                 ),
             ),
         ],
@@ -247,7 +247,7 @@ def characters(request: HtmxHttpRequest) -> HttpResponse:
                 Q(ref_type__name__icontains=query)
                 | Q(species__icontains=query)
                 | Q(status__icontains=query)
-                | Q(first_chapter_appearance__title__icontains=query)
+                | Q(first_chapter_appearance__title__icontains=query),
             )
             .annotate(mentions=F("ref_type__reftypecomputedview__mentions"))
             .order_by(F("mentions").desc(nulls_last=True))
@@ -268,7 +268,7 @@ def characters(request: HtmxHttpRequest) -> HttpResponse:
     )
 
     if request.htmx:
-        return render(request, "tables/htmx_table.html", dict(table=table))
+        return render(request, "tables/htmx_table.html", {"table": table})
 
     char_counts = (
         TextRef.objects.filter(type__type=RefType.CHARACTER)
@@ -312,11 +312,11 @@ def characters(request: HtmxHttpRequest) -> HttpResponse:
                 f"{chapter_with_most_char_refs['count']}",
                 render_to_string(
                     "patterns/atoms/link/stat_link.html",
-                    context=dict(
-                        text=chapter_with_most_char_refs["title"],
-                        href=reverse("chapters", args=[chapter_with_most_char_refs.get("number")]),
-                        fit=True,
-                    ),
+                    context={
+                        "text": chapter_with_most_char_refs["title"],
+                        "href": reverse("chapters", args=[chapter_with_most_char_refs.get("number")]),
+                        "fit": True,
+                    },
                 ),
                 units="character mentions",
                 popup_info="This is not a count of unique character mentions. It is the total number of mentions for the given chapter. So if a character is mentioned several times throughout the chapter, each instance counts towards the total.",
@@ -367,7 +367,7 @@ def classes(request: HtmxHttpRequest) -> HttpResponse:
     )
 
     if request.htmx:
-        return render(request, "tables/htmx_table.html", dict(table=table))
+        return render(request, "tables/htmx_table.html", {"table": table})
 
     longest_class_name_by_chars = rt_data.order_by("-letter_count")[0]
     longest_class_name_by_words = rt_data.order_by("-word_count")[0]
@@ -393,12 +393,12 @@ def classes(request: HtmxHttpRequest) -> HttpResponse:
                 f"{longest_class_name_by_words.word_count}",
                 render_to_string(
                     "patterns/atoms/link/stat_link.html",
-                    context=dict(
-                        text=f"{longest_class_name_by_words.name}",
-                        href=reverse("cl-stats", args=[longest_class_name_by_words.slug]),
-                        fit=True,
-                        no_icon=True,
-                    ),
+                    context={
+                        "text": f"{longest_class_name_by_words.name}",
+                        "href": reverse("cl-stats", args=[longest_class_name_by_words.slug]),
+                        "fit": True,
+                        "no_icon": True,
+                    },
                 ),
                 units="words",
             ),
@@ -407,12 +407,12 @@ def classes(request: HtmxHttpRequest) -> HttpResponse:
                 f"{len(longest_class_name_by_chars.name)}",
                 render_to_string(
                     "patterns/atoms/link/stat_link.html",
-                    context=dict(
-                        text=f"{longest_class_name_by_chars.name}",
-                        href=reverse("cl-stats", args=[longest_class_name_by_chars.slug]),
-                        fit=True,
-                        no_icon=True,
-                    ),
+                    context={
+                        "text": f"{longest_class_name_by_chars.name}",
+                        "href": reverse("cl-stats", args=[longest_class_name_by_chars.slug]),
+                        "fit": True,
+                        "no_icon": True,
+                    },
                 ),
                 units="letters",
                 popup_info="This count includes punctuation as well as letters.",
@@ -422,15 +422,15 @@ def classes(request: HtmxHttpRequest) -> HttpResponse:
                 f"{chapter_with_most_class_refs['mentions']}",
                 render_to_string(
                     "patterns/atoms/link/stat_link.html",
-                    context=dict(
-                        text=chapter_with_most_class_refs["title"],
-                        href=reverse(
+                    context={
+                        "text": chapter_with_most_class_refs["title"],
+                        "href": reverse(
                             "chapters",
                             args=[chapter_with_most_class_refs.get("number")],
                         ),
-                        fit=True,
-                        no_icon=True,
-                    ),
+                        "fit": True,
+                        "no_icon": True,
+                    },
                 ),
                 units="[Class] mentions",
                 popup_info="This count includes every instance of a mentioned [Class]. Meaning if a [Class] occurs multiple times throughout a chapter, each instance is counted.",
@@ -456,7 +456,7 @@ def skills(request: HtmxHttpRequest) -> HttpResponse:
     )
 
     if request.htmx:
-        return render(request, "tables/htmx_table.html", dict(table=table))
+        return render(request, "tables/htmx_table.html", {"table": table})
 
     longest_skill_name_by_chars = rt_data.order_by("-letter_count")[0]
     longest_skill_name_by_words = rt_data.order_by("-word_count")[0]
@@ -482,12 +482,12 @@ def skills(request: HtmxHttpRequest) -> HttpResponse:
                 f"{longest_skill_name_by_words.word_count}",
                 render_to_string(
                     "patterns/atoms/link/stat_link.html",
-                    context=dict(
-                        text=f"{longest_skill_name_by_words.name}",
-                        href=reverse("sk-stats", args=[longest_skill_name_by_words.slug]),
-                        fit=True,
-                        no_icon=True,
-                    ),
+                    context={
+                        "text": f"{longest_skill_name_by_words.name}",
+                        "href": reverse("sk-stats", args=[longest_skill_name_by_words.slug]),
+                        "fit": True,
+                        "no_icon": True,
+                    },
                 ),
                 units="words",
             ),
@@ -496,12 +496,12 @@ def skills(request: HtmxHttpRequest) -> HttpResponse:
                 f"{len(longest_skill_name_by_chars.name)}",
                 render_to_string(
                     "patterns/atoms/link/stat_link.html",
-                    context=dict(
-                        text=f"{longest_skill_name_by_chars.name}",
-                        href=reverse("sk-stats", args=[longest_skill_name_by_chars.slug]),
-                        fit=True,
-                        no_icon=True,
-                    ),
+                    context={
+                        "text": f"{longest_skill_name_by_chars.name}",
+                        "href": reverse("sk-stats", args=[longest_skill_name_by_chars.slug]),
+                        "fit": True,
+                        "no_icon": True,
+                    },
                 ),
                 units="letters",
                 popup_info="This count includes punctuation as well as letters.",
@@ -511,12 +511,12 @@ def skills(request: HtmxHttpRequest) -> HttpResponse:
                 f"{chapter_with_most_skill_refs['count']}",
                 render_to_string(
                     "patterns/atoms/link/stat_link.html",
-                    context=dict(
-                        text=chapter_with_most_skill_refs["title"],
-                        href=reverse("chapters", args=[chapter_with_most_skill_refs["number"]]),
-                        fit=True,
-                        no_icon=True,
-                    ),
+                    context={
+                        "text": chapter_with_most_skill_refs["title"],
+                        "href": reverse("chapters", args=[chapter_with_most_skill_refs["number"]]),
+                        "fit": True,
+                        "no_icon": True,
+                    },
                 ),
                 units="[Skill] mentions",
                 popup_info="This count includes every instance of a mentioned [Skill]. Meaning if a [Skill] occurs multiple times throughout a chapter, each instance is counted.",
@@ -542,7 +542,7 @@ def magic(request: HtmxHttpRequest) -> HttpResponse:
     )
 
     if request.htmx:
-        return render(request, "tables/htmx_table.html", dict(table=table))
+        return render(request, "tables/htmx_table.html", {"table": table})
 
     longest_spell_name_by_chars = rt_data.order_by("-letter_count")[0]
     longest_spell_name_by_words = rt_data.order_by("-word_count")[0]
@@ -568,12 +568,12 @@ def magic(request: HtmxHttpRequest) -> HttpResponse:
                 f"{longest_spell_name_by_words.word_count}",
                 render_to_string(
                     "patterns/atoms/link/stat_link.html",
-                    context=dict(
-                        text=f"{longest_spell_name_by_words.name}",
-                        href=reverse("sp-stats", args=[longest_spell_name_by_words.slug]),
-                        fit=True,
-                        no_icon=True,
-                    ),
+                    context={
+                        "text": f"{longest_spell_name_by_words.name}",
+                        "href": reverse("sp-stats", args=[longest_spell_name_by_words.slug]),
+                        "fit": True,
+                        "no_icon": True,
+                    },
                 ),
                 units="words",
             ),
@@ -582,12 +582,12 @@ def magic(request: HtmxHttpRequest) -> HttpResponse:
                 f"{len(longest_spell_name_by_chars.name)}",
                 render_to_string(
                     "patterns/atoms/link/stat_link.html",
-                    context=dict(
-                        text=f"{longest_spell_name_by_chars.name}",
-                        href=reverse("sp-stats", args=[longest_spell_name_by_chars.slug]),
-                        fit=True,
-                        no_icon=True,
-                    ),
+                    context={
+                        "text": f"{longest_spell_name_by_chars.name}",
+                        "href": reverse("sp-stats", args=[longest_spell_name_by_chars.slug]),
+                        "fit": True,
+                        "no_icon": True,
+                    },
                 ),
                 units="letters",
                 popup_info="This count includes punctuation as well as letters.",
@@ -597,12 +597,12 @@ def magic(request: HtmxHttpRequest) -> HttpResponse:
                 f"{chapter_with_most_spell_refs['count']}",
                 render_to_string(
                     "patterns/atoms/link/stat_link.html",
-                    context=dict(
-                        text=chapter_with_most_spell_refs["title"],
-                        href=reverse("chapters", args=[chapter_with_most_spell_refs["number"]]),
-                        fit=True,
-                        no_icon=True,
-                    ),
+                    context={
+                        "text": chapter_with_most_spell_refs["title"],
+                        "href": reverse("chapters", args=[chapter_with_most_spell_refs["number"]]),
+                        "fit": True,
+                        "no_icon": True,
+                    },
                 ),
                 units="[Spell] mentions",
                 popup_info="This count includes every instance of a mentioned [Spell]. Meaning if a [Spell] occurs multiple times throughout a chapter, each instance is counted.",
@@ -628,7 +628,7 @@ def locations(request: HtmxHttpRequest) -> HttpResponse:
     )
 
     if request.htmx:
-        return render(request, "tables/htmx_table.html", dict(table=table))
+        return render(request, "tables/htmx_table.html", {"table": table})
 
     chapter_with_most_location_refs = (
         TextRef.objects.filter(type__type=RefType.LOCATION)
@@ -656,12 +656,12 @@ def locations(request: HtmxHttpRequest) -> HttpResponse:
                 f"{chapter_with_most_location_refs['count']}",
                 render_to_string(
                     "patterns/atoms/link/stat_link.html",
-                    context=dict(
-                        text=chapter_with_most_location_refs["title"],
-                        href=reverse("chapters", args=[chapter_with_most_location_refs["number"]]),
-                        fit=True,
-                        no_icon=True,
-                    ),
+                    context={
+                        "text": chapter_with_most_location_refs["title"],
+                        "href": reverse("chapters", args=[chapter_with_most_location_refs["number"]]),
+                        "fit": True,
+                        "no_icon": True,
+                    },
                 ),
                 units="Location mentions",
             ),
@@ -682,7 +682,7 @@ def chapter_stats(request: HtmxHttpRequest, number: int) -> HttpResponse:
         raise Http404() from e
 
     table_filter = request.GET.get("q", "")
-    table_query = dict(first_chapter=chapter.number, last_chapter=chapter.number, filter=table_filter)
+    table_query = {"first_chapter": chapter.number, "last_chapter": chapter.number, "filter": table_filter}
 
     config = RequestConfig(request)
     table = get_search_result_table(table_query)
@@ -697,10 +697,10 @@ def chapter_stats(request: HtmxHttpRequest, number: int) -> HttpResponse:
     )
 
     if request.htmx:
-        return render(request, "tables/htmx_table.html", dict(table=table))
+        return render(request, "tables/htmx_table.html", {"table": table})
 
     textrefs = TextRef.objects.select_related("chapter_line__chapter", "type").filter(
-        chapter_line__chapter__number=number
+        chapter_line__chapter__number=number,
     )
     rt_counts = (
         textrefs.values("type")
@@ -719,12 +719,12 @@ def chapter_stats(request: HtmxHttpRequest, number: int) -> HttpResponse:
         "title": chapter.title,
         "heading": render_to_string(
             "patterns/atoms/link/link.html",
-            context=dict(
-                text=f"Chapter {chapter.title}" if len(chapter.title) < 10 else f"{chapter.title}",
-                href=chapter.source_url,
-                external=True,
-                size=8,
-            ),
+            context={
+                "text": f"Chapter {chapter.title}" if len(chapter.title) < 10 else f"{chapter.title}",
+                "href": chapter.source_url,
+                "external": True,
+                "size": 8,
+            },
         ),
         "table": table,
         "stats": [
@@ -733,14 +733,14 @@ def chapter_stats(request: HtmxHttpRequest, number: int) -> HttpResponse:
                 f"{most_mentioned_character.get('count') if most_mentioned_character else 'None Mentioned'}",
                 render_to_string(
                     "patterns/atoms/link/stat_link.html",
-                    context=dict(
-                        text=f"{most_mentioned_character.get('type__name')}",
-                        href=reverse(
+                    context={
+                        "text": f"{most_mentioned_character.get('type__name')}",
+                        "href": reverse(
                             f"{most_mentioned_character.get('type__type').lower()}-stats",
                             args=[slugify(most_mentioned_character.get("type__name"))],
                         ),
-                        fit=True,
-                    ),
+                        "fit": True,
+                    },
                 ),
                 units="mentions",
             )
@@ -751,14 +751,14 @@ def chapter_stats(request: HtmxHttpRequest, number: int) -> HttpResponse:
                 f"{most_mentioned_class.get('count') if most_mentioned_class else 'None Mentioned'}",
                 render_to_string(
                     "patterns/atoms/link/stat_link.html",
-                    context=dict(
-                        text=f"{most_mentioned_class.get('type__name')}",
-                        href=reverse(
+                    context={
+                        "text": f"{most_mentioned_class.get('type__name')}",
+                        "href": reverse(
                             f"{most_mentioned_class.get('type__type').lower()}-stats",
                             args=[slugify(most_mentioned_class.get("type__name"))],
                         ),
-                        fit=True,
-                    ),
+                        "fit": True,
+                    },
                 ),
                 units="mentions",
             )
@@ -769,14 +769,14 @@ def chapter_stats(request: HtmxHttpRequest, number: int) -> HttpResponse:
                 f"{most_mentioned_skill.get('count') if most_mentioned_skill else 'None Mentioned'}",
                 render_to_string(
                     "patterns/atoms/link/stat_link.html",
-                    context=dict(
-                        text=f"{most_mentioned_skill.get('type__name')}",
-                        href=reverse(
+                    context={
+                        "text": f"{most_mentioned_skill.get('type__name')}",
+                        "href": reverse(
                             f"{most_mentioned_skill.get('type__type').lower()}-stats",
                             args=[slugify(most_mentioned_skill.get("type__name"))],
                         ),
-                        fit=True,
-                    ),
+                        "fit": True,
+                    },
                 ),
                 units="mentions",
             )
@@ -787,14 +787,14 @@ def chapter_stats(request: HtmxHttpRequest, number: int) -> HttpResponse:
                 f"{most_mentioned_spell.get('count') if most_mentioned_spell else 'None Mentioned'}",
                 render_to_string(
                     "patterns/atoms/link/stat_link.html",
-                    context=dict(
-                        text=f"{most_mentioned_spell.get('type__name')}",
-                        href=reverse(
+                    context={
+                        "text": f"{most_mentioned_spell.get('type__name')}",
+                        "href": reverse(
                             f"{most_mentioned_spell.get('type__type').lower()}-stats",
                             args=[slugify(most_mentioned_spell.get("type__name"))],
                         ),
-                        fit=True,
-                    ),
+                        "fit": True,
+                    },
                 ),
                 units="mentions",
             )
@@ -805,14 +805,14 @@ def chapter_stats(request: HtmxHttpRequest, number: int) -> HttpResponse:
                 f"{most_mentioned_location.get('count') if most_mentioned_location else 'None Mentioned'}",
                 render_to_string(
                     "patterns/atoms/link/stat_link.html",
-                    context=dict(
-                        text=f"{most_mentioned_location.get('type__name')}",
-                        href=reverse(
+                    context={
+                        "text": f"{most_mentioned_location.get('type__name')}",
+                        "href": reverse(
                             f"{most_mentioned_location.get('type__type').lower()}-stats",
                             args=[slugify(most_mentioned_location.get("type__name"))],
                         ),
-                        fit=True,
-                    ),
+                        "fit": True,
+                    },
                 ),
                 units="mentions",
             )
@@ -914,7 +914,7 @@ def reftype_stats(request: HtmxHttpRequest, name: str):
         rt = RefType.objects.get(Q(slug__iexact=name) & Q(type=rt_type))
 
     # Table config and pagination
-    table_query = dict(type=rt.type, type_query=rt.name, filter=request.GET.get("q", ""))
+    table_query = {"type": rt.type, "type_query": rt.name, "filter": request.GET.get("q", "")}
 
     config = RequestConfig(request)
     table = get_search_result_table(table_query)
@@ -927,7 +927,7 @@ def reftype_stats(request: HtmxHttpRequest, name: str):
     )
 
     if request.htmx:
-        return render(request, "tables/htmx_table.html", dict(table=table))
+        return render(request, "tables/htmx_table.html", {"table": table})
 
     chapter_appearances = (
         RefType.objects.select_related("reftypecomputedview")
@@ -962,47 +962,47 @@ def reftype_stats(request: HtmxHttpRequest, name: str):
         case _:
             href = None
 
-    context = dict(
-        table=table,
-        title=rt.name,
-        link=render_to_string(
+    context = {
+        "table": table,
+        "title": rt.name,
+        "link": render_to_string(
             "patterns/atoms/link/link.html",
-            context=dict(text="", href=href, size=8, external=True),
+            context={"text": "", "href": href, "size": 8, "external": True},
         ),
-        aliases=aliases,
-        gallery=get_reftype_gallery(rt),
-        stats=(
+        "aliases": aliases,
+        "gallery": get_reftype_gallery(rt),
+        "stats": (
             [
                 HeadlineStat("Total mentions", mention_count, units="mentions"),
                 HeadlineStat(
                     "First mentioned in chapter",
                     render_to_string(
                         "patterns/atoms/link/stat_link.html",
-                        context=dict(
-                            text=first_mention_chapter.chapter.title,
-                            href=reverse("chapters", args=[first_mention_chapter.chapter.number]),
-                            fit=True,
-                            no_icon=True,
-                        ),
+                        context={
+                            "text": first_mention_chapter.chapter.title,
+                            "href": reverse("chapters", args=[first_mention_chapter.chapter.number]),
+                            "fit": True,
+                            "no_icon": True,
+                        },
                     ),
                 ),
                 HeadlineStat(
                     "Last mentioned in chapter",
                     render_to_string(
                         "patterns/atoms/link/stat_link.html",
-                        context=dict(
-                            text=last_mention_chapter.chapter.title,
-                            href=reverse("chapters", args=[last_mention_chapter.chapter.number]),
-                            fit=True,
-                            no_icon=True,
-                        ),
+                        context={
+                            "text": last_mention_chapter.chapter.title,
+                            "href": reverse("chapters", args=[last_mention_chapter.chapter.number]),
+                            "fit": True,
+                            "no_icon": True,
+                        },
                     ),
                 ),
             ]
             if first_mention_chapter and last_mention_chapter
             else None
         ),
-    )
+    }
     return render(request, "pages/reftype_page.html", context)
 
 
@@ -1012,11 +1012,11 @@ def get_search_result_table(query: dict[str, str]) -> ChapterRefTable | TextRefT
     if query.get("refs_by_chapter"):
         if strict_mode:
             ref_types: QuerySet[RefType] = RefType.objects.filter(
-                Q(name=query.get("type_query")) & Q(type=query.get("type"))
+                Q(name=query.get("type_query")) & Q(type=query.get("type")),
             )
         else:
             ref_types: QuerySet[RefType] = RefType.objects.filter(
-                Q(name__icontains=query.get("type_query")) & Q(type=query.get("type"))
+                Q(name__icontains=query.get("type_query")) & Q(type=query.get("type")),
             )
 
         reftype_chapters = RefTypeChapter.objects.filter(
@@ -1026,8 +1026,8 @@ def get_search_result_table(query: dict[str, str]) -> ChapterRefTable | TextRefT
                 chapter__number__lte=query.get(
                     "last_chapter",
                     int(Chapter.objects.values_list("number").order_by("-number")[0][0]),
-                )
-            )
+                ),
+            ),
         )
 
         if query_filter:
@@ -1080,7 +1080,7 @@ def get_search_result_table(query: dict[str, str]) -> ChapterRefTable | TextRefT
 
         if query_filter:
             table_data = table_data.filter(
-                Q(name__icontains=query_filter) | Q(text__icontains=query_filter) | Q(title__icontains=query_filter)
+                Q(name__icontains=query_filter) | Q(text__icontains=query_filter) | Q(title__icontains=query_filter),
             )
 
         table = TextRefTable(table_data)
@@ -1105,7 +1105,7 @@ def search(request: HtmxHttpRequest) -> HttpResponse:
                 per_page=request.GET.get("page_size", 25),
                 orphans=5,
             )
-            return render(request, "tables/htmx_table.html", dict(table=table))
+            return render(request, "tables/htmx_table.html", {"table": table})
 
         form = SearchForm(query)
         if form.is_valid():

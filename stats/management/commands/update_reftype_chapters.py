@@ -28,7 +28,7 @@ class Command(BaseCommand):
                         self.stdout.write(self.style.SUCCESS(f"Created RefTypeChapter for {rt.name} - {c.title}"))
                     else:
                         self.stdout.write(
-                            self.style.WARNING(f"RefTypeChapter for {rt.name} - {c.title} already exists.")
+                            self.style.WARNING(f"RefTypeChapter for {rt.name} - {c.title} already exists."),
                         )
 
             except KeyboardInterrupt as exc:

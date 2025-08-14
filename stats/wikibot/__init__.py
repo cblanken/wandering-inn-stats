@@ -14,7 +14,6 @@ from pywikibot.textlib import Section, extract_sections
 
 def get_aliases(page: pwb.Page) -> list[str] | None:
     """Parse aliases from page"""
-    pass
 
 
 class TwiBot(SingleSiteBot):
@@ -39,7 +38,7 @@ class TwiBot(SingleSiteBot):
             filter(
                 lambda t: re.match(r"^Template:Infobox[\s_]character$", t[0].title().strip()),
                 page.templatesWithParams(),
-            )
+            ),
         )
         if infoboxes:
             template, params = infoboxes[0]
@@ -61,7 +60,7 @@ class TwiBot(SingleSiteBot):
         return {
             page.title(): {
                 "url": page.full_url(),
-            }
+            },
         }
 
     # Treat methods for RefTypes that don't maintain separate pages for each entity and instead
@@ -106,7 +105,7 @@ class TwiBot(SingleSiteBot):
                     s.title.replace("\xa0", " "),
                 ),
                 content.sections,
-            )
+            ),
         )
 
         if spell_lists:

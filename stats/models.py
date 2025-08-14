@@ -513,7 +513,7 @@ class TextRef(models.Model):
             models.UniqueConstraint(
                 name="textref_key",
                 fields=["chapter_line", "start_column", "end_column"],
-            )
+            ),
         ]
 
     def __str__(self):
@@ -534,7 +534,7 @@ class RefTypeChapter(models.Model):
             models.UniqueConstraint(
                 name="reftype_chapters_key",
                 fields=["type", "chapter"],
-            )
+            ),
         ]
 
     def __str__(self):

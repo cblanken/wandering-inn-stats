@@ -27,11 +27,11 @@ def class_ref_counts(first_chapter: Chapter | None = None, last_chapter: Chapter
         color="type__name",
         color_discrete_sequence=DEFAULT_DISCRETE_COLORS,
         text_auto="d",
-        labels=dict(type__name="Class", class_instance_cnt="Count"),
+        labels={"type__name": "Class", "class_instance_cnt": "Count"},
     )
     class_refs_count_fig.update_layout(DEFAULT_LAYOUT)
     class_refs_count_fig.update_traces(
-        textfont=dict(size=20),
+        textfont={"size": 20},
         textposition="inside",
         showlegend=False,
     )

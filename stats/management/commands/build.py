@@ -202,7 +202,7 @@ class Command(BaseCommand):
         )
 
     def log(self, msg: str, category: LogCat):
-        t = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+        t = dt.datetime.now(tz=dt.timezone.utc).strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
         match category:
             case LogCat.WARN | LogCat.SKIPPED:
                 style = self.style.WARNING
@@ -216,10 +216,10 @@ class Command(BaseCommand):
         full_msg = f"{t} {category.value:<10} {style(msg)}"
         self.stdout.write(full_msg)
 
-    def update_prop_prompt(self, old: Any, new: Any, property: str | None) -> tuple[Any, bool]:
+    def update_prop_prompt(self, old: Any, new: Any, prop: str | None) -> tuple[Any, bool]:
         """Prompt user to update property and return selected value and confirmation boolean"""
         differ: bool = old != new
-        prop = property or "property"
+        prop = prop or "property"
         if differ:
             self.log(
                 f"A difference in [{prop}] was found.",
@@ -474,7 +474,7 @@ class Command(BaseCommand):
                             *[
                                 RefType.objects.filter(type=RefType.CHARACTER),
                                 Alias.objects.filter(ref_type__type=RefType.CHARACTER),
-                            ]
+                            ],
                         )
                     ]:
                         if text_ref.text[1:-1].lower() == name.lower():
@@ -626,7 +626,7 @@ class Command(BaseCommand):
 
         if src_chapter.metadata.get("word_count", 0) < 30:
             raise CommandError(
-                f'The length of chapter "{src_chapter.title}" is very short. It may be locked behind a password and should not be imported into the database in it\'s current state.'
+                f'The length of chapter "{src_chapter.title}" is very short. It may be locked behind a password and should not be imported into the database in it\'s current state.',
             )
 
         try:
@@ -640,13 +640,13 @@ class Command(BaseCommand):
                     "is_interlude": "interlude" in src_chapter.title.lower(),
                     "source_url": src_chapter.metadata.get("url", ""),
                     "post_date": dt.datetime.fromisoformat(
-                        src_chapter.metadata.get("pub_time", dt.datetime.now().isoformat())
+                        src_chapter.metadata.get("pub_time", dt.datetime.now(tz=dt.timezone.utc).isoformat()),
                     ),
                     "last_update": dt.datetime.fromisoformat(
-                        src_chapter.metadata.get("mod_time", dt.datetime.now().isoformat())
+                        src_chapter.metadata.get("mod_time", dt.datetime.now(tz=dt.timezone.utc).isoformat()),
                     ),
                     "download_date": dt.datetime.fromisoformat(
-                        src_chapter.metadata.get("dl_time", dt.datetime.now().isoformat())
+                        src_chapter.metadata.get("dl_time", dt.datetime.now(tz=dt.timezone.utc).isoformat()),
                     ),
                     "word_count": src_chapter.metadata.get("word_count", 0),
                     "authors_note_word_count": src_chapter.metadata.get("authors_note_word_count", 0),
@@ -658,7 +658,7 @@ class Command(BaseCommand):
                 LogCat.ERROR,
             )
             raise CommandError(
-                f"Chapter integrity failed when building a chapter. The indexing of the source chapters may have been changed.\n{e}"
+                f"Chapter integrity failed when building a chapter. The indexing of the source chapters may have been changed.\n{e}",
             ) from e
 
         if ref_type_updated:
@@ -698,13 +698,13 @@ class Command(BaseCommand):
             # TODO: add item/artifact names
 
             compiled_patterns = compile_textref_patterns(
-                patterns=itertools.chain(character_patterns, location_patterns)
+                patterns=itertools.chain(character_patterns, location_patterns),
             )
 
         # Build TextRefs
         line_range = options.get("chapter_line_range")
         if line_range is None:
-            line_range = range(0, len(src_chapter.lines))
+            line_range = range(len(src_chapter.lines))
         else:
             try:
                 split = line_range.split(",")
@@ -733,7 +733,9 @@ class Command(BaseCommand):
             # Create ChapterLine if it doesn't already exist
             try:
                 chapter_line, created = ChapterLine.objects.get_or_create(
-                    chapter=chapter, line_number=i, text=src_chapter.lines[i]
+                    chapter=chapter,
+                    line_number=i,
+                    text=src_chapter.lines[i],
                 )
             except IntegrityError as e:
                 self.log(
@@ -959,7 +961,7 @@ class Command(BaseCommand):
                                     # Account for existence or lack of "/" at end of the URI
                                     Q(source_url__contains=endpoint)
                                     | Q(source_url__contains=endpoint + "/")
-                                    | Q(source_url__contains=endpoint[:-1])
+                                    | Q(source_url__contains=endpoint[:-1]),
                                 )
                         else:
                             first_ref = None
@@ -1007,7 +1009,7 @@ class Command(BaseCommand):
 
                     except IntegrityError:
                         print(
-                            f"There may have been a change in the Character definition or in the input file format. Unable to create Character for {ref_type}"
+                            f"There may have been a change in the Character definition or in the input file format. Unable to create Character for {ref_type}",
                         )
 
     def build_classes(self, path: Path):
@@ -1100,7 +1102,7 @@ class Command(BaseCommand):
                             found_reftypes.append(qs[0])
                         else:
                             raise CommandError(
-                                f"The name \n{name}\n provided by the custom ref config file matches multiple RefTypes → {qs}"
+                                f"The name \n{name}\n provided by the custom ref config file matches multiple RefTypes → {qs}",
                             )
 
                 for qs in found_reftypes:
@@ -1117,7 +1119,7 @@ class Command(BaseCommand):
 
                 if len(missing_reftypes):
                     raise CommandError(
-                        "Some reftypes provided in the custom ref config file did not find any existing RefTypes. There are probably some typos. Fix them and try again."
+                        "Some reftypes provided in the custom ref config file did not find any existing RefTypes. There are probably some typos. Fix them and try again.",
                     )
 
                 patterns = ["|".join(build_reftype_pattern(rt)) for rt in found_reftypes]
@@ -1145,7 +1147,7 @@ class Command(BaseCommand):
             # Disambiguation configs
             options["disambiguation_list"] = self.read_config_file(Path(config_root, "disambiguation.cfg"))
             options["disambiguation_exceptions"] = self.read_config_file(
-                Path(config_root, "disambiguation_exceptions.cfg")
+                Path(config_root, "disambiguation_exceptions.cfg"),
             )
 
             self.log("Building DB...", LogCat.INFO)
@@ -1201,7 +1203,7 @@ class Command(BaseCommand):
             if volumes_metadata is None:
                 raise CommandError("Unable to read top-level volumes metadata file. Exiting...")
 
-            volumes = sorted(list(volumes_metadata["volumes"].items()), key=lambda x: x[1])
+            volumes = sorted(volumes_metadata["volumes"].items(), key=lambda x: x[1])
 
             chapter_num = 0
             for vol_title, vol_num in volumes:

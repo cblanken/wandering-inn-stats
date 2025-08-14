@@ -26,11 +26,11 @@ def location_ref_counts(first_chapter: Chapter | None = None, last_chapter: Chap
         color="type__name",
         color_discrete_sequence=DEFAULT_DISCRETE_COLORS,
         text_auto=True,
-        labels=dict(type__name="location", location_instance_cnt="Count"),
+        labels={"type__name": "location", "location_instance_cnt": "Count"},
     )
     location_refs_count_fig.update_layout(DEFAULT_LAYOUT)
     location_refs_count_fig.update_traces(
-        textfont=dict(size=20),
+        textfont={"size": 20},
         textposition="inside",
         showlegend=False,
     )

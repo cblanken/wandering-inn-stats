@@ -209,7 +209,6 @@ def match_ref_type(type_str: str) -> Literal[2] | None:
 
     except ValueError:
         # No match found
-        pass
         return None
     else:
         return None

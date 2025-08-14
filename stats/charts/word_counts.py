@@ -22,23 +22,23 @@ def word_count_per_chapter(first_chapter: Chapter | None = None, last_chapter: C
         y="word_count",
         hover_data=["title", "number", "word_count", "post_date"],
         trendline="lowess",
-        trendline_options=dict(frac=0.2),
+        trendline_options={"frac": 0.2},
         trendline_color_override="#FF8585",
         custom_data=["title", "post_date"],
     )
 
     chapter_wc_fig.update_layout(
         DEFAULT_LAYOUT,
-        xaxis=dict(title="Chapter Number", rangeslider=dict(visible=True), type="linear"),
-        yaxis=dict(title="Word Count"),
+        xaxis={"title": "Chapter Number", "rangeslider": {"visible": True}, "type": "linear"},
+        yaxis={"title": "Word Count"},
     )
 
     chapter_wc_fig.data[0]["hovertemplate"] = (
         "<b>Chapter Title</b>: %{customdata[0]}<br>"
-        + "<b>Chapter Number</b>: %{x}<br>"
-        + "<b>Word Count</b>: %{y}<br>"
-        + "<b>Post Date</b>: %{customdata[1]}"
-        + "<extra></extra>"
+        "<b>Chapter Number</b>: %{x}<br>"
+        "<b>Word Count</b>: %{y}<br>"
+        "<b>Post Date</b>: %{customdata[1]}"
+        "<extra></extra>"
     )
 
     return chapter_wc_fig
@@ -51,7 +51,7 @@ def word_count_cumulative(first_chapter: Chapter | None = None, last_chapter: Ch
                 Sum("word_count"),
                 template="%(expressions)s OVER (ORDER BY %(order_by)s)",
                 order_by="post_date",
-            )
+            ),
         )
         .values("post_date", "cumsum")
         .order_by("post_date")
@@ -67,16 +67,16 @@ def word_count_cumulative(first_chapter: Chapter | None = None, last_chapter: Ch
         cumulative_chapter_wc,
         x="post_date",
         y="cumsum",
-        labels=dict(
-            post_date="Post Date",
-            cumsum="Total Word Count",
-        ),
+        labels={
+            "post_date": "Post Date",
+            "cumsum": "Total Word Count",
+        },
     )
 
     chapter_wc_area.update_layout(
         DEFAULT_LAYOUT,
-        xaxis=dict(title="Post Date"),
-        yaxis=dict(title="Total Word Count"),
+        xaxis={"title": "Post Date"},
+        yaxis={"title": "Total Word Count"},
     )
 
     return chapter_wc_area
@@ -99,18 +99,18 @@ def word_count_authors_note() -> Figure:
 
     chapter_authors_wc_fig.update_layout(
         DEFAULT_LAYOUT,
-        xaxis=dict(
-            title="Chapter Number",
-            rangeslider=dict(visible=True),
-        ),
-        yaxis=dict(title="Word Count"),
+        xaxis={
+            "title": "Chapter Number",
+            "rangeslider": {"visible": True},
+        },
+        yaxis={"title": "Word Count"},
     )
 
     chapter_authors_wc_fig.update_traces(
         hovertemplate="<b>Chapter Title</b>: %{customdata[0]}<br>"
-        + "<b>Chapter Number</b>: %{x}<br>"
-        + "<b>Word Count</b>: %{y}"
-        + "<extra></extra>",
+        "<b>Chapter Number</b>: %{x}<br>"
+        "<b>Word Count</b>: %{y}"
+        "<extra></extra>",
     )
 
     return chapter_authors_wc_fig
@@ -155,10 +155,10 @@ def word_count_by_book(first_chapter: Chapter | None = None, last_chapter: Chapt
 
     book_wc_fig.update_traces(
         hovertemplate="<b>Word Count</b>: %{y}<br>"
-        + "<b>Chapter</b>: %{customdata[0]}<br>"
-        + "<b>Book</b>: %{customdata[1]}<br>"
-        + "<b>Volume</b>: %{customdata[2]}<br>"
-        + "<extra></extra>",
+        "<b>Chapter</b>: %{customdata[0]}<br>"
+        "<b>Book</b>: %{customdata[1]}<br>"
+        "<b>Volume</b>: %{customdata[2]}<br>"
+        "<extra></extra>",
     )
 
     return book_wc_fig
@@ -201,9 +201,9 @@ def word_count_by_volume(first_chapter: Chapter | None = None, last_chapter: Cha
     )
     volume_wc_fig.update_traces(
         hovertemplate="<b>Word Count</b>: %{y}<br>"
-        + "<b>Book</b>: %{customdata[0]}<br>"
-        + "<b>Volume</b>: %{x}<br>"
-        + "<extra></extra>",
+        "<b>Book</b>: %{customdata[0]}<br>"
+        "<b>Volume</b>: %{x}<br>"
+        "<extra></extra>",
     )
 
     return volume_wc_fig

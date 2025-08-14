@@ -73,17 +73,17 @@ def character_counts_per_chapter(first_chapter: Chapter | None = None, last_chap
         x=0,
         y=1,
         trendline="lowess",
-        trendline_options=dict(frac=0.2),
+        trendline_options={"frac": 0.2},
         trendline_color_override="#FF8585",
     )
     char_counts_per_chapter_fig.update_layout(
         DEFAULT_LAYOUT,
-        xaxis=dict(
-            title="Chapter Number",
-            rangeslider=dict(visible=True),
-            type="linear",
-        ),
-        yaxis=dict(title="Character Count"),
+        xaxis={
+            "title": "Chapter Number",
+            "rangeslider": {"visible": True},
+            "type": "linear",
+        },
+        yaxis={"title": "Character Count"},
     )
 
     char_counts_per_chapter_fig.data[0]["hovertemplate"] = (
@@ -114,7 +114,7 @@ def characters_by_species():
         y="species",
         color="species",
         color_discrete_sequence=DEFAULT_DISCRETE_COLORS,
-        labels=dict(species="Species", species_cnt="Count"),
+        labels={"species": "Species", "species_cnt": "Count"},
     )
     chars_by_species_fig.update_layout(DEFAULT_LAYOUT)
     chars_by_species_fig.update_traces(

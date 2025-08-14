@@ -27,11 +27,11 @@ def skill_ref_counts(first_chapter: Chapter | None, last_chapter: Chapter | None
         color="type__name",
         color_discrete_sequence=DEFAULT_DISCRETE_COLORS,
         text_auto=True,
-        labels=dict(type__name="Skill", skill_instance_cnt="Count"),
+        labels={"type__name": "Skill", "skill_instance_cnt": "Count"},
     )
     skill_refs_count_fig.update_layout(DEFAULT_LAYOUT)
     skill_refs_count_fig.update_traces(
-        textfont=dict(size=20),
+        textfont={"size": 20},
         textposition="inside",
         showlegend=False,
     )

@@ -30,7 +30,7 @@ class Pattern:
             new_pattern = regex.compile(prefix + r"(?P<or_center>" + patterns[0].pattern + r")" + suffix)
         else:
             new_pattern = regex.compile(
-                prefix + r"(?P<or_center>" + "|".join([f"({p.pattern})" for p in patterns]) + r")" + suffix
+                prefix + r"(?P<or_center>" + "|".join([f"({p.pattern})" for p in patterns]) + r")" + suffix,
             )
         return new_pattern
 
@@ -128,7 +128,7 @@ class Chapter:
                 Pattern.SKILL_UPDATED,
                 Pattern.CLASS_UPDATED,
                 Pattern.SPELL_UPDATED,
-            ]
+            ],
         )
         self.all_bracket_ref_gens_by_line: list[Generator[TextRef, None, None]] = [
             self.gen_text_refs(i) for i in range(len(self.lines))
@@ -201,7 +201,7 @@ class Book:
         if self.metadata is None:
             return
         self.title: str = self.metadata.get("title")
-        self.chapters: list[str] = [x[0] for x in sorted(list(self.metadata["chapters"].items()), key=lambda x: x[1])]
+        self.chapters: list[str] = [x[0] for x in sorted(self.metadata["chapters"].items(), key=lambda x: x[1])]
 
     def __str__(self):
         return f"{self.title}: {self.path}"
@@ -216,7 +216,7 @@ class Volume:
         if self.metadata is None:
             return
         self.title: str = self.metadata["title"]
-        self.books: list[str] = [x[0] for x in sorted(list(self.metadata["books"].items()), key=lambda x: x[1])]
+        self.books: list[str] = [x[0] for x in sorted(self.metadata["books"].items(), key=lambda x: x[1])]
 
     def print_all_text_refs(self):
         """Print all text references found by `generate_all_text_refs` generator"""

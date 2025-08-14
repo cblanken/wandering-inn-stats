@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup
 from pathlib import Path
 
 
-@pytest.fixture()
+@pytest.fixture
 def ch1_html_content() -> BeautifulSoup:
     """Sample chapter #1"""
     with Path.open(Path(__file__).parent / "samples/8.00/8.00.html", encoding="utf-8") as fp:
@@ -13,7 +13,7 @@ def ch1_html_content() -> BeautifulSoup:
         return soup
 
 
-@pytest.fixture()
+@pytest.fixture
 def ch1_text_content() -> str:
     """Sample Author's Note #1"""
     with Path.open(Path(__file__).parent / "samples/8.00/8.00.txt", encoding="utf-8") as fp:
@@ -34,7 +34,7 @@ def ch1_pre_note() -> str:
         return fp.read()
 
 
-@pytest.fixture()
+@pytest.fixture
 def ch2_html_content() -> BeautifulSoup:
     """Sample chapter #2"""
     with Path.open(Path(__file__).parent / "samples/TheRoots3/chapter.html", encoding="utf-8") as fp:
@@ -43,7 +43,7 @@ def ch2_html_content() -> BeautifulSoup:
         return soup
 
 
-@pytest.fixture()
+@pytest.fixture
 def ch2_text_content() -> str:
     """Sample Author's Note #2"""
     with Path.open(Path(__file__).parent / "samples/TheRoots3/chapter.txt", encoding="utf-8") as fp:
@@ -64,7 +64,7 @@ def ch2_pre_note() -> str:
         return fp.read()
 
 
-@pytest.fixture()
+@pytest.fixture
 def ch3_html_content() -> BeautifulSoup:
     """Sample chapter #3"""
     with Path.open(Path(__file__).parent / "samples/10.22_R/chapter.html", encoding="utf-8") as fp:
@@ -73,14 +73,14 @@ def ch3_html_content() -> BeautifulSoup:
         return soup
 
 
-@pytest.fixture()
+@pytest.fixture
 def ch3_text_content() -> str:
     """Sample chapter #3"""
     with Path.open(Path(__file__).parent / "samples/10.22_R/chapter.txt", encoding="utf-8") as fp:
         return fp.read()
 
 
-@pytest.fixture()
+@pytest.fixture
 def ch3_authors_note() -> str:
     """Sample chapter #3"""
     with Path.open(Path(__file__).parent / "samples/10.22_R/authors_note.txt", encoding="utf-8") as fp:
@@ -98,7 +98,6 @@ def test_text_content(ch1_html_content, ch1_text_content):
 
 def test_author_note_at_start():
     """Some author's notes appear at the start of the chapter with the typical 'Author's Note' indicator"""
-    pass
 
 
 def test_author_note_at_end(ch1_html_content, ch1_authors_note):
@@ -115,7 +114,6 @@ def test_parenthesized_author_note_at_start(ch1_html_content, ch1_pre_note):
 
 def test_ignore_fanart_attributions():
     """Many chapters include fanart appended to the end of the chapter which should not be inluded in the chapter text"""
-    pass
 
 
 # ------------------------------------------------------------------------

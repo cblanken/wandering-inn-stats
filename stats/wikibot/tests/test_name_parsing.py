@@ -66,7 +66,7 @@ def test_parens_not_category():
 def test_citation_link():
     """Parses citation links. Citation link text should not be included in the name field."""
     parsed_fields = parse_name_field(
-        "Everfire Shield<ref>[https://wanderinginn.com/2020/02/26/7-10-k/ Chapter 7.10 K]</ref>"
+        "Everfire Shield<ref>[https://wanderinginn.com/2020/02/26/7-10-k/ Chapter 7.10 K]</ref>",
     )
     assert parsed_fields.get("name") == "Everfire Shield"
     assert parsed_fields.get("citations") == ["Chapter 7.10 K"]

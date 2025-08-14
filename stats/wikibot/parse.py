@@ -144,7 +144,6 @@ class WikiTemplateParser:
     @abc.abstractmethod
     def parse(self) -> dict:
         """Parse template-specific data from target wiki template"""
-        pass
 
 
 class WikiTableParser:
@@ -153,12 +152,10 @@ class WikiTableParser:
 
     def parse(self):
         """Parse a wikitable"""
-        pass
 
     @staticmethod
     def parse_row(row: list[str]):
         """Parse single wikitable row"""
-        pass
 
 
 class WikiListParser:
@@ -167,7 +164,6 @@ class WikiListParser:
 
     def parse(self):
         """Parse a wikilist"""
-        pass
 
 
 class CharInfoBoxParser(WikiTemplateParser):

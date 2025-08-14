@@ -135,7 +135,7 @@ def parse_chapter_content(soup: BeautifulSoup) -> dict:
         # Capture parenthesized chapter pre-note
         if chapter_index < 10 and parens_pre_note_start_re.match(chapter_line):
             # Check current and next few lines for completion of parens
-            for i in range(0, 5):
+            for i in range(5):
                 if parens_pre_note_end_re.match(content_lines[chapter_index + i]):
                     pre_note_lines.append("\n".join(content_lines[chapter_index : chapter_index + i + 1]) + "\n")
                     chapter_index += i
@@ -145,7 +145,7 @@ def parse_chapter_content(soup: BeautifulSoup) -> dict:
             continue
 
         # Capture signed chapter pre-note
-        if chapter_index < 10 and any([signed_pre_note_re.match(line) for line in chapter_line.split("\n")]):
+        if chapter_index < 10 and any(signed_pre_note_re.match(line) for line in chapter_line.split("\n")):
             pre_note_lines.extend(content_lines[: chapter_index + 1])
             chapter_lines.clear()
             chapter_index += 1
@@ -253,7 +253,7 @@ class TableOfContents:
         if session:
             if not isinstance(session, Session):
                 raise TypeError(
-                    "The session argument must be an appropriate Session type to retrieve the table of contents"
+                    "The session argument must be an appropriate Session type to retrieve the table of contents",
                 )
             self.response = session.get(self.url)
         else:
