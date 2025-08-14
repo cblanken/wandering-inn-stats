@@ -10,7 +10,7 @@ def get_char_missing_first_href():
         missing_chars_path = Path("./char_missing_first_href.csv")
         with missing_chars_path.open("w", encoding="utf-8") as fp:
             fp.write("Character,Wiki URL,Current First Chapter Ref URL,New First Chapter Ref URL\n")
-            for i, (name, meta) in enumerate(data.items()):
+            for _i, (name, meta) in enumerate(data.items()):
                 char = Character.objects.get(ref_type__name=name)
                 if char.first_chapter_appearance is None:
                     href = meta.get("first_href", "")

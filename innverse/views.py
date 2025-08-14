@@ -678,8 +678,8 @@ def chapter_stats(request: HtmxHttpRequest, number: int) -> HttpResponse:
     try:
         chapter = Chapter.objects.get(number=number)
         number = int(number)
-    except (Chapter.DoesNotExist, ValueError):
-        raise Http404()
+    except (Chapter.DoesNotExist, ValueError) as e:
+        raise Http404() from e
 
     table_filter = request.GET.get("q", "")
     table_query = dict(first_chapter=chapter.number, last_chapter=chapter.number, filter=table_filter)

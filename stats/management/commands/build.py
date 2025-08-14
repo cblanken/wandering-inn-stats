@@ -659,7 +659,7 @@ class Command(BaseCommand):
             )
             raise CommandError(
                 f"Chapter integrity failed when building a chapter. The indexing of the source chapters may have been changed.\n{e}"
-            )
+            ) from e
 
         if ref_type_updated:
             self.log(f"Chapter created: {chapter}", LogCat.CREATED)
@@ -735,7 +735,7 @@ class Command(BaseCommand):
                 chapter_line, created = ChapterLine.objects.get_or_create(
                     chapter=chapter, line_number=i, text=src_chapter.lines[i]
                 )
-            except IntegrityError:
+            except IntegrityError as e:
                 self.log(
                     f"An existing chapter line ({i}) in chapter {chapter} was found with different text.",
                     LogCat.PROMPT,
@@ -746,7 +746,7 @@ class Command(BaseCommand):
                     continue
                 else:
                     self.log("Build was aborted", LogCat.ERROR)
-                    raise CommandError("Build aborted.")
+                    raise CommandError("Build aborted.") from e
 
             if created:
                 self.log(f"Created line {i:>3}", LogCat.CREATED)
@@ -1042,7 +1042,7 @@ class Command(BaseCommand):
         self.log("Populating location RefType(s)...", LogCat.BEGIN)
         with Path.open(path, encoding="utf-8") as file:
             try:
-                loc_data = json.load(file)
+                loc_data_array = json.load(file)
             except json.JSONDecodeError:
                 self.log(
                     self.style.ERROR(f"Location data ({path}) could not be decoded"),
@@ -1050,7 +1050,7 @@ class Command(BaseCommand):
                 )
                 return
             else:
-                for loc_name, loc_data in loc_data.items():
+                for loc_name, loc_data in loc_data_array.items():
                     if loc_rt := self.get_or_create_reftype(loc_name, RefType.LOCATION):
                         if aliases := loc_data.get("aliases"):
                             for alias_name in aliases:

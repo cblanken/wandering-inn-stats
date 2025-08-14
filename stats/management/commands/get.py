@@ -260,7 +260,7 @@ class Command(BaseCommand):
                 )
 
                 # Download all volumes
-                for i, (volume_title, books) in list(enumerate(toc.volume_data.items())):
+                for _i, (volume_title, _books) in list(enumerate(toc.volume_data.items())):
                     # TODO: check for empty volume_title
                     volume_path = Path(volume_root, f"{volume_title}")
                     self.download_volume(toc, options, volume_title, volume_path)

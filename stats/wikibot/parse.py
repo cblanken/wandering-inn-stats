@@ -132,8 +132,8 @@ def parse_name_field(text: str, wrap_brackets=False) -> dict[str, str]:
 
         return data
 
-    except IndexError:
-        raise ParseError(f'Names and/or aliases could not be parsed from "{text}"')
+    except IndexError as e:
+        raise ParseError(f'Names and/or aliases could not be parsed from "{text}"') from e
 
 
 class WikiTemplateParser:
