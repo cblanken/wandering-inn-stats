@@ -101,10 +101,9 @@ def parse_name_field(text: str, wrap_brackets: bool = False) -> dict[str, str]:
                 re_category = RE_PARENS_CATEGORY_MATCH_END.match(n)
                 if re_category is None:
                     re_category = RE_PARENS_CATEGORY_MATCH_START.match(n)
-                if re_category:
-                    if category := re_category.group(1)[1:-1]:
-                        data["categories"].append(wtp.remove_markup(category))
-                        names[i] = RE_PARENS_AND_PUNCT_REPLACE.sub("", n)
+                if re_category and (category := re_category.group(1)[1:-1]):
+                    data["categories"].append(wtp.remove_markup(category))
+                    names[i] = RE_PARENS_AND_PUNCT_REPLACE.sub("", n)
 
         # Delete any invalid aliases (e.g. categories split by linebreaks)
         for i in not_alias_indexes:
@@ -179,10 +178,7 @@ class CharInfoBoxParser(WikiTemplateParser):
 
         # Parse aliases
         aliases = self.params.get("aliases") or None
-        if aliases is not None:
-            aliases = parse_list(aliases)
-        else:
-            aliases = []
+        aliases = parse_list(aliases) if aliases is not None else []
 
         # Parse status
         status = self.params.get("status") or None

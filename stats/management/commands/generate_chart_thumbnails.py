@@ -80,7 +80,7 @@ class Command(BaseCommand):
             charts.get_magic_charts(),
             charts.get_location_charts(),
         ]
-        if reftype_name := options.get("reftype_name", None):
+        if reftype_name := options.get("reftype_name"):
             re.compile(reftype_name)
         else:
             pass

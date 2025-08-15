@@ -16,9 +16,6 @@ def get_char_missing_first_href() -> None:
                     href = meta.get("first_href", "")
                     char_refs = TextRef.objects.filter(type__name=name).order_by("chapter__number")
 
-                    if char_refs.exists():
-                        first_chapter = char_refs[0].chapter_line.chapter.source_url
-                    else:
-                        first_chapter = ""
+                    first_chapter = char_refs[0].chapter_line.chapter.source_url if char_refs.exists() else ""
 
                     fp.write(f"{name},{meta.get('wiki_href', '')},{href},{first_chapter}\n")

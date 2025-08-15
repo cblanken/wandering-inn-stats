@@ -178,11 +178,9 @@ def parse_chapter_content(soup: BeautifulSoup) -> dict:
 
     chapter_data["text"] = "\n".join([line.strip() for line in chapter_lines]).strip() + "\n"
     chapter_data["authors_note"] = (
-        "\n".join([line.strip() for line in authors_note_lines if not line.strip() == ""]).strip() + "\n"
+        "\n".join([line.strip() for line in authors_note_lines if line.strip() != ""]).strip() + "\n"
     )
-    chapter_data["pre_note"] = (
-        "\n".join([line.strip() for line in pre_note_lines if not line.strip() == ""]).strip() + "\n"
-    )
+    chapter_data["pre_note"] = "\n".join([line.strip() for line in pre_note_lines if line.strip() != ""]).strip() + "\n"
 
     try:
         word_count = len(chapter_data["text"].split())

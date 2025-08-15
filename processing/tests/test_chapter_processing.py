@@ -127,7 +127,7 @@ def test_text_does_not_contain_authors_note(ch2_html_content: BeautifulSoup):
     if authors_note is None:
         raise ValueError("Empty author's note")
     for line in authors_note.split("\n"):
-        if not line.isspace and not line == "":
+        if not line.isspace and line != "":
             assert line not in data.get("text")
 
 
@@ -155,7 +155,7 @@ def test_signed_pre_note_not_in_chapter_text(ch2_html_content: BeautifulSoup):
     if pre_note is None:
         raise ValueError("Empty author's note")
     for line in pre_note.split("\n"):
-        if not line.isspace and not line == "":
+        if not line.isspace and line != "":
             assert line not in data.get("text")
 
 
