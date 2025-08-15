@@ -1,5 +1,6 @@
 import abc
 from itertools import chain
+from typing import Any
 import regex as re
 from pywikibot.textlib import extract_templates_and_params
 from pywikibot.site import APISite
@@ -52,7 +53,7 @@ def replace_br_with_space(text: str) -> str:
     return re.sub(re.compile(r"<br[ ]?/>"), " ", text)
 
 
-def parse_name_field(text: str, wrap_brackets=False) -> dict[str, str]:
+def parse_name_field(text: str, wrap_brackets: bool = False) -> dict[str, str]:
     """
     Parse name field from tables and lists. Parse out aliases, categories and citations.
     Returns data in the form of:
@@ -137,7 +138,7 @@ def parse_name_field(text: str, wrap_brackets=False) -> dict[str, str]:
 
 
 class WikiTemplateParser:
-    def __init__(self, template_params: list[str], site: APISite):
+    def __init__(self, template_params: list[str], site: APISite) -> None:
         self.params = params_to_dict(template_params)
         self.site = site
 
@@ -147,22 +148,22 @@ class WikiTemplateParser:
 
 
 class WikiTableParser:
-    def __init__(self, table: wtp.Table):
+    def __init__(self, table: wtp.Table) -> None:
         self.table = table
 
-    def parse(self):
+    def parse(self) -> None:
         """Parse a wikitable"""
 
     @staticmethod
-    def parse_row(row: list[str]):
+    def parse_row(row: list[str]) -> None:
         """Parse single wikitable row"""
 
 
 class WikiListParser:
-    def __init__(self, wikilist: wtp.WikiList):
+    def __init__(self, wikilist: wtp.WikiList) -> None:
         self.wikilist = wikilist
 
-    def parse(self):
+    def parse(self) -> None:
         """Parse a wikilist"""
 
 
@@ -216,7 +217,7 @@ class CharInfoBoxParser(WikiTemplateParser):
 
 
 class ClassesTableParser(WikiTableParser):
-    def __init__(self, table: wtp.Table):
+    def __init__(self, table: wtp.Table) -> None:
         super().__init__(table)
 
     @staticmethod
@@ -237,7 +238,7 @@ class ClassesTableParser(WikiTableParser):
 
         return parsed_row
 
-    def parse(self):
+    def parse(self) -> dict[str, Any]:
         parsed_data = {}
         for row in self.table.data()[1:]:
             parsed_row = self.parse_row(row)
@@ -247,11 +248,11 @@ class ClassesTableParser(WikiTableParser):
 
 
 class SkillTableParser(WikiTableParser):
-    def __init__(self, table: wtp.Table):
+    def __init__(self, table: wtp.Table) -> None:
         super().__init__(table)
 
     @staticmethod
-    def parse_row(row: list[str]) -> dict[str] | None:
+    def parse_row(row: list[str]) -> dict[str, Any] | None:
         parsed_name = parse_name_field(row[0], wrap_brackets=True)
         parsed_row = {}
         if aliases := parsed_name.get("aliases"):
@@ -273,7 +274,7 @@ class SkillTableParser(WikiTableParser):
 
 
 class SpellTableParser(WikiTableParser):
-    def __init__(self, table: wtp.Table):
+    def __init__(self, table: wtp.Table) -> None:
         super().__init__(table)
 
     @staticmethod

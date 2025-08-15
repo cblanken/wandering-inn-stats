@@ -12,7 +12,7 @@ MAX_CHAPTER_NUM = (
 )
 
 
-def get_chapters():
+def get_chapters():  # noqa: ANN201
     yield (0, "--- First Chapter ---")
     i = 0
     for tup in ((c["number"], c["title"]) for c in Chapter.objects.values("number", "title").order_by("number")):

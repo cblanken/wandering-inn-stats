@@ -39,7 +39,7 @@ class HeadlineStat:
         caption: str = "",
         units: str = "",
         popup_info: str | None = None,
-    ):
+    ) -> None:
         self.title = title
         self.value = value
         self.units = units
@@ -334,7 +334,7 @@ def characters(request: HtmxHttpRequest) -> HttpResponse:
     return render(request, "pages/characters.html", context)
 
 
-def get_reftype_table_data(query: str | None, rt_type: str, order_by="mentions") -> QuerySet[RefType]:
+def get_reftype_table_data(query: str | None, rt_type: str, order_by: str = "mentions") -> QuerySet[RefType]:
     if query:
         rt_data = (
             RefType.objects.select_related("reftypecomputedview")
@@ -824,7 +824,7 @@ def chapter_stats(request: HtmxHttpRequest, number: int) -> HttpResponse:
     return render(request, "pages/chapter_page.html", context)
 
 
-def main_interactive_chart(request: HtmxHttpRequest, chart: str):
+def main_interactive_chart(request: HtmxHttpRequest, chart: str) -> HttpResponse:
     first_chapter, last_chapter = parse_chapter_params(request)
 
     chart_items: Iterable[ChartGalleryItem] = chain(
@@ -871,7 +871,7 @@ def match_reftype_str(s: str) -> str | None:
             return None
 
 
-def reftype_interactive_chart(request: HtmxHttpRequest, name: str, chart: str):
+def reftype_interactive_chart(request: HtmxHttpRequest, name: str, chart: str) -> HttpResponse:
     stat_root = request.path.split("/")[1].strip().lower()
     rt_type = match_reftype_str(stat_root)
     if len(name) >= 100:
@@ -904,7 +904,7 @@ def reftype_interactive_chart(request: HtmxHttpRequest, name: str, chart: str):
     raise Http404()
 
 
-def reftype_stats(request: HtmxHttpRequest, name: str):
+def reftype_stats(request: HtmxHttpRequest, name: str) -> HttpResponse:
     stat_root = request.path.split("/")[1].strip().lower()
     rt_type = match_reftype_str(stat_root)
 

@@ -16,6 +16,7 @@ from stem import Signal
 from stem.control import Controller
 from fake_useragent import UserAgent
 from processing import PatreonChapterError
+from typing import Any
 
 BASE_URL: str = "https://www.wanderinginn.com"
 
@@ -43,7 +44,7 @@ class Session:
         max_tries: int = 10,
         tor_enabled: bool = False,
         throttle: float = 2.0,
-    ):
+    ) -> None:
         print("> Connecting to session...")
         self.__session = requests.session()
         self.__proxy_port = proxy_port
@@ -85,16 +86,16 @@ class Session:
 
         print("Cannot re-attempt download. Too many retries. Must reset to continue.")
 
-    def reset_tries(self):
+    def reset_tries(self) -> None:
         self.__tries = 0
 
-    def set_tor_proxy(self, ip: str):
+    def set_tor_proxy(self, ip: str) -> None:
         self.__session.proxies = {
             "http": f"socks5://{ip}:{self.__proxy_port}",
             "https": f"socks5://{ip}:{self.__proxy_port}",
         }
 
-    def get_new_tor_circuit(self, control_port: int = 9051):
+    def get_new_tor_circuit(self, control_port: int = 9051) -> None:
         with Controller.from_port(port=control_port) as controller:
             controller.authenticate()
             controller.signal(Signal.NEWNYM)
@@ -234,7 +235,7 @@ def parse_chapter_response(response: requests.Response) -> dict:
     return chapter_data
 
 
-def save_file(filepath: Path, text: str, clobber: bool = False):
+def save_file(filepath: Path, text: str, clobber: bool = False) -> bool:
     """Write chapter text content to file"""
     if filepath.exists() and not clobber:
         return False
@@ -247,7 +248,7 @@ def save_file(filepath: Path, text: str, clobber: bool = False):
 class TableOfContents:
     """Table of Contents scraper to query for any needed info"""
 
-    def __init__(self, session: Session | None = None):
+    def __init__(self, session: Session | None = None) -> None:
         self.domain: str = "www.wanderinginn.com"
         self.url: str = f"https://{self.domain}/table-of-contents"
         if session:
@@ -287,7 +288,7 @@ class TableOfContents:
         """Return dictionary containing tuples (volume_title, chapter_indexes)
         by volume ID"""
 
-        def get_title_and_href_from_a_tag(element: Tag):
+        def get_title_and_href_from_a_tag(element: Tag) -> tuple[Any, ...]:
             """Return tuple of text and href from <a> tag
 
             Args:
@@ -329,7 +330,7 @@ class TableOfContents:
 
         return volumes
 
-    def get_book_titles(self, is_released: bool = False):
+    def get_book_titles(self, is_released: bool = False) -> list[Any]:
         """Get a list of Book titles from TableOfContents"""
         if is_released:
             return [x.text.strip() for x in self.soup.select(".book:not(.unreleased)")]

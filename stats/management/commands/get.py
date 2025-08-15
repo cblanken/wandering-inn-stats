@@ -2,8 +2,9 @@
 
 import json
 from pathlib import Path
+from typing import Any
 import time
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand, CommandError, CommandParser
 from processing import get, PatreonChapterError
 
 
@@ -12,7 +13,7 @@ class Command(BaseCommand):
     last_download: float = 0
     session = get.Session()
 
-    def add_arguments(self, parser):
+    def add_arguments(self, parser: CommandParser) -> None:
         parser.add_argument("volume", nargs="?", type=str, help="Volume to download")
         parser.add_argument("book", nargs="?", type=str, help="Book to download")
         parser.add_argument("chapter", nargs="?", type=str, help="Chapter to download")
@@ -58,7 +59,7 @@ class Command(BaseCommand):
         clobber: bool,
         success_msg: str = "",
         warn_msg: str = "",
-    ):
+    ) -> bool:
         was_saved = get.save_file(path, text, clobber=clobber)
 
         if was_saved:
@@ -76,13 +77,13 @@ class Command(BaseCommand):
 
     def download_chapter(
         self,
-        toc,
-        options,
+        toc: get.TableOfContents,
+        options: dict[str, Any],
         volume_title: str,
         book_title: str,
         chapter_title: str,
         chapter_path: Path,
-    ):
+    ) -> None:
         try:
             chapter_href = toc.volume_data[volume_title][book_title][chapter_title]
         except KeyError as exc:
@@ -165,7 +166,9 @@ class Command(BaseCommand):
 
         self.last_download = time.time()
 
-    def download_book(self, toc, options, volume_title: str, book_title: str, book_path: Path):
+    def download_book(
+        self, toc: get.TableOfContents, options: dict[str, Any], volume_title: str, book_title: str, book_path: Path
+    ) -> None:
         book_path.mkdir(parents=True, exist_ok=True)
         chapters = toc.volume_data[volume_title][book_title]
 
@@ -187,7 +190,9 @@ class Command(BaseCommand):
             chapter_path = Path(book_path, chapter_title)
             self.download_chapter(toc, options, volume_title, book_title, chapter_title, chapter_path)
 
-    def download_volume(self, toc, options, volume_title: str, volume_path: Path):
+    def download_volume(
+        self, toc: get.TableOfContents, options: dict[str, Any], volume_title: str, volume_path: Path
+    ) -> None:
         volume_path.mkdir(parents=True, exist_ok=True)
         books = toc.volume_data[volume_title]
 
@@ -209,13 +214,13 @@ class Command(BaseCommand):
             book_path = Path(volume_path, book_title)
             self.download_book(toc, options, volume_title, book_title, book_path)
 
-    def handle(self, *args, **options) -> None:
+    def handle(self, *args, **options) -> None:  # noqa: ANN002, ANN003
         # TODO: fix Keyboard Exception not working
         toc = get.TableOfContents(self.session)
         if len(toc.volume_data) == 0:
             self.stdout.write(self.style.WARNING("Volume data is empty. The Table of Contents may have changed..."))
 
-        def download_latest_chapter():
+        def download_latest_chapter() -> None:
             # TODO
             pass
 

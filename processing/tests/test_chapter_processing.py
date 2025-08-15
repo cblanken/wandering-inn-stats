@@ -90,7 +90,7 @@ def ch3_authors_note() -> str:
 # ------------------------------------------------------------------------
 # ch1 tests
 # ------------------------------------------------------------------------
-def test_text_content(ch1_html_content, ch1_text_content):
+def test_text_content(ch1_html_content: BeautifulSoup, ch1_text_content: str):
     """Most author's notes appear at the end of the chapter with the typical 'Author's Note' indicator"""
     data = parse_chapter_content(ch1_html_content)
     assert data.get("text") == ch1_text_content
@@ -100,13 +100,13 @@ def test_author_note_at_start():
     """Some author's notes appear at the start of the chapter with the typical 'Author's Note' indicator"""
 
 
-def test_author_note_at_end(ch1_html_content, ch1_authors_note):
+def test_author_note_at_end(ch1_html_content: BeautifulSoup, ch1_authors_note: str):
     """Most author's notes appear at the end of the chapter with the typical 'Author's Note' indicator"""
     data = parse_chapter_content(ch1_html_content)
     assert data.get("authors_note") == ch1_authors_note
 
 
-def test_parenthesized_author_note_at_start(ch1_html_content, ch1_pre_note):
+def test_parenthesized_author_note_at_start(ch1_html_content: BeautifulSoup, ch1_pre_note: str):
     """Sometimes pirateaba provides a short aside in parentheses in the first couple lines"""
     data = parse_chapter_content(ch1_html_content)
     assert data.get("pre_note") == ch1_pre_note
@@ -114,12 +114,13 @@ def test_parenthesized_author_note_at_start(ch1_html_content, ch1_pre_note):
 
 def test_ignore_fanart_attributions():
     """Many chapters include fanart appended to the end of the chapter which should not be inluded in the chapter text"""
+    # TODO
 
 
 # ------------------------------------------------------------------------
 # ch2 tests
 # ------------------------------------------------------------------------
-def test_text_does_not_contain_authors_note(ch2_html_content):
+def test_text_does_not_contain_authors_note(ch2_html_content: BeautifulSoup):
     """The chapter text should not contain any text from author's note"""
     data = parse_chapter_content(ch2_html_content)
     authors_note = data.get("authors_note")
@@ -130,7 +131,7 @@ def test_text_does_not_contain_authors_note(ch2_html_content):
             assert line not in data.get("text")
 
 
-def test_signed_pre_note_detected(ch2_html_content):
+def test_signed_pre_note_detected(ch2_html_content: BeautifulSoup):
     """Signed pre-notes by the author should not be detected by parser"""
     data = parse_chapter_content(ch2_html_content)
     pre_note = data.get("pre_note")
@@ -146,7 +147,7 @@ def test_signed_pre_note_detected(ch2_html_content):
     )
 
 
-def test_signed_pre_note_not_in_chapter_text(ch2_html_content):
+def test_signed_pre_note_not_in_chapter_text(ch2_html_content: BeautifulSoup):
     """Signed pre-notes by the author should not be included in the chapter text"""
     data = parse_chapter_content(ch2_html_content)
     pre_note = data.get("pre_note")
@@ -161,7 +162,9 @@ def test_signed_pre_note_not_in_chapter_text(ch2_html_content):
 # ------------------------------------------------------------------------
 # ch3 tests
 # ------------------------------------------------------------------------
-def test_parens_pre_note_and_pre_authors_note(ch3_html_content, ch3_authors_note, ch3_text_content):
+def test_parens_pre_note_and_pre_authors_note(
+    ch3_html_content: BeautifulSoup, ch3_authors_note: str, ch3_text_content: str
+):
     """A chapter may have a parenthesized pre-note in addition to an Author's note
     at the start of the chapter"""
     data = parse_chapter_content(ch3_html_content)

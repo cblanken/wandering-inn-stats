@@ -23,7 +23,7 @@ class Pattern:
     SPELL_UPDATED = regex.compile(r"\[[Ss]pell" + OBTAINED_SUFFIX)
 
     @staticmethod
-    def _or(patterns: list[regex.Pattern[str]], prefix="", suffix="") -> regex.Pattern[str] | None:
+    def _or(patterns: list[regex.Pattern[str]], prefix: str = "", suffix: str = "") -> regex.Pattern[str] | None:
         if len(patterns) == 0:
             return None
         if len(patterns) == 1:
@@ -35,7 +35,7 @@ class Pattern:
         return new_pattern
 
     @staticmethod
-    def _and(patterns: Pattern):
+    def _and(patterns: Pattern) -> regex.Pattern[str] | None:
         # TODO: implement for combining Pattern with AND
         pass
 
@@ -62,7 +62,7 @@ class TextRef:
         end_column: int,
         context_len: int,
         is_bracketed: bool = True,
-    ):
+    ) -> None:
         self.text: str = text.strip()
         self.is_bracketed = is_bracketed
         self.line_text = line_text.strip()
@@ -76,7 +76,7 @@ class TextRef:
         end = min(end_column + context_len, len(line_text))
         self.context = line_text[start:end].strip()
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"Line: {self.line_number:>5}: {self.text:⋅<55}context: {self.context}"
 
 
@@ -102,7 +102,7 @@ class Chapter:
         path (Path): path to HTML file of downloaded chapter
     """
 
-    def __init__(self, path: Path):
+    def __init__(self, path: Path) -> None:
         self.path: Path = path
         self.title: str = path.name
 
@@ -139,7 +139,7 @@ class Chapter:
         line_num: int,
         extra_patterns: regex.Pattern | None = None,
         context_len: int = 50,
-        only_extra_patterns=False,
+        only_extra_patterns: bool = False,
     ) -> Generator[TextRef, None, None]:
         """Return  TextRef(s) that match the regex for the given regex patterns
         and other arguments
@@ -177,7 +177,7 @@ class Chapter:
                     context_len,
                 )
 
-    def print_bracket_refs(self):
+    def print_bracket_refs(self) -> None:
         """Print TextRef(s) for chapter"""
         headline = f"{self.title} - {self.path}"
         print("")
@@ -188,14 +188,14 @@ class Chapter:
             for text_ref in ref_gen:
                 print(text_ref)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.title}: {self.path}"
 
 
 class Book:
     """Model for book as a file"""
 
-    def __init__(self, path: Path):
+    def __init__(self, path: Path) -> None:
         self.path = path
         self.metadata = get_metadata(self.path)
         if self.metadata is None:
@@ -203,14 +203,14 @@ class Book:
         self.title: str = self.metadata.get("title")
         self.chapters: list[str] = [x[0] for x in sorted(self.metadata["chapters"].items(), key=lambda x: x[1])]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.title}: {self.path}"
 
 
 class Volume:
     """Model for Volume as a file"""
 
-    def __init__(self, path: Path):
+    def __init__(self, path: Path) -> None:
         self.path: Path = path
         self.metadata = get_metadata(self.path)
         if self.metadata is None:
@@ -218,11 +218,11 @@ class Volume:
         self.title: str = self.metadata["title"]
         self.books: list[str] = [x[0] for x in sorted(self.metadata["books"].items(), key=lambda x: x[1])]
 
-    def print_all_text_refs(self):
+    def print_all_text_refs(self) -> None:
         """Print all text references found by `generate_all_text_refs` generator"""
         for book in self.books:
             for chapter in book.chapters:
                 chapter.print_all_text_refs()
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.title}: {self.path.absolute()}"

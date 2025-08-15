@@ -3,7 +3,7 @@ from django.db import models
 from django.db.models.functions import Length
 from django.utils.text import slugify
 import re
-from typing import Any
+from typing import Any, Literal
 
 models.CharField.register_lookup(Length, "length")
 
@@ -16,7 +16,7 @@ class ColorCategory(models.Model):
     class Meta:
         verbose_name_plural = "Color Categories"
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"(ColorCategory: {self.name})"
 
 
@@ -32,7 +32,7 @@ class Color(models.Model):
     class Meta:
         ordering = ["rgb"]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"(Color: {self.category.name}: {self.rgb})"
 
 
@@ -46,7 +46,7 @@ class Volume(models.Model):
     class Meta:
         ordering = ["number"]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"(Volume: {self.title}, Summary: {str(self.summary)[:30]}...)"
 
 
@@ -78,7 +78,7 @@ class Book(models.Model):
             models.UniqueConstraint(fields=["volume", "number"], name="unique_volume_and_book_num"),
         ]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"(Book: {self.title}, Summary: {str(self.summary)[:30]})"
 
 
@@ -179,16 +179,16 @@ class RefType(models.Model):
         ordering = ["name"]
         verbose_name_plural = "Ref Types"
 
-    def save(self, *args, **kwargs):
+    def save(self, *args, **kwargs) -> None:  # noqa ANN202 ANN203
         self.slug = slugify(self.name[:100], allow_unicode=True)
         super(RefType, self).save(*args, **kwargs)
 
-    def delete(self):
+    def delete(self) -> None:
         computed_cols = RefTypeComputedView.objects.filter(ref_type=self)
         for row in computed_cols:
             row.delete()
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"(RefType: {self.name} - Type: {self.type})"
 
 
@@ -396,7 +396,7 @@ class Character(models.Model):
     species = models.CharField(max_length=2, choices=SPECIES, null=True)
 
     @staticmethod
-    def parse_status_str(status: str):
+    def parse_status_str(status: str) -> Literal["AL", "UD", "DE", "UK"]:
         if status is None:
             return Character.UNKNOWN
         status = status.strip()
@@ -412,7 +412,7 @@ class Character(models.Model):
             return Character.UNKNOWN
 
     @staticmethod
-    def parse_species_str(s: str):
+    def parse_species_str(s: str) -> str:
         if s is None:
             return Character.UNKNOWN
 
@@ -489,7 +489,7 @@ class ChapterLine(models.Model):
         ordering = ["chapter", "line_number"]
         constraints = [models.UniqueConstraint(fields=["chapter", "line_number"], name="unique_chapter_and_line")]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"(Chapter: ({self.chapter.number}) {self.chapter.title}, Line: {self.line_number}, Text: {self.text})"
 
 
@@ -516,7 +516,7 @@ class TextRef(models.Model):
             ),
         ]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"(TextRef: {self.type}, line: {self.chapter_line.line_number:>5}, start: {self.start_column:>4}, end: {self.end_column:>4})"
 
 
@@ -537,7 +537,7 @@ class RefTypeChapter(models.Model):
             ),
         ]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"RefTypeChapters: {self.type}, Chapter: {self.chapter.title} - {self.chapter.number:>4}"
 
 
@@ -550,7 +550,7 @@ class RefTypeComputedView(models.Model):
     mentions = models.PositiveIntegerField()
     # first_mention_chapter = models.ForeignKey(Chapter, on_delete=models.CASCADE)
 
-    def delete(self):
+    def delete(self) -> None:
         RefTypeComputedView.objects.raw(
             "DELETE FROM reftype_computed_view INNER JOIN stats_reftype as sr ON ref_type = \
                                         sr.id WHERE sr.name = %s AND sr.type = %s",

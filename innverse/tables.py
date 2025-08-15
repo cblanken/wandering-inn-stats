@@ -1,11 +1,13 @@
-from django.db.models import F
+from django.db.models import F, QuerySet
 from django.urls import NoReverseMatch, reverse
 from django.utils.text import slugify
 from django.utils.html import strip_tags
+from django.utils.safestring import SafeText
 from django.template.loader import render_to_string
 from urllib.parse import quote
 import django_tables2 as tables
 from stats.models import Chapter, Character, RefType, TextRef
+from typing import Any
 
 
 EMPTY_TABLE_TEXT = "No results found for the given query"
@@ -27,20 +29,20 @@ class TextRefTable(tables.Table):
     )
 
     @property
-    def hidden_cols(self):
+    def hidden_cols(self) -> list[int]:
         return self._hidden_cols
 
     @hidden_cols.setter
-    def hidden_cols(self, cols: list[int]):
+    def hidden_cols(self, cols: list[int]) -> None:
         self._hidden_cols = cols
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:  # noqa: ANN002 ANN003
         super().__init__(*args)
         self._hidden_cols = []
         if hide_cols := kwargs.get("hidden_cols"):
             self._hidden_cols = hide_cols
 
-    def before_render(self, request):
+    def before_render(self, request) -> None:  # noqa: ANN001
         for i, col in enumerate(self.columns):
             if i in self._hidden_cols:
                 self.columns.hide(col.name)
@@ -51,7 +53,7 @@ class TextRefTable(tables.Table):
         fields = ("ref_name", "chapter_url", "text")
         empty_text = EMPTY_TABLE_TEXT
 
-    def render_ref_name(self, record: TextRef, value):
+    def render_ref_name(self, record: TextRef, value) -> SafeText | str:  # noqa: ANN001
         try:
             path = f"{record.type.type.lower()}-stats"
             return render_to_string(
@@ -64,7 +66,7 @@ class TextRefTable(tables.Table):
         except NoReverseMatch:
             return record.type.name
 
-    def render_text(self, record: TextRef):
+    def render_text(self, record: TextRef) -> SafeText:
         text = record.chapter_line.text
         first = strip_tags(text[: record.start_column])
         highlight = text[record.start_column : record.end_column]
@@ -75,7 +77,7 @@ class TextRefTable(tables.Table):
             context={"first": first, "highlight": highlight, "last": last},
         )
 
-    def render_chapter_url(self, record: TextRef, value):
+    def render_chapter_url(self, record: TextRef, value) -> SafeText:  # noqa: ANN001
         # Using the full text or a strict character count appears to run into issues when linking
         # with a TextFragment, either with too long URLs or unfinished words
         offset = 25
@@ -119,20 +121,20 @@ class ChapterRefTable(tables.Table):
     )
 
     @property
-    def hidden_cols(self):
+    def hidden_cols(self) -> list[int]:
         return self._hidden_cols
 
     @hidden_cols.setter
-    def hidden_cols(self, cols: list[int]):
+    def hidden_cols(self, cols: list[int]) -> None:
         self._hidden_cols = cols
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:  # noqa: ANN002 ANN003
         super().__init__(*args)
         self._hidden_cols = []
         if hide_cols := kwargs.get("hidden_cols"):
             self._hidden_cols = hide_cols
 
-    def before_render(self, request):
+    def before_render(self, request) -> None:  # noqa: ANN001
         for i, col in enumerate(self.columns):
             if i in self._hidden_cols:
                 self.columns.hide(col.name)
@@ -142,7 +144,7 @@ class ChapterRefTable(tables.Table):
         fields = ("ref_name", "count", "chapters")
         empty_text = EMPTY_TABLE_TEXT
 
-    def render_ref_name(self, record: dict, value):
+    def render_ref_name(self, record: dict, value) -> SafeText:  # noqa: ANN001
         try:
             path = f"{record['type'].lower()}-stats"
             return render_to_string(
@@ -155,7 +157,7 @@ class ChapterRefTable(tables.Table):
         except NoReverseMatch:
             return value
 
-    def render_chapters(self, record):
+    def render_chapters(self, record) -> str:  # noqa: ANN001
         return ", ".join(
             [
                 render_to_string(
@@ -169,7 +171,7 @@ class ChapterRefTable(tables.Table):
             ],
         )
 
-    def value_chapters(self, record) -> str:
+    def value_chapters(self, record) -> str:  # noqa: ANN001
         return ";".join([x[1] for x in record["chapter_data"]])
 
 
@@ -179,7 +181,7 @@ class ReftypeMentionsHtmxTable(tables.Table):
     word_count = tables.Column(attrs={"th": {"style": "width: 10%"}})
     letter_count = tables.Column(attrs={"th": {"style": "width: 10%"}})
 
-    def render_name(self, record: RefType, value):
+    def render_name(self, record: RefType, value) -> SafeText:  # noqa: ANN001
         return render_to_string(
             "patterns/atoms/link/stat_link.html",
             context={
@@ -188,7 +190,7 @@ class ReftypeMentionsHtmxTable(tables.Table):
             },
         )
 
-    def order_mentions(self, queryset, is_descending):
+    def order_mentions(self, queryset: QuerySet, is_descending: bool) -> tuple[QuerySet[Any], bool]:
         queryset = queryset.annotate(mentions=F("reftypecomputedview__mentions")).order_by(
             F("mentions").desc(nulls_last=True) if is_descending else F("mentions").asc(),
         )
@@ -227,7 +229,7 @@ class CharacterHtmxTable(tables.Table):
 
     species = tables.Column(attrs={"th": {"style": "width: 8rem; max-width: 12rem;"}})
 
-    def render_name(self, record: Character, value):
+    def render_name(self, record: Character, value: str) -> SafeText:
         return render_to_string(
             "patterns/atoms/link/stat_link.html",
             context={
@@ -236,7 +238,7 @@ class CharacterHtmxTable(tables.Table):
             },
         )
 
-    def render_first_appearance(self, record: Character, value):
+    def render_first_appearance(self, record: Character, value) -> SafeText:  # noqa: ANN001
         return render_to_string(
             "patterns/atoms/link/stat_link.html",
             context={
@@ -245,7 +247,7 @@ class CharacterHtmxTable(tables.Table):
             },
         )
 
-    def render_wiki(self, record: Character, value):
+    def render_wiki(self, record: Character, value) -> SafeText:  # noqa: ANN001
         return render_to_string(
             "patterns/atoms/link/link.html",
             context={
@@ -255,14 +257,14 @@ class CharacterHtmxTable(tables.Table):
             },
         )
 
-    def order_mentions(self, queryset, is_descending):
+    def order_mentions(self, queryset: QuerySet, is_descending: bool) -> tuple[QuerySet[Any], bool]:
         queryset = queryset.annotate(mentions=F("ref_type__reftypecomputedview__mentions")).order_by(
             F("mentions").desc(nulls_last=True) if is_descending else F("mentions").asc(),
         )
 
         return (queryset, True)
 
-    def order_first_appearance(self, queryset, is_descending):
+    def order_first_appearance(self, queryset: QuerySet, is_descending: bool) -> tuple[QuerySet[Any], bool]:
         queryset = queryset.annotate(chapter_num=F("first_chapter_appearance__number")).order_by(
             F("chapter_num").desc(nulls_last=True) if is_descending else F("chapter_num").asc(),
         )
@@ -282,7 +284,7 @@ class ChapterHtmxTable(tables.Table):
     word_count = tables.Column(attrs={"td": {"style": "width: 6rem"}})
     post_date = tables.Column(attrs={"td": {"style": "width: 18rem"}})
 
-    def render_title(self, record: Chapter, value):
+    def render_title(self, record: Chapter, value: str) -> SafeText:
         return render_to_string(
             "patterns/atoms/link/stat_link.html",
             context={

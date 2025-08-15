@@ -1,11 +1,12 @@
-from django.db.models import Q, Count, Max
+from django.db.models import Q, Count, Max, BaseManager
 import plotly.express as px
+from plotly.graph_objects import Figure
 import numpy as np
 from stats.models import Character, RefType, TextRef, Chapter
 from .config import DEFAULT_LAYOUT, DEFAULT_DISCRETE_COLORS
 
 
-def character_text_refs(first_chapter: Chapter | None = None, last_chapter: Chapter | None = None):
+def character_text_refs(first_chapter: Chapter | None = None, last_chapter: Chapter | None = None) -> Figure | None:
     character_text_refs = TextRef.objects.filter(Q(type__type=RefType.CHARACTER))
 
     if first_chapter:
@@ -39,8 +40,8 @@ def character_text_refs(first_chapter: Chapter | None = None, last_chapter: Chap
     return char_refs_count_fig
 
 
-def character_counts_per_chapter(first_chapter: Chapter | None = None, last_chapter: Chapter | None = None):
-    def get_text_refs(num):
+def character_counts_per_chapter(first_chapter: Chapter | None = None, last_chapter: Chapter | None = None) -> Figure:
+    def get_text_refs(num: int) -> BaseManager[TextRef]:
         tr = TextRef.objects.filter(Q(chapter_line__chapter__number=num) & Q(type__type="CH"))
         if first_chapter:
             tr = tr.filter(chapter_line__chapter__number__gte=first_chapter.number)
@@ -92,7 +93,7 @@ def character_counts_per_chapter(first_chapter: Chapter | None = None, last_chap
     return char_counts_per_chapter_fig
 
 
-def characters_by_species():
+def characters_by_species() -> Figure:
     characters = (
         Character.objects.all()
         .values("species")
@@ -125,7 +126,7 @@ def characters_by_species():
     return chars_by_species_fig
 
 
-def characters_by_status():
+def characters_by_status() -> Figure:
     """Character counts by status"""
     characters = (
         Character.objects.all()

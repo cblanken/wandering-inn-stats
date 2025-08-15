@@ -3,7 +3,7 @@ from stats.models import Character, TextRef
 from pathlib import Path
 
 
-def get_char_missing_first_href():
+def get_char_missing_first_href() -> None:
     characters_path = Path("./data/characters.json")
     with characters_path.open(encoding="utf-8") as fp:
         data = json.load(fp)

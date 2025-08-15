@@ -2,6 +2,7 @@ import json
 from pathlib import Path
 import regex as re
 from django.core.management.base import BaseCommand
+from django.core.management.base import CommandParser
 import pywikibot as pwb
 from stats.models import RefType
 from stats.wikibot import bot
@@ -10,7 +11,7 @@ from stats.wikibot import bot
 DATA_DIR = Path("data")
 
 
-def save_as_json(data: dict[str, list], path: Path):
+def save_as_json(data: dict[str, list], path: Path) -> None:
     path = Path(DATA_DIR, path)
     with Path.open(path, "w", encoding="utf-8") as fp:
         json.dump(data, fp, indent=2)
@@ -24,7 +25,7 @@ class Command(BaseCommand):
     Command for handling TWI Wiki data extraction.
     """
 
-    def add_arguments(self, parser):
+    def add_arguments(self, parser: CommandParser) -> None:
         parser.add_argument(
             "data_path",
             type=str,
@@ -69,7 +70,7 @@ class Command(BaseCommand):
             help="Scrape all Items and [Artifacts]",
         )
 
-    def handle(self, *args, **options):
+    def handle(self, *args, **options) -> None:  # noqa: ANN002, ANN003
         """
         Collect wiki pages by category (Characters, Skills, Classes etc.)
         """

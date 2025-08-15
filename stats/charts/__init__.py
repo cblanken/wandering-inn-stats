@@ -68,7 +68,7 @@ class ChartGalleryItem:
         subdir: Path = Path(),
         popup_info: str | None = None,
         has_chapter_filter: bool = True,
-    ):
+    ) -> None:
         self.title = title
         self.title_slug = slugify(title)
         self.caption = caption

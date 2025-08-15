@@ -24,7 +24,7 @@ class TwiBot(SingleSiteBot):
         "summary": "A bot for scraping the TWI wiki for statistical analysis",
     }
 
-    def treat(self, page):
+    def treat(self, page: pwb.Page) -> None:
         """Placeholder [treat] method"""
         self.current_page = page
         print(self.current_page.text)

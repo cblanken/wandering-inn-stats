@@ -5,7 +5,8 @@ import re
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from os import cpu_count
 
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand, CommandError, CommandParser
+from typing import Any
 
 from stats import charts
 from stats.models import RefType
@@ -14,7 +15,7 @@ from stats.models import RefType
 class Command(BaseCommand):
     help = "Generate chart thumbnails to static svg files"
 
-    def add_arguments(self, parser):
+    def add_arguments(self, parser: CommandParser) -> None:
         parser.add_argument(
             "-n",
             "--chart-name",
@@ -37,7 +38,7 @@ class Command(BaseCommand):
 
         parser.add_argument("-t", "--reftype-name", help="Specify regex for RefType name")
 
-    def save_chart_thumbnail(self, options, chart: charts.ChartGalleryItem):
+    def save_chart_thumbnail(self, options: dict[str, Any], chart: charts.ChartGalleryItem) -> None:
         if options.get("chart_name") in str(chart.title):
             fig = chart.get_fig()
 
@@ -57,7 +58,7 @@ class Command(BaseCommand):
                 self.style.WARNING(f'> Chart ({chart.title}) did not match chart-name: "{options.get("chart_name")}"'),
             )
 
-    def gen_rt_gallery(self, rt: RefType, options):
+    def gen_rt_gallery(self, rt: RefType, options: dict[str, Any]) -> None:
         print(f"> Generating gallery for: {rt.name}")
         gallery = charts.get_reftype_gallery(rt)
         for chart in gallery:
@@ -68,7 +69,7 @@ class Command(BaseCommand):
                     self.style.WARNING(f"> Thumbnail for {rt.name} already exists at {chart.static_path}"),
                 )
 
-    def handle(self, *args, **options) -> None:
+    def handle(self, *args, **options) -> None:  # noqa: ANN002, ANN003
         pr = cProfile.Profile()
         pr.enable()
         main_chart_galleries = [

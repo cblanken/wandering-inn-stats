@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.apps import apps
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpRequest
 from django.urls import path, include, reverse
 from django.views.decorators.cache import cache_page
 from . import views
@@ -12,7 +12,7 @@ CACHE_TIME_MEDIUM = 60 * 60
 CACHE_TIME_LONG = 60 * 60 * 24
 
 
-def overview_redirect(req):
+def overview_redirect(req: HttpRequest) -> HttpResponseRedirect:
     return HttpResponseRedirect(reverse("overview"))
 
 

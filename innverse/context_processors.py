@@ -1,5 +1,6 @@
 from django.conf import settings
+from typing import Any
 
 
-def analytics(request):
+def analytics() -> dict[str, Any]:
     return {"ANALYTICS_ID": settings.ANALYTICS_ID}

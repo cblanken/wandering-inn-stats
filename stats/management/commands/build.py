@@ -4,8 +4,8 @@ import itertools
 import json
 from pathlib import Path
 import regex
-from typing import LiteralString, Any
-from django.core.management.base import BaseCommand, CommandError
+from typing import Any
+from django.core.management.base import BaseCommand, CommandError, CommandParser
 from django.db.models import Q
 from django.db.models.query import QuerySet
 from django.db.utils import DataError, IntegrityError
@@ -76,7 +76,7 @@ class Command(BaseCommand):
     help = "Update database from chapter source HTML and other metadata files"
     prompt_sound: bool = False
 
-    def add_arguments(self, parser):
+    def add_arguments(self, parser: CommandParser) -> None:
         parser.add_argument(
             "data_path",
             type=str,
@@ -201,7 +201,7 @@ class Command(BaseCommand):
             help="Limit parsing to a range of chapter lines",
         )
 
-    def log(self, msg: str, category: LogCat):
+    def log(self, msg: str, category: LogCat) -> None:
         t = dt.datetime.now(tz=dt.timezone.utc).strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
         match category:
             case LogCat.WARN | LogCat.SKIPPED:
@@ -216,7 +216,7 @@ class Command(BaseCommand):
         full_msg = f"{t} {category.value:<10} {style(msg)}"
         self.stdout.write(full_msg)
 
-    def update_prop_prompt(self, old: Any, new: Any, prop: str | None) -> tuple[Any, bool]:
+    def update_prop_prompt(self, old: str, new: str, prop: str | None) -> tuple[Any, bool]:
         """Prompt user to update property and return selected value and confirmation boolean"""
         differ: bool = old != new
         prop = prop or "property"
@@ -299,7 +299,7 @@ class Command(BaseCommand):
 
         return alias
 
-    def get_or_create_reftype(self, rt_name: str, rt_type: LiteralString) -> RefType | None:
+    def get_or_create_reftype(self, rt_name: str, rt_type: str) -> RefType | None:
         """
         Get an existing or create a new RefType with name confirmation and logging of success/failure to console or
         links to an existing Alias of the given `rt_name`.
@@ -330,7 +330,7 @@ class Command(BaseCommand):
                     self.log(f'RefType: "{edited_name}" already exists', LogCat.EXISTS)
                 return rt
 
-    def get_or_create_ref_type_from_text_ref(self, options, text_ref: SrcTextRef) -> RefType | None:
+    def get_or_create_ref_type_from_text_ref(self, options: dict[str, Any], text_ref: SrcTextRef) -> RefType | None:
         """Check for existing RefType of TextRef and create backing RefType and Aliases as needed"""
         text_ref.text = strip_tags(text_ref.text)
         while True:  # loop for retries from select RefType prompt
@@ -512,7 +512,7 @@ class Command(BaseCommand):
                 )
                 return None
 
-    def detect_textref_color(self, options, text_ref) -> Color | None:
+    def detect_textref_color(self, options: dict[str, Any], text_ref: SrcTextRef) -> Color | None:
         # Detect TextRef color
         if 'span style="color:' in text_ref.context:
             try:
@@ -576,7 +576,7 @@ class Command(BaseCommand):
 
         return None
 
-    def build_chapter_by_id(self, options, chapter_num: int):
+    def build_chapter_by_id(self, options: dict[str, Any], chapter_num: int) -> None:
         """Build individual Chapter by ID"""
         chapter_dir = list(Path.glob(Path("./data"), "*/*/*/{chapter.title}"))[0]
         try:
@@ -611,11 +611,11 @@ class Command(BaseCommand):
 
     def build_chapter(
         self,
-        options,
+        options: dict[str, Any],
         book: Book,
         src_path: Path,
         chapter_num: int,
-    ):
+    ) -> None:
         src_chapter: SrcChapter = SrcChapter(src_path)
         if src_chapter.metadata is None:
             self.log(
@@ -802,7 +802,7 @@ class Command(BaseCommand):
                         LogCat.UPDATED,
                     )
 
-    def build_color_categories(self):
+    def build_color_categories(self) -> None:
         """Build color categories"""
         self.log("Populating color categories...", LogCat.BEGIN)
         for cat in COLOR_CATEGORY:
@@ -817,7 +817,7 @@ class Command(BaseCommand):
                     LogCat.CREATED,
                 )
 
-    def build_colors(self):
+    def build_colors(self) -> None:
         self.log("Populating colors...", LogCat.BEGIN)
         for col in COLORS:
             matching_category = ColorCategory.objects.get(name=col[1].value)
@@ -829,7 +829,7 @@ class Command(BaseCommand):
                 color.save()
                 self.log(self.style.SUCCESS(f"Color created: {color}"), LogCat.CREATED)
 
-    def build_spells(self, path: Path):
+    def build_spells(self, path: Path) -> None:
         """Populate spell types from wiki data"""
         self.log("Populating spell RefType(s)...", LogCat.BEGIN)
         with Path.open(path, encoding="utf-8") as file:
@@ -849,7 +849,7 @@ class Command(BaseCommand):
                             LogCat.SKIPPED,
                         )
 
-    def build_skills(self, path: Path):
+    def build_skills(self, path: Path) -> None:
         # Populate skills from wiki data
         self.log("Populating skill RefType(s)...", LogCat.BEGIN)
         with Path.open(path, encoding="utf-8") as file:
@@ -869,7 +869,7 @@ class Command(BaseCommand):
                             LogCat.SKIPPED,
                         )
 
-    def build_characters(self, path: Path):
+    def build_characters(self, path: Path) -> None:
         # Populate characters from wiki data
         self.log("Populating character RefType(s)...", LogCat.BEGIN)
         with Path.open(path, encoding="utf-8") as file:
@@ -1012,7 +1012,7 @@ class Command(BaseCommand):
                             f"There may have been a change in the Character definition or in the input file format. Unable to create Character for {ref_type}",
                         )
 
-    def build_classes(self, path: Path):
+    def build_classes(self, path: Path) -> None:
         # Populate class types from wiki data
         self.log("Populating class RefType(s)...", LogCat.BEGIN)
         with Path.open(path, encoding="utf-8") as file:
@@ -1039,7 +1039,7 @@ class Command(BaseCommand):
                             LogCat.SKIPPED,
                         )
 
-    def build_locations(self, path: Path):
+    def build_locations(self, path: Path) -> None:
         # Populate location types from wiki data
         self.log("Populating location RefType(s)...", LogCat.BEGIN)
         with Path.open(path, encoding="utf-8") as file:
@@ -1131,7 +1131,7 @@ class Command(BaseCommand):
         except OSError as e:
             raise CommandError(f'Build error. Unable to open custom ref list file: "{filepath}"') from e
 
-    def handle(self, *args, **options) -> None:
+    def handle(self, *args, **options) -> None:  # noqa: ANN002, ANN003
         self.prompt_sound = bool(options.get("prompt_sound"))
         try:
             if options.get("skip_wiki_all"):

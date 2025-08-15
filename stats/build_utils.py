@@ -13,7 +13,7 @@ from processing import Pattern
 from stats.models import Alias, RefType
 
 
-def build_reftype_pattern(ref: RefType):
+def build_reftype_pattern(ref: RefType) -> list[str]:
     """Create an OR'ed regex of a Reftype's name and its aliases"""
     return [
         ref.name,
@@ -214,7 +214,7 @@ def match_ref_type(type_str: str) -> Literal[2] | None:
         return None
 
 
-def play_sound():
+def play_sound() -> None:
     sound_path = Path("stats/sounds/alert.mp3")
     try:
         Popen(["/usr/bin/mpg123", "-q", sound_path])
@@ -266,7 +266,7 @@ def select_ref_type(sound: bool = False) -> str | None:
 T = TypeVar("T", bound=Model)
 
 
-def select_item_from_qs(qs: QuerySet[T], sound=False) -> T | None:
+def select_item_from_qs(qs: QuerySet[T], sound: bool = False) -> T | None:
     if len(qs) < 2:
         raise ValueError("To select from a Queryset, it cannot be empty")
     try:
