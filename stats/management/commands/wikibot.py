@@ -70,7 +70,7 @@ class Command(BaseCommand):
             help="Scrape all Items and [Artifacts]",
         )
 
-    def handle(self, *args, **options) -> None:  # noqa: ANN002, ANN003
+    def handle(self, *_args, **options) -> None:  # noqa: ANN002, ANN003
         """
         Collect wiki pages by category (Characters, Skills, Classes etc.)
         """

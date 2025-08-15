@@ -9,11 +9,13 @@ class Family(family.Family):
     }
     domain = "wiki.wanderinginn.com"
 
-    def scriptpath(self, code: str) -> Literal[""]:
+    # Note: these methods must take `code` as a 2nd argument
+    # Using `_code` or something else breaks something in the pywikibot auth
+    def scriptpath(self, code: str) -> Literal[""]:  # noqa: ARG002
         return ""
 
-    def protocol(self, code: str) -> Literal["HTTPS"]:
+    def protocol(self, code: str) -> Literal["HTTPS"]:  # noqa: ARG002
         return "HTTPS"
 
-    def version(self, code: str) -> Literal["1.39.7"]:
+    def version(self, code: str) -> Literal["1.39.7"]:  # noqa: ARG002
         return "1.39.7"

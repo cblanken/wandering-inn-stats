@@ -69,7 +69,7 @@ class Command(BaseCommand):
                     self.style.WARNING(f"> Thumbnail for {rt.name} already exists at {chart.static_path}"),
                 )
 
-    def handle(self, *args, **options) -> None:  # noqa: ANN002, ANN003
+    def handle(self, *_args, **options) -> None:  # noqa: ANN002, ANN003
         pr = cProfile.Profile()
         pr.enable()
         main_chart_galleries = [

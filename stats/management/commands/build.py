@@ -1131,7 +1131,7 @@ class Command(BaseCommand):
         except OSError as e:
             raise CommandError(f'Build error. Unable to open custom ref list file: "{filepath}"') from e
 
-    def handle(self, *args, **options) -> None:  # noqa: ANN002, ANN003
+    def handle(self, *_args, **options) -> None:  # noqa: ANN002, ANN003
         self.prompt_sound = bool(options.get("prompt_sound"))
         try:
             if options.get("skip_wiki_all"):

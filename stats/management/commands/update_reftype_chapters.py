@@ -8,7 +8,7 @@ class Command(BaseCommand):
 
     help = "Update database from chapter source HTML and other metadata files"
 
-    def handle(self, *args, **options) -> None:  # noqa: ANN002, ANN003
+    def handle(self, *_args, **_options) -> None:  # noqa: ANN002, ANN003
         for rt in RefType.objects.all():
             textref_query = (
                 TextRef.objects.filter(type=rt)

@@ -12,7 +12,7 @@ CACHE_TIME_MEDIUM = 60 * 60
 CACHE_TIME_LONG = 60 * 60 * 24
 
 
-def overview_redirect(req: HttpRequest) -> HttpResponseRedirect:
+def overview_redirect(_req: HttpRequest) -> HttpResponseRedirect:
     return HttpResponseRedirect(reverse("overview"))
 
 

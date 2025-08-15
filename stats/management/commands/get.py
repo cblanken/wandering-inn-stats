@@ -214,7 +214,7 @@ class Command(BaseCommand):
             book_path = Path(volume_path, book_title)
             self.download_book(toc, options, volume_title, book_title, book_path)
 
-    def handle(self, *args, **options) -> None:  # noqa: ANN002, ANN003
+    def handle(self, *_args, **options) -> None:  # noqa: ANN002, ANN003
         # TODO: fix Keyboard Exception not working
         toc = get.TableOfContents(self.session)
         if len(toc.volume_data) == 0:

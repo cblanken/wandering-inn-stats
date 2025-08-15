@@ -42,7 +42,7 @@ class TextRefTable(tables.Table):
         if hide_cols := kwargs.get("hidden_cols"):
             self._hidden_cols = hide_cols
 
-    def before_render(self, request) -> None:  # noqa: ANN001
+    def before_render(self, _request) -> None:  # noqa: ANN001
         for i, col in enumerate(self.columns):
             if i in self._hidden_cols:
                 self.columns.hide(col.name)
@@ -134,7 +134,7 @@ class ChapterRefTable(tables.Table):
         if hide_cols := kwargs.get("hidden_cols"):
             self._hidden_cols = hide_cols
 
-    def before_render(self, request) -> None:  # noqa: ANN001
+    def before_render(self, _request) -> None:  # noqa: ANN001
         for i, col in enumerate(self.columns):
             if i in self._hidden_cols:
                 self.columns.hide(col.name)
@@ -181,7 +181,7 @@ class ReftypeMentionsHtmxTable(tables.Table):
     word_count = tables.Column(attrs={"th": {"style": "width: 10%"}})
     letter_count = tables.Column(attrs={"th": {"style": "width: 10%"}})
 
-    def render_name(self, record: RefType, value) -> SafeText:  # noqa: ANN001
+    def render_name(self, _record: RefType, value) -> SafeText:  # noqa: ANN001
         return render_to_string(
             "patterns/atoms/link/stat_link.html",
             context={
@@ -229,7 +229,7 @@ class CharacterHtmxTable(tables.Table):
 
     species = tables.Column(attrs={"th": {"style": "width: 8rem; max-width: 12rem;"}})
 
-    def render_name(self, record: Character, value: str) -> SafeText:
+    def render_name(self, _record: Character, value: str) -> SafeText:
         return render_to_string(
             "patterns/atoms/link/stat_link.html",
             context={
@@ -238,7 +238,7 @@ class CharacterHtmxTable(tables.Table):
             },
         )
 
-    def render_first_appearance(self, record: Character, value) -> SafeText:  # noqa: ANN001
+    def render_first_appearance(self, _record: Character, value) -> SafeText:  # noqa: ANN001
         return render_to_string(
             "patterns/atoms/link/stat_link.html",
             context={
