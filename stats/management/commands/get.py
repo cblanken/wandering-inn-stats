@@ -228,8 +228,9 @@ class Command(BaseCommand):
         # changes and only get the latest posted volumes/chapters
         try:
             if toc.response is None:
+                msg = f"The table of contents ({toc.url}) could not be downloaded.\nCheck your network connection and confirm the host hasn't been IP blocked."
                 raise CommandError(
-                    f"The table of contents ({toc.url}) could not be downloaded.\nCheck your network connection and confirm the host hasn't been IP blocked.",
+                    msg,
                 )
 
             v_title: str = options.get("volume", "")
@@ -240,7 +241,8 @@ class Command(BaseCommand):
             volume_root = options.get("volume_root", "")
 
             if root == "" or volume_root == "":
-                raise CommandError(f"An invalid `root` {root} or `volume root` {volume_root} was provided.")
+                msg = f"An invalid `root` {root} or `volume root` {volume_root} was provided."
+                raise CommandError(msg)
 
             root = Path(root)
             root.mkdir(exist_ok=True)
@@ -284,7 +286,8 @@ class Command(BaseCommand):
 
         except KeyboardInterrupt as exc:
             # TODO: file / partial download cleanup
-            raise CommandError("Keyboard interrupt...downloads stopped") from exc
+            msg = "Keyboard interrupt...downloads stopped"
+            raise CommandError(msg) from exc
 
         # TODO add pause/resume
         # TODO add type hinting

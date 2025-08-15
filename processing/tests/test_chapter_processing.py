@@ -125,7 +125,8 @@ def test_text_does_not_contain_authors_note(ch2_html_content: BeautifulSoup):
     data = parse_chapter_content(ch2_html_content)
     authors_note = data.get("authors_note")
     if authors_note is None:
-        raise ValueError("Empty author's note")
+        msg = "Empty author's note"
+        raise ValueError(msg)
     for line in authors_note.split("\n"):
         if not line.isspace and line != "":
             assert line not in data.get("text")
@@ -137,7 +138,8 @@ def test_signed_pre_note_detected(ch2_html_content: BeautifulSoup):
     pre_note = data.get("pre_note")
 
     if pre_note is None:
-        raise ValueError("Empty author's note")
+        msg = "Empty author's note"
+        raise ValueError(msg)
 
     assert (
         pre_note
@@ -153,7 +155,8 @@ def test_signed_pre_note_not_in_chapter_text(ch2_html_content: BeautifulSoup):
     pre_note = data.get("pre_note")
 
     if pre_note is None:
-        raise ValueError("Empty author's note")
+        msg = "Empty author's note"
+        raise ValueError(msg)
     for line in pre_note.split("\n"):
         if not line.isspace and line != "":
             assert line not in data.get("text")
@@ -171,7 +174,8 @@ def test_parens_pre_note_and_pre_authors_note(
 
     pre_note = data.get("pre_note")
     if pre_note is None:
-        raise ValueError("Empty pre note")
+        msg = "Empty pre note"
+        raise ValueError(msg)
 
     assert (
         pre_note
@@ -184,7 +188,8 @@ https://www.royalroad.com/fiction/91540/blood-eagle-norse-progression-fantasy)
 
     authors_note = data.get("authors_note")
     if authors_note is None:
-        raise ValueError("Empty pre note")
+        msg = "Empty pre note"
+        raise ValueError(msg)
 
     assert authors_note == ch3_authors_note
 

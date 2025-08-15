@@ -257,10 +257,12 @@ def select_ref_type(sound: bool = False) -> str | None:
 
     except KeyboardInterrupt as exc:
         print("")
-        raise CommandError("Build interrupted with Ctrl-C (Keyboard Interrupt).") from exc
+        msg = "Build interrupted with Ctrl-C (Keyboard Interrupt)."
+        raise CommandError(msg) from exc
     except EOFError as exc:
         print("")
-        raise CommandError("Build interrupted with Ctrl-D (EOF).") from exc
+        msg = "Build interrupted with Ctrl-D (EOF)."
+        raise CommandError(msg) from exc
 
 
 T = TypeVar("T", bound=Model)
@@ -268,7 +270,8 @@ T = TypeVar("T", bound=Model)
 
 def select_item_from_qs(qs: QuerySet[T], sound: bool = False) -> T | None:
     if len(qs) < 2:
-        raise ValueError("To select from a Queryset, it cannot be empty")
+        msg = "To select from a Queryset, it cannot be empty"
+        raise ValueError(msg)
     try:
         while True:
             for i, record in enumerate(qs):
@@ -295,10 +298,12 @@ def select_item_from_qs(qs: QuerySet[T], sound: bool = False) -> T | None:
 
     except KeyboardInterrupt as exc:
         print("")
-        raise CommandError("Build interrupted with Ctrl-C (Keyboard Interrupt).") from exc
+        msg = "Build interrupted with Ctrl-C (Keyboard Interrupt)."
+        raise CommandError(msg) from exc
     except EOFError as exc:
         print("")
-        raise CommandError("Build interrupted with Ctrl-D (EOF).") from exc
+        msg = "Build interrupted with Ctrl-D (EOF)."
+        raise CommandError(msg) from exc
 
 
 def select_ref_type_from_qs(qs: QuerySet[RefType], sound: bool = False) -> RefType | None:
@@ -331,7 +336,9 @@ def select_ref_type_from_qs(qs: QuerySet[RefType], sound: bool = False) -> RefTy
 
     except KeyboardInterrupt as exc:
         print("")
-        raise CommandError("Build interrupted with Ctrl-C (Keyboard Interrupt).") from exc
+        msg = "Build interrupted with Ctrl-C (Keyboard Interrupt)."
+        raise CommandError(msg) from exc
     except EOFError as exc:
         print("")
-        raise CommandError("Build interrupted with Ctrl-D (EOF).") from exc
+        msg = "Build interrupted with Ctrl-D (EOF)."
+        raise CommandError(msg) from exc

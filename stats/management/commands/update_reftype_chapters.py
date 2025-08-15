@@ -32,4 +32,5 @@ class Command(BaseCommand):
                         )
 
             except KeyboardInterrupt as exc:
-                raise CommandError("Update paused. Keyboard interrupt received.") from exc
+                msg = "Update paused. Keyboard interrupt received."
+                raise CommandError(msg) from exc

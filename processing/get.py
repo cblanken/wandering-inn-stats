@@ -105,7 +105,8 @@ class Session:
 def extract_chapter_content(soup: BeautifulSoup) -> Tag:
     content = soup.select_one(".entry-content")
     if content is None:
-        raise ValueError("The Chapter soup contains no .entry-content")
+        msg = "The Chapter soup contains no .entry-content"
+        raise ValueError(msg)
 
     return content
 
@@ -114,7 +115,8 @@ def parse_chapter_content(soup: BeautifulSoup) -> dict:
     content = extract_chapter_content(soup)
 
     if content is None:
-        raise ValueError("Chapter content cannot be parsed from None")
+        msg = "Chapter content cannot be parsed from None"
+        raise ValueError(msg)
 
     chapter_data = {}
 
@@ -184,7 +186,8 @@ def parse_chapter_content(soup: BeautifulSoup) -> dict:
     try:
         word_count = len(chapter_data["text"].split())
         if word_count < 30:
-            raise PatreonChapterError("Attempted to parse a Patreon locked chapter")
+            msg = "Attempted to parse a Patreon locked chapter"
+            raise PatreonChapterError(msg)
         authors_note_word_count = len(chapter_data["authors_note"].split())
         digest: str = hashlib.sha256(chapter_data["text"].encode("utf-8")).hexdigest()
         chapter_data["metadata"] = {
@@ -250,8 +253,9 @@ class TableOfContents:
         self.url: str = f"https://{self.domain}/table-of-contents"
         if session:
             if not isinstance(session, Session):
+                msg = "The session argument must be an appropriate Session type to retrieve the table of contents"
                 raise TypeError(
-                    "The session argument must be an appropriate Session type to retrieve the table of contents",
+                    msg,
                 )
             self.response = session.get(self.url)
         else:

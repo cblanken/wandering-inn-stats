@@ -109,4 +109,5 @@ class Command(BaseCommand):
             ps.print_stats(25)
             print(s.getvalue())
 
-            raise CommandError("Keyboard interrupt...thumbnail generation stopped.") from exc
+            msg = "Keyboard interrupt...thumbnail generation stopped."
+            raise CommandError(msg) from exc

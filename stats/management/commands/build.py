@@ -563,10 +563,12 @@ class Command(BaseCommand):
                 raise
             except KeyboardInterrupt as exc:
                 print("")
-                raise CommandError("Build interrupted with Ctrl-C (Keyboard Interrupt).") from exc
+                msg = "Build interrupted with Ctrl-C (Keyboard Interrupt)."
+                raise CommandError(msg) from exc
             except EOFError as exc:
                 print("")
-                raise CommandError("Build interrupted with Ctrl-D (EOF).") from exc
+                msg = "Build interrupted with Ctrl-D (EOF)."
+                raise CommandError(msg) from exc
 
         return None
 
@@ -619,9 +621,8 @@ class Command(BaseCommand):
             return
 
         if src_chapter.metadata.get("word_count", 0) < 30:
-            raise CommandError(
-                f'The length of chapter "{src_chapter.title}" is very short. It may be locked behind a password and should not be imported into the database in it\'s current state.',
-            )
+            msg = f'The length of chapter "{src_chapter.title}" is very short. It may be locked behind a password and should not be imported into the database in it\'s current state.'
+            raise CommandError(msg)
 
         try:
             chapter, ref_type_updated = Chapter.objects.update_or_create(
@@ -651,9 +652,8 @@ class Command(BaseCommand):
                 f'A DB integrity error occurred. Chapter "{src_chapter.title}" could not be created.',
                 LogCat.ERROR,
             )
-            raise CommandError(
-                f"Chapter integrity failed when building a chapter. The indexing of the source chapters may have been changed.\n{e}",
-            ) from e
+            msg = f"Chapter integrity failed when building a chapter. The indexing of the source chapters may have been changed.\n{e}"
+            raise CommandError(msg) from e
 
         if ref_type_updated:
             self.log(f"Chapter created: {chapter}", LogCat.CREATED)
@@ -711,7 +711,8 @@ class Command(BaseCommand):
                 print(f"start: {start}, end: {end}")
                 line_range = range(start, end)
             except ValueError as exc:
-                raise CommandError(f"Invalid chapter line range provided: {line_range}") from exc
+                msg = f"Invalid chapter line range provided: {line_range}"
+                raise CommandError(msg) from exc
 
         for i in line_range:
             image_tag_pattern = regex.compile(r".*((<a href)|(<img )).*")
@@ -741,7 +742,8 @@ class Command(BaseCommand):
                 if response.strip().lower() == "y":
                     continue
                 self.log("Build was aborted", LogCat.ERROR)
-                raise CommandError("Build aborted.") from e
+                msg = "Build aborted."
+                raise CommandError(msg) from e
 
             if created:
                 self.log(f"Created line {i:>3}", LogCat.CREATED)
@@ -1094,8 +1096,9 @@ class Command(BaseCommand):
                         elif qs.count() == 1:
                             found_reftypes.append(qs[0])
                         else:
+                            msg = f"The name \n{name}\n provided by the custom ref config file matches multiple RefTypes → {qs}"
                             raise CommandError(
-                                f"The name \n{name}\n provided by the custom ref config file matches multiple RefTypes → {qs}",
+                                msg,
                             )
 
                 for qs in found_reftypes:
@@ -1111,8 +1114,9 @@ class Command(BaseCommand):
                     )
 
                 if len(missing_reftypes):
+                    msg = "Some reftypes provided in the custom ref config file did not find any existing RefTypes. There are probably some typos. Fix them and try again."
                     raise CommandError(
-                        "Some reftypes provided in the custom ref config file did not find any existing RefTypes. There are probably some typos. Fix them and try again.",
+                        msg,
                     )
 
                 patterns = ["|".join(build_reftype_pattern(rt)) for rt in found_reftypes]
@@ -1120,9 +1124,11 @@ class Command(BaseCommand):
                 return compile_textref_patterns(patterns=patterns)
 
         except json.JSONDecodeError as e:
-            raise CommandError(f'Build error. Unable to parse JSON file: "{filepath}"') from e
+            msg = f'Build error. Unable to parse JSON file: "{filepath}"'
+            raise CommandError(msg) from e
         except OSError as e:
-            raise CommandError(f'Build error. Unable to open custom ref list file: "{filepath}"') from e
+            msg = f'Build error. Unable to open custom ref list file: "{filepath}"'
+            raise CommandError(msg) from e
 
     def handle(self, *_args, **options) -> None:  # noqa: ANN002, ANN003
         self.prompt_sound = bool(options.get("prompt_sound"))
@@ -1178,7 +1184,8 @@ class Command(BaseCommand):
                 try:
                     start, end = [int(x) for x in chapter_id_range.split(",")]
                 except ValueError as exc:
-                    raise CommandError(f"Invalid chapter ID range provided: {chapter_id_range}.") from exc
+                    msg = f"Invalid chapter ID range provided: {chapter_id_range}."
+                    raise CommandError(msg) from exc
 
                 for i in range(start, end):
                     self.build_chapter_by_id(options, i)
@@ -1194,7 +1201,8 @@ class Command(BaseCommand):
             meta_path = Path(vol_root)
             volumes_metadata = get_metadata(meta_path)
             if volumes_metadata is None:
-                raise CommandError("Unable to read top-level volumes metadata file. Exiting...")
+                msg = "Unable to read top-level volumes metadata file. Exiting..."
+                raise CommandError(msg)
 
             volumes = sorted(volumes_metadata["volumes"].items(), key=lambda x: x[1])
 
@@ -1202,7 +1210,8 @@ class Command(BaseCommand):
             for vol_title, vol_num in volumes:
                 src_vol: SrcVolume = SrcVolume(Path(vol_root, vol_title))
                 if src_vol.metadata is None:
-                    raise CommandError(f"Unable to read volume ({vol_title}) metadata file. Exiting...")
+                    msg = f"Unable to read volume ({vol_title}) metadata file. Exiting..."
+                    raise CommandError(msg)
                 volume, ref_type_created = Volume.objects.get_or_create(title=src_vol.title, number=vol_num)
                 if ref_type_created:
                     self.log(f"Volume created: {volume}", LogCat.CREATED)
@@ -1216,7 +1225,8 @@ class Command(BaseCommand):
                 for book_num, book_title in enumerate(src_vol.books):
                     src_book: SrcBook = SrcBook(Path(src_vol.path, book_title))
                     if src_book.metadata is None:
-                        raise CommandError(f"Unable to read book ({book_title}) metadata file. Exiting...")
+                        msg = f"Unable to read book ({book_title}) metadata file. Exiting..."
+                        raise CommandError(msg)
                     book, book_created = Book.objects.get_or_create(number=book_num, volume=volume)
                     book.title = book_title
                     book.save()
@@ -1235,4 +1245,5 @@ class Command(BaseCommand):
                         self.build_chapter(options, book, path, chapter_num)
                         chapter_num += 1
         except KeyboardInterrupt as exc:
-            raise CommandError("Build stop. Keyboard interrupt received.") from exc
+            msg = "Build stop. Keyboard interrupt received."
+            raise CommandError(msg) from exc

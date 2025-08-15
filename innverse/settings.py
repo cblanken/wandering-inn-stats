@@ -16,7 +16,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = env.get("TWI_KEY")
 if SECRET_KEY is None:
-    raise Exception("The secret key ('TWI_KEY\") must be available in the environment to run this application!")
+    msg = "The secret key (TWI_KEY) must be available in the environment to run this application!"
+    raise Exception(msg)
 
 ALLOWED_HOSTS = ["localhost", "127.0.0.1", env.get("TWI_INTERNAL_HOST")]
 
