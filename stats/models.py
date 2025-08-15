@@ -153,7 +153,7 @@ class RefType(models.Model):
         (UNDECIDED, "Undecided"),
     ]
     name = models.TextField()
-    type = models.CharField(max_length=2, choices=TYPES, null=True)
+    type = models.CharField(max_length=2, choices=TYPES, default="")
     slug = models.TextField(default="")
     word_count = models.GeneratedField(  # type: ignore[attr-defined]
         expression=models.Func(
@@ -179,6 +179,9 @@ class RefType(models.Model):
         ordering = ["name"]
         verbose_name_plural = "Ref Types"
 
+    def __str__(self) -> str:
+        return f"(RefType: {self.name} - Type: {self.type})"
+
     def save(self, *args, **kwargs) -> None:  # noqa ANN202 ANN203
         self.slug = slugify(self.name[:100], allow_unicode=True)
         super(RefType, self).save(*args, **kwargs)
@@ -187,9 +190,6 @@ class RefType(models.Model):
         computed_cols = RefTypeComputedView.objects.filter(ref_type=self)
         for row in computed_cols:
             row.delete()
-
-    def __str__(self) -> str:
-        return f"(RefType: {self.name} - Type: {self.type})"
 
 
 class Character(models.Model):
@@ -391,9 +391,12 @@ class Character(models.Model):
 
     ref_type = models.OneToOneField(RefType, on_delete=models.CASCADE, primary_key=True)
     first_chapter_appearance = models.ForeignKey(Chapter, on_delete=models.CASCADE, null=True)
-    wiki_uri = models.URLField(null=True)
-    status = models.CharField(max_length=2, choices=STATUSES, null=True)
-    species = models.CharField(max_length=2, choices=SPECIES, null=True)
+    wiki_uri = models.URLField(default="")
+    status = models.CharField(max_length=2, choices=STATUSES, default="")
+    species = models.CharField(max_length=2, choices=SPECIES, default="")
+
+    def __str__(self) -> str:
+        return f"(Character: {self.ref_type.name}, Status: {self.status}, Species: {self.species})"
 
     @staticmethod
     def parse_status_str(status: str) -> Literal["AL", "UD", "DE", "UK"]:
@@ -421,14 +424,11 @@ class Character(models.Model):
 
         return Character.UNKNOWN
 
-    def __str__(self) -> str:
-        return f"(Character: {self.ref_type.name}, Status: {self.status}, Species: {self.species})"
-
 
 class Item(models.Model):
     ref_type = models.OneToOneField(RefType, on_delete=models.CASCADE)
     first_chapter_ref = models.ForeignKey(Chapter, on_delete=models.CASCADE, null=True)
-    wiki_uri = models.URLField(null=True)
+    wiki_uri = models.URLField(default="")
 
     def __str__(self) -> str:
         return f"(Item: {self.ref_type.name}, Wiki: {self.wiki_uri})"
@@ -437,7 +437,7 @@ class Item(models.Model):
 class Location(models.Model):
     ref_type = models.OneToOneField(RefType, on_delete=models.CASCADE)
     first_chapter_ref = models.ForeignKey(Chapter, on_delete=models.CASCADE, null=True)
-    wiki_uri = models.URLField(null=True)
+    wiki_uri = models.URLField(default="")
 
     def __str__(self) -> str:
         return f"(Location: {self.ref_type.name}, Wiki: {self.wiki_uri})"
@@ -446,7 +446,7 @@ class Location(models.Model):
 class Skill(models.Model):
     ref_type = models.OneToOneField(RefType, on_delete=models.CASCADE)
     first_chapter_ref = models.ForeignKey(Chapter, on_delete=models.CASCADE, null=True)
-    wiki_uri = models.URLField(null=True)
+    wiki_uri = models.URLField(default="")
 
     def __str__(self) -> str:
         return f"(Skill: {self.ref_type.name}, Wiki: {self.wiki_uri})"
@@ -455,7 +455,7 @@ class Skill(models.Model):
 class Spell(models.Model):
     ref_type = models.OneToOneField(RefType, on_delete=models.CASCADE)
     first_chapter_ref = models.ForeignKey(Chapter, on_delete=models.CASCADE, null=True)
-    wiki_uri = models.URLField(null=True)
+    wiki_uri = models.URLField(default="")
 
     def __str__(self) -> str:
         return f"(Spell: {self.ref_type.name}, Wiki: {self.wiki_uri})"
@@ -549,13 +549,16 @@ class RefTypeComputedView(models.Model):
     mentions = models.PositiveIntegerField()
     # first_mention_chapter = models.ForeignKey(Chapter, on_delete=models.CASCADE)
 
+    class Meta:
+        managed = False
+        db_table = "reftype_computed_view"
+
+    def __str__(self) -> str:
+        return f"RefTypeComputed: {self.ref_type}, Mentions: {self.mentions}"
+
     def delete(self) -> None:
         RefTypeComputedView.objects.raw(
             "DELETE FROM reftype_computed_view INNER JOIN stats_reftype as sr ON ref_type = \
                                         sr.id WHERE sr.name = %s AND sr.type = %s",
             params=[self.ref_type.name, self.ref_type.type],
         )
-
-    class Meta:
-        managed = False
-        db_table = "reftype_computed_view"
