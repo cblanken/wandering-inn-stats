@@ -102,8 +102,7 @@ def overview(request: HtmxHttpRequest) -> HttpResponse:
         length = len(values)
         if length % 2 == 0:
             return sum(values[int(length / 2 - 1) : int(length / 2 + 1)]) / 2.0
-        else:
-            return values[int(length / 2)]
+        return values[int(length / 2)]
 
     median_chapter_word_count = median(word_counts)
     avg_chapter_word_count = sum(word_counts) / len(word_counts)
@@ -1126,15 +1125,14 @@ def search(request: HtmxHttpRequest) -> HttpResponse:
             context["form"] = form
             # context["result_count"] = table_data.count()
             return render(request, "pages/search.html", context)
-        else:
-            # Form data not valid
-            return render(
-                request,
-                "pages/search_error.html",
-                {"error": "Invalid search parameter provided. Please try again."},
-            )
-    else:
-        return render(request, "pages/search.html", {"form": SearchForm()})
+
+        # Form data not valid
+        return render(
+            request,
+            "pages/search_error.html",
+            {"error": "Invalid search parameter provided. Please try again."},
+        )
+    return render(request, "pages/search.html", {"form": SearchForm()})
 
 
 def about(request: HtmxHttpRequest) -> HttpResponse:

@@ -28,8 +28,7 @@ def remove_bracketed_ref_number(s: str) -> str:
     # Filter out reference numbers
     if len(splits) > 1:
         return "".join(list(filter(lambda x: not x.isnumeric(), list(chain(*splits)))))
-    else:
-        return s
+    return s
 
 
 class Session:
@@ -85,6 +84,7 @@ class Session:
                 return resp
 
         print("Cannot re-attempt download. Too many retries. Must reset to continue.")
+        return None
 
     def reset_tries(self) -> None:
         self.__tries = 0
@@ -167,8 +167,7 @@ def parse_chapter_content(soup: BeautifulSoup) -> dict:
 
             if chapter_index > int(len(content_lines) * 0.9):
                 break
-            else:
-                chapter_index += authors_note_index
+            chapter_index += authors_note_index
 
         else:
             if content_lines[chapter_index].strip() != "":
@@ -332,5 +331,4 @@ class TableOfContents:
         """Get a list of Book titles from TableOfContents"""
         if is_released:
             return [x.text.strip() for x in self.soup.select(".book:not(.unreleased)")]
-        else:
-            return [x.text.strip() for x in self.soup.select(".book")]
+        return [x.text.strip() for x in self.soup.select(".book")]

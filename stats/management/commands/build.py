@@ -231,17 +231,16 @@ class Command(BaseCommand):
                 resp = input("> Update? (default = no change) ([y]es/[n]o): ")
                 if regex.match(r"^[Yy][e]?[s]?$", resp):
                     return (new, True)
-                elif resp == "" or regex.match(r"^[Nn][o]?", resp):
+                if resp == "" or regex.match(r"^[Nn][o]?", resp):
                     return (old, False)
-                else:
-                    self.stdout.write("> That doesn't match a valid response. Please try again.")
+                self.stdout.write("> That doesn't match a valid response. Please try again.")
 
         return (old, False)
 
     def edit_field(self, field: str, desc: str | None = None) -> str | None:
         """
         Prompt user to edit given input string `s` or accept the default.
-        Returns `None` if this field should be skipped an no actions taken.
+        Returns `None` if this field should be skipped and no actions taken.
 
         Parameters
         - `s`: field text to be confirmed or edited
@@ -266,16 +265,13 @@ class Command(BaseCommand):
                     confirm = input(f"> Is {self.style.WARNING(name_resp)} correct? (y/n): ")
                     if regex.match(r"^[Yy][e]?[s]?$", confirm):
                         return name_resp
-                    else:
-                        continue
-                else:
-                    return field
-            elif regex.match(r"^[Ss][k]?[i]?[p]?", edit_resp):
-                return None
-            elif edit_resp == "" or regex.match(r"^[Nn][o]?", edit_resp):
+                    continue
                 return field
-            else:
-                self.stdout.write("That doesn't match a valid response. Please try again.")
+            if regex.match(r"^[Ss][k]?[i]?[p]?", edit_resp):
+                return None
+            if edit_resp == "" or regex.match(r"^[Nn][o]?", edit_resp):
+                return field
+            self.stdout.write("That doesn't match a valid response. Please try again.")
 
     def get_or_create_alias(self, rt: RefType, alias_name: str) -> Alias | None:
         """Create Alias with name confirmation and logging of success/failure to console"""
@@ -321,7 +317,7 @@ class Command(BaseCommand):
                 )
                 edited_name = self.edit_field(rt_name, "RefType name")
                 if edited_name is None:
-                    return
+                    return None
 
                 rt, rt_created = RefType.objects.get_or_create(name=edited_name, type=rt_type)
                 if rt_created:
@@ -375,8 +371,7 @@ class Command(BaseCommand):
                     f"Multiple RefType(s) exist for the name: {text_ref.text}...",
                     LogCat.WARN,
                 )
-                ref_type = select_ref_type_from_qs(ref_types, sound=True)
-                return ref_type
+                return select_ref_type_from_qs(ref_types, sound=True)
 
             # Check for existing Alias
             try:
@@ -538,28 +533,27 @@ class Command(BaseCommand):
                 matching_colors: QuerySet = Color.objects.filter(rgb=rgb_hex)
                 if len(matching_colors) == 1:
                     return matching_colors[0]
-                else:
-                    if options.get("skip_textref_color_select"):
-                        self.log(
-                            "TextRef color selection disabled. Skipping selection.",
-                            LogCat.SKIPPED,
-                        )
-                        return None
-
+                if options.get("skip_textref_color_select"):
                     self.log(
-                        f"Unable to automatically select color for TextRef: {text_ref}",
-                        LogCat.PROMPT,
+                        "TextRef color selection disabled. Skipping selection.",
+                        LogCat.SKIPPED,
                     )
+                    return None
 
-                    try:
-                        return select_item_from_qs(matching_colors)
-                    except ValueError:
-                        # TODO: add option to create new Color
-                        self.log(
-                            f'No available Colors match "{rgb_hex}".',
-                            LogCat.WARN,
-                        )
-                        return None
+                self.log(
+                    f"Unable to automatically select color for TextRef: {text_ref}",
+                    LogCat.PROMPT,
+                )
+
+                try:
+                    return select_item_from_qs(matching_colors)
+                except ValueError:
+                    # TODO: add option to create new Color
+                    self.log(
+                        f'No available Colors match "{rgb_hex}".',
+                        LogCat.WARN,
+                    )
+                    return None
 
             except IndexError:
                 print("Can't get color. Invalid TextRef context index")
@@ -724,10 +718,10 @@ class Command(BaseCommand):
             if image_tag_pattern.match(src_chapter.lines[i]):
                 self.log(f"Line {i} contains an <img> tag. Skipping...", LogCat.SKIPPED)
                 continue
-            elif src_chapter.lines[i].startswith(r"<div class="):
+            if src_chapter.lines[i].startswith(r"<div class="):
                 self.log(f"Line {i} is an entry-content <div>. Skipping...", LogCat.SKIPPED)
                 continue
-            elif src_chapter.lines[i].strip() == "":
+            if src_chapter.lines[i].strip() == "":
                 self.log(f"Line {i} is empty. Skipping...", LogCat.SKIPPED)
 
             # Create ChapterLine if it doesn't already exist
@@ -746,9 +740,8 @@ class Command(BaseCommand):
 
                 if response.strip().lower() == "y":
                     continue
-                else:
-                    self.log("Build was aborted", LogCat.ERROR)
-                    raise CommandError("Build aborted.") from e
+                self.log("Build was aborted", LogCat.ERROR)
+                raise CommandError("Build aborted.") from e
 
             if created:
                 self.log(f"Created line {i:>3}", LogCat.CREATED)

@@ -287,12 +287,11 @@ def select_item_from_qs(qs: QuerySet[T], sound: bool = False) -> T | None:
 
             if sel_i >= 0 and sel_i < len(qs):
                 return qs[sel_i]
-            else:
-                print("Invalid selection.")
-                yes_no = prompt("Try again (y/n): ", sound)
-                if yes_no.lower() == "y":
-                    continue
-                return None  # skip with confirmation
+            print("Invalid selection.")
+            yes_no = prompt("Try again (y/n): ", sound)
+            if yes_no.lower() == "y":
+                continue
+            return None  # skip with confirmation
 
     except KeyboardInterrupt as exc:
         print("")
@@ -324,12 +323,11 @@ def select_ref_type_from_qs(qs: QuerySet[RefType], sound: bool = False) -> RefTy
 
             if sel_i >= 0 and sel_i < len(qs):
                 return qs[sel_i]
-            else:
-                print("Invalid selection.")
-                yes_no = prompt("Try again (y/n): ", sound)
-                if yes_no.lower() == "y":
-                    continue
-                return None  # skip with confirmation
+            print("Invalid selection.")
+            yes_no = prompt("Try again (y/n): ", sound)
+            if yes_no.lower() == "y":
+                continue
+            return None  # skip with confirmation
 
     except KeyboardInterrupt as exc:
         print("")

@@ -22,7 +22,7 @@ def character_text_refs(first_chapter: Chapter | None = None, last_chapter: Chap
     )
 
     if len(character_text_refs) == 0:
-        return
+        return None
 
     char_refs_count_fig = px.bar(
         character_text_refs[:15],

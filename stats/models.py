@@ -402,14 +402,13 @@ class Character(models.Model):
         status = status.strip()
         if re.match(r"[Aa]live", status):
             return Character.ALIVE
-        elif re.match(r"[Uu]ndead", status):
+        if re.match(r"[Uu]ndead", status):
             return Character.UNDEAD
-        elif re.match(r"([Dd]ead|[Dd]eceased)", status):
+        if re.match(r"([Dd]ead|[Dd]eceased)", status):
             return Character.DEAD
-        elif re.match(r"([Uu]nknown|[Uu]n-?clear)", status):
+        if re.match(r"([Uu]nknown|[Uu]n-?clear)", status):
             return Character.UNKNOWN
-        else:
-            return Character.UNKNOWN
+        return Character.UNKNOWN
 
     @staticmethod
     def parse_species_str(s: str) -> str:

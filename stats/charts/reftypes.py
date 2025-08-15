@@ -71,8 +71,7 @@ def mentions(
                 "post_date": "Post date",
             },
         ).update_layout(DEFAULT_LAYOUT)
-    else:
-        return None
+    return None
 
 
 def cumulative_mentions(
@@ -89,7 +88,7 @@ def cumulative_mentions(
     cumulative_rt_mentions = apply_chapter_filter(cumulative_rt_mentions, first_chapter, last_chapter)
 
     if cumulative_rt_mentions:
-        fig = px.area(
+        return px.area(
             cumulative_rt_mentions,
             x="post_date",
             y="cum_rt_mentions",
@@ -103,9 +102,7 @@ def cumulative_mentions(
             DEFAULT_LAYOUT,
         )
 
-        return fig
-    else:
-        return None
+    return None
 
 
 def most_mentions_by_chapter(
@@ -129,8 +126,7 @@ def most_mentions_by_chapter(
             color="chapter_line__chapter__title_short",
             color_discrete_sequence=DEFAULT_DISCRETE_COLORS,
         ).update_layout(DEFAULT_LAYOUT)
-    else:
-        return None
+    return None
 
 
 def most_mentions_by_book(
@@ -191,8 +187,7 @@ def most_mentions_by_book(
             color="title_short",
             color_discrete_sequence=DEFAULT_DISCRETE_COLORS,
         ).update_layout(DEFAULT_LAYOUT)
-    else:
-        return None
+    return None
 
 
 def most_mentions_by_volume(
@@ -252,5 +247,4 @@ def most_mentions_by_volume(
             color="title",
             color_discrete_sequence=DEFAULT_DISCRETE_COLORS,
         ).update_layout(DEFAULT_LAYOUT)
-    else:
-        return None
+    return None

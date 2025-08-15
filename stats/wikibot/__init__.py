@@ -48,12 +48,12 @@ class TwiBot(SingleSiteBot):
             if data:
                 data["page_url"] = page.title(as_url=True)
                 return {page.title(): data}
-            else:
-                print(f"NO DATA FOUND FOR template: {template}, with params: {params}")
+            print(f"NO DATA FOUND FOR template: {template}, with params: {params}")
 
         else:
             # TODO
             print("NO CHARACTER INFOBOX FOUND")
+        return None
 
     def treat_location(self, page: pwb.Page) -> dict:
         self.current_page = page
@@ -74,8 +74,7 @@ class TwiBot(SingleSiteBot):
         self.current_page = page
         try:
             parser = ClassesTableParser(wtp.parse(page.get()).sections[1].tables[0])
-            data = parser.parse()
-            return data
+            return parser.parse()
         except IndexError as e:
             print("Missing sections or table on [Class] list page")
             raise e
@@ -88,8 +87,7 @@ class TwiBot(SingleSiteBot):
         self.current_page = page
         try:
             parser = SkillTableParser(wtp.parse(page.get()).sections[1].tables[0])
-            data = parser.parse()
-            return data
+            return parser.parse()
         except IndexError as e:
             print("Missing sections or table on [Skills] list page")
             raise e
@@ -119,9 +117,8 @@ class TwiBot(SingleSiteBot):
                     raise e
 
             return data
-        else:
-            print("No Spell list found.")
-            return
+        print("No Spell list found.")
+        return None
 
     def treat_artifacts(self, page: pwb.Page) -> dict | None:
         self.current_page = page
