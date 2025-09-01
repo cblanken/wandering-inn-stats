@@ -5,21 +5,20 @@ from django.db.models import (
     Sum,
     Window,
     F,
-    BaseManager,
 )
+from django.db.models.manager import BaseManager
 import plotly.express as px
 from plotly.graph_objects import Figure
 from stats.models import Book, Chapter, RefType, TextRef, Volume
 from stats.queries import apply_chapter_filter
 from .config import DEFAULT_LAYOUT, DEFAULT_DISCRETE_COLORS
-from typing import Any
 
-from django.db.models.query import ValuesQuerySet
+from django.db.models.query import ValuesIterable
 
 
 def __chapter_counts(
     rt: RefType,
-) -> ValuesQuerySet[TextRef, dict[str, Any]]:
+) -> ValuesIterable:
     """Returns count of [RefType] rt for every chapter _excluding_ those with a zero count"""
     return (
         TextRef.objects.filter(type=rt)

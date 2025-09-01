@@ -1,4 +1,5 @@
-from django.db.models import Q, Count, Max, BaseManager
+from django.db.models import Q, Count, Max
+from django.db.models.manager import BaseManager
 import plotly.express as px
 from plotly.graph_objects import Figure
 import numpy as np
