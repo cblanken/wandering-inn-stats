@@ -184,12 +184,12 @@ class ReftypeMentionsHtmxTable(tables.Table):
     word_count = tables.Column(attrs={"th": {"style": "width: 10%"}})
     letter_count = tables.Column(attrs={"th": {"style": "width: 10%"}})
 
-    def render_name(self, _record: RefType, value) -> SafeText:  # noqa: ANN001
+    def render_name(self, record: RefType) -> SafeText:  # noqa: ANN001
         return render_to_string(
             "patterns/atoms/link/stat_link.html",
             context={
-                "text": f"{value}",
-                "href": f"{slugify(value, allow_unicode=True)}",
+                "text": f"{record.name}",
+                "href": f"{slugify(record.name, allow_unicode=True)}",
             },
         )
 
@@ -232,16 +232,16 @@ class CharacterHtmxTable(tables.Table):
 
     species = tables.Column(attrs={"th": {"style": "width: 8rem; max-width: 12rem;"}})
 
-    def render_name(self, _record: Character, value: str) -> SafeText:
+    def render_name(self, record: Character) -> SafeText:
         return render_to_string(
             "patterns/atoms/link/stat_link.html",
             context={
-                "text": f"{value}",
-                "href": f"{slugify(value, allow_unicode=True)}",
+                "text": f"{record.ref_type.name}",
+                "href": f"{slugify(record.ref_type.name, allow_unicode=True)}",
             },
         )
 
-    def render_first_appearance(self, _record: Character, value) -> SafeText:  # noqa: ANN001
+    def render_first_appearance(self, value) -> SafeText:  # noqa: ANN001
         return render_to_string(
             "patterns/atoms/link/stat_link.html",
             context={
