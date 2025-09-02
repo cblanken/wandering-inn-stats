@@ -171,6 +171,9 @@ class ChapterRefTable(tables.Table):
             ],
         )
 
+    def value_ref_name(self, record) -> str:  # noqa: ANN001
+        return record["name"]
+
     def value_chapters(self, record) -> str:  # noqa: ANN001
         return ";".join([x[1] for x in record["chapter_data"]])
 

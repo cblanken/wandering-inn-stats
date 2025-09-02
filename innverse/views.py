@@ -1120,10 +1120,10 @@ def search(request: HtmxHttpRequest) -> HttpResponse:
                 exporter = TableExport(export_format, table)
                 return exporter.response(f"twi_text_refs.{export_format}")
 
-            context = {}
-            context["table"] = table
-            context["form"] = form
-            # context["result_count"] = table_data.count()
+            context = {
+                "table": table,
+                "form": form,
+            }
             return render(request, "pages/search.html", context)
 
         # Form data not valid
