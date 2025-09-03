@@ -8,7 +8,7 @@ from .config import DEFAULT_LAYOUT, DEFAULT_DISCRETE_COLORS
 
 
 def character_text_refs(first_chapter: Chapter | None = None, last_chapter: Chapter | None = None) -> Figure | None:
-    character_text_refs = TextRef.objects.filter(Q(type__type=RefType.CHARACTER))
+    character_text_refs = TextRef.objects.filter(Q(type__type=RefType.Type.CHARACTER))
 
     if first_chapter:
         character_text_refs = character_text_refs.filter(chapter_line__chapter__number__gte=first_chapter.number)

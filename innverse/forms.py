@@ -51,7 +51,7 @@ class ChapterFilterForm(forms.Form):
 class SearchForm(forms.Form):
     type = forms.ChoiceField(
         label="Type",
-        choices=RefType.TYPES,
+        choices=RefType.Type.choices,
         required=False,
         widget=forms.Select(attrs={"class": select_input_tailwind_classes}),
     )

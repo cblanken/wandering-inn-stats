@@ -6,7 +6,7 @@ from .config import DEFAULT_LAYOUT, DEFAULT_DISCRETE_COLORS
 
 
 def skill_ref_counts(first_chapter: Chapter | None, last_chapter: Chapter | None) -> Figure | None:
-    skill_refs = TextRef.objects.filter(type__type=RefType.SKILL)
+    skill_refs = TextRef.objects.filter(type__type=RefType.Type.SKILL)
 
     if first_chapter:
         skill_refs = skill_refs.filter(chapter_line__chapter__number__gte=first_chapter.number)

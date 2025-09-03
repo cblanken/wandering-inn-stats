@@ -270,7 +270,7 @@ def characters(request: HtmxHttpRequest) -> HttpResponse:
         return render(request, "tables/htmx_table.html", {"table": table})
 
     char_counts = (
-        TextRef.objects.filter(type__type=RefType.CHARACTER)
+        TextRef.objects.filter(type__type=RefType.Type.CHARACTER)
         .select_related("type")
         .values("type__name", "type__character")
         .annotate(
@@ -285,7 +285,7 @@ def characters(request: HtmxHttpRequest) -> HttpResponse:
     species_count = Character.objects.values("species").distinct().count()
 
     chapter_with_most_char_refs = (
-        TextRef.objects.filter(type__type=RefType.CHARACTER)
+        TextRef.objects.filter(type__type=RefType.Type.CHARACTER)
         .select_related("chapter_line__chapter")
         .annotate(
             title=F("chapter_line__chapter__title"),
@@ -355,7 +355,7 @@ def get_reftype_table_data(query: str | None, rt_type: str, order_by: str = "men
 def classes(request: HtmxHttpRequest) -> HttpResponse:
     config = RequestConfig(request)
     query = request.GET.get("q")
-    rt_data = get_reftype_table_data(query, RefType.CLASS)
+    rt_data = get_reftype_table_data(query, RefType.Type.CLASS)
 
     table = ReftypeMentionsHtmxTable(rt_data)
     config.configure(table)
@@ -372,7 +372,7 @@ def classes(request: HtmxHttpRequest) -> HttpResponse:
     longest_class_name_by_words = rt_data.order_by("-word_count")[0]
 
     chapter_with_most_class_refs = (
-        TextRef.objects.filter(type__type=RefType.CLASS)
+        TextRef.objects.filter(type__type=RefType.Type.CLASS)
         .annotate(
             title=F("chapter_line__chapter__title"),
             url=F("chapter_line__chapter__source_url"),
@@ -444,7 +444,7 @@ def classes(request: HtmxHttpRequest) -> HttpResponse:
 def skills(request: HtmxHttpRequest) -> HttpResponse:
     config = RequestConfig(request)
     query = request.GET.get("q")
-    rt_data = get_reftype_table_data(query, RefType.SKILL)
+    rt_data = get_reftype_table_data(query, RefType.Type.SKILL)
 
     table = ReftypeMentionsHtmxTable(rt_data)
     config.configure(table)
@@ -461,7 +461,7 @@ def skills(request: HtmxHttpRequest) -> HttpResponse:
     longest_skill_name_by_words = rt_data.order_by("-word_count")[0]
 
     chapter_with_most_skill_refs = (
-        TextRef.objects.filter(type__type=RefType.SKILL)
+        TextRef.objects.filter(type__type=RefType.Type.SKILL)
         .annotate(
             title=F("chapter_line__chapter__title"),
             url=F("chapter_line__chapter__source_url"),
@@ -530,7 +530,7 @@ def skills(request: HtmxHttpRequest) -> HttpResponse:
 def magic(request: HtmxHttpRequest) -> HttpResponse:
     config = RequestConfig(request)
     query = request.GET.get("q")
-    rt_data = get_reftype_table_data(query, RefType.SPELL)
+    rt_data = get_reftype_table_data(query, RefType.Type.SPELL)
 
     table = ReftypeMentionsHtmxTable(rt_data)
     config.configure(table)
@@ -547,7 +547,7 @@ def magic(request: HtmxHttpRequest) -> HttpResponse:
     longest_spell_name_by_words = rt_data.order_by("-word_count")[0]
 
     chapter_with_most_spell_refs = (
-        TextRef.objects.filter(type__type=RefType.SPELL)
+        TextRef.objects.filter(type__type=RefType.Type.SPELL)
         .annotate(
             title=F("chapter_line__chapter__title"),
             url=F("chapter_line__chapter__source_url"),
@@ -616,7 +616,7 @@ def magic(request: HtmxHttpRequest) -> HttpResponse:
 def locations(request: HtmxHttpRequest) -> HttpResponse:
     config = RequestConfig(request)
     query = request.GET.get("q")
-    rt_data = get_reftype_table_data(query, RefType.LOCATION)
+    rt_data = get_reftype_table_data(query, RefType.Type.LOCATION)
 
     table = ReftypeMentionsHtmxTable(rt_data or [])
     config.configure(table)
@@ -630,7 +630,7 @@ def locations(request: HtmxHttpRequest) -> HttpResponse:
         return render(request, "tables/htmx_table.html", {"table": table})
 
     chapter_with_most_location_refs = (
-        TextRef.objects.filter(type__type=RefType.LOCATION)
+        TextRef.objects.filter(type__type=RefType.Type.LOCATION)
         .annotate(
             title=F("chapter_line__chapter__title"),
             url=F("chapter_line__chapter__source_url"),
@@ -708,11 +708,11 @@ def chapter_stats(request: HtmxHttpRequest, number: int) -> HttpResponse:
         .values("type__type", "type__name", "count")
     )
 
-    most_mentioned_character = rt_counts.filter(type__type=RefType.CHARACTER).first()
-    most_mentioned_class = rt_counts.filter(type__type=RefType.CLASS).first()
-    most_mentioned_skill = rt_counts.filter(type__type=RefType.SKILL).first()
-    most_mentioned_spell = rt_counts.filter(type__type=RefType.SPELL).first()
-    most_mentioned_location = rt_counts.filter(type__type=RefType.LOCATION).first()
+    most_mentioned_character = rt_counts.filter(type__type=RefType.Type.CHARACTER).first()
+    most_mentioned_class = rt_counts.filter(type__type=RefType.Type.CLASS).first()
+    most_mentioned_skill = rt_counts.filter(type__type=RefType.Type.SKILL).first()
+    most_mentioned_spell = rt_counts.filter(type__type=RefType.Type.SPELL).first()
+    most_mentioned_location = rt_counts.filter(type__type=RefType.Type.LOCATION).first()
 
     context = {
         "title": chapter.title,
@@ -857,15 +857,15 @@ def main_interactive_chart(request: HtmxHttpRequest, chart: str) -> HttpResponse
 def match_reftype_str(s: str) -> str | None:
     match s:
         case "characters":
-            return RefType.CHARACTER
+            return RefType.Type.CHARACTER
         case "classes":
-            return RefType.CLASS
+            return RefType.Type.CLASS
         case "skills":
-            return RefType.SKILL
+            return RefType.Type.SKILL
         case "magic":
-            return RefType.SPELL
+            return RefType.Type.SPELL
         case "locations":
-            return RefType.LOCATION
+            return RefType.Type.LOCATION
         case _:
             return None
 
@@ -931,7 +931,7 @@ def reftype_stats(request: HtmxHttpRequest, name: str) -> HttpResponse:
     chapter_appearances = (
         RefType.objects.select_related("reftypecomputedview")
         .annotate(mentions=F("reftypecomputedview__mentions"))
-        .filter(type=RefType.LOCATION)
+        .filter(type=RefType.Type.LOCATION)
         .order_by(F("mentions").desc(nulls_last=True))
     )
 
@@ -944,19 +944,19 @@ def reftype_stats(request: HtmxHttpRequest, name: str) -> HttpResponse:
     aliases = Alias.objects.filter(ref_type=rt).order_by("name")
 
     match rt_type:
-        case RefType.CHARACTER:
+        case RefType.Type.CHARACTER:
             character = Character.objects.get(ref_type=rt)
             href = character.wiki_uri
-        case RefType.CLASS:
+        case RefType.Type.CLASS:
             name = rt.name[1:-1]
             href = f"https://wiki.wanderinginn.com/List_of_Classes/{name[0]}#:~:text={name}"
-        case RefType.SKILL:
+        case RefType.Type.SKILL:
             name = rt.name[1:-1]
             href = f"https://wiki.wanderinginn.com/Skills#:~:text={name}"
-        case RefType.SPELL:
+        case RefType.Type.SPELL:
             name = rt.name[1:-1]
             href = f"https://wiki.wanderinginn.com/Spells#:~:text={name}"
-        case RefType.LOCATION:
+        case RefType.Type.LOCATION:
             href = f"https://wiki.wanderinginn.com/{rt.name.replace(' ', '_')}"
         case _:
             href = None

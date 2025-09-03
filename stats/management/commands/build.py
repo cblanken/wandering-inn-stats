@@ -448,16 +448,16 @@ class Command(BaseCommand):
             spell_obtained_pattern = regex.compile(r"^\[Spell.*[Oo]btained.*\]$")
 
             if skill_obtained_pattern.match(text_ref.text) or skill_change_pattern.match(text_ref.text):
-                new_type = RefType.SKILL_UPDATE
+                new_type = RefType.Type.SKILL_UPDATE
             elif (
                 class_obtained_pattern.match(text_ref.text)
                 or level_up_pattern.match(text_ref.text)
                 or class_consolidation_pattern.match(text_ref.text)
                 or class_upgrade_pattern.match(text_ref.text)
             ):
-                new_type = RefType.CLASS_UPDATE
+                new_type = RefType.Type.CLASS_UPDATE
             elif spell_obtained_pattern.match(text_ref.text):
-                new_type = RefType.SPELL_UPDATE
+                new_type = RefType.Type.SPELL_UPDATE
             else:
                 # Check for any bracketed Character references or Aliases from
                 # text messages or message scrolls like
@@ -467,8 +467,8 @@ class Command(BaseCommand):
                         x.name
                         for x in itertools.chain(
                             *[
-                                RefType.objects.filter(type=RefType.CHARACTER),
-                                Alias.objects.filter(ref_type__type=RefType.CHARACTER),
+                                RefType.objects.filter(type=RefType.Type.CHARACTER),
+                                Alias.objects.filter(ref_type__type=RefType.Type.CHARACTER),
                             ],
                         )
                     ]:
@@ -674,7 +674,7 @@ class Command(BaseCommand):
             character_patterns = (
                 [
                     "|".join(build_reftype_pattern(char))
-                    for char in RefType.objects.filter(type=RefType.CHARACTER)
+                    for char in RefType.objects.filter(type=RefType.Type.CHARACTER)
                     if "(" not in char.name
                 ]
                 if not options.get("skip_ref_chars")
@@ -683,7 +683,7 @@ class Command(BaseCommand):
 
             # Compile location names for TextRef search
             location_patterns = (
-                ["|".join(build_reftype_pattern(loc)) for loc in RefType.objects.filter(type=RefType.LOCATION)]
+                ["|".join(build_reftype_pattern(loc)) for loc in RefType.objects.filter(type=RefType.Type.LOCATION)]
                 if not options.get("skip_ref_locs")
                 else []
             )
@@ -834,7 +834,7 @@ class Command(BaseCommand):
                 self.log(f"[Spell] data ({path}) could not be decoded", LogCat.ERROR)
             else:
                 for spell_name, values in spell_data.items():
-                    if rt := self.get_or_create_reftype(spell_name, RefType.SPELL):
+                    if rt := self.get_or_create_reftype(spell_name, RefType.Type.SPELL):
                         if aliases := values.get("aliases"):
                             for alias_name in aliases:
                                 self.get_or_create_alias(rt, alias_name)
@@ -854,7 +854,7 @@ class Command(BaseCommand):
                 self.log(f"[Skill] data ({path}) could not be decoded", LogCat.ERROR)
             else:
                 for skill_name, values in skill_data.items():
-                    if rt := self.get_or_create_reftype(skill_name, RefType.SKILL):
+                    if rt := self.get_or_create_reftype(skill_name, RefType.Type.SKILL):
                         if aliases := values.get("aliases"):
                             for alias_name in aliases:
                                 self.get_or_create_alias(rt, alias_name)
@@ -878,11 +878,11 @@ class Command(BaseCommand):
             else:
                 for name, char_data in data.items():
                     # Create Character RefType
-                    ref_type = self.get_or_create_reftype(name, RefType.CHARACTER)
+                    ref_type = self.get_or_create_reftype(name, RefType.Type.CHARACTER)
 
                     if ref_type is None:
                         self.log(
-                            self.style.ERROR(f"Unable to create RefType: {name} type={RefType.CHARACTER}"),
+                            self.style.ERROR(f"Unable to create RefType: {name} type={RefType.Type.CHARACTER}"),
                             LogCat.ERROR,
                         )
                         continue
@@ -966,8 +966,8 @@ class Command(BaseCommand):
                     try:
                         new_first_chapter_appearance = first_ref
                         new_wiki_uri = f"https://wiki.wanderinginn.com/{char_data.get('page_url')}"
-                        new_status = Character.parse_status_str(char_data.get("status"))
-                        new_species = Character.parse_species_str(char_data.get("species"))
+                        new_status = Character.identify_status(char_data.get("status"))
+                        new_species = Character.identify_species(char_data.get("species"))
                         (char, char_created) = Character.objects.get_or_create(ref_type=ref_type)
 
                         if char_created:
@@ -1024,7 +1024,7 @@ class Command(BaseCommand):
                         self.log(f'RefType: "{class_name}" is a prefix', LogCat.PREFIX)
                         continue
 
-                    if ref_type := self.get_or_create_reftype(class_name, RefType.CLASS):
+                    if ref_type := self.get_or_create_reftype(class_name, RefType.Type.CLASS):
                         if aliases := values.get("aliases"):
                             for alias_name in aliases:
                                 self.get_or_create_alias(ref_type, alias_name)
@@ -1048,7 +1048,7 @@ class Command(BaseCommand):
                 return
             else:
                 for loc_name, loc_data in loc_data_array.items():
-                    if loc_rt := self.get_or_create_reftype(loc_name, RefType.LOCATION):
+                    if loc_rt := self.get_or_create_reftype(loc_name, RefType.Type.LOCATION):
                         if aliases := loc_data.get("aliases"):
                             for alias_name in aliases:
                                 self.get_or_create_alias(loc_rt, alias_name)

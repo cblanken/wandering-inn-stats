@@ -4,7 +4,7 @@ from enum import Enum
 from pathlib import Path
 from pprint import pformat
 from subprocess import Popen, TimeoutExpired
-from typing import Iterable, Literal, TypeVar
+from typing import Iterable, TypeVar
 import regex
 from django.core.management.base import CommandError
 from django.db.models.query import QuerySet
@@ -82,7 +82,7 @@ COLORS: list[Color] = [
     ("99CCFF", COLOR_CATEGORY.CERIA_COLD),
     ("CCFFFF", COLOR_CATEGORY.CERIA_COLD),
     ("00CCFF", COLOR_CATEGORY.SIREN_WATER),
-    # Magnolia
+    # Magnolia/charm skils
     ("FB00FF", COLOR_CATEGORY.MAGNOLIA_CHARM),
     ("FD78FF", COLOR_CATEGORY.MAGNOLIA_CHARM),
     ("FFB8FD", COLOR_CATEGORY.MAGNOLIA_CHARM),
@@ -199,9 +199,9 @@ COLORS: list[Color] = [
 ]
 
 
-def match_ref_type(type_str: str) -> Literal[2] | None:
+def match_ref_type(type_str: str) -> RefType.Type | None:
     try:
-        matches = list(filter(lambda rt: rt[0] == type_str.strip()[:2].upper(), RefType.TYPES))
+        matches = list(filter(lambda rt: rt[0] == type_str.strip()[:2].upper(), RefType.Type.choices))
 
         # Return matching RefType shortcode from RefType.TYPES
         if matches:

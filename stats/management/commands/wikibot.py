@@ -34,38 +34,38 @@ class Command(BaseCommand):
         )
         parser.add_argument("-a", "--all", action="store_true", help="Scrape all categories")
         parser.add_argument(
-            f"--{RefType.CHARACTER}",
-            f"--{RefType.CHARACTER}".lower(),
+            f"--{RefType.Type.CHARACTER}",
+            f"--{RefType.Type.CHARACTER}".lower(),
             action="store_true",
             help="Scrape all Characters",
         )
         parser.add_argument(
-            f"--{RefType.SKILL}",
-            f"--{RefType.SKILL}".lower(),
+            f"--{RefType.Type.SKILL}",
+            f"--{RefType.Type.SKILL}".lower(),
             action="store_true",
             help="Scrape all [Skills]",
         )
         parser.add_argument(
-            f"--{RefType.CLASS}",
-            f"--{RefType.CLASS}".lower(),
+            f"--{RefType.Type.CLASS}",
+            f"--{RefType.Type.CLASS}".lower(),
             action="store_true",
             help="Scrape all [Classes]",
         )
         parser.add_argument(
-            f"--{RefType.SPELL}",
-            f"--{RefType.SPELL}".lower(),
+            f"--{RefType.Type.SPELL}",
+            f"--{RefType.Type.SPELL}".lower(),
             action="store_true",
             help="Scrape all [Spells]",
         )
         parser.add_argument(
-            f"--{RefType.LOCATION}",
-            f"--{RefType.LOCATION}".lower(),
+            f"--{RefType.Type.LOCATION}",
+            f"--{RefType.Type.LOCATION}".lower(),
             action="store_true",
             help="Scrape all Locations",
         )
         parser.add_argument(
-            f"--{RefType.ITEM}",
-            f"--{RefType.ITEM}".lower(),
+            f"--{RefType.Type.ITEM}",
+            f"--{RefType.Type.ITEM}".lower(),
             action="store_true",
             help="Scrape all Items and [Artifacts]",
         )
@@ -75,17 +75,17 @@ class Command(BaseCommand):
         Collect wiki pages by category (Characters, Skills, Classes etc.)
         """
         if options.get("all"):
-            options[RefType.CHARACTER] = True
-            options[RefType.SKILL] = True
-            options[RefType.CLASS] = True
-            options[RefType.SPELL] = True
-            options[RefType.LOCATION] = True
-            options[RefType.ITEM] = True
+            options[RefType.Type.CHARACTER] = True
+            options[RefType.Type.SKILL] = True
+            options[RefType.Type.CLASS] = True
+            options[RefType.Type.SPELL] = True
+            options[RefType.Type.LOCATION] = True
+            options[RefType.Type.ITEM] = True
 
         for k, v in options.items():
             if v:
                 match k:
-                    case RefType.CHARACTER:
+                    case RefType.Type.CHARACTER:
                         chars = pwb.Category(bot.site, "Characters").articles()
                         data = {}
                         for page in chars:
@@ -93,7 +93,7 @@ class Command(BaseCommand):
                             if char is not None:
                                 data |= char
                         save_as_json(data, Path("characters.json"))
-                    case RefType.CLASS:
+                    case RefType.Type.CLASS:
                         class_list_pages = [
                             page
                             for page in pwb.Category(bot.site, "Classes").articles()
@@ -105,7 +105,7 @@ class Command(BaseCommand):
                             if classes:
                                 data |= classes
                         save_as_json(data, Path("classes.json"))
-                    case RefType.SKILL:
+                    case RefType.Type.SKILL:
                         skill_list_pages = [
                             a
                             for a in pwb.Category(bot.site, "Skills").articles()
@@ -115,11 +115,11 @@ class Command(BaseCommand):
                         for page in skill_list_pages:
                             data |= bot.treat_skills(page)
                         save_as_json(data, Path("skills.json"))
-                    case RefType.SPELL:
+                    case RefType.Type.SPELL:
                         spells_page = pwb.Page(bot.site, "Spells")
                         data = bot.treat_spells(spells_page)
                         save_as_json(data, Path("spells.json"))
-                    case RefType.LOCATION:
+                    case RefType.Type.LOCATION:
                         locs = [
                             a
                             for a in pwb.Category(bot.site, "Locations").articles()
@@ -129,7 +129,7 @@ class Command(BaseCommand):
                         for page in locs:
                             data |= bot.treat_location(page)
                         save_as_json(data, Path("locations.json"))
-                    case RefType.ITEM:
+                    case RefType.Type.ITEM:
                         artifacts_page = pwb.Page(bot.site, "Artifacts#Artifacts List")
                         data = bot.treat_artifacts(artifacts_page)
                         save_as_json(data, Path("items.json"))

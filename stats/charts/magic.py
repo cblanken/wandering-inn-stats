@@ -6,7 +6,7 @@ from .config import DEFAULT_LAYOUT, DEFAULT_DISCRETE_COLORS
 
 
 def spell_ref_counts(first_chapter: Chapter | None = None, last_chapter: Chapter | None = None) -> Figure:
-    spell_refs = TextRef.objects.filter(type__type=RefType.SPELL)
+    spell_refs = TextRef.objects.filter(type__type=RefType.Type.SPELL)
 
     if first_chapter:
         spell_refs = spell_refs.filter(chapter_line__chapter__number__gte=first_chapter.number)

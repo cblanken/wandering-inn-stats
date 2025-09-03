@@ -2,8 +2,10 @@ from django.core.validators import RegexValidator
 from django.db import models
 from django.db.models.functions import Length
 from django.utils.text import slugify
+from django.utils.translation import gettext_lazy as _
+from dataclasses import dataclass
+from enum import Enum
 import re
-from typing import Any, Literal
 
 models.CharField.register_lookup(Length, "length")
 
@@ -122,38 +124,24 @@ class Chapter(models.Model):
 class RefType(models.Model):
     """Reference keywords / phrases"""
 
-    CHARACTER = "CH"
-    CLASS = "CL"
-    CLASS_UPDATE = "CO"
-    CONDITION = "CN"
-    ITEM = "IT"
-    LOCATION = "LO"
-    MIRACLE = "MI"
-    MAGICAL_CHAT = "MC"
-    SKILL = "SK"
-    SKILL_UPDATE = "SO"
-    SPELL = "SP"
-    SPELL_UPDATE = "SB"
-    SYSTEM_GENERAL = "SG"
-    UNDECIDED = "IN"
-    TYPES = [
-        (CHARACTER, "Character"),
-        (CLASS, "Class"),
-        (CLASS_UPDATE, "Class Update"),
-        (CONDITION, "Condition Update"),
-        (ITEM, "Items and Artifacts"),
-        (LOCATION, "Location"),
-        (MIRACLE, "Miracle"),
-        (MAGICAL_CHAT, "Magical Chat"),
-        (SKILL, "Skill"),
-        (SKILL_UPDATE, "Skill Update"),
-        (SPELL, "Spell"),
-        (SPELL_UPDATE, "Spell Update"),
-        (SYSTEM_GENERAL, "System General"),
-        (UNDECIDED, "Undecided"),
-    ]
+    class Type(models.TextChoices):
+        CHARACTER = "CH", _("Character")
+        CLASS = "CL", _("Class")
+        CLASS_UPDATE = "CO", _("Class Update")
+        CONDITION = "CN", _("Condition Update")
+        ITEM = "IT", _("Items and Artifacts")
+        LOCATION = "LO", _("Location")
+        MIRACLE = "MI", _("Miracle")
+        MAGICAL_CHAT = "MC", _("Magical Chat")
+        SKILL = "SK", _("Skill")
+        SKILL_UPDATE = "SO", _("Skill Update")
+        SPELL = "SP", _("Spell")
+        SPELL_UPDATE = "SB", _("Spell Update")
+        SYSTEM_GENERAL = "SG", _("System General")
+        UNDECIDED = "IN", _("Undecided")
+
     name = models.TextField()
-    type = models.CharField(max_length=2, choices=TYPES, default="")
+    type = models.CharField(max_length=2, choices=Type.choices, default="")
     slug = models.TextField(default="")
     word_count = models.GeneratedField(  # type: ignore[attr-defined]
         expression=models.Func(
@@ -192,202 +180,128 @@ class RefType(models.Model):
             row.delete()
 
 
+@dataclass
+class SpeciesMetadata:
+    """Class for maintaining Character species shortcodes (enum key), display names, and detection regexes"""
+
+    shortcode: str
+    display_name: str
+    pattern: re.Pattern
+
+
+@dataclass
+class StatusMetadata:
+    """Class for maintaining Character status shortcodes (enum key), display names, and detection regexes"""
+
+    shortcode: str
+    display_name: str
+    pattern: re.Pattern
+
+
 class Character(models.Model):
     """Character data"""
 
-    # Unspecified or unclear status/species
-    UNKNOWN = "UK"
-
-    # Species short-codes
-    AGELUM = "AG"
-    ANTINIUM = "AN"
-    ASHFIRE_BEE = "AB"
-    BEASTKIN = "BK"
-    BEASTKIN_BEAR = "BB"
-    BEASTKIN_CAT = "BC"
-    BEASTKIN_DOG = "BD"
-    BEASTKIN_FALCON = "BF"
-    BEASTKIN_FOX = "BX"
-    BEASTKIN_JACKAL = "BJ"
-    BEASTKIN_OWL = "BO"
-    BEASTKIN_RABBIT = "BR"
-    BEASTKIN_RHINO = "BH"
-    BEASTKIN_SALAMANDER = "BS"
-    BEASTKIN_SQUIRREL = "BQ"
-    BEASTKIN_WOLF = "BW"
-    CAT = "CA"
-    CENTAUR = "CT"
-    CYCLOPS = "CY"
-    DEMON = "DE"
-    DJINNI = "DJ"
-    DRAGON = "DG"
-    DRAKE = "DR"
-    DROWNED_PEOPLE = "DP"
-    DRYAD = "DY"
-    DWARF = "DW"
-    DULLAHAN = "DU"
-    ELF = "EL"
-    ELEMENTAL = "EM"
-    FAE = "FA"
-    FRAERLING = "FR"
-    GARUDA = "GR"
-    GAZER = "GA"
-    GIANT = "GI"
-    GOBLIN = "GB"
-    GNOLL = "GN"
-    GOD = "GO"
-    GOLEM = "GM"
-    GRIFFIN = "GR"
-    HALFLING = "HA"
-    HALF_ELF = "HE"
-    HALF_GAZER = "HG"
-    HALF_GIANT = "HI"
-    HALF_TROLL = "HT"
-    HARPY = "HR"
-    HUMAN = "HU"
-    KELPIES = "KE"
-    KITSUNE = "KI"
-    LIVING_ARMOR = "LA"
-    LIZARDFOLK = "LF"
-    LIZARDFOLK_GORGON = "LG"
-    LIZARDFOLK_INDISHEI = "LI"
-    LIZARDFOLK_LAMIA = "LL"
-    LIZARDFOLK_MEDUSA = "LM"
-    LIZARDFOLK_NAGA = "LN"
-    LIZARDFOLK_QUEXAL = "LQ"
-    LIZARDFOLK_SCYLLA = "LS"
-    LIZARDFOLK_STAR_LAMIA = "LS"
-    LIZARDFOLK_TASGIEL = "LT"
-    LUCIFEN = "LU"
-    MERFOLK = "ME"
-    MIMIC = "MM"
-    MIND = "MN"
-    MINOTAUR = "MI"
-    OGRE = "OG"
-    PEGASIS = "PG"
-    PHOENIX = "PH"
-    RASKGHAR = "RG"
-    RAT = "RA"
-    REVENANT = "RE"
-    SARIANT_LAMB = "SL"
-    SCORCHLING = "SH"
-    SEAMWALKER = "SW"
-    SELPHID = "SE"
-    SLIME = "SL"
-    SPIDERFOLK = "SF"
-    STRING_PEOPLE = "SP"
-    TITAN = "TI"
-    TREANT = "TR"
-    TROLL = "TL"
-    UNDEAD = "UD"
-    UNICORN = "UC"
-    VAMPIRE = "VA"
-    WYRM = "WY"
-    WYVERN = "WV"
-
     # fmt: off
-    SPECIES_DATA: list[tuple[str, str, re.Pattern[Any]]] = [
-        (AGELUM, "Agelum", re.compile(r"[Aa]gelum")),
-        (ANTINIUM, "Antinium", re.compile(r"[Aa]ntinium")),
-        (ASHFIRE_BEE, "Ashfire Bee", re.compile(r"[Aa]shfire[-\s]?[Bb]ee")),
-        (BEASTKIN, "Beastkin", re.compile(r"[Bb]eastkin")),
-        (BEASTKIN_BEAR, "Beastkin - Bear", re.compile(r"[Bb]eastkin.*[Bb]ear")),
-        (BEASTKIN_CAT, "Beastkin - Cat", re.compile(r"[Bb]eastkin.*[Cc]at")),
-        (BEASTKIN_DOG, "Beastkin - Dog", re.compile(r"[Bb]eastkin.*[Dd]og")),
-        (BEASTKIN_FALCON, "Beastkin - Falcon", re.compile(r"[Bb]eastkin.*[Ff]alcon")),
-        (BEASTKIN_FOX, "Beastkin - Fox", re.compile(r"[Bb]eastkin.*[Ff]ox")),
-        (BEASTKIN_JACKAL, "Beastkin - Jackal", re.compile(r"[Bb]eastkin.*[Jj]ackal")),
-        (BEASTKIN_OWL, "Beastkin - Owl", re.compile(r"[Bb]eastkin.*[Oo]wl")),
-        (BEASTKIN_RABBIT, "Beastkin - Rabbit", re.compile(r"[Bb]eastkin.*[Rr]abbit")),
-        (BEASTKIN_RHINO, "Beastkin - Rhino", re.compile(r"[Bb]eastkin.*[Rr]hino.*")),
-        (BEASTKIN_SALAMANDER, "Beastkin - Salamander", re.compile(r"[Bb]eastkin.*[Ss]alamander")),
-        (BEASTKIN_SQUIRREL, "Beastkin - Squirrel", re.compile(r"[Bb]eastkin.*[Ss]quirrel")),
-        (BEASTKIN_WOLF, "Beastkin - Wolf", re.compile(r"[Bb]eastkin.*[Ww]olf")),
-        (CAT, "Cat", re.compile(r"[Cc]at")),
-        (CENTAUR, "Centaur", re.compile(r"[Cc]entaur")),
-        (CYCLOPS, "Cyclops", re.compile(r"[Cc]yclops")),
-        (DEMON, "Demon", re.compile(r"[Dd]emon.*")),
-        (DJINNI, "Djinni", re.compile(r"[Dd]jinn[i]?")),
-        (DRAGON, "Dragon", re.compile(r"[Dd]ragon.*")),
-        (DROWNED_PEOPLE, "Drowned People", re.compile(r"[Dd]rowned")),
-        (DRAKE, "Drake", re.compile(r"[Dd]rake")),
-        (DULLAHAN, "Dullahan", re.compile(r"[Dd]ullahan")),
-        (DRYAD, "Dryad", re.compile(r"[Dd]ryad")),
-        (DWARF, "Dwarf", re.compile(r"[Dd]warf")),
-        (ELF, "Elf", re.compile(r"^\s*[Ee]lf")),
-        (ELEMENTAL, "Elemental", re.compile(r"^\s*[Ee]lemental")),
-        (FAE, "Fae", re.compile(r"([Ff]ae|[Ff]airy)")),
-        (FRAERLING, "Fraerling", re.compile(r"[Ff]raerling")),
-        (GARUDA, "Garuda", re.compile(r"[Gg]aruda")),
-        (GAZER, "Gazer", re.compile(r"^\s*[Gg]azer")),
-        (GNOLL, "Gnoll", re.compile(r"[Gg]noll")),
-        (GIANT, "Giant", re.compile(r"^\s*[Gg]iant")),
-        (GOBLIN, "Goblin", re.compile(r"[Gg]oblin")),
-        (GOLEM, "Golem", re.compile(r"[Gg]olem")),
-        (GOD, "God", re.compile(r"[Gg]od")),
-        (GRIFFIN, "Griffin", re.compile(r"[Gg]riffin")),
-        (HALFLING, "Halfling", re.compile(r"[Hh]alfling")),
-        (HALF_ELF, "Half-Elf", re.compile(r"[Hh]alf[-]?[Ee]lf")),
-        (HALF_GAZER, "Half-Gazer", re.compile(r"[Hh]alf[-]?[Gg]azer")),
-        (HALF_GIANT, "Half-Giant", re.compile(r"[Hh]alf[-]?[Gg]iant")),
-        (HALF_TROLL, "Half-Troll", re.compile(r"[Hh]alf[-]?[Tt]roll")),
-        (HARPY, "Harpy", re.compile(r"[Hh]arp(y|ies)")),
-        (HUMAN, "Human", re.compile(r"[Hh]uman")),
-        (KELPIES, "Kelpies", re.compile(r"[Kk]elp(y|ies)")),
-        (KITSUNE, "Kitsune", re.compile(r"[Kk]itsune")),
-        (LIVING_ARMOR, "Living Armor", re.compile(r"[Ll]iving [Aa]rmor")),
-        (LIZARDFOLK_GORGON, "Lizardfolk - Gorgon", re.compile(r"[Gg]orgon")),
-        (LIZARDFOLK_INDISHEI, "Lizardfolk - Indishei", re.compile(r"[Ii]ndishei")),
-        (LIZARDFOLK_MEDUSA, "Lizardfolk - Medusa", re.compile(r"[Mm]edusa")),
-        (LIZARDFOLK_NAGA, "Lizardfolk - Naga", re.compile(r"[Nn]aga")),
-        (LIZARDFOLK_QUEXAL, "Lizardfolk - Quexal", re.compile(r"[Qq]uexal")),
-        (LIZARDFOLK_SCYLLA, "Lizardfolk - Scylla", re.compile(r"[Ss]cylla")),
-        (LIZARDFOLK_STAR_LAMIA, "Lizardfolk - Star Lamia", re.compile(r"[Ss]tar[\s]*[-]?[Ll]amia")),
-        (LIZARDFOLK_LAMIA, "Lizardfolk - Lamia", re.compile(r"[Ll]amia")),
-        (LIZARDFOLK_TASGIEL, "Lizardfolk - Tasgiel", re.compile(r"[Tt]asgiel")),
-        (LIZARDFOLK, "Lizardfolk", re.compile(r"[Ll]izard[-\s]?([Ff]olk|[Mm]an|[Ww]oman)")),
-        (LUCIFEN, "Lucifen", re.compile(r"[Ll]ucifen")),
-        (MERFOLK, "Merfolk", re.compile(r"[Mm]er[-]?([Ff]olk|[Mm]an|[Ww]oman)")),
-        (MIMIC, "Mimic", re.compile(r"[Mm]imic")),
-        (MIND, "Mind", re.compile(r"[Mm]ind")),
-        (MINOTAUR, "Minotaur", re.compile(r"[Mm]inotaur")),
-        (OGRE, "Ogre", re.compile(r"[Oo]gre")),
-        (PEGASIS, "Pegasis", re.compile(r"[Pp]egasis")),
-        (PHOENIX, "Phoenix", re.compile(r"[Pp]oenix")),
-        (RAT, "Rat", re.compile(r"[Rr]at")),
-        (RASKGHAR, "Raskghar", re.compile(r"[Rr]askghar")),
-        (REVENANT, "Revenant", re.compile(r"[Rr]evenant")),
-        (SARIANT_LAMB, "Sariant Lamb", re.compile(r"[Ss]ariant\s*[-]?[Ll]amb")),
-        (SCORCHLING, "Scorchling", re.compile(r"[Ss]corchling")),
-        (SEAMWALKER, "Seamwalker", re.compile(r"[Ss]eam[-]?[Ww]alker")),
-        (SELPHID, "Selphid", re.compile(r"[Ss]elphid")),
-        (SLIME, "Slime", re.compile(r"[Ss]lime")),
-        (SPIDERFOLK, "Spiderfolk", re.compile(r"[Ss]pider\s*[-]?[Ff]olk")),
-        (STRING_PEOPLE, "String Person", re.compile(r"[Ss](titch|tring)")),
-        (TITAN, "Titan", re.compile(r"[Tt]itan")),
-        (TROLL, "Troll", re.compile(r"[Tt]roll")),
-        (TREANT, "Treant", re.compile(r"[Tt]reant")),
-        (UNDEAD, "Undead", re.compile(r"[Uu]ndead")),
-        (UNICORN, "Unicorn", re.compile(r"[Uu]nicorn")),
-        (VAMPIRE, "Vampire", re.compile(r"[Vv]ampire")),
-        (WYVERN, "Wyvern", re.compile(r"[Ww]yvern")),
-        (WYRM, "Wyrm", re.compile(r"[Ww]yrm")),
-        (UNKNOWN, "Unknown", re.compile(r"")),
-    ]
-    # fmt: on
-
-    SPECIES = [(x[0], x[1]) for x in SPECIES_DATA]
 
     # Status short-codes
-    ALIVE = "AL"
-    DEAD = "DE"
+    class Status(Enum):
+        ALIVE = StatusMetadata("AL", "Alive", re.compile(r"[Aa]live"))
+        DEAD = StatusMetadata("DE", "Deceased", re.compile(r"([Dd]ead|[Dd]eceased)"))
+        UNDEAD = StatusMetadata("UD", "Undead", re.compile(r"[Uu]ndead"))
+        UNKNOWN = StatusMetadata("UK", "Unknown", re.compile(r"([Uu]nknown|[Uu]n-?clear)"))
 
-    STATUSES = [
-        (ALIVE, "Alive"),
-        (DEAD, "Deceased"),
-        (UNDEAD, "Undead"),
-        (UNKNOWN, "Unknown"),
-    ]
+    # Species short-codes
+    class Species(Enum):
+        AGELUM = SpeciesMetadata("AG", "Agelum", re.compile(r"[Aa]gelum"))
+        ANTINIUM = SpeciesMetadata("AN", "Antinium", re.compile(r"[Aa]ntinium"))
+        ASHFIRE_BEE = SpeciesMetadata("AB", "Ashfire Bee", re.compile(r"[Aa]shfire[-\s]?[Bb]ee"))
+        BEASTKIN = SpeciesMetadata("BK", "Beastkin", re.compile(r"[Bb]eastkin"))
+        BEASTKIN_BEAR = SpeciesMetadata("BB", "Beastkin - Bear", re.compile(r"[Bb]eastkin.*[Bb]ear"))
+        BEASTKIN_CAT = SpeciesMetadata("BC", "Beastkin - Cat", re.compile(r"[Bb]eastkin.*[Cc]at"))
+        BEASTKIN_DOG = SpeciesMetadata("BD", "Beastkin - Dog", re.compile(r"[Bb]eastkin.*[Dd]og"))
+        BEASTKIN_FALCON = SpeciesMetadata("BF", "Beastkin - Falcon", re.compile(r"[Bb]eastkin.*[Ff]alcon"))
+        BEASTKIN_FOX = SpeciesMetadata("BX", "Beastkin - Fox", re.compile(r"[Bb]eastkin.*[Ff]ox"))
+        BEASTKIN_JACKAL = SpeciesMetadata("BJ", "Beastkin - Jackal", re.compile(r"[Bb]eastkin.*[Jj]ackal"))
+        BEASTKIN_OWL = SpeciesMetadata("BO", "Beastkin - Owl", re.compile(r"[Bb]eastkin.*[Oo]wl"))
+        BEASTKIN_RABBIT = SpeciesMetadata("BR", "Beastkin - Rabbit", re.compile(r"[Bb]eastkin.*[Rr]abbit"))
+        BEASTKIN_RHINO = SpeciesMetadata("BH", "Beastkin - Rhino", re.compile(r"[Bb]eastkin.*[Rr]hino.*"))
+        BEASTKIN_SALAMANDER = SpeciesMetadata("BS", "Beastkin - Salamander", re.compile(r"[Bb]eastkin.*[Ss]alamander"))
+        BEASTKIN_SQUIRREL = SpeciesMetadata("BQ", "Beastkin - Squirrel", re.compile(r"[Bb]eastkin.*[Ss]quirrel"))
+        BEASTKIN_WOLF = SpeciesMetadata("BW", "Beastkin - Wolf", re.compile(r"[Bb]eastkin.*[Ww]olf"))
+        CAT = SpeciesMetadata("CA", "Cat", re.compile(r"[Cc]at"))
+        CENTAUR = SpeciesMetadata("CT", "Centaur", re.compile(r"[Cc]entaur"))
+        CYCLOPS = SpeciesMetadata("CY", "Cyclops", re.compile(r"[Cc]yclops"))
+        DEMON = SpeciesMetadata("DE", "Demon", re.compile(r"[Dd]emon.*"))
+        DJINNI = SpeciesMetadata("DJ", "Djinni", re.compile(r"[Dd]jinn[i]?"))
+        DRAGON = SpeciesMetadata("DG", "Dragon", re.compile(r"[Dd]ragon.*"))
+        DRAKE = SpeciesMetadata("DR", "Drake", re.compile(r"[Dd]rake"))
+        DROWNED_PEOPLE = SpeciesMetadata("DP", "Drowned People", re.compile(r"[Dd]rowned"))
+        DRYAD = SpeciesMetadata("DY", "Dryad", re.compile(r"[Dd]ryad"))
+        DULLAHAN = SpeciesMetadata("DU", "Dullahan", re.compile(r"[Dd]ullahan"))
+        DWARF = SpeciesMetadata("DW", "Dwarf", re.compile(r"[Dd]warf"))
+        ELEMENTAL = SpeciesMetadata("EM", "Elemental", re.compile(r"^\s*[Ee]lemental"))
+        ELF = SpeciesMetadata("EL", "Elf", re.compile(r"^\s*[Ee]lf"))
+        FAE = SpeciesMetadata("FA", "Fae", re.compile(r"([Ff]ae|[Ff]airy)"))
+        FRAERLING = SpeciesMetadata("FR", "Fraerling", re.compile(r"[Ff]raerling"))
+        GARUDA = SpeciesMetadata("GR", "Garuda", re.compile(r"[Gg]aruda"))
+        GAZER = SpeciesMetadata("GA", "Gazer", re.compile(r"^\s*[Gg]azer"))
+        GIANT = SpeciesMetadata("GI", "Giant", re.compile(r"^\s*[Gg]iant"))
+        GNOLL = SpeciesMetadata("GN", "Gnoll", re.compile(r"[Gg]noll"))
+        GOBLIN = SpeciesMetadata("GB", "Goblin", re.compile(r"[Gg]oblin"))
+        GOD = SpeciesMetadata("GO", "God", re.compile(r"[Gg]od"))
+        GOLEM = SpeciesMetadata("GM", "Golem", re.compile(r"[Gg]olem"))
+        GRIFFIN = SpeciesMetadata("GR", "Griffin", re.compile(r"[Gg]riffin"))
+        HALFLING = SpeciesMetadata("HA", "Halfling", re.compile(r"[Hh]alfling"))
+        HALF_ELF = SpeciesMetadata("HE", "Half-Elf", re.compile(r"[Hh]alf[-]?[Ee]lf"))
+        HALF_GAZER = SpeciesMetadata("HG", "Half-Gazer", re.compile(r"[Hh]alf[-]?[Gg]azer"))
+        HALF_GIANT = SpeciesMetadata("HG", "Half-Giant", re.compile(r"[Hh]alf[-]?[Gg]iant"))
+        HALF_TROLL = SpeciesMetadata("HT", "Half-Troll", re.compile(r"[Hh]alf[-]?[Tt]roll"))
+        HARPY = SpeciesMetadata("HR", "Harpy", re.compile(r"[Hh]arp(y|ies)"))
+        HUMAN = SpeciesMetadata("HU", "Human", re.compile(r"[Hh]uman"))
+        KELPIES = SpeciesMetadata("KE", "Kelpies", re.compile(r"[Kk]elp(y|ies)"))
+        KITSUNE = SpeciesMetadata("KI", "Kitsune", re.compile(r"[Kk]itsune"))
+        LIVING_ARMOR = SpeciesMetadata("LA", "Living Armor", re.compile(r"[Ll]iving [Aa]rmor"))
+        LIZARDFOLK = SpeciesMetadata("LF", "Lizardfolk", re.compile(r"[Ll]izard[-\s]?([Ff]olk|[Mm]an|[Ww]oman)"))
+        LIZARDFOLK_GORGON = SpeciesMetadata("LG", "Lizardfolk - Gorgon", re.compile(r"[Gg]orgon"))
+        LIZARDFOLK_INDISHEI = SpeciesMetadata("LI", "Lizardfolk - Indishei", re.compile(r"[Ii]ndishei"))
+        LIZARDFOLK_LAMIA = SpeciesMetadata("LL", "Lizardfolk - Lamia", re.compile(r"[Ll]amia"))
+        LIZARDFOLK_MEDUSA = SpeciesMetadata("LM", "Lizardfolk - Medusa", re.compile(r"[Mm]edusa"))
+        LIZARDFOLK_NAGA = SpeciesMetadata("LN", "Lizardfolk - Naga", re.compile(r"[Nn]aga"))
+        LIZARDFOLK_QUEXAL = SpeciesMetadata("LQ", "Lizardfolk - Quexal", re.compile(r"[Qq]uexal"))
+        LIZARDFOLK_SCYLLA = SpeciesMetadata("LS", "Lizardfolk - Scylla", re.compile(r"[Ss]cylla"))
+        LIZARDFOLK_STAR_LAMIA = SpeciesMetadata("LR", "Lizardfolk - Star Lamia", re.compile(r"[Ss]tar[\s]*[-]?[Ll]amia"))
+        LIZARDFOLK_TASGIEL = SpeciesMetadata("LT", "Lizardfolk - Tasgiel", re.compile(r"[Tt]asgiel"))
+        LUCIFEN = SpeciesMetadata("LU", "Lucifen", re.compile(r"[Ll]ucifen"))
+        MERFOLK = SpeciesMetadata("ME", "Merfolk", re.compile(r"[Mm]er[-]?([Ff]olk|[Mm]an|[Ww]oman)"))
+        MIMIC = SpeciesMetadata("MM", "Mimic", re.compile(r"[Mm]imic"))
+        MIND = SpeciesMetadata("MN", "Mind", re.compile(r"[Mm]ind"))
+        MINOTAUR = SpeciesMetadata("MI", "Minotaur", re.compile(r"[Mm]inotaur"))
+        OGRE = SpeciesMetadata("OG", "Ogre", re.compile(r"[Oo]gre"))
+        PEGASIS = SpeciesMetadata("PG", "Pegasis", re.compile(r"[Pp]egasis"))
+        PHOENIX = SpeciesMetadata("PH", "Phoenix", re.compile(r"[Pp]oenix"))
+        RASKGHAR = SpeciesMetadata("RG", "Raskghar", re.compile(r"[Rr]askghar"))
+        RAT = SpeciesMetadata("RA", "Rat", re.compile(r"[Rr]at"))
+        REVENANT = SpeciesMetadata("RE", "Revenant", re.compile(r"[Rr]evenant"))
+        SARIANT_LAMB = SpeciesMetadata("SL", "Sariant Lamb", re.compile(r"[Ss]ariant\s*[-]?[Ll]amb"))
+        SCORCHLING = SpeciesMetadata("SH", "Scorchling", re.compile(r"[Ss]corchling"))
+        SEAMWALKER = SpeciesMetadata("SW", "Seamwalker", re.compile(r"[Ss]eam[-]?[Ww]alker"))
+        SELPHID = SpeciesMetadata("SE", "Selphid", re.compile(r"[Ss]elphid"))
+        SLIME = SpeciesMetadata("SL", "Slime", re.compile(r"[Ss]lime"))
+        SPIDERFOLK = SpeciesMetadata("SF", "Spiderfolk", re.compile(r"[Ss]pider\s*[-]?[Ff]olk"))
+        STRING_PEOPLE = SpeciesMetadata("SP", "String Person", re.compile(r"[Ss](titch|tring)"))
+        TITAN = SpeciesMetadata("TI", "Titan", re.compile(r"[Tt]itan"))
+        TREANT = SpeciesMetadata("TR", "Treant", re.compile(r"[Tt]reant"))
+        TROLL = SpeciesMetadata("TL", "Troll", re.compile(r"[Tt]roll"))
+        UNDEAD = SpeciesMetadata("UD", "Undead", re.compile(r"[Uu]ndead"))
+        UNICORN = SpeciesMetadata("UC", "Unicorn", re.compile(r"[Uu]nicorn"))
+        UNKNOWN = SpeciesMetadata("UK", "Unknown", re.compile(r""))
+        VAMPIRE = SpeciesMetadata("VA", "Vampire", re.compile(r"[Vv]ampire"))
+        WYRM = SpeciesMetadata("WY", "Wyrm", re.compile(r"[Ww]yrm"))
+        WYVERN = SpeciesMetadata("WV", "Wyvern", re.compile(r"[Ww]yvern"))
+    # fmt: on
+
+    STATUSES = [(s.value.shortcode, s.value.display_name) for s in Status]
+    SPECIES = [(s.value.shortcode, s.value.display_name) for s in Species]
 
     ref_type = models.OneToOneField(RefType, on_delete=models.CASCADE, primary_key=True)
     first_chapter_appearance = models.ForeignKey(Chapter, on_delete=models.CASCADE, null=True)
@@ -399,30 +313,22 @@ class Character(models.Model):
         return f"(Character: {self.ref_type.name}, Status: {self.status}, Species: {self.species})"
 
     @staticmethod
-    def parse_status_str(status: str) -> Literal["AL", "UD", "DE", "UK"]:
-        if status is None:
-            return Character.UNKNOWN
-        status = status.strip()
-        if re.match(r"[Aa]live", status):
-            return Character.ALIVE
-        if re.match(r"[Uu]ndead", status):
-            return Character.UNDEAD
-        if re.match(r"([Dd]ead|[Dd]eceased)", status):
-            return Character.DEAD
-        if re.match(r"([Uu]nknown|[Uu]n-?clear)", status):
-            return Character.UNKNOWN
-        return Character.UNKNOWN
+    def identify_status(s: str) -> str:
+        """Identifies the status of the input string and returns the corresponding shortcode"""
+        for status in Character.Status:
+            if status.value.pattern.match(s):
+                return status.value.shortcode
+
+        return Character.Status.UNKNOWN.value.shortcode
 
     @staticmethod
-    def parse_species_str(s: str) -> str:
-        if s is None:
-            return Character.UNKNOWN
+    def identify_species(s: str) -> str:
+        """Identifies the species of the input string and returns the corresponding shortcode"""
+        for species in Character.Species:
+            if species.value.pattern.search(s):
+                return species.value.shortcode
 
-        for species in Character.SPECIES_DATA:
-            if species[2].search(s):
-                return species[0]
-
-        return Character.UNKNOWN
+        return Character.Species.UNKNOWN.value.shortcode
 
 
 class Item(models.Model):
