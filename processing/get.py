@@ -15,7 +15,7 @@ import requests.exceptions
 from stem import Signal
 from stem.control import Controller
 from fake_useragent import UserAgent
-from processing import PatreonChapterError
+from .exceptions import PatreonChapterError
 from typing import Any
 
 BASE_URL: str = "https://www.wanderinginn.com"
@@ -185,9 +185,9 @@ def parse_chapter_content(soup: BeautifulSoup) -> dict:
 
     try:
         word_count = len(chapter_data["text"].split())
-        if word_count < 30:
-            msg = "Attempted to parse a Patreon locked chapter"
-            raise PatreonChapterError(msg)
+        if word_count < 30 and "Patreon" in chapter_data["text"]:
+            raise PatreonChapterError
+
         authors_note_word_count = len(chapter_data["authors_note"].split())
         digest: str = hashlib.sha256(chapter_data["text"].encode("utf-8")).hexdigest()
         chapter_data["metadata"] = {

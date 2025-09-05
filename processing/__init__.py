@@ -10,10 +10,6 @@ from typing import Generator
 OBTAINED_SUFFIX = r".*[Oo]btained.?\]"
 
 
-class PatreonChapterError(Exception):
-    pass
-
-
 class Pattern:
     """Text matching RE patterns for processing chapter text"""
 
