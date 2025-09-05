@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "rest_framework",
+    "innverse",
     "innverse.core",
     "stats",
     "tailwind",
@@ -146,9 +147,8 @@ USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)
-STATIC_URL = env.get("TWI_STATIC_URL", "static/")
-STATIC_ROOT = env.get("TWI_STATIC_ROOT", "/tmp/twi-stats/static/")  # noqa: S108
-
+STATIC_URL = env.get("TWI_STATIC_URL", "/static/")
+STATIC_ROOT = env.get("TWI_STATIC_ROOT", "static/")  # noqa: S108
 STATICFILES_DIRS = [BASE_DIR / "innverse/static"]
 
 STORAGES = {
