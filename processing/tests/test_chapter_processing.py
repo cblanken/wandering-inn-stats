@@ -202,6 +202,23 @@ class TestChapterProcessing_10_01_L:
         assert "Will Wight is Kickstarting an animation" not in text_content
 
 
+class TestChapterProcessing_10_07:
+    @pytest.fixture
+    def html_content(scope="class") -> BeautifulSoup:
+        with Path.open(Path(__file__).parent / "samples/10.07/chapter.html", encoding="utf-8") as fp:
+            soup = BeautifulSoup(fp)
+            soup.get("html")
+            return soup
+
+    def test_ignore_links_at_start(self, html_content):
+        content = parse_chapter_content(html_content)
+
+        text_content = content.get("text")
+        assert text_content is not None
+        assert "www.amazon.com" not in text_content
+        assert "www.audible.com" not in text_content
+
+
 # TODO: chapter may have marked Author's Note at start and end of chapter
 
 # TODO: confirm digest/hash consistency
