@@ -7,7 +7,6 @@ from pathlib import Path
 class TestChapterProcessing_8_00:
     @pytest.fixture
     def html_content(scope="class") -> BeautifulSoup:
-        """Sample chapter #1"""
         with Path.open(Path(__file__).parent / "samples/8.00/chapter.html", encoding="utf-8") as fp:
             soup = BeautifulSoup(fp)
             soup.get("html")
@@ -15,19 +14,16 @@ class TestChapterProcessing_8_00:
 
     @pytest.fixture
     def text_content(scope="class") -> str:
-        """Sample Author's Note #1"""
         with Path.open(Path(__file__).parent / "samples/8.00/chapter.txt", encoding="utf-8") as fp:
             return fp.read()
 
     @pytest.fixture
     def authors_note(scope="class") -> str:
-        """Sample Author's Note #1"""
         with Path.open(Path(__file__).parent / "samples/8.00/authors_note.txt", encoding="utf-8") as fp:
             return fp.read()
 
     @pytest.fixture
     def pre_note(scope="class") -> str:
-        """Sample parenthesized note #1"""
         with Path.open(Path(__file__).parent / "samples/8.00/pre_note.txt", encoding="utf-8") as fp:
             return fp.read()
 
@@ -54,7 +50,6 @@ class TestChapterProcessing_8_00:
 class TestChapterProcessing_TheRoots3:
     @pytest.fixture
     def html_content(scope="class") -> BeautifulSoup:
-        """Sample chapter #2"""
         with Path.open(Path(__file__).parent / "samples/TheRoots3/chapter.html", encoding="utf-8") as fp:
             soup = BeautifulSoup(fp)
             soup.get("html")
@@ -62,19 +57,16 @@ class TestChapterProcessing_TheRoots3:
 
     @pytest.fixture
     def text_content(scope="class") -> str:
-        """Sample Author's Note #2"""
         with Path.open(Path(__file__).parent / "samples/TheRoots3/chapter.txt", encoding="utf-8") as fp:
             return fp.read()
 
     @pytest.fixture
     def authors_note(scope="class") -> str:
-        """Sample Author's Note #2"""
         with Path.open(Path(__file__).parent / "samples/TheRoots3/authors_note.txt", encoding="utf-8") as fp:
             return fp.read()
 
     @pytest.fixture
     def pre_note(scope="class") -> str:
-        """Sample pre note #2"""
         with Path.open(Path(__file__).parent / "samples/TheRoots3/pre_note.txt", encoding="utf-8") as fp:
             return fp.read()
 
@@ -119,7 +111,6 @@ class TestChapterProcessing_TheRoots3:
 class TestChapterProcessing_10_22_R:
     @pytest.fixture
     def html_content(scope="class") -> BeautifulSoup:
-        """Sample chapter #3"""
         with Path.open(Path(__file__).parent / "samples/10.22_R/chapter.html", encoding="utf-8") as fp:
             soup = BeautifulSoup(fp)
             soup.get("html")
@@ -127,13 +118,11 @@ class TestChapterProcessing_10_22_R:
 
     @pytest.fixture
     def text_content(scope="class") -> str:
-        """Sample chapter #3"""
         with Path.open(Path(__file__).parent / "samples/10.22_R/chapter.txt", encoding="utf-8") as fp:
             return fp.read()
 
     @pytest.fixture
     def authors_note(scope="class") -> str:
-        """Sample chapter #3"""
         with Path.open(Path(__file__).parent / "samples/10.22_R/authors_note.txt", encoding="utf-8") as fp:
             return fp.read()
 
@@ -167,14 +156,50 @@ class TestChapterProcessing_10_22_R:
 
         assert chapter_text == text_content
 
-    @pytest.mark.skip
     def test_ignore_fanart_attributions(self, html_content: BeautifulSoup):
         """Many chapters include fanart appended to the end of the chapter which should not be included in the chapter text"""
-        text = parse_chapter_content(html_content).get("text")
+        content = parse_chapter_content(html_content)
+        text = content.get("text")
         assert text is not None
-        assert "Ko-Fi:" not in text
-        assert "Instagram:" not in text
-        assert "Twitter:" not in text
+
+        pre_note = content.get("pre_note")
+        assert pre_note is not None
+
+        authors_note = content.get("authors_note")
+        assert authors_note is not None
+
+        flags = ["Jewel, by Kalabaza, Kuheno, and Pon", "Ko-Fi:", "Instagram:", "Twitter:"]
+        for f in flags:
+            assert f not in text
+            assert f not in pre_note
+            assert f not in authors_note
+
+
+class TestChapterProcessing_10_01_L:
+    @pytest.fixture
+    def html_content(scope="class") -> BeautifulSoup:
+        with Path.open(Path(__file__).parent / "samples/10.01_L/chapter.html", encoding="utf-8") as fp:
+            soup = BeautifulSoup(fp)
+            soup.get("html")
+            return soup
+
+    @pytest.fixture
+    def text_content(scope="class") -> str:
+        with Path.open(Path(__file__).parent / "samples/10.01_L/chapter.txt", encoding="utf-8") as fp:
+            return fp.read()
+
+    @pytest.fixture
+    def pre_note(scope="class") -> str:
+        with Path.open(Path(__file__).parent / "samples/10.01_L/pre_note.txt", encoding="utf-8") as fp:
+            return fp.read()
+
+    def test_bracket_pre_note(self, html_content, pre_note):
+        content = parse_chapter_content(html_content)
+
+        assert pre_note == content.get("pre_note")
+        text_content = content.get("text")
+        assert text_content is not None
+        assert "Will Wight is Kickstarting an animation" not in text_content
 
 
 # TODO: chapter may have marked Author's Note at start and end of chapter

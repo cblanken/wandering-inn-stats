@@ -120,12 +120,29 @@ def parse_chapter_content(soup: BeautifulSoup) -> dict:
 
     chapter_data = {}
 
-    # Exclude last two lines which include the previous and next chapter links
-    content_lines: list[str] = [element.get_text() for element in content.children][:-2]
+    content_children = list(content.children)
 
-    authors_note_re = re.compile(r"Author['|’]s [N|n]ote.*")
+    # Exclude last two lines which include the previous and next chapter links
+    content_lines: list[str] = [element.get_text() for element in content_children[:-2]]
+
+    # Exclude fanart images and links at end of chapter from parsing
+    first_img_index = len(content_lines)
+    for i, child in enumerate(reversed(content_children)):
+        if type(child) is Tag and child.select("img"):
+            first_img_index = len(content_children) - i
+        # Only check the last 200 lines of the chapter
+        if i > 200:
+            break
+
+    content_lines = content_lines[
+        : first_img_index - 3
+    ]  # include additional lines to catch any credit text before the first img
+
+    authors_note_re = re.compile(r"Author['|’]?s['|’]? [N|n]ote.*")
     parens_pre_note_start_re = re.compile(r"^\(.*")
     parens_pre_note_end_re = re.compile(r".*\)$")
+    bracket_pre_note_start_re = re.compile(r"^\[.*")
+    bracket_pre_note_end_re = re.compile(r".*\]$")
     signed_pre_note_re = re.compile(r".*[Pp]irateaba")
     chapter_lines = []
     authors_note_lines = []
@@ -140,6 +157,18 @@ def parse_chapter_content(soup: BeautifulSoup) -> dict:
             # Check current and next few lines for completion of parens
             for i in range(5):
                 if parens_pre_note_end_re.match(content_lines[chapter_index + i]):
+                    pre_note_lines.append("\n".join(content_lines[chapter_index : chapter_index + i + 1]) + "\n")
+                    chapter_index += i
+                    break
+
+            chapter_index += 1
+            continue
+
+        # Capture bracketed chapter pre-note
+        if chapter_index < 10 and bracket_pre_note_start_re.match(chapter_line):
+            # Check current and next few lines for completion of bracket
+            for i in range(5):
+                if bracket_pre_note_end_re.match(content_lines[chapter_index + i]):
                     pre_note_lines.append("\n".join(content_lines[chapter_index : chapter_index + i + 1]) + "\n")
                     chapter_index += i
                     break
@@ -167,11 +196,13 @@ def parse_chapter_content(soup: BeautifulSoup) -> dict:
                 else:
                     empty_line_cnt = 0
 
+            # Check if authors note is near the end of the chapter
             if chapter_index > int(len(content_lines) * 0.9):
                 break
             chapter_index += authors_note_index
 
         else:
+            # Ignore empty lines
             if content_lines[chapter_index].strip() != "":
                 chapter_lines.append(content_lines[chapter_index])
 
