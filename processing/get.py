@@ -125,10 +125,12 @@ def parse_chapter_content(soup: BeautifulSoup) -> dict:
     # Exclude last two lines which include the previous and next chapter links
     content_lines: list[str] = [element.get_text() for element in content_children[:-2]]
 
-    # Exclude fanart images and links at end of chapter from parsing
+    # Exclude fanart images, links, and credits at end of chapter from parsing
     first_img_index = len(content_lines)
     for i, child in enumerate(reversed(content_children)):
-        if type(child) is Tag and child.select("img"):
+        if type(child) is Tag and (
+            child.select("img") or re.match(r".*([Ii]nstagram|[Dd]eviant[Aa]rt|[Kk]o-?[Ff]i).*", child.text)
+        ):
             first_img_index = len(content_children) - i
         # Only check the last 200 lines of the chapter
         if i > 200:
@@ -136,7 +138,7 @@ def parse_chapter_content(soup: BeautifulSoup) -> dict:
 
     content_lines = content_lines[
         : first_img_index - 3
-    ]  # include additional lines to catch any credit text before the first img
+    ]  # include additional lines to catch any credit text before the first img or a tag
 
     authors_note_re = re.compile(r"Author['|’]?s['|’]? [N|n]ote.*")
     parens_pre_note_start_re = re.compile(r"^\(.*")
@@ -194,20 +196,23 @@ def parse_chapter_content(soup: BeautifulSoup) -> dict:
         # Capture note marked "Author's Note"
         if authors_note_re.match(content_lines[chapter_index].strip()):
             empty_line_cnt = 0
-            for authors_note_index, author_note_line in enumerate(content_lines[chapter_index:]):
+            authors_note_index_offset = len(content_lines) - chapter_index
+            for i, author_note_line in enumerate(content_lines[chapter_index:]):
                 if len(author_note_line.strip()) == 0:
                     empty_line_cnt += 1
-
-                    if empty_line_cnt >= 2:
-                        authors_note_lines = content_lines[chapter_index : chapter_index + authors_note_index]
+                    if empty_line_cnt >= 4:
+                        authors_note_index_offset = i
                         break
                 else:
                     empty_line_cnt = 0
 
+            # Apply selected range to authors_note or default to remainder of chapter
+            authors_note_lines = content_lines[chapter_index : chapter_index + authors_note_index_offset]
+
             # Check if authors note is near the end of the chapter
             if chapter_index > int(len(content_lines) * 0.9):
                 break
-            chapter_index += authors_note_index
+            chapter_index += authors_note_index_offset
 
         else:
             # Ignore empty lines

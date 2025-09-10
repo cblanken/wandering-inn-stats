@@ -210,13 +210,25 @@ class TestChapterProcessing_10_07:
             soup.get("html")
             return soup
 
+    @pytest.fixture
+    def authors_note(scope="class") -> BeautifulSoup:
+        with Path.open(Path(__file__).parent / "samples/10.07/authors_note.txt", encoding="utf-8") as fp:
+            soup = BeautifulSoup(fp)
+            soup.get("html")
+            return soup
+
     def test_ignore_links_at_start(self, html_content):
         content = parse_chapter_content(html_content)
-
         text_content = content.get("text")
         assert text_content is not None
         assert "www.amazon.com" not in text_content
         assert "www.audible.com" not in text_content
+
+    def test_authors_note_captured_correctly(self, authors_note, html_content):
+        content = parse_chapter_content(html_content)
+        authors_note_text = content.get("authors_note")
+        assert authors_note_text is not None
+        assert str(authors_note_text) == str(authors_note)
 
 
 # TODO: chapter may have marked Author's Note at start and end of chapter
