@@ -125,20 +125,24 @@ def parse_chapter_content(soup: BeautifulSoup) -> dict:
     # Exclude last two lines which include the previous and next chapter links
     content_lines: list[str] = [element.get_text() for element in content_children[:-2]]
 
+    # Ignore Patreon locked chapters
+    if len(content_lines) < 10 and any(("Patreon" in line for line in content_lines[:9])):
+        raise PatreonChapterError
+
     # Exclude fanart images, links, and credits at end of chapter from parsing
     first_img_index = len(content_lines)
     for i, child in enumerate(reversed(content_children)):
         if type(child) is Tag and (
             child.select("img") or re.match(r".*([Ii]nstagram|[Dd]eviant[Aa]rt|[Kk]o-?[Ff]i).*", child.text)
         ):
+            # import ipdb; ipdb.set_trace()
             first_img_index = len(content_children) - i
+            content_lines = content_lines[
+                : first_img_index - 3
+            ]  # include additional lines to catch any credit text before the first img or a tag
         # Only check the last 200 lines of the chapter
         if i > 200:
             break
-
-    content_lines = content_lines[
-        : first_img_index - 3
-    ]  # include additional lines to catch any credit text before the first img or a tag
 
     authors_note_re = re.compile(r"Author['|’]?s['|’]? [N|n]ote.*")
     parens_pre_note_start_re = re.compile(r"^\(.*")
@@ -229,8 +233,6 @@ def parse_chapter_content(soup: BeautifulSoup) -> dict:
 
     try:
         word_count = len(chapter_data["text"].split())
-        if word_count < 30 and "Patreon" in chapter_data["text"]:
-            raise PatreonChapterError
 
         authors_note_word_count = len(chapter_data["authors_note"].split())
         digest: str = hashlib.sha256(chapter_data["text"].encode("utf-8")).hexdigest()

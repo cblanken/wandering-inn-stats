@@ -2,6 +2,32 @@ import pytest
 from processing.get import parse_chapter_content
 from bs4 import BeautifulSoup
 from pathlib import Path
+from processing.exceptions import PatreonChapterError
+
+
+class TestChapterProcessing_Simple:
+    """
+    Test simple chapter with no author's note (intro or outro) or fanart attributions
+    These tests should be used as a helpful baseline.
+    """
+
+    @pytest.fixture
+    def html_content(scope="class") -> BeautifulSoup:
+        with Path.open(Path(__file__).parent / "samples/2.01/chapter.html", encoding="utf-8") as fp:
+            soup = BeautifulSoup(fp)
+            soup.get("html")
+            return soup
+
+    @pytest.fixture
+    def text_content(scope="class") -> str:
+        with Path.open(Path(__file__).parent / "samples/2.01/chapter.txt", encoding="utf-8") as fp:
+            return fp.read()
+
+    def test_simple_chapter_content(self, html_content, text_content):
+        content = parse_chapter_content(html_content)
+        text = content.get("text")
+        assert content is not None
+        assert text == text_content
 
 
 class TestChapterProcessing_8_00:
@@ -211,11 +237,9 @@ class TestChapterProcessing_10_07:
             return soup
 
     @pytest.fixture
-    def authors_note(scope="class") -> BeautifulSoup:
+    def authors_note(scope="class") -> str:
         with Path.open(Path(__file__).parent / "samples/10.07/authors_note.txt", encoding="utf-8") as fp:
-            soup = BeautifulSoup(fp)
-            soup.get("html")
-            return soup
+            return fp.read()
 
     def test_ignore_links_at_start(self, html_content):
         content = parse_chapter_content(html_content)
@@ -229,6 +253,19 @@ class TestChapterProcessing_10_07:
         authors_note_text = content.get("authors_note")
         assert authors_note_text is not None
         assert str(authors_note_text) == str(authors_note)
+
+
+class TestChapterProcessing_Patreon:
+    @pytest.fixture
+    def html_content(scope="class") -> BeautifulSoup:
+        with Path.open(Path(__file__).parent / "samples/patreon_locked_chapter/chapter.html", encoding="utf-8") as fp:
+            soup = BeautifulSoup(fp)
+            soup.get("html")
+            return soup
+
+    def test_patreon_locked_chapter_raise_error(self, html_content):
+        with pytest.raises(PatreonChapterError):
+            parse_chapter_content(html_content)
 
 
 # TODO: chapter may have marked Author's Note at start and end of chapter
