@@ -58,10 +58,6 @@ class TestChapterProcessing_8_00:
         data = parse_chapter_content(html_content)
         assert data.get("text") == text_content
 
-    def test_author_note_at_start(self, pre_note: str):
-        """Some author's notes appear at the start of the chapter with the typical 'Author's Note' indicator"""
-        # TODO
-
     def test_author_note_at_end(self, html_content: BeautifulSoup, authors_note: str):
         """Most author's notes appear at the end of the chapter with the typical 'Author's Note' indicator"""
         data = parse_chapter_content(html_content)
@@ -156,30 +152,22 @@ class TestChapterProcessing_10_22_R:
         self, html_content: BeautifulSoup, authors_note: str, text_content: str
     ):
         """A chapter may have a parenthesized pre-note in addition to an Author's note
-        at the start of the chapter"""
+        at the start of the chapter."""
         data = parse_chapter_content(html_content)
 
         pre_note = data.get("pre_note")
-        if pre_note is None:
-            msg = "Empty pre note"
-            raise ValueError(msg)
-
+        assert pre_note is not None
         assert (
             pre_note
-            == "(A fellow author and friend of mine, Quill, is releasing a new story! Blood Eagle: Norse Progression Fantasy is out now on Royalroad! Consider giving it a read:\n\n\nhttps://www.royalroad.com/fiction/91540/blood-eagle-norse-progression-fantasy)\n"
+            == "(A fellow author and friend of mine, Quill, is releasing a new story! Blood Eagle: Norse Progression Fantasy is out now on Royalroad! Consider giving it a read:\nhttps://www.royalroad.com/fiction/91540/blood-eagle-norse-progression-fantasy)\n"
         )
 
-        authors_note = data.get("authors_note")
-        if authors_note is None:
-            msg = "Empty pre note"
-            raise ValueError(msg)
-
-        assert authors_note == authors_note
+        parsed_authors_note = data.get("authors_note")
+        assert parsed_authors_note is not None
+        assert parsed_authors_note == authors_note
 
         chapter_text = data.get("text")
-        if chapter_text is None:
-            raise ValueError
-
+        assert chapter_text is not None
         assert chapter_text == text_content
 
     def test_ignore_fanart_attributions(self, html_content: BeautifulSoup):
@@ -268,6 +256,71 @@ class TestChapterProcessing_Patreon:
             parse_chapter_content(html_content)
 
 
+class TestChapterProcessing_10_18_E:
+    @pytest.fixture
+    def html_content(scope="class") -> BeautifulSoup:
+        with Path.open(Path(__file__).parent / "samples/10.18_E/chapter.html", encoding="utf-8") as fp:
+            soup = BeautifulSoup(fp)
+            soup.get("html")
+            return soup
+
+    def test_ignore_links_at_start(self, html_content):
+        """This chapter has some links deeper in the pre note"""
+        content = parse_chapter_content(html_content)
+        text_content = content.get("text")
+        assert text_content is not None
+        assert "www.amazon.com" not in text_content
+        assert "www.audible.com" not in text_content
+
+
+class TestChapterProcessing_10_10_E_PT1:
+    @pytest.fixture
+    def html_content(scope="class") -> BeautifulSoup:
+        with Path.open(Path(__file__).parent / "samples/10.10_E_PT1/chapter.html", encoding="utf-8") as fp:
+            soup = BeautifulSoup(fp)
+            soup.get("html")
+            return soup
+
+    def test_multiline_bracketed_pre_note(self, html_content):
+        content = parse_chapter_content(html_content)
+        pre_note = content.get("pre_note")
+        assert pre_note is not None
+        assert "[To celebrate the upcoming audiobook release of Gravesong" in pre_note  # start of pre-note
+        assert "Undead, ghosts, and more are to" in pre_note
+        assert "To inspire our artists, Haunting Hues" in pre_note
+        assert "And don’t forget to keep an eye on Cognita…]" in pre_note  # end of pre-note
+
+        text = content.get("text")
+        assert text is not None
+        assert "[To celebrate the upcoming audiobook release of Gravesong" not in text
+        assert "Undead, ghosts, and more are to" not in text
+        assert "To inspire our artists, Haunting Hues" not in text
+        assert "And don’t forget to keep an eye on Cognita…]" not in text
+
+
+class TestChapterProcessing_Interlude_Saliss_The_Architect:
+    @pytest.fixture
+    def html_content(scope="class") -> BeautifulSoup:
+        with Path.open(
+            Path(__file__).parent / "samples/interlude_saliss_the_architect/chapter.html", encoding="utf-8"
+        ) as fp:
+            soup = BeautifulSoup(fp)
+            soup.get("html")
+            return soup
+
+    def test_authors_note_mentioning_authors_note(self, html_content):
+        content = parse_chapter_content(html_content)
+        authors_note = content.get("authors_note")
+        assert (
+            authors_note
+            == """Author’s Note:\nThis is a reminder of two things to you. One—why I had to announce I’m moving down to 30,000 words.\nDoing two chapters doesn’t work. I thought to myself, ‘pirateaba’, because I think in the third person, ‘pirateaba, you’ve got to do a short chapter because\xa0 you’re too tired to do the third Erin chapter justice’.\nSo I planned out a 10,000, maybe 15,000 word chapter about Saliss on Saturday, after posting the last one. Did a pretty decent outline, then started the next day to write it in one go. Edited Wednesday.\n24,000 words.\nSigh.\nWriting this many words does drain my energy battery considerably. Hopefully with a day off, I’ll rally enough come Thursday to do the Erin chapter justice but this is why. This is why.\nAnyways, the other lesson is that you can’t just sit on your thumbs and wait to well, write a chapter like this. There’s a good quote about hesitation. About waiting for the ‘right moment’ and compromising until then.\nI choose to apply it to arcs that aren’t easy, or fun for me to write. They have to happen, and I cannot wait until I am in the right mood or have all my ducks in a row because they never will be. It is imperfect; I was editing the last…five hours which is why this chapter is out later than usual. But even if imperfect, we forge ahead.\nOr sometimes, we take a break! Next month. I do think I’m willing to push harder this month because of my vacation and the reduced workload next month. Did I mention going on a vacation to a country? Do I tell people what country? Eh, you’ll never find me in Puerto Rico. I hear it’s nice.\nWait, am I going to that country or another one? I’d better check my tickets. (A few were being floated around, okay? I have tickets. I just don’t actually know which one it is.)\nThat’s all from me! I’m tired. I wonder if anyone reads The Wandering Inn, in Puerto Rico. I wonder what’s for dinner. I wonder how I’m going to finish this Author’s Note.\n"""
+        )
+
+
 # TODO: chapter may have marked Author's Note at start and end of chapter
 
 # TODO: confirm digest/hash consistency
+
+# TODO: catch password message in pre-note (Chapter 10.45)
+
+# TODO: catch author's notes that appear at the start of the chapter with the typical 'Author's Note' indicator"""

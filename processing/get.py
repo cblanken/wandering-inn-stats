@@ -15,7 +15,7 @@ import requests.exceptions
 from stem import Signal
 from stem.control import Controller
 from fake_useragent import UserAgent
-from .exceptions import PatreonChapterError
+from .exceptions import PatreonChapterError, ChapterPartitionsOverlappingError, TooManyAuthorsNotes
 from typing import Any
 
 BASE_URL: str = "https://www.wanderinginn.com"
@@ -111,6 +111,44 @@ def extract_chapter_content(soup: BeautifulSoup) -> Tag:
     return content
 
 
+def match_pre_note_line_start(line: str) -> bool:
+    """Identifies a line with a prenote marking at the start of the line or a link"""
+    parens_pre_note_start_re = re.compile(r"^\(.*")
+    square_bracket_pre_note_start_re = re.compile(r"^\[.*")
+    angle_bracket_pre_note_start_re = re.compile(r"^\<.*")
+    link_re = re.compile(r".*http[s]?:\/\/.*")
+
+    return any(
+        (
+            pattern.match(line)
+            for pattern in [
+                parens_pre_note_start_re,
+                square_bracket_pre_note_start_re,
+                angle_bracket_pre_note_start_re,
+                link_re,
+            ]
+        )
+    )
+
+
+def match_pre_note_line_end(line: str) -> bool:
+    """Identifies a line with a prenote marking at the end of the line"""
+    parens_pre_note_end_re = re.compile(r".*\)$")
+    square_bracket_pre_note_end_re = re.compile(r".*\]\n?$")
+    angle_bracket_pre_note_end_re = re.compile(r".*\>\n?$")
+
+    return any(
+        (
+            pattern.match(line)
+            for pattern in [
+                parens_pre_note_end_re,
+                square_bracket_pre_note_end_re,
+                angle_bracket_pre_note_end_re,
+            ]
+        )
+    )
+
+
 def parse_chapter_content(soup: BeautifulSoup) -> dict:
     content = extract_chapter_content(soup)
 
@@ -119,7 +157,6 @@ def parse_chapter_content(soup: BeautifulSoup) -> dict:
         raise ValueError(msg)
 
     chapter_data = {}
-
     content_children = list(content.children)
 
     # Exclude last two lines which include the previous and next chapter links
@@ -130,12 +167,10 @@ def parse_chapter_content(soup: BeautifulSoup) -> dict:
         raise PatreonChapterError
 
     # Exclude fanart images, links, and credits at end of chapter from parsing
+    fanart_credit_pattern = re.compile(r".*([Ii]nstagram|[Dd]eviant[Aa]rt|[Kk]o-?[Ff]i|[Tt]witter).*")
     first_img_index = len(content_lines)
     for i, child in enumerate(reversed(content_children)):
-        if type(child) is Tag and (
-            child.select("img") or re.match(r".*([Ii]nstagram|[Dd]eviant[Aa]rt|[Kk]o-?[Ff]i).*", child.text)
-        ):
-            # import ipdb; ipdb.set_trace()
+        if type(child) is Tag and (child.select("img") or fanart_credit_pattern.match(child.text)):
             first_img_index = len(content_children) - i
             content_lines = content_lines[
                 : first_img_index - 3
@@ -145,90 +180,88 @@ def parse_chapter_content(soup: BeautifulSoup) -> dict:
             break
 
     authors_note_re = re.compile(r"Author['|’]?s['|’]? [N|n]ote.*")
-    parens_pre_note_start_re = re.compile(r"^\(.*")
-    parens_pre_note_end_re = re.compile(r".*\)$")
-    bracket_pre_note_start_re = re.compile(r"^\[.*")
-    bracket_pre_note_end_re = re.compile(r".*\]$")
-    signed_pre_note_re = re.compile(r".*[Pp]irateaba")
-    chapter_lines = []
-    authors_note_lines = []
-    pre_note_lines = []
+    signed_pre_note_re = re.compile(r".*[-—][ ]?[Pp]irateaba.*")
 
-    chapter_index = 0
-    while chapter_index < len(content_lines):
-        chapter_line = content_lines[chapter_index]
+    # Capture any pre-notes (these exclude explicitly marked  Author's notes)
+    pre_note_range: range = range(0)
+    for chapter_index, chapter_line in enumerate(content_lines[:20]):
+        if (
+            match_pre_note_line_start(chapter_line)
+            or match_pre_note_line_end(chapter_line)
+            or any(signed_pre_note_re.match(split_line) for split_line in chapter_line.split("\n"))
+        ):
+            pre_note_range = range(chapter_index + 1)
+            chapter_index += 1
+            continue
 
-        if chapter_index < 10:
-            # Capture parenthesized chapter pre-note
-            if parens_pre_note_start_re.match(chapter_line):
-                # Check current and next few lines for completion of parens
-                for i in range(5):
-                    if parens_pre_note_end_re.match(content_lines[chapter_index + i]):
-                        pre_note_lines.append("\n".join(content_lines[chapter_index : chapter_index + i + 1]) + "\n")
-                        chapter_index += i
-                        break
+    pre_note_lines = content_lines[: pre_note_range.stop]
 
-                chapter_index += 1
-                continue
-
-            # Capture bracketed chapter pre-note
-            if bracket_pre_note_start_re.match(chapter_line):
-                # Check current and next few lines for completion of bracket
-                for i in range(5):
-                    if bracket_pre_note_end_re.match(content_lines[chapter_index + i]):
-                        pre_note_lines.append("\n".join(content_lines[chapter_index : chapter_index + i + 1]) + "\n")
-                        chapter_index += i
-                        break
-
-                chapter_index += 1
-                continue
-
-            # Capture signed chapter pre-note
-            if any(signed_pre_note_re.match(line) for line in chapter_line.split("\n")):
-                pre_note_lines.extend(content_lines[: chapter_index + 1])
-                chapter_lines.clear()
-                chapter_index += 1
-                continue
-
-            # Capture links at chapter start
-            if re.match(r".*http[s]?:\/\/\w+", chapter_line):
-                pre_note_lines.extend(content_lines[: chapter_index + 1])
-                chapter_lines.clear()
-                chapter_index += 1
-                continue
-
-        # Capture note marked "Author's Note"
-        if authors_note_re.match(content_lines[chapter_index].strip()):
+    # Capture note marked "Author's Note"
+    authors_note_count = 0
+    authors_note_ranges: list[range] = []
+    for chapter_index, chapter_line in enumerate(content_lines):
+        if authors_note_re.match(chapter_line.strip()):
+            authors_note_ranges.append(range(chapter_index, len(content_lines)))
             empty_line_cnt = 0
-            authors_note_index_offset = len(content_lines) - chapter_index
-            for i, author_note_line in enumerate(content_lines[chapter_index:]):
+            for i, author_note_line in enumerate(content_lines[chapter_index:], start=chapter_index):
                 if len(author_note_line.strip()) == 0:
                     empty_line_cnt += 1
                     if empty_line_cnt >= 4:
-                        authors_note_index_offset = i
+                        authors_note_ranges[authors_note_count] = range(
+                            authors_note_ranges[authors_note_count].start, i
+                        )
                         break
                 else:
                     empty_line_cnt = 0
 
-            # Apply selected range to authors_note or default to remainder of chapter
-            authors_note_lines = content_lines[chapter_index : chapter_index + authors_note_index_offset]
+            authors_note_count += 1
 
-            # Check if authors note is near the end of the chapter
-            if chapter_index > int(len(content_lines) * 0.9):
-                break
-            chapter_index += authors_note_index_offset
+    authors_note_lines = chain(
+        "\n".join(line.strip() for line in content_lines[r.start : r.stop] if line.strip() != "")
+        for r in authors_note_ranges
+    )
 
-        else:
-            # Ignore empty lines
-            if content_lines[chapter_index].strip() != "":
-                chapter_lines.append(content_lines[chapter_index])
+    def ranges_overlap(r1: range, r2: range) -> bool:
+        return r1.start > r2.start and r2.stop > r1.start or r1.start < r2.start and r1.stop > r2.start
 
-        chapter_index += 1
+    # Check for pre-note overlapping any authors notes
+    if any(pre_note_range.stop > r.start for r in authors_note_ranges):
+        msg = "The pre-note overlaps (one of) the Authors' notes"
+        raise ChapterPartitionsOverlappingError(msg)
+
+    # Check for any author's notes overlapping each other
+    if any(ranges_overlap(r1, r2) for r1 in authors_note_ranges for r2 in authors_note_ranges):
+        msg = "Author's note ranges are overlapping"
+        raise ChapterPartitionsOverlappingError(msg)
+
+    # Build chapter text based on line ranges for pre-note and author's note(s)
+    match authors_note_count:
+        case 0:
+            chapter_lines = [line.strip() for line in content_lines[pre_note_range.stop :] if line.strip() != ""]
+        case 1:
+            chapter_lines = [
+                line.strip()
+                for line in chain(
+                    content_lines[pre_note_range.stop : authors_note_ranges[0].start - 1],
+                    content_lines[authors_note_ranges[0].stop :],
+                )
+                if line.strip() != ""
+            ]
+        case 2:
+            # Ensure chapter content between multiple authors notes is captured
+            chapter_lines = [
+                line.strip()
+                for line in chain(
+                    content_lines[pre_note_range.stop : authors_note_ranges[0].start],
+                    content_lines[authors_note_ranges[0].stop + 1 : authors_note_ranges[1].start],
+                )
+                if line.strip() != ""
+            ]
+        case _:
+            raise TooManyAuthorsNotes
 
     chapter_data["text"] = "\n".join([line.strip() for line in chapter_lines]).strip() + "\n"
-    chapter_data["authors_note"] = (
-        "\n".join([line.strip() for line in authors_note_lines if line.strip() != ""]).strip() + "\n"
-    )
+    chapter_data["authors_note"] = "\n".join(authors_note_lines) + "\n"
     chapter_data["pre_note"] = "\n".join([line.strip() for line in pre_note_lines if line.strip() != ""]).strip() + "\n"
 
     try:
