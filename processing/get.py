@@ -12,8 +12,6 @@ import time
 from bs4 import BeautifulSoup, Tag
 import requests
 import requests.exceptions
-from stem import Signal
-from stem.control import Controller
 from fake_useragent import UserAgent
 from .exceptions import PatreonChapterError, ChapterPartitionsOverlappingError, TooManyAuthorsNotes
 from typing import Any
@@ -32,34 +30,25 @@ def remove_bracketed_ref_number(s: str) -> str:
 
 
 class Session:
-    """Session object to download webpages via requests
-    Also handles cycling Tor connections to prevent IP bans
-    """
+    """Session object to download webpages via requests"""
 
     def __init__(
         self,
-        proxy_ip: str = "127.0.0.1",
-        proxy_port: int = 9050,
         max_tries: int = 10,
-        tor_enabled: bool = False,
         throttle: float = 2.0,
     ) -> None:
         print("> Connecting to session...")
         self.__session = requests.session()
-        self.__proxy_port = proxy_port
         self.__tries = 0  # resets after a sucessful chapter download
         self.__max_tries = max_tries
-        self.__tor_enabled = tor_enabled
         self.__throttle = throttle
         self.__last_get = 0
-        if tor_enabled:
-            self.set_tor_proxy(proxy_ip)
 
     def get(self, url: str, timeout: int = 10, ignore_throttle: bool = False) -> requests.Response | None:
         """Perform a GET request to [url]"""
         resp = None
         # Add jitter to throttle time
-        throttle = random.uniform(0.5, 1.5) * self.__throttle
+        throttle = random.uniform(0.75, 1.25) * self.__throttle
         if not ignore_throttle:
             while time.time() - self.__last_get < throttle:
                 # Note: the timing precision for the throttle should only be to 0.1
@@ -76,9 +65,6 @@ class Session:
 
             if resp.status_code >= 400 and resp.status_code <= 499:
                 self.__tries += 1
-                if self.__tor_enabled:
-                    print("Get new tor circuit", time.time())
-                    self.get_new_tor_circuit()
             else:
                 self.__tries = 0
                 return resp
@@ -88,18 +74,6 @@ class Session:
 
     def reset_tries(self) -> None:
         self.__tries = 0
-
-    def set_tor_proxy(self, ip: str) -> None:
-        self.__session.proxies = {
-            "http": f"socks5://{ip}:{self.__proxy_port}",
-            "https": f"socks5://{ip}:{self.__proxy_port}",
-        }
-
-    def get_new_tor_circuit(self, control_port: int = 9051) -> None:
-        with Controller.from_port(port=control_port) as controller:
-            controller.authenticate()
-            controller.signal(Signal.NEWNYM)
-            time.sleep(controller.get_newnym_wait())
 
 
 def extract_chapter_content(soup: BeautifulSoup) -> Tag:

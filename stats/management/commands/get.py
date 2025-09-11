@@ -12,7 +12,6 @@ from processing.exceptions import PatreonChapterError
 class Command(BaseCommand):
     help = "Download Wandering Inn source text and metadata including volumes, books, chapters"
     last_download: float = 0
-    session = get.Session()
 
     def add_arguments(self, parser: CommandParser) -> None:
         parser.add_argument("volume", nargs="?", type=str, help="Volume to download")
@@ -25,14 +24,7 @@ class Command(BaseCommand):
             action="store_true",
             help="Retrieve volume/book/chapter by indexes instead of title",
         )
-        parser.add_argument("-d", "--request_delay", default=5.0, help="Time delay")
-        parser.add_argument(
-            "-j",
-            "--jitter",
-            action="store_true",
-            help="Randomized delay betweeen (0.5 to 1.5) times. By default, 5 seconds",
-        )
-        # TODO: update --jitter to use `const` argument type option
+        parser.add_argument("-t", "--throttle", default=3.0, help="Time delay between requests")
         parser.add_argument("-r", "--root", default="./data", help="Root path of downloaded data")
         parser.add_argument(
             "--volume_root",
@@ -217,6 +209,13 @@ class Command(BaseCommand):
 
     def handle(self, *_args, **options) -> None:  # noqa: ANN002, ANN003
         # TODO: fix Keyboard Exception not working
+        try:
+            throttle = float(options.get("throttle", 2.0))
+        except ValueError:
+            self.stdout.write(self.style.WARNING("Invalid throttle argument defaulting to 2.0 seconds."))
+            throttle = 2.0
+
+        self.session = get.Session(throttle=throttle)
         toc = get.TableOfContents(self.session)
         if len(toc.volume_data) == 0:
             self.stdout.write(self.style.WARNING("Volume data is empty. The Table of Contents may have changed..."))
