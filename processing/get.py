@@ -85,12 +85,16 @@ def extract_chapter_content(soup: BeautifulSoup) -> Tag:
     return content
 
 
+def match_links(line: str) -> bool:
+    link_re = re.compile(r".*http[s]?:\/\/.*")
+    return bool(link_re.match(line))
+
+
 def match_pre_note_line_start(line: str) -> bool:
     """Identifies a line with a prenote marking at the start of the line or a link"""
     parens_pre_note_start_re = re.compile(r"^\(.*")
     square_bracket_pre_note_start_re = re.compile(r"^\[.*")
     angle_bracket_pre_note_start_re = re.compile(r"^\<.*")
-    link_re = re.compile(r".*http[s]?:\/\/.*")
 
     return any(
         (
@@ -99,7 +103,6 @@ def match_pre_note_line_start(line: str) -> bool:
                 parens_pre_note_start_re,
                 square_bracket_pre_note_start_re,
                 angle_bracket_pre_note_start_re,
-                link_re,
             ]
         )
     )
@@ -121,6 +124,39 @@ def match_pre_note_line_end(line: str) -> bool:
             ]
         )
     )
+
+
+def identify_pre_note_range(content_lines: list[str]) -> range:
+    # Capture any pre-notes (these exclude explicitly marked  Author's notes)
+    signed_pre_note_re = re.compile(r".*[-—][ ]?[Pp]irateaba.*")
+    pre_note_range: range = range(0)
+    for chapter_index, chapter_line in enumerate(content_lines[:3]):
+        if match_pre_note_line_start(chapter_line):
+            empty_line_cnt = 0
+            for chapter_index_2, chapter_line_2 in enumerate(content_lines[chapter_index:20]):
+                if empty_line_cnt > 3:
+                    pre_note_range = range(chapter_index + chapter_index_2)
+                    break
+                if chapter_line_2.strip() == "":
+                    empty_line_cnt += 1
+                if match_pre_note_line_end(chapter_line_2):
+                    pre_note_range = range(chapter_index + chapter_index_2 + 1)
+                    break
+
+    # Capture up to any links
+    for chapter_index, chapter_line in enumerate(content_lines[:20]):
+        if match_links(chapter_line) and chapter_index > pre_note_range.stop:
+            pre_note_range = range(chapter_index + 1)
+
+    # Capture up to a signature in the pre-note
+    for chapter_index, chapter_line in enumerate(content_lines[:20]):
+        if (
+            any(signed_pre_note_re.match(split_line) for split_line in chapter_line.split("\n"))
+            and chapter_index > pre_note_range.stop
+        ):
+            pre_note_range = range(chapter_index + 1)
+
+    return pre_note_range
 
 
 def parse_chapter_content(soup: BeautifulSoup) -> dict:
@@ -153,19 +189,7 @@ def parse_chapter_content(soup: BeautifulSoup) -> dict:
         if i > 200:
             break
 
-    # Capture any pre-notes (these exclude explicitly marked  Author's notes)
-    signed_pre_note_re = re.compile(r".*[-—][ ]?[Pp]irateaba.*")
-    pre_note_range: range = range(0)
-    for chapter_index, chapter_line in enumerate(content_lines[:20]):
-        if (
-            match_pre_note_line_start(chapter_line)
-            or match_pre_note_line_end(chapter_line)
-            or any(signed_pre_note_re.match(split_line) for split_line in chapter_line.split("\n"))
-        ):
-            pre_note_range = range(chapter_index + 1)
-            chapter_index += 1
-            continue
-
+    pre_note_range = identify_pre_note_range(content_lines)
     pre_note_lines = content_lines[: pre_note_range.stop]
 
     # Capture note marked "Author's Note"

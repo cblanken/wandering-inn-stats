@@ -354,6 +354,26 @@ class TestChapterProcessing_Interlude_Saliss_The_Architect:
         )
 
 
+class TestChapterProcessing_10_20_E:
+    @pytest.fixture
+    def html_content(scope="class") -> BeautifulSoup:
+        with Path.open(Path(__file__).parent / "samples/10.20_E/chapter.html", encoding="utf-8") as fp:
+            soup = BeautifulSoup(fp)
+            soup.get("html")
+            return soup
+
+    def test_preserve_reftype_mentioned_in_first_lines(self, html_content):
+        """Paba sometimes uses square brackets [ and ] to mark a pre-note to the chapter.
+        These, of course, are also used for marking RefTypes.
+        This test, checks that only the first couple lines are checked for a pre-note with square brackets, so as not
+        to accidentally remove any references to legitimate RefTypes from the main chapter content."""
+        content = parse_chapter_content(html_content)
+        text = content.get("text")
+        assert text is not None
+        assert "[Emperor of Farmlands Level 37!]" in text
+        assert "[Skill – Empire: The Changing Citizenry obtained!]" in text
+
+
 # TODO: chapter may have marked Author's Note at start and end of chapter
 
 # TODO: confirm digest/hash consistency
