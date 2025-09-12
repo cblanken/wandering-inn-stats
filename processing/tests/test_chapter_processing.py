@@ -361,3 +361,9 @@ class TestChapterProcessing_Interlude_Saliss_The_Architect:
 # TODO: catch password message in pre-note (Chapter 10.45)
 
 # TODO: catch author's notes that appear at the start of the chapter with the typical 'Author's Note' indicator"""
+
+# TODO: chapter 9.01 has a complex author's note with a short aside at the end delimited by dashes before then speaking in the framing of the author's note again, THEN listing chapter fanart
+
+# TODO: chapter 10.10 E (Pt. 1) has a <div> in the fanart credits that prevents the fanart credit exclusion parsing from catching all of them
+
+# TODO: chapter 10.17 has a <button> at the start an mentions enabling mic permission, this should parse into the pre-note

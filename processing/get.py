@@ -141,7 +141,7 @@ def parse_chapter_content(soup: BeautifulSoup) -> dict:
         raise PatreonChapterError
 
     # Exclude fanart images, links, and credits at end of chapter from parsing
-    fanart_credit_pattern = re.compile(r".*([Ii]nstagram|[Dd]eviant[Aa]rt|[Kk]o-?[Ff]i|[Tt]witter).*")
+    fanart_credit_pattern = re.compile(r".*([Bb]luesky|[Dd]eviant[Aa]rt|[Ii]nstagram|[Kk]o-?[Ff]i|[Tt]witter).*")
     first_img_index = len(content_lines)
     for i, child in enumerate(reversed(content_children)):
         if type(child) is Tag and (child.select("img") or fanart_credit_pattern.match(child.text)):
