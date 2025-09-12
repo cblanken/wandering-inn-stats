@@ -153,10 +153,8 @@ def parse_chapter_content(soup: BeautifulSoup) -> dict:
         if i > 200:
             break
 
-    authors_note_re = re.compile(r"Author['|’]?s['|’]? [N|n]ote.*")
-    signed_pre_note_re = re.compile(r".*[-—][ ]?[Pp]irateaba.*")
-
     # Capture any pre-notes (these exclude explicitly marked  Author's notes)
+    signed_pre_note_re = re.compile(r".*[-—][ ]?[Pp]irateaba.*")
     pre_note_range: range = range(0)
     for chapter_index, chapter_line in enumerate(content_lines[:20]):
         if (
@@ -171,6 +169,7 @@ def parse_chapter_content(soup: BeautifulSoup) -> dict:
     pre_note_lines = content_lines[: pre_note_range.stop]
 
     # Capture note marked "Author's Note"
+    authors_note_re = re.compile(r"(Actual )?Author['|’]?s['|’]? [N|n]ote.*")
     authors_note_count = 0
     authors_note_ranges: list[range] = []
     for chapter_index, chapter_line in enumerate(content_lines):

@@ -189,6 +189,43 @@ class TestChapterProcessing_10_22_R:
             assert f not in authors_note
 
 
+class TestChapterProcessing_10_00_L:
+    @pytest.fixture
+    def html_content(scope="class") -> BeautifulSoup:
+        with Path.open(Path(__file__).parent / "samples/10.00_L/chapter.html", encoding="utf-8") as fp:
+            soup = BeautifulSoup(fp)
+            soup.get("html")
+            return soup
+
+    def test_multiple_authors_notes(self, html_content):
+        content = parse_chapter_content(html_content)
+        authors_note_text = content.get("authors_note")
+        assert authors_note_text is not None
+        assert "No, but for real, I would" in authors_note_text
+        assert "Trolling readers is an art" in authors_note_text
+        assert "Look forward to that box on Tuesday" in authors_note_text
+
+        assert (
+            authors_note_text
+            == """Author’s Notes:
+No, but for real, I wouldn’t do that to you. Also, for clarity, Lyonette’s level-ups are from after the Solstice. Continue onwards!
+—pirateaba
+Actual Author’s Note:
+Trolling readers is an art. At some point in my life, I wondered if I’d be white-haired and distinguished, one of those authors who has a reputation. Then I thought about other authors who get that old, and they have fun with things.
+No one gets old in a set way. Age is something that can affect someone very young, and I have heard people in their nineties say they feel like they’re still in their twenties.
+So, the point I’m making is that I hope I enjoy annoying readers no matter how old I get.
+Hello, and welcome to Volume 10. I’m trying to make it smile more. My month off? It was good. I wrote two blog posts on it, but in truth, it wasn’t an entire month, and what I said last year holds. I figured out how to vacation near the end, I wanted more, and I did fear my return because I didn’t know if I ‘remembered’ how to write.
+Perhaps that’s also because, after a volume ending, I have to reset. The battles are done, but the effects aren’t over…and then you’re a bit lost, right? I don’t want to imagine what it’s actually like for any kind of event or conflict for people in real life.
+Ah, well, I’m rambling a bit, but maybe that’s how we’ll start. With an attempt at both easing into things and trying to find whatever normal used to be. And as ever, I hope you enjoy it. I mean it; that’s been the point the whole time.
+This month will be interesting. I just learned I have a hard deadline to do some revisions to Book 12: The Witch of Webs by the end of the month or I, uh, delay all audiobook releases for this year. So I’d better work hard on that! But I’ll be putting regular chapters out…I think it’ll work.
+I have energy at the start of the year and, once I do that, I’ll have 0 other writing projects besides The Wandering Inn for once. Which will be the first time for like 2-3 years that’s happened! Not that it’s a bad thing, but what a thing, huh? I’m also planning a vacation to a country in April, but I’ll probably try to work during that. This is all the news from me.
+Look forward to that box on Tuesday, and thanks for reading!
+—pirateaba
+PS. I’ll be featuring lots of art but the backlog is amazing–and huge! Have you seen some of this art like the comics, the fake Gazi book, and everything else? Even a tattoo!
+"""
+        )
+
+
 class TestChapterProcessing_10_01_L:
     @pytest.fixture
     def html_content(scope="class") -> BeautifulSoup:
