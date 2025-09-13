@@ -4,6 +4,10 @@ from bs4 import BeautifulSoup
 from pathlib import Path
 from processing.exceptions import PatreonChapterError
 
+"""
+Note that many sample files are truncated to only fulfill their specific tests
+"""
+
 
 class TestChapterProcessing_Simple:
     """
@@ -374,16 +378,38 @@ class TestChapterProcessing_10_20_E:
         assert "[Skill – Empire: The Changing Citizenry obtained!]" in text
 
 
+class TestChapterProcessing_10_37_GDI_PT3:
+    @pytest.fixture
+    def html_content(scope="class") -> BeautifulSoup:
+        with Path.open(Path(__file__).parent / "samples/10.37_GDI_PT3/chapter.html", encoding="utf-8") as fp:
+            soup = BeautifulSoup(fp)
+            soup.get("html")
+            return soup
+
+    def test_capture_ps_authors_notes(self, html_content):
+        """Paba sometimes includes a P.S. note in the author's note that won't always be caught without
+        explicit parsing for them"""
+        content = parse_chapter_content(html_content)
+        text = content.get("text")
+        assert text is not None
+        assert "PS. For the art on this chapter, we have a" not in text
+        assert "A story about The Wandering Inn I didn’t know by heart gives me such delight." not in text
+
+        authors_note = content.get("authors_note")
+        assert authors_note is not None
+        assert "PS. For the art on this chapter, we have a" in authors_note
+        assert "A story about The Wandering Inn I didn’t know by heart gives me such delight." in authors_note
+
+
 # TODO: chapter may have marked Author's Note at start and end of chapter
-
 # TODO: confirm digest/hash consistency
-
 # TODO: catch password message in pre-note (Chapter 10.45)
-
 # TODO: catch author's notes that appear at the start of the chapter with the typical 'Author's Note' indicator"""
-
 # TODO: chapter 9.01 has a complex author's note with a short aside at the end delimited by dashes before then speaking in the framing of the author's note again, THEN listing chapter fanart
-
 # TODO: chapter 10.10 E (Pt. 1) has a <div> in the fanart credits that prevents the fanart credit exclusion parsing from catching all of them
-
 # TODO: chapter 10.17 has a <button> at the start an mentions enabling mic permission, this should parse into the pre-note
+# TODO: chapter 10.24 E has a mention to another webserial on royalroad.com with a synopsis that is not caught in the pre-note parsing
+# TODO: chapter 10.38 E has a long starting announcement and some links that weren't caught initially
+# TODO: chapter 10.44 Z (Pt. 1) contains an iframe fanart credit
+# TODO: chapter 10.44 Z (Pt. 2) has a couple early lines with a level up that get's caught by the pre-note parser
+# TODO: chapter 10.45 L doesn't catch password for chapter mention at start

@@ -90,11 +90,20 @@ def match_links(line: str) -> bool:
     return bool(link_re.match(line))
 
 
+pre_note_re_pairs = [
+    (re.compile(r"^\(.*"), re.compile(r".*\)\n?$")),
+    (re.compile(r"^\[.*"), re.compile(r".*\]\n?$")),
+    (re.compile(r"^\<.*"), re.compile(r".*\>\n?$")),
+    (re.compile(r"^\{.*"), re.compile(r".*\}\n?$")),
+]
+
+
 def match_pre_note_line_start(line: str) -> bool:
     """Identifies a line with a prenote marking at the start of the line or a link"""
     parens_pre_note_start_re = re.compile(r"^\(.*")
     square_bracket_pre_note_start_re = re.compile(r"^\[.*")
     angle_bracket_pre_note_start_re = re.compile(r"^\<.*")
+    curly_bracket_pre_note_start_re = re.compile(r"^\{.*")
 
     return any(
         (
@@ -103,6 +112,7 @@ def match_pre_note_line_start(line: str) -> bool:
                 parens_pre_note_start_re,
                 square_bracket_pre_note_start_re,
                 angle_bracket_pre_note_start_re,
+                curly_bracket_pre_note_start_re,
             ]
         )
     )
@@ -113,6 +123,7 @@ def match_pre_note_line_end(line: str) -> bool:
     parens_pre_note_end_re = re.compile(r".*\)$")
     square_bracket_pre_note_end_re = re.compile(r".*\]\n?$")
     angle_bracket_pre_note_end_re = re.compile(r".*\>\n?$")
+    curly_bracket_pre_note_end_re = re.compile(r".*\}\n?$")
 
     return any(
         (
@@ -121,6 +132,7 @@ def match_pre_note_line_end(line: str) -> bool:
                 parens_pre_note_end_re,
                 square_bracket_pre_note_end_re,
                 angle_bracket_pre_note_end_re,
+                curly_bracket_pre_note_end_re,
             ]
         )
     )
@@ -130,8 +142,9 @@ def identify_pre_note_range(content_lines: list[str]) -> range:
     # Capture any pre-notes (these exclude explicitly marked  Author's notes)
     signed_pre_note_re = re.compile(r".*[-—][ ]?[Pp]irateaba.*")
     pre_note_range: range = range(0)
-    for chapter_index, chapter_line in enumerate(content_lines[:3]):
-        if match_pre_note_line_start(chapter_line):
+    for chapter_index, chapter_line in enumerate(content_lines[:4]):
+        if match_pre_note_line_start(chapter_line) and not match_pre_note_line_end(chapter_line):
+            # Opening pre-note without closing symbol
             empty_line_cnt = 0
             for chapter_index_2, chapter_line_2 in enumerate(content_lines[chapter_index:20]):
                 if empty_line_cnt > 3:
@@ -142,14 +155,17 @@ def identify_pre_note_range(content_lines: list[str]) -> range:
                 if match_pre_note_line_end(chapter_line_2):
                     pre_note_range = range(chapter_index + chapter_index_2 + 1)
                     break
+        elif match_pre_note_line_start(chapter_line):
+            # Opening pre-note with closing symobl i.e. single-line pre-note
+            pre_note_range = range(chapter_index + 1)
 
     # Capture up to any links
-    for chapter_index, chapter_line in enumerate(content_lines[:20]):
+    for chapter_index, chapter_line in enumerate(content_lines[:40]):
         if match_links(chapter_line) and chapter_index > pre_note_range.stop:
             pre_note_range = range(chapter_index + 1)
 
     # Capture up to a signature in the pre-note
-    for chapter_index, chapter_line in enumerate(content_lines[:20]):
+    for chapter_index, chapter_line in enumerate(content_lines[:40]):
         if (
             any(signed_pre_note_re.match(split_line) for split_line in chapter_line.split("\n"))
             and chapter_index > pre_note_range.stop
@@ -157,6 +173,46 @@ def identify_pre_note_range(content_lines: list[str]) -> range:
             pre_note_range = range(chapter_index + 1)
 
     return pre_note_range
+
+
+def identify_authors_note_ranges(content_lines: list[str]) -> list[range]:
+    # Capture note marked "Author's Note"
+    authors_note_re = re.compile(r"(Actual )?Author['|’]?s['|’]? [N|n]ote.*")
+    authors_ps_note_re = re.compile(r"P[Ss]\.?.*")
+    authors_note_count = 0
+    authors_note_ranges: list[range] = []
+    for chapter_index, chapter_line in enumerate(content_lines):
+        if authors_note_re.match(chapter_line.strip()):
+            authors_note_ranges.append(range(chapter_index, len(content_lines)))
+            empty_line_cnt = 0
+            for i, author_note_line in enumerate(content_lines[chapter_index:], start=chapter_index):
+                if len(author_note_line.strip()) == 0:
+                    empty_line_cnt += 1
+                    if empty_line_cnt >= 4:
+                        authors_note_ranges[authors_note_count] = range(
+                            authors_note_ranges[authors_note_count].start, i
+                        )
+                        break
+                else:
+                    empty_line_cnt = 0
+
+            authors_note_count += 1
+
+        elif authors_ps_note_re.match(chapter_line) and len(authors_note_ranges) > 0:
+            # Extend authors note range to include any P.S. lines
+            for i, author_note_line in enumerate(content_lines[chapter_index:], start=chapter_index):
+                if len(author_note_line.strip()) == 0:
+                    empty_line_cnt += 1
+                    if empty_line_cnt >= 4:
+                        authors_note_ranges[-1] = range(authors_note_ranges[-1].start, i + 1)
+                        break
+                else:
+                    empty_line_cnt = 0
+    return authors_note_ranges
+
+
+def ranges_overlap(r1: range, r2: range) -> bool:
+    return r1.start > r2.start and r2.stop > r1.start or r1.start < r2.start and r1.stop > r2.start
 
 
 def parse_chapter_content(soup: BeautifulSoup) -> dict:
@@ -177,62 +233,45 @@ def parse_chapter_content(soup: BeautifulSoup) -> dict:
         raise PatreonChapterError
 
     # Exclude fanart images, links, and credits at end of chapter from parsing
-    fanart_credit_pattern = re.compile(r".*([Bb]luesky|[Dd]eviant[Aa]rt|[Ii]nstagram|[Kk]o-?[Ff]i|[Tt]witter).*")
+    fanart_credit_pattern = re.compile(
+        r".*([Bb]luesky|[Dd]eviant[Aa]rt|[Ii]nstagram|[Kk]o-?[Ff]i|[Tt]witter|Portfolio:).*"
+    )
     first_img_index = len(content_lines)
+    excluded_tags = ["img", "iframe"]
     for i, child in enumerate(reversed(content_children)):
-        if type(child) is Tag and (child.select("img") or fanart_credit_pattern.match(child.text)):
+        if type(child) is Tag and (
+            any(child.select(tag) for tag in excluded_tags)
+            or (fanart_credit_pattern.match(child.text) and match_links(child.text))
+        ):
             first_img_index = len(content_children) - i
-            content_lines = content_lines[
-                : first_img_index - 3
-            ]  # include additional lines to catch any credit text before the first img or a tag
         # Only check the last 200 lines of the chapter
         if i > 200:
             break
+    content_lines = content_lines[
+        : first_img_index - 4
+    ]  # include additional lines to catch any credit text before the first img or a tag
 
     pre_note_range = identify_pre_note_range(content_lines)
     pre_note_lines = content_lines[: pre_note_range.stop]
 
-    # Capture note marked "Author's Note"
-    authors_note_re = re.compile(r"(Actual )?Author['|’]?s['|’]? [N|n]ote.*")
-    authors_note_count = 0
-    authors_note_ranges: list[range] = []
-    for chapter_index, chapter_line in enumerate(content_lines):
-        if authors_note_re.match(chapter_line.strip()):
-            authors_note_ranges.append(range(chapter_index, len(content_lines)))
-            empty_line_cnt = 0
-            for i, author_note_line in enumerate(content_lines[chapter_index:], start=chapter_index):
-                if len(author_note_line.strip()) == 0:
-                    empty_line_cnt += 1
-                    if empty_line_cnt >= 4:
-                        authors_note_ranges[authors_note_count] = range(
-                            authors_note_ranges[authors_note_count].start, i
-                        )
-                        break
-                else:
-                    empty_line_cnt = 0
-
-            authors_note_count += 1
-
+    authors_note_ranges = identify_authors_note_ranges(content_lines)
     authors_note_lines = chain(
         "\n".join(line.strip() for line in content_lines[r.start : r.stop] if line.strip() != "")
         for r in authors_note_ranges
     )
 
-    def ranges_overlap(r1: range, r2: range) -> bool:
-        return r1.start > r2.start and r2.stop > r1.start or r1.start < r2.start and r1.stop > r2.start
-
     # Check for pre-note overlapping any authors notes
     if any(pre_note_range.stop > r.start for r in authors_note_ranges):
-        msg = "The pre-note overlaps (one of) the Authors' notes"
+        msg = f"The pre-note overlaps (one of) the Authors' notes: {authors_note_ranges}"
         raise ChapterPartitionsOverlappingError(msg)
 
     # Check for any author's notes overlapping each other
     if any(ranges_overlap(r1, r2) for r1 in authors_note_ranges for r2 in authors_note_ranges):
-        msg = "Author's note ranges are overlapping"
+        msg = f"Author's note ranges are overlapping: {authors_note_ranges}"
         raise ChapterPartitionsOverlappingError(msg)
 
     # Build chapter text based on line ranges for pre-note and author's note(s)
-    match authors_note_count:
+    match len(authors_note_ranges):
         case 0:
             chapter_lines = [line.strip() for line in content_lines[pre_note_range.stop :] if line.strip() != ""]
         case 1:
