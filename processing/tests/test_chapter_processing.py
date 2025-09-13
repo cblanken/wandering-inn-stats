@@ -401,6 +401,51 @@ class TestChapterProcessing_10_37_GDI_PT3:
         assert "A story about The Wandering Inn I didn’t know by heart gives me such delight." in authors_note
 
 
+class TestChapterProcessing_Goblin_Days_PT6:
+    @pytest.fixture
+    def html_content(scope="class") -> BeautifulSoup:
+        with Path.open(Path(__file__).parent / "samples/Goblin_Days_PT6/chapter.html", encoding="utf-8") as fp:
+            soup = BeautifulSoup(fp)
+            soup.get("html")
+            return soup
+
+    def test_ignore_reftype_brackets_in_prenote_range(self, html_content):
+        """Sometimes a bracketed RefType may appear at the start of the line early in a chapter.
+        These should not be parsed into the pre-note."""
+        content = parse_chapter_content(html_content)
+        text = content.get("text")
+        assert text is not None
+        assert "[Risk Calculation: Attack on Goblinhome]" in text
+        assert "[Risk Calculation] was an odd Skill" in text
+
+        pre_note = content.get("pre_note")
+        assert pre_note is not None
+        assert "[Risk Calculation: Attack on Goblinhome]" not in pre_note
+        assert "[Risk Calculation] was an odd Skill" not in pre_note
+
+
+class TestChapterProcessing_Goblin_Days_PT7:
+    @pytest.fixture
+    def html_content(scope="class") -> BeautifulSoup:
+        with Path.open(Path(__file__).parent / "samples/Goblin_Days_PT7/chapter.html", encoding="utf-8") as fp:
+            soup = BeautifulSoup(fp)
+            soup.get("html")
+            return soup
+
+    def test_include_writing_note_in_authors_note(self, html_content):
+        """In this chapter Paba uses "Writing Note" to mark an additional Author's note"""
+        content = parse_chapter_content(html_content)
+        text = content.get("text")
+        assert text is not None
+        assert "Writing Note:" not in text
+        assert "I may have to do the box chapter soon" not in text
+
+        authors_note = content.get("authors_note")
+        assert authors_note is not None
+        assert "Writing Note:" in authors_note
+        assert "I may have to do the box chapter soon" in authors_note
+
+
 # TODO: chapter may have marked Author's Note at start and end of chapter
 # TODO: confirm digest/hash consistency
 # TODO: catch password message in pre-note (Chapter 10.45)
@@ -413,3 +458,9 @@ class TestChapterProcessing_10_37_GDI_PT3:
 # TODO: chapter 10.44 Z (Pt. 1) contains an iframe fanart credit
 # TODO: chapter 10.44 Z (Pt. 2) has a couple early lines with a level up that get's caught by the pre-note parser
 # TODO: chapter 10.45 L doesn't catch password for chapter mention at start
+# TODO: chapter Heroes of Hraace (Pt. 2) includes some images in the parsed chapter content
+# TODO: chapter Heroes of Hraace (Pt. 3) includes some images in the parsed chapter content
+# TODO: chapter Interlude - Vernoue (Pt.1) has a canon parenthesized aside at the start that gets parsed into the pre-note
+# TODO: Interlude - Songs and Wands has a song list after the Author's note
+# TODO: Interlude - Songs and Wands has a song list after the Author's note
+# TODO: chapter Mini-Cahpters - Patreon Pool still includes the second "Pre-chapter note"

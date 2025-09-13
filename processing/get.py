@@ -2,6 +2,7 @@
 
 from collections import OrderedDict
 from datetime import datetime
+from enum import Enum
 from pathlib import Path
 from itertools import chain
 import hashlib
@@ -14,7 +15,7 @@ import requests
 import requests.exceptions
 from fake_useragent import UserAgent
 from .exceptions import PatreonChapterError, ChapterPartitionsOverlappingError, TooManyAuthorsNotes
-from typing import Any
+from typing import Any, NamedTuple
 
 BASE_URL: str = "https://www.wanderinginn.com"
 
@@ -90,74 +91,69 @@ def match_links(line: str) -> bool:
     return bool(link_re.match(line))
 
 
-pre_note_re_pairs = [
-    (re.compile(r"^\(.*"), re.compile(r".*\)\n?$")),
-    (re.compile(r"^\[.*"), re.compile(r".*\]\n?$")),
-    (re.compile(r"^\<.*"), re.compile(r".*\>\n?$")),
-    (re.compile(r"^\{.*"), re.compile(r".*\}\n?$")),
+class REPair(NamedTuple):
+    begin: re.Pattern  # symbol appears at beginning of line
+    internal_end: re.Pattern  # the ending symbol of the pair appears before the end of the line
+    end: re.Pattern  # symbol appears at end of line
+
+
+PrenoteLineType = Enum("PrenoteLineType", ["SINGLE", "MULTI", "INCOMPLETE"])
+
+pre_note_re_pairs: list[REPair] = [
+    REPair(re.compile(r"^\(.*"), re.compile(r".*\(.*\)"), re.compile(r".*\)\n?$")),
+    REPair(re.compile(r"^\[.*"), re.compile(r".*\[.*\]"), re.compile(r".*\]\n?$")),
+    REPair(re.compile(r"^\<.*"), re.compile(r".*\<.*\>"), re.compile(r".*\>\n?$")),
+    REPair(re.compile(r"^\{.*"), re.compile(r".*\{.*\}"), re.compile(r".*\}\n?$")),
+    REPair(re.compile(r"^Pre-?[Cc]hapter Note"), re.compile(r".*"), re.compile(r":\s?$")),
 ]
 
 
-def match_pre_note_line_start(line: str) -> bool:
+def match_pre_note_line_start(line: str) -> REPair | None:
     """Identifies a line with a prenote marking at the start of the line or a link"""
-    parens_pre_note_start_re = re.compile(r"^\(.*")
-    square_bracket_pre_note_start_re = re.compile(r"^\[.*")
-    angle_bracket_pre_note_start_re = re.compile(r"^\<.*")
-    curly_bracket_pre_note_start_re = re.compile(r"^\{.*")
+    matching_pattern_pairs = [re_pair for re_pair in pre_note_re_pairs if re_pair.begin.match(line)]
+    if len(matching_pattern_pairs) > 0:
+        return matching_pattern_pairs[0]
 
-    return any(
-        (
-            pattern.match(line)
-            for pattern in [
-                parens_pre_note_start_re,
-                square_bracket_pre_note_start_re,
-                angle_bracket_pre_note_start_re,
-                curly_bracket_pre_note_start_re,
-            ]
-        )
-    )
+    return None
 
 
-def match_pre_note_line_end(line: str) -> bool:
+def match_pre_note_line_end(line: str) -> REPair | None:
     """Identifies a line with a prenote marking at the end of the line"""
-    parens_pre_note_end_re = re.compile(r".*\)$")
-    square_bracket_pre_note_end_re = re.compile(r".*\]\n?$")
-    angle_bracket_pre_note_end_re = re.compile(r".*\>\n?$")
-    curly_bracket_pre_note_end_re = re.compile(r".*\}\n?$")
+    matching_pattern_pairs = [re_pair for re_pair in pre_note_re_pairs if re_pair.end.match(line)]
+    if len(matching_pattern_pairs) > 0:
+        return matching_pattern_pairs[0]
 
-    return any(
-        (
-            pattern.match(line)
-            for pattern in [
-                parens_pre_note_end_re,
-                square_bracket_pre_note_end_re,
-                angle_bracket_pre_note_end_re,
-                curly_bracket_pre_note_end_re,
-            ]
-        )
-    )
+    return None
 
 
 def identify_pre_note_range(content_lines: list[str]) -> range:
     # Capture any pre-notes (these exclude explicitly marked  Author's notes)
+    square_bracket_exceptions = [re.compile(r".*Level \d+.?\].*"), re.compile(r".*\[Skill.*")]
     signed_pre_note_re = re.compile(r".*[-—][ ]?[Pp]irateaba.*")
     pre_note_range: range = range(0)
-    for chapter_index, chapter_line in enumerate(content_lines[:4]):
-        if match_pre_note_line_start(chapter_line) and not match_pre_note_line_end(chapter_line):
-            # Opening pre-note without closing symbol
-            empty_line_cnt = 0
-            for chapter_index_2, chapter_line_2 in enumerate(content_lines[chapter_index:20]):
-                if empty_line_cnt > 3:
-                    pre_note_range = range(chapter_index + chapter_index_2)
-                    break
-                if chapter_line_2.strip() == "":
-                    empty_line_cnt += 1
-                if match_pre_note_line_end(chapter_line_2):
-                    pre_note_range = range(chapter_index + chapter_index_2 + 1)
-                    break
-        elif match_pre_note_line_start(chapter_line):
-            # Opening pre-note with closing symobl i.e. single-line pre-note
-            pre_note_range = range(chapter_index + 1)
+    for chapter_index, chapter_line in enumerate(content_lines[:8]):
+        if pre_note_begin := match_pre_note_line_start(chapter_line):
+            if any(p.match(chapter_line) for p in square_bracket_exceptions):
+                break
+
+            if pre_note_begin.end.match(chapter_line):
+                # Opening pre-note with closing symbol i.e. single-line pre-note
+                pre_note_range = range(chapter_index + 1)
+            elif not pre_note_begin.internal_end.match(chapter_line):
+                # Opening pre-note without closing symbol i.e. multi-line pre-note
+                empty_line_cnt = 0
+                for chapter_index_2, chapter_line_2 in enumerate(content_lines[chapter_index:20]):
+                    if empty_line_cnt > 3:
+                        pre_note_range = range(chapter_index + chapter_index_2)
+                        break
+                    if chapter_line_2.strip() == "":
+                        empty_line_cnt += 1
+                    if match_pre_note_line_end(chapter_line_2):
+                        pre_note_range = range(chapter_index + chapter_index_2 + 1)
+                        break
+            elif pre_note_begin.internal_end.match(chapter_line):
+                # Mostly likely matching a [RefType] or intro line
+                pass
 
     # Capture up to any links
     for chapter_index, chapter_line in enumerate(content_lines[:40]):
@@ -177,7 +173,8 @@ def identify_pre_note_range(content_lines: list[str]) -> range:
 
 def identify_authors_note_ranges(content_lines: list[str]) -> list[range]:
     # Capture note marked "Author's Note"
-    authors_note_re = re.compile(r"(Actual )?Author['|’]?s['|’]? [N|n]ote.*")
+    authors_note_re = re.compile(r"(^((((Actual )?Author['’]?s['’]?)|(Writ(ing|er.?s))) [N|n]ote.*)|(Song [Ll]ist:?))")
+    signed_note_re = re.compile(r".*[-—][ ]?[Pp]irateaba.*")
     authors_ps_note_re = re.compile(r"P[Ss]\.?.*")
     authors_note_count = 0
     authors_note_ranges: list[range] = []
@@ -185,25 +182,33 @@ def identify_authors_note_ranges(content_lines: list[str]) -> list[range]:
         if authors_note_re.match(chapter_line.strip()):
             authors_note_ranges.append(range(chapter_index, len(content_lines)))
             empty_line_cnt = 0
-            for i, author_note_line in enumerate(content_lines[chapter_index:], start=chapter_index):
+
+            # Collect Author's note lines
+            for i, author_note_line in enumerate(content_lines[chapter_index + 1 :], start=chapter_index + 1):
+                # Break out if another Author's note is found
+                if authors_note_re.match(author_note_line.strip()):
+                    break
+
+                authors_note_ranges[authors_note_count] = range(authors_note_ranges[authors_note_count].start, i)
+
+                # Break out if we find a signature
+                if signed_note_re.match(chapter_line):
+                    break
+
                 if len(author_note_line.strip()) == 0:
                     empty_line_cnt += 1
                     if empty_line_cnt >= 4:
-                        authors_note_ranges[authors_note_count] = range(
-                            authors_note_ranges[authors_note_count].start, i
-                        )
                         break
                 else:
                     empty_line_cnt = 0
 
             authors_note_count += 1
-
         elif authors_ps_note_re.match(chapter_line) and len(authors_note_ranges) > 0:
             # Extend authors note range to include any P.S. lines
             for i, author_note_line in enumerate(content_lines[chapter_index:], start=chapter_index):
                 if len(author_note_line.strip()) == 0:
                     empty_line_cnt += 1
-                    if empty_line_cnt >= 4:
+                    if empty_line_cnt >= 3:
                         authors_note_ranges[-1] = range(authors_note_ranges[-1].start, i + 1)
                         break
                 else:
@@ -245,7 +250,7 @@ def parse_chapter_content(soup: BeautifulSoup) -> dict:
         ):
             first_img_index = len(content_children) - i
         # Only check the last 200 lines of the chapter
-        if i > 200:
+        if i > 100:
             break
     content_lines = content_lines[
         : first_img_index - 4
