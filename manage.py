@@ -4,6 +4,8 @@
 import os
 import sys
 
+os.environ["PYTHONBREAKPOINT"] = "ipdb.set_trace"
+
 
 def main() -> None:
     """Run administrative tasks."""
