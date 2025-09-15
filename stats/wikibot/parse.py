@@ -255,7 +255,6 @@ class SkillTableParser(WikiTableParser):
         if aliases := parsed_name.get("aliases"):
             parsed_row["aliases"] = aliases
         if categories := parsed_name.get("categories"):
-            # parsed_row["categories"] = replace_br_with_space(categories)
             parsed_row["categories"] = categories
         if effect := strip_ref_tags(row[1].strip()):
             parsed_row["effect"] = replace_br_with_space(effect)
@@ -276,18 +275,30 @@ class SpellTableParser(WikiTableParser):
 
     @staticmethod
     def parse_row(row: list[str]) -> dict[str, str | list[str]]:
+        row = list(filter(lambda cell: cell is not None, row))
         parsed_name = parse_name_field(row[0], wrap_brackets=True)
-        parsed_row: dict[str, str | list[str]] = {"tier": strip_ref_tags(replace_br_with_space(row[1].strip()))}
+        parsed_row: dict[str, str | list[str]] = {}
         if aliases := parsed_name.get("aliases"):
             parsed_row["aliases"] = aliases
         if categories := parsed_name.get("categories"):
             parsed_row["categories"] = categories
-        if effect := strip_ref_tags(row[2].strip()):
-            parsed_row["effect"] = replace_br_with_space(effect)
+
+        if len(row) == 4:
+            # Tiered spell table
+            parsed_row["tier"] = strip_ref_tags(replace_br_with_space(row[1].strip()))
+            if effect := strip_ref_tags(row[2].strip()):
+                parsed_row["effect"] = replace_br_with_space(effect)
+        elif len(row) == 3:
+            # Untiered spell table
+            if effect := strip_ref_tags(row[1].strip()):
+                parsed_row["effect"] = replace_br_with_space(effect)
+        else:
+            msg = f"Encountered invalid table row while parsing spell table: {row}"
+            raise ValueError(msg)
 
         return parsed_row
 
-    def parse(self) -> dict | None:
+    def parse(self) -> dict:
         parsed_data = {}
         for row in self.table.data()[1:]:
             name = parse_name_field(row[0], wrap_brackets=True)["name"]

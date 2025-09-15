@@ -9,7 +9,8 @@ from .parse import (
     SkillTableParser,
     SpellTableParser,
 )
-from pywikibot.textlib import Section, extract_sections
+from pywikibot.textlib import extract_sections
+from .exceptions import MissingWikiContent
 
 
 def get_aliases(page: pwb.Page) -> list[str] | None:
@@ -76,8 +77,8 @@ class TwiBot(SingleSiteBot):
             parser = ClassesTableParser(wtp.parse(page.get()).sections[1].tables[0])
             return parser.parse()
         except IndexError as e:
-            print("Missing sections or table on [Class] list page")
-            raise e
+            msg = "Missing sections or table on [Class] list page"
+            raise MissingWikiContent(msg) from e
 
     def treat_skills(self, page: pwb.Page) -> dict | None:
         """
@@ -89,36 +90,45 @@ class TwiBot(SingleSiteBot):
             parser = SkillTableParser(wtp.parse(page.get()).sections[1].tables[0])
             return parser.parse()
         except IndexError as e:
-            print("Missing sections or table on [Skills] list page")
-            raise e
+            msg = "Missing sections or table on [Skills] list page"
+            raise MissingWikiContent(msg) from e
 
     def treat_spells(self, page: pwb.Page) -> dict | None:
+        """
+        Treat spells pages in the format of "Spells Effect/XXX" where XXX represents the first
+        letter of the skills. These pages should have skills listed in a consistent table format
+        """
         self.current_page = page
 
-        content = extract_sections(pwb.Page(self.site, "Spells").text, self.site)
-        spell_lists: list[Section] = list(
-            filter(
-                lambda s: re.match(
-                    r"[=]+[\s]*List[\s]+[Oo]f[\s]+Spells[\s]*[=]+",
-                    s.title.replace("\xa0", " "),
-                ),
-                content.sections,
-            ),
-        )
+        content = wtp.parse(page.expand_text())
 
-        if spell_lists:
-            data = {}
-            for section in spell_lists:
-                try:
-                    table = wtp.parse(section.content).tables[0]
-                    data |= SpellTableParser(table).parse()
-                except IndexError as e:
-                    print("Missing table for [Spell] list")
-                    raise e
+        def match_list_of_spells_sections(section: wtp.Section) -> bool:
+            if section.title is not None:
+                return bool(re.match(r"List[\s]+[Oo]f[\s]+Spells[\s]*", section.title.replace("\xa0", " ")))
+
+            return False
+
+        def match_nav_tables(s: str | None) -> bool:
+            if s is None:
+                return False
+            return bool(re.match(r".*[Ss]pell\s+Navigation", s))
+
+        try:
+            spell_list_section: wtp.Section = list(filter(match_list_of_spells_sections, content.sections))[0]
+            spell_tables = [t for t in spell_list_section.tables if not match_nav_tables(t.data(row=0, column=0))]
+        except IndexError as e:
+            msg = r"Unable to locate the 'List of Spells' section spells list"
+            raise MissingWikiContent(msg) from e
+
+        if spell_tables:
+            data: dict[str, str] = {}
+            for table in spell_tables:
+                data |= SpellTableParser(table).parse()
 
             return data
-        print("No Spell list found.")
-        return None
+
+        msg = "No spell lists found"
+        raise MissingWikiContent(msg)
 
     def treat_artifacts(self, page: pwb.Page) -> dict | None:
         self.current_page = page
