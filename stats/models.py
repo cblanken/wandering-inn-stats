@@ -1,5 +1,6 @@
 from django.core.validators import RegexValidator
 from django.db import models
+from django.db.models import Q
 from django.db.models.functions import Length
 from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
@@ -99,6 +100,7 @@ class Chapter(models.Model):
     word_count = models.PositiveBigIntegerField(default=0)
     authors_note_word_count = models.PositiveBigIntegerField(default=0)
     book = models.ForeignKey(Book, on_delete=models.CASCADE)
+    digest = models.CharField(default="")
 
     title_short = models.GeneratedField(  # type: ignore[attr-defined]
         expression=models.Func(
@@ -116,6 +118,7 @@ class Chapter(models.Model):
         indexes = [
             models.Index(fields=["number"]),
         ]
+        constraints = [models.CheckConstraint(check=Q(digest__length=64) | Q(digest__length=0), name="digest_length")]
 
     def __str__(self) -> str:
         return f"(Chapter: {self.title}, URL: {self.source_url})"
