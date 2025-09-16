@@ -1,6 +1,6 @@
 """Utility functions and classes for build script"""
 
-from enum import Enum
+from enum import Enum, auto
 from pathlib import Path
 from pprint import pformat
 from subprocess import Popen, TimeoutExpired
@@ -231,12 +231,34 @@ def prompt(s: str = "", sound: bool = False) -> str:
     return input(s)
 
 
+class PromptResponse(Enum):
+    YES = auto()
+    NO = auto()
+    SKIP = auto()
+
+
+def prompt_yes_no(prefix: str, *, skip: bool = False, sound: bool = False) -> PromptResponse:
+    """User confirmation prompt with an optional 'skip' and a default response of No"""
+    if sound:
+        play_sound()
+
+    msg = f"{prefix} [y]es/[N]o/[s]kip: " if skip else f"{prefix} [y]es/[N]o: "
+    resp = input(msg)
+    if skip and regex.match(r"^[Ss][k]?[i]?[p]?\s*$", resp):
+        return PromptResponse.SKIP
+
+    if regex.match(r"^[Yy][e]?[s]?\s*$", resp):
+        return PromptResponse.YES
+
+    return PromptResponse.NO
+
+
 def select_ref_type(sound: bool = False) -> str | None:
     """Interactive classification of TextRef type"""
     try:
         while True:
             sel = prompt(
-                f'Classify the above TextRef with\n{pformat(RefType.TYPES)}\nleave blank to skip OR use "r" to retry: ',
+                f'Classify the above TextRef with\n{pformat(RefType.Type.choices)}\nleave blank to skip OR use "r" to retry: ',
                 sound,
             )
 
@@ -248,8 +270,7 @@ def select_ref_type(sound: bool = False) -> str | None:
             ref_type = match_ref_type(sel)
             if ref_type is None:
                 print("Invalid selection.")
-                yes_no = prompt("Try again (y/n): ", sound)
-                if yes_no.lower() == "y":
+                if prompt_yes_no("Try again", sound=sound):
                     continue
                 return None  # skip with confirmation
 
@@ -291,8 +312,7 @@ def select_item_from_qs(qs: QuerySet[T], sound: bool = False) -> T | None:
             if sel_i >= 0 and sel_i < len(qs):
                 return qs[sel_i]
             print("Invalid selection.")
-            yes_no = prompt("Try again (y/n): ", sound)
-            if yes_no.lower() == "y":
+            if prompt_yes_no("Try again", sound=sound):
                 continue
             return None  # skip with confirmation
 
@@ -329,16 +349,15 @@ def select_ref_type_from_qs(qs: QuerySet[RefType], sound: bool = False) -> RefTy
             if sel_i >= 0 and sel_i < len(qs):
                 return qs[sel_i]
             print("Invalid selection.")
-            yes_no = prompt("Try again (y/n): ", sound)
-            if yes_no.lower() == "y":
+            if prompt_yes_no("Try again", sound=sound):
                 continue
             return None  # skip with confirmation
 
     except KeyboardInterrupt as exc:
-        print("")
+        print("", flush=True)
         msg = "Build interrupted with Ctrl-C (Keyboard Interrupt)."
         raise CommandError(msg) from exc
     except EOFError as exc:
-        print("")
+        print("", flush=True)
         msg = "Build interrupted with Ctrl-D (EOF)."
         raise CommandError(msg) from exc

@@ -6,7 +6,7 @@ from pathlib import Path
 import regex
 from typing import Any
 from django.core.management.base import BaseCommand, CommandError, CommandParser
-from django.db.models import Q
+from django.db.models import Q, Model
 from django.db.models.query import QuerySet
 from django.db.utils import DataError, IntegrityError
 from django.utils.html import strip_tags
@@ -35,6 +35,8 @@ from stats.build_utils import (
     build_reftype_pattern,
     compile_textref_patterns,
     prompt,
+    prompt_yes_no,
+    PromptResponse,
     select_ref_type,
     select_ref_type_from_qs,
     select_item_from_qs,
@@ -216,26 +218,27 @@ class Command(BaseCommand):
         full_msg = f"{t} {category.value:<10} {style(msg)}"
         self.stdout.write(full_msg)
 
-    def update_prop_prompt(self, old: str, new: str, prop: str | None) -> tuple[Any, bool]:
+    def update_prop_prompt(self, obj: Model, new_value: object, prop: str) -> bool:
         """Prompt user to update property and return selected value and confirmation boolean"""
-        differ: bool = old != new
-        prop = prop or "property"
+        old_value = getattr(obj, prop)
+        differ: bool = old_value != new_value
         if differ:
             self.log(
-                f"A difference in [{prop}] was found.",
+                f"A difference in [{obj.__qualname__}.{prop}] was found.",
                 LogCat.PROMPT,
             )
-            print(f"> OLD: {old}")
-            print(f"> NEW: {new}")
-            while True:
-                resp = input("> Update? (default = no change) ([y]es/[n]o): ")
-                if regex.match(r"^[Yy][e]?[s]?$", resp):
-                    return (new, True)
-                if resp == "" or regex.match(r"^[Nn][o]?", resp):
-                    return (old, False)
-                self.stdout.write("> That doesn't match a valid response. Please try again.")
+            print(f"> OLD: {old_value}")
+            print(f"> NEW: {new_value}")
 
-        return (old, False)
+            resp = prompt_yes_no("> Update?")
+            match resp:
+                case PromptResponse.YES:
+                    obj.save()
+                    return True
+                case PromptResponse.NO:
+                    return False
+
+        return False
 
     def edit_field(self, field: str, desc: str | None = None) -> str | None:
         """
@@ -247,13 +250,12 @@ class Command(BaseCommand):
         - `desc`: description of field
         """
         self.log(f'Confirming {desc} "{field}"', LogCat.PROMPT)
-        while True:
-            edit_resp = prompt(
-                f'> Would you like to edit the {desc} "{self.style.WARNING(field)}"? ([y]es/[n]o/[s]kip): ',
-                sound=self.prompt_sound,
-            ).strip()
+        edit_resp = prompt_yes_no(
+            f'> Would you like to edit the {desc} "{self.style.WARNING(field)}"?', sound=self.prompt_sound
+        )
 
-            if regex.match(r"^[Yy][e]?[s]?$", edit_resp):
+        match edit_resp:
+            case PromptResponse.YES:
                 name_resp = prompt(
                     f"> Edit {desc}? (default={self.style.WARNING(field)}): ",
                     sound=self.prompt_sound,
@@ -262,16 +264,14 @@ class Command(BaseCommand):
                     return field
 
                 if field != name_resp:
-                    confirm = input(f"> Is {self.style.WARNING(name_resp)} correct? (y/n): ")
-                    if regex.match(r"^[Yy][e]?[s]?$", confirm):
+                    confirm = prompt_yes_no(f"> Is {self.style.WARNING(name_resp)} correct? ")
+                    if confirm:
                         return name_resp
-                    continue
                 return field
-            if regex.match(r"^[Ss][k]?[i]?[p]?", edit_resp):
+            case PromptResponse.SKIP:
                 return None
-            if edit_resp == "" or regex.match(r"^[Nn][o]?", edit_resp):
+            case PromptResponse.NO:
                 return field
-            self.stdout.write("That doesn't match a valid response. Please try again.")
 
     def get_or_create_alias(self, rt: RefType, alias_name: str) -> Alias | None:
         """Create Alias with name confirmation and logging of success/failure to console"""
@@ -349,13 +349,13 @@ class Command(BaseCommand):
                         return None
 
                 # Prompt user to continue
-                ans = prompt(
-                    f'> "{text_ref.text}" matches a name in [DISAMBIGUATION LIST]. Skip (default) TextRef? (y/n): ',
-                    sound=options.get("prompt_sound"),
+                ans = prompt_yes_no(
+                    f'> "{text_ref.text}" matches a name in [DISAMBIGUATION LIST]. Create RefType anyway?',
+                    sound=bool(options.get("prompt_sound")),
                 )
 
                 # Skip by default
-                if ans.lower() == "y" or len(ans) == 0:
+                if ans == PromptResponse.NO:
                     self.log(f"{text_ref.text} skipped...", LogCat.SKIPPED)
                     return None
 
@@ -479,7 +479,7 @@ class Command(BaseCommand):
                 if options.get("skip_reftype_select"):
                     new_type = None
                 else:
-                    new_type = select_ref_type(sound=options.get("prompt_sound"))
+                    new_type = select_ref_type(sound=bool(options.get("prompt_sound")))
                     if new_type == "retry":
                         continue  # retry RefType acquisition
 
@@ -621,9 +621,8 @@ class Command(BaseCommand):
             return
 
         if src_chapter.metadata.get("word_count", 0) < 30:
-            msg = f'The length of chapter "{src_chapter.title}" is very short. It may be locked behind a password and should not be imported into the database in it\'s current state.'
-            self.log(msg, LogCat.SKIPPED)
-            return
+            msg = f'The length of chapter "{src_chapter.title}" is very short. It may be locked behind a password or be a non-canon chapter.'
+            self.log(msg, LogCat.WARN)
 
         defaults = {
             "number": chapter_num,
@@ -642,25 +641,31 @@ class Command(BaseCommand):
             ),
             "word_count": src_chapter.metadata.get("word_count", 0),
             "authors_note_word_count": src_chapter.metadata.get("authors_note_word_count", 0),
+            "digest": src_chapter.metadata.get("digest"),
         }
 
         try:
             chapter: Chapter = Chapter.objects.get(title=src_chapter.title, number=chapter_num)
-            attribute_changed = False
             self.log(f"Checking Chapter {chapter.title} for updates...", LogCat.INFO)
             for key, value in defaults.items():
                 curr_value = getattr(chapter, key)
                 if curr_value is not None and curr_value != value:
-                    updated_value, update_confirmed = self.update_prop_prompt(getattr(chapter, key), value, key)
-                    attribute_changed |= update_confirmed
-                    setattr(chapter, key, updated_value)
+                    update_confirmed = self.update_prop_prompt(chapter, value, key)
 
                     if update_confirmed:
-                        chapter.save()
                         self.log(
-                            f"Chapter {chapter.title}->{key} was updated from {curr_value} to {updated_value}",
+                            f"Chapter {chapter.title}->{key} was updated from {curr_value} to {value}",
                             LogCat.UPDATED,
                         )
+                    elif update_confirmed and key == "digest":
+                        self.log(
+                            f"The digest of the contents of chapter: {chapter.title} was changed. This may indicate the TextRefs for chapter {chapter.title} need to be rebuilt.",
+                            LogCat.WARN,
+                        )
+                        resp = prompt_yes_no(f"Delete all existing TextRefs for chapter {chapter.title}?")
+                        if resp:
+                            TextRef.objects.filter(chapter_line__chapter=chapter).delete()
+                            self.log(f"All TextRefs for chapter {chapter.title} were successfully deleted", LogCat.INFO)
                     else:
                         self.log(
                             f"{chapter.title}->{key} differs from the new value ({curr_value}) but was not updated",
@@ -752,10 +757,11 @@ class Command(BaseCommand):
                     f"An existing chapter line ({i}) in chapter {chapter} was found with different text.",
                     LogCat.PROMPT,
                 )
-                response = prompt("Continue? (y/n): ", sound=True)
 
-                if response.strip().lower() == "y":
+                resp = prompt_yes_no("Continue?", sound=bool(options.get("prompt_sound")))
+                if resp:
                     continue
+
                 self.log("Build was aborted", LogCat.ERROR)
                 msg = "Build aborted."
                 raise CommandError(msg) from e
@@ -996,26 +1002,19 @@ class Command(BaseCommand):
                                 LogCat.CREATED,
                             )
                         else:
-                            # fmt: off
                             self.log(f'Character: "{name}" already exists', LogCat.SKIPPED)
-                            char.first_chapter_appearance, update_confirmed = self.update_prop_prompt(char.first_chapter_appearance, new_first_chapter_appearance, "first_chapter_appearance")
-                            if update_confirmed:
-                                self.log(f"First Appearance updated to {char.first_chapter_appearance}", LogCat.UPDATED)
 
-                            char.wiki_uri, update_confirmed = self.update_prop_prompt(char.wiki_uri, new_wiki_uri, "wiki_uri")
-                            if update_confirmed:
-                                self.log(f"Wiki URI updated to {char.wiki_uri}", LogCat.UPDATED)
+                            if self.update_prop_prompt(char, new_first_chapter_appearance, "first_chapter_appearance"):
+                                self.log(f"First Appearance updated to {new_first_chapter_appearance}", LogCat.UPDATED)
 
-                            char.status, update_confirmed = self.update_prop_prompt(char.status, new_status, "status")
-                            if update_confirmed:
-                                self.log(f"Status updated to {char.status}", LogCat.UPDATED)
+                            if self.update_prop_prompt(char, new_wiki_uri, "wiki_uri"):
+                                self.log(f"Wiki URI updated to {new_wiki_uri}", LogCat.UPDATED)
 
-                            char.species, update_confirmed = self.update_prop_prompt(char.species, new_species, "species")
-                            if update_confirmed:
-                                self.log(f"Species updated to {char.species}", LogCat.UPDATED)
+                            if self.update_prop_prompt(char, new_status, "status"):
+                                self.log(f"Status updated to {new_status}", LogCat.UPDATED)
 
-                            char.save()
-                            # fmt: on
+                            if self.update_prop_prompt(char, new_species, "species"):
+                                self.log(f"Species updated to {new_species}", LogCat.UPDATED)
 
                     except IntegrityError:
                         print(
