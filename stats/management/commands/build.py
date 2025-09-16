@@ -622,31 +622,54 @@ class Command(BaseCommand):
 
         if src_chapter.metadata.get("word_count", 0) < 30:
             msg = f'The length of chapter "{src_chapter.title}" is very short. It may be locked behind a password and should not be imported into the database in it\'s current state.'
-            raise CommandError(msg)
+            self.log(msg, LogCat.SKIPPED)
+            return
+
+        defaults = {
+            "number": chapter_num,
+            "title": src_chapter.title,
+            "book": book,
+            "is_interlude": "interlude" in src_chapter.title.lower(),
+            "source_url": src_chapter.metadata.get("url", ""),
+            "post_date": dt.datetime.fromisoformat(
+                src_chapter.metadata.get("pub_time", dt.datetime.now(tz=dt.timezone.utc).isoformat()),
+            ),
+            "last_update": dt.datetime.fromisoformat(
+                src_chapter.metadata.get("mod_time", dt.datetime.now(tz=dt.timezone.utc).isoformat()),
+            ),
+            "download_date": dt.datetime.fromisoformat(
+                src_chapter.metadata.get("dl_time", dt.datetime.now(tz=dt.timezone.utc).isoformat()),
+            ),
+            "word_count": src_chapter.metadata.get("word_count", 0),
+            "authors_note_word_count": src_chapter.metadata.get("authors_note_word_count", 0),
+        }
 
         try:
-            chapter, ref_type_updated = Chapter.objects.update_or_create(
-                title=src_chapter.title,
-                number=chapter_num,
-                defaults={
-                    "number": chapter_num,
-                    "title": src_chapter.title,
-                    "book": book,
-                    "is_interlude": "interlude" in src_chapter.title.lower(),
-                    "source_url": src_chapter.metadata.get("url", ""),
-                    "post_date": dt.datetime.fromisoformat(
-                        src_chapter.metadata.get("pub_time", dt.datetime.now(tz=dt.timezone.utc).isoformat()),
-                    ),
-                    "last_update": dt.datetime.fromisoformat(
-                        src_chapter.metadata.get("mod_time", dt.datetime.now(tz=dt.timezone.utc).isoformat()),
-                    ),
-                    "download_date": dt.datetime.fromisoformat(
-                        src_chapter.metadata.get("dl_time", dt.datetime.now(tz=dt.timezone.utc).isoformat()),
-                    ),
-                    "word_count": src_chapter.metadata.get("word_count", 0),
-                    "authors_note_word_count": src_chapter.metadata.get("authors_note_word_count", 0),
-                },
-            )
+            chapter: Chapter = Chapter.objects.get(title=src_chapter.title, number=chapter_num)
+            attribute_changed = False
+            self.log(f"Checking Chapter {chapter.title} for updates...", LogCat.INFO)
+            for key, value in defaults.items():
+                curr_value = getattr(chapter, key)
+                if curr_value is not None and curr_value != value:
+                    updated_value, update_confirmed = self.update_prop_prompt(getattr(chapter, key), value, key)
+                    attribute_changed |= update_confirmed
+                    setattr(chapter, key, updated_value)
+
+                    if update_confirmed:
+                        chapter.save()
+                        self.log(
+                            f"Chapter {chapter.title}->{key} was updated from {curr_value} to {updated_value}",
+                            LogCat.UPDATED,
+                        )
+                    else:
+                        self.log(
+                            f"{chapter.title}->{key} differs from the new value ({curr_value}) but was not updated",
+                            LogCat.INFO,
+                        )
+
+        except Chapter.DoesNotExist:
+            chapter = Chapter.objects.create(**defaults)
+            self.log(f"Chapter created: {chapter.title}", LogCat.CREATED)
         except IntegrityError as e:
             self.log(
                 f'A DB integrity error occurred. Chapter "{src_chapter.title}" could not be created.',
@@ -654,14 +677,6 @@ class Command(BaseCommand):
             )
             msg = f"Chapter integrity failed when building a chapter. The indexing of the source chapters may have been changed.\n{e}"
             raise CommandError(msg) from e
-
-        if ref_type_updated:
-            self.log(f"Chapter created: {chapter}", LogCat.CREATED)
-        else:
-            self.log(
-                f'Chapter "{src_chapter.title}" already exists. Chapter updated.',
-                LogCat.UPDATED,
-            )
 
         if options.get("skip_text_refs"):
             return
