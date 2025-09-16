@@ -18,8 +18,8 @@ from .models import (
 
 # Admin model settings
 class ChapterAdmin(admin.ModelAdmin):
-    list_display = ["title", "number", "word_count", "post_date", "is_interlude"]
-    list_filter = ["is_interlude", "book__volume__title", "book__title"]
+    list_display = ["title", "number", "word_count", "post_date", "is_canon", "is_interlude"]
+    list_filter = ["is_canon", "is_interlude", "book__volume__title", "book__title"]
     search_fields = ["title", "source_url"]
 
 
