@@ -224,16 +224,14 @@ class Command(BaseCommand):
         differ: bool = old_value != new_value
         if differ:
             self.log(
-                f"A difference in [{obj.__qualname__}.{prop}] was found.",
+                f"A difference in the {prop} of {obj}] was found.",
                 LogCat.PROMPT,
             )
             print(f"> OLD: {old_value}")
             print(f"> NEW: {new_value}")
 
-            resp = prompt_yes_no("> Update?")
-            match resp:
+            match prompt_yes_no("> Update?"):
                 case PromptResponse.YES:
-                    obj.save()
                     return True
                 case PromptResponse.NO:
                     return False
@@ -250,11 +248,12 @@ class Command(BaseCommand):
         - `desc`: description of field
         """
         self.log(f'Confirming {desc} "{field}"', LogCat.PROMPT)
-        edit_resp = prompt_yes_no(
-            f'> Would you like to edit the {desc} "{self.style.WARNING(field)}"?', sound=self.prompt_sound
-        )
 
-        match edit_resp:
+        match prompt_yes_no(
+            f'> Would you like to edit the {desc} "{self.style.WARNING(field)}"?',
+            enable_skip=True,
+            sound=self.prompt_sound,
+        ):
             case PromptResponse.YES:
                 name_resp = prompt(
                     f"> Edit {desc}? (default={self.style.WARNING(field)}): ",
@@ -264,9 +263,12 @@ class Command(BaseCommand):
                     return field
 
                 if field != name_resp:
-                    confirm = prompt_yes_no(f"> Is {self.style.WARNING(name_resp)} correct? ")
-                    if confirm:
-                        return name_resp
+                    resp = prompt_yes_no(f"> Is {self.style.WARNING(name_resp)} correct? ")
+                    match resp:
+                        case PromptResponse.YES:
+                            return name_resp
+                        case PromptResponse.SKIP:
+                            return None
                 return field
             case PromptResponse.SKIP:
                 return None
@@ -313,7 +315,7 @@ class Command(BaseCommand):
             except Alias.DoesNotExist:
                 self.log(
                     f'RefType: "{rt_name} ({rt_type})" doesn\'t exist. Create?',
-                    LogCat.NEW,
+                    LogCat.PROMPT,
                 )
                 edited_name = self.edit_field(rt_name, "RefType name")
                 if edited_name is None:
@@ -355,9 +357,10 @@ class Command(BaseCommand):
                 )
 
                 # Skip by default
-                if ans == PromptResponse.NO:
-                    self.log(f"{text_ref.text} skipped...", LogCat.SKIPPED)
-                    return None
+                match ans:
+                    case PromptResponse.NO:
+                        self.log(f"{text_ref.text} skipped...", LogCat.SKIPPED)
+                        return None
 
             try:
                 ref_type = RefType.objects.get(name=text_ref.text)
@@ -574,9 +577,9 @@ class Command(BaseCommand):
 
     def build_chapter_by_id(self, options: dict[str, Any], chapter_num: int) -> None:
         """Build individual Chapter by ID"""
-        chapter_dir = list(Path.glob(Path("./data"), "*/*/*/{chapter.title}"))[0]
         try:
             chapter = Chapter.objects.get(number=chapter_num)
+            chapter_dir = list(Path.glob(Path("./data"), f"*/*/*/{chapter.title}"))[0]
             self.log(
                 f"Populating chapter data for existing chapter (id={chapter_num}): {chapter.title} ...",
                 LogCat.INFO,
@@ -646,31 +649,37 @@ class Command(BaseCommand):
 
         try:
             chapter: Chapter = Chapter.objects.get(title=src_chapter.title, number=chapter_num)
-            self.log(f"Checking Chapter {chapter.title} for updates...", LogCat.INFO)
             for key, value in defaults.items():
                 curr_value = getattr(chapter, key)
                 if curr_value is not None and curr_value != value:
                     update_confirmed = self.update_prop_prompt(chapter, value, key)
 
                     if update_confirmed:
+                        setattr(chapter, key, value)
+                        chapter.save()
                         self.log(
-                            f"Chapter {chapter.title}->{key} was updated from {curr_value} to {value}",
+                            f"Chapter {chapter.title}->{key} was updated from '{curr_value}' to '{value}'",
                             LogCat.UPDATED,
                         )
-                    elif update_confirmed and key == "digest":
-                        self.log(
-                            f"The digest of the contents of chapter: {chapter.title} was changed. This may indicate the TextRefs for chapter {chapter.title} need to be rebuilt.",
-                            LogCat.WARN,
-                        )
-                        resp = prompt_yes_no(f"Delete all existing TextRefs for chapter {chapter.title}?")
-                        if resp:
-                            TextRef.objects.filter(chapter_line__chapter=chapter).delete()
-                            self.log(f"All TextRefs for chapter {chapter.title} were successfully deleted", LogCat.INFO)
+
                     else:
                         self.log(
                             f"{chapter.title}->{key} differs from the new value ({curr_value}) but was not updated",
                             LogCat.INFO,
                         )
+
+                    if update_confirmed and key == "digest":
+                        self.log(
+                            f"The digest of the contents of chapter: {chapter.title} was changed. This may indicate the TextRefs for chapter {chapter.title} need to be rebuilt.",
+                            LogCat.WARN,
+                        )
+
+                        match prompt_yes_no(f"Delete all existing TextRefs for chapter {chapter.title}?"):
+                            case PromptResponse.YES:
+                                TextRef.objects.filter(chapter_line__chapter=chapter).delete()
+                                self.log(
+                                    f"All TextRefs for chapter {chapter.title} were successfully deleted", LogCat.INFO
+                                )
 
         except Chapter.DoesNotExist:
             chapter = Chapter.objects.create(**defaults)
@@ -903,15 +912,17 @@ class Command(BaseCommand):
 
                     if ref_type is None:
                         self.log(
-                            self.style.ERROR(f"Unable to create RefType: {name} type={RefType.Type.CHARACTER}"),
-                            LogCat.ERROR,
+                            f"RefType: {name} type={RefType.Type.CHARACTER} was skipped.",
+                            LogCat.SKIPPED,
                         )
                         continue
 
                     # Create alias for Character first name
                     invalid_first_names = [
+                        # TODO: these should be a config file
                         "a",
                         "an",
+                        "aluminum",
                         "archer",
                         "armored",
                         "crusader",
@@ -971,6 +982,7 @@ class Command(BaseCommand):
                             except IndexError:
                                 # Failed to split URL on `.com` meaning the href was likely
                                 # a relative link to another wiki page
+                                self.log(f'The first appearance href(s) for "{name}" could not be parsed', LogCat.WARN)
                                 first_ref = None
                             else:
                                 first_ref = Chapter.objects.get(
@@ -982,6 +994,7 @@ class Command(BaseCommand):
                         else:
                             first_ref = None
                     except Chapter.DoesNotExist:
+                        self.log(f"A chapter matching the URL {endpoint} does not exist", LogCat.WARN)
                         first_ref = None
 
                     try:
@@ -1005,15 +1018,23 @@ class Command(BaseCommand):
                             self.log(f'Character: "{name}" already exists', LogCat.SKIPPED)
 
                             if self.update_prop_prompt(char, new_first_chapter_appearance, "first_chapter_appearance"):
+                                char.first_chapter_appearance = new_first_chapter_appearance
+                                char.save()
                                 self.log(f"First Appearance updated to {new_first_chapter_appearance}", LogCat.UPDATED)
 
                             if self.update_prop_prompt(char, new_wiki_uri, "wiki_uri"):
+                                char.wiki_uri = new_wiki_uri
+                                char.save()
                                 self.log(f"Wiki URI updated to {new_wiki_uri}", LogCat.UPDATED)
 
                             if self.update_prop_prompt(char, new_status, "status"):
+                                char.status = new_status
+                                char.save()
                                 self.log(f"Status updated to {new_status}", LogCat.UPDATED)
 
                             if self.update_prop_prompt(char, new_species, "species"):
+                                char.species = new_species
+                                char.save()
                                 self.log(f"Species updated to {new_species}", LogCat.UPDATED)
 
                     except IntegrityError:

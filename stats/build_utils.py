@@ -237,14 +237,14 @@ class PromptResponse(Enum):
     SKIP = auto()
 
 
-def prompt_yes_no(prefix: str, *, skip: bool = False, sound: bool = False) -> PromptResponse:
+def prompt_yes_no(prefix: str, *, enable_skip: bool = False, sound: bool = False) -> PromptResponse:
     """User confirmation prompt with an optional 'skip' and a default response of No"""
     if sound:
         play_sound()
 
-    msg = f"{prefix} [y]es/[N]o/[s]kip: " if skip else f"{prefix} [y]es/[N]o: "
+    msg = f"{prefix} [y]es/[N]o/[s]kip: " if enable_skip else f"{prefix} [y]es/[N]o: "
     resp = input(msg)
-    if skip and regex.match(r"^[Ss][k]?[i]?[p]?\s*$", resp):
+    if enable_skip and regex.match(r"^[Ss][k]?[i]?[p]?\s*$", resp):
         return PromptResponse.SKIP
 
     if regex.match(r"^[Yy][e]?[s]?\s*$", resp):

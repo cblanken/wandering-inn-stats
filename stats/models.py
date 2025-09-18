@@ -142,6 +142,7 @@ class RefType(models.Model):
         SPELL_UPDATE = "SB", _("Spell Update")
         SYSTEM_GENERAL = "SG", _("System General")
         UNDECIDED = "IN", _("Undecided")
+        SIGN_LANGUAGE = "SL", _("Sign Language")
 
     name = models.TextField()
     type = models.CharField(max_length=2, choices=Type.choices, default="")
@@ -297,7 +298,7 @@ class Character(models.Model):
         TROLL = SpeciesMetadata("TL", "Troll", re.compile(r"[Tt]roll"))
         UNDEAD = SpeciesMetadata("UD", "Undead", re.compile(r"[Uu]ndead"))
         UNICORN = SpeciesMetadata("UC", "Unicorn", re.compile(r"[Uu]nicorn"))
-        UNKNOWN = SpeciesMetadata("UK", "Unknown", re.compile(r""))
+        UNKNOWN = SpeciesMetadata("UK", "Unknown", re.compile(r"^$"))
         VAMPIRE = SpeciesMetadata("VA", "Vampire", re.compile(r"[Vv]ampire"))
         WYRM = SpeciesMetadata("WY", "Wyrm", re.compile(r"[Ww]yrm"))
         WYVERN = SpeciesMetadata("WV", "Wyvern", re.compile(r"[Ww]yvern"))
@@ -316,8 +317,11 @@ class Character(models.Model):
         return f"(Character: {self.ref_type.name}, Status: {self.status}, Species: {self.species})"
 
     @staticmethod
-    def identify_status(s: str) -> str:
+    def identify_status(s: str | None) -> str:
         """Identifies the status of the input string and returns the corresponding shortcode"""
+        if s is None:
+            return Character.Status.UNKNOWN.value.shortcode
+
         for status in Character.Status:
             if status.value.pattern.match(s):
                 return status.value.shortcode
@@ -325,8 +329,11 @@ class Character(models.Model):
         return Character.Status.UNKNOWN.value.shortcode
 
     @staticmethod
-    def identify_species(s: str) -> str:
+    def identify_species(s: str | None) -> str:
         """Identifies the species of the input string and returns the corresponding shortcode"""
+        if s is None:
+            return Character.Species.UNKNOWN.value.shortcode
+
         for species in Character.Species:
             if species.value.pattern.search(s):
                 return species.value.shortcode
