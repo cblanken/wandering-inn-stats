@@ -11,6 +11,7 @@ import re
 from sys import stderr
 import time
 from bs4 import BeautifulSoup, Tag
+from bs4.element import PageElement
 import requests
 import requests.exceptions
 from fake_useragent import UserAgent
@@ -126,44 +127,49 @@ def match_pre_note_line_end(line: str) -> REPair | None:
     return None
 
 
-def identify_pre_note_range(content_lines: list[str]) -> range:
-    # Capture any pre-notes (these exclude explicitly marked  Author's notes)
+def identify_pre_note_range(elements: list[PageElement]) -> range:
+    """This function identifies the range of child elements of the main chapter .entry-content
+    that correspond to the pre note of the chapter (these exclude explicitly marked  Author's notes)
+    """
     square_bracket_exceptions = [re.compile(r".*Level \d+.?\].*"), re.compile(r".*\[Skill.*")]
     signed_pre_note_re = re.compile(r".*[-—][ ]?[Pp]irateaba.*")
     pre_note_range: range = range(0)
-    for chapter_index, chapter_line in enumerate(content_lines[:8]):
-        if pre_note_begin := match_pre_note_line_start(chapter_line):
-            if any(p.match(chapter_line) for p in square_bracket_exceptions):
+
+    for chapter_index, element in enumerate(elements[:8]):
+        ele_text = element.get_text()
+        if pre_note_begin := match_pre_note_line_start(ele_text):
+            if any(p.match(ele_text) for p in square_bracket_exceptions):
                 break
 
-            if pre_note_begin.end.match(chapter_line):
+            if pre_note_begin.end.match(ele_text):
                 # Opening pre-note with closing symbol i.e. single-line pre-note
                 pre_note_range = range(chapter_index + 1)
-            elif not pre_note_begin.internal_end.match(chapter_line):
+            elif not pre_note_begin.internal_end.match(ele_text):
                 # Opening pre-note without closing symbol i.e. multi-line pre-note
                 empty_line_cnt = 0
-                for chapter_index_2, chapter_line_2 in enumerate(content_lines[chapter_index:20]):
+                for multi_line_index, multi_line_ele in enumerate(elements[chapter_index:20]):
+                    multi_line_ele_text = multi_line_ele.get_text()
                     if empty_line_cnt > 3:
-                        pre_note_range = range(chapter_index + chapter_index_2)
+                        pre_note_range = range(chapter_index + multi_line_index)
                         break
-                    if chapter_line_2.strip() == "":
+                    if multi_line_ele_text.strip() == "":
                         empty_line_cnt += 1
-                    if match_pre_note_line_end(chapter_line_2):
-                        pre_note_range = range(chapter_index + chapter_index_2 + 1)
+                    if match_pre_note_line_end(multi_line_ele_text):
+                        pre_note_range = range(chapter_index + multi_line_index + 1)
                         break
-            elif pre_note_begin.internal_end.match(chapter_line):
+            elif pre_note_begin.internal_end.match(ele_text):
                 # Mostly likely matching a [RefType] or intro line
                 pass
 
     # Capture up to any links
-    for chapter_index, chapter_line in enumerate(content_lines[:40]):
-        if match_links(chapter_line) and chapter_index > pre_note_range.stop:
+    for chapter_index, element in enumerate(elements[:40]):
+        if match_links(element.get_text()) and chapter_index > pre_note_range.stop:
             pre_note_range = range(chapter_index + 1)
 
     # Capture up to a signature in the pre-note
-    for chapter_index, chapter_line in enumerate(content_lines[:40]):
+    for chapter_index, element in enumerate(elements[:40]):
         if (
-            any(signed_pre_note_re.match(split_line) for split_line in chapter_line.split("\n"))
+            any(signed_pre_note_re.match(split_line) for split_line in element.get_text().split("\n"))
             and chapter_index > pre_note_range.stop
         ):
             pre_note_range = range(chapter_index + 1)
@@ -171,31 +177,36 @@ def identify_pre_note_range(content_lines: list[str]) -> range:
     return pre_note_range
 
 
-def identify_authors_note_ranges(content_lines: list[str]) -> list[range]:
-    # Capture note marked "Author's Note"
+def identify_authors_note_ranges(elements: list[PageElement]) -> list[range]:
+    """This function identifies the range of child elements of the main chapter .entry-content
+    that correspond to the author's note(s) of the chapter
+    """
+
     authors_note_re = re.compile(r"(^((((Actual )?Author['’]?s['’]?)|(Writ(ing|er.?s))) [N|n]ote.*)|(Song [Ll]ist:?))")
     signed_note_re = re.compile(r".*[-—][ ]?[Pp]irateaba.*")
     authors_ps_note_re = re.compile(r"P[Ss]\.?.*")
     authors_note_count = 0
     authors_note_ranges: list[range] = []
-    for chapter_index, chapter_line in enumerate(content_lines):
-        if authors_note_re.match(chapter_line.strip()):
-            authors_note_ranges.append(range(chapter_index, len(content_lines)))
+    for chapter_index, element in enumerate(elements):
+        element_text = element.get_text()
+        if authors_note_re.match(element_text.strip()):
+            authors_note_ranges.append(range(chapter_index, len(elements)))
             empty_line_cnt = 0
 
             # Collect Author's note lines
-            for i, author_note_line in enumerate(content_lines[chapter_index + 1 :], start=chapter_index + 1):
+            for i, author_note_ele in enumerate(elements[chapter_index + 1 :], start=chapter_index + 1):
+                author_note_ele_text = author_note_ele.get_text()
                 # Break out if another Author's note is found
-                if authors_note_re.match(author_note_line.strip()):
+                if authors_note_re.match(author_note_ele_text.strip()):
                     break
 
                 authors_note_ranges[authors_note_count] = range(authors_note_ranges[authors_note_count].start, i)
 
                 # Break out if we find a signature
-                if signed_note_re.match(chapter_line):
+                if signed_note_re.match(element_text):
                     break
 
-                if len(author_note_line.strip()) == 0:
+                if len(author_note_ele_text.strip()) == 0:
                     empty_line_cnt += 1
                     if empty_line_cnt >= 4:
                         break
@@ -203,10 +214,11 @@ def identify_authors_note_ranges(content_lines: list[str]) -> list[range]:
                     empty_line_cnt = 0
 
             authors_note_count += 1
-        elif authors_ps_note_re.match(chapter_line) and len(authors_note_ranges) > 0:
+        elif authors_ps_note_re.match(element_text) and len(authors_note_ranges) > 0:
             # Extend authors note range to include any P.S. lines
-            for i, author_note_line in enumerate(content_lines[chapter_index:], start=chapter_index):
-                if len(author_note_line.strip()) == 0:
+            for i, author_note_ele in enumerate(elements[chapter_index:], start=chapter_index):
+                author_note_ele_text = author_note_ele.get_text()
+                if len(author_note_ele_text.strip()) == 0:
                     empty_line_cnt += 1
                     if empty_line_cnt >= 3:
                         authors_note_ranges[-1] = range(authors_note_ranges[-1].start, i + 1)
@@ -231,17 +243,17 @@ def parse_chapter_content(soup: BeautifulSoup) -> dict:
     content_children = list(content.children)
 
     # Exclude last two lines which include the previous and next chapter links
-    content_lines: list[str] = [element.get_text() for element in content_children[:-2]]
+    # content_lines: list[str] = [element.get_text() for element in content_children[:-2]]
 
     # Ignore Patreon locked chapters
-    if len(content_lines) < 10 and any(("Patreon" in line for line in content_lines[:9])):
+    if len(content_children) < 10 and any(("Patreon" in ele.get_text() for ele in content_children[:9])):
         raise PatreonChapterError
 
     # Exclude fanart images, links, and credits at end of chapter from parsing
     fanart_credit_pattern = re.compile(
         r".*([Bb]luesky|[Dd]eviant[Aa]rt|[Ii]nstagram|[Kk]o-?[Ff]i|[Tt]witter|Portfolio:).*"
     )
-    first_img_index = len(content_lines)
+    first_img_index = len(content_children)
     excluded_tags = ["img", "iframe"]
     for i, child in enumerate(reversed(content_children)):
         if type(child) is Tag and (
@@ -252,16 +264,18 @@ def parse_chapter_content(soup: BeautifulSoup) -> dict:
         # Only check the last 200 lines of the chapter
         if i > 100:
             break
-    content_lines = content_lines[
-        : first_img_index - 4
-    ]  # include additional lines to catch any credit text before the first img or a tag
+    # content_lines = content_lines[
+    #     : first_img_index - 4
+    # ]  # include additional lines to catch any credit text before the first img or a tag
 
-    pre_note_range = identify_pre_note_range(content_lines)
-    pre_note_lines = content_lines[: pre_note_range.stop]
+    content_children = content_children[: first_img_index - 4]
 
-    authors_note_ranges = identify_authors_note_ranges(content_lines)
+    pre_note_range = identify_pre_note_range(content_children)
+    pre_note_elements = content_children[: pre_note_range.stop]
+
+    authors_note_ranges = identify_authors_note_ranges(content_children)
     authors_note_lines = chain(
-        "\n".join(line.strip() for line in content_lines[r.start : r.stop] if line.strip() != "")
+        "\n".join(ele.get_text().strip() for ele in content_children[r.start : r.stop] if ele.get_text().strip() != "")
         for r in authors_note_ranges
     )
 
@@ -278,38 +292,41 @@ def parse_chapter_content(soup: BeautifulSoup) -> dict:
     # Build chapter text based on line ranges for pre-note and author's note(s)
     match len(authors_note_ranges):
         case 0:
-            chapter_lines = [line.strip() for line in content_lines[pre_note_range.stop :] if line.strip() != ""]
+            chapter_elements = [ele for ele in content_children[pre_note_range.stop :] if ele.get_text().strip() != ""]
         case 1:
-            chapter_lines = [
-                line.strip()
-                for line in chain(
-                    content_lines[pre_note_range.stop : authors_note_ranges[0].start - 1],
-                    content_lines[authors_note_ranges[0].stop :],
+            chapter_elements = [
+                ele
+                for ele in chain(
+                    content_children[pre_note_range.stop : authors_note_ranges[0].start - 1],
+                    content_children[authors_note_ranges[0].stop :],
                 )
-                if line.strip() != ""
+                if ele.get_text().strip() != ""
             ]
         case 2:
             # Ensure chapter content between multiple authors notes is captured
-            chapter_lines = [
-                line.strip()
-                for line in chain(
-                    content_lines[pre_note_range.stop : authors_note_ranges[0].start],
-                    content_lines[authors_note_ranges[0].stop + 1 : authors_note_ranges[1].start],
+            chapter_elements = [
+                ele
+                for ele in chain(
+                    content_children[pre_note_range.stop : authors_note_ranges[0].start],
+                    content_children[authors_note_ranges[0].stop + 1 : authors_note_ranges[1].start],
                 )
-                if line.strip() != ""
+                if ele.get_text().strip() != ""
             ]
         case _:
             raise TooManyAuthorsNotes
 
-    chapter_data["text"] = "\n".join([line.strip() for line in chapter_lines]).strip() + "\n"
+    pre_note_lines = [ele.get_text().strip() for ele in pre_note_elements if ele.get_text().strip() != ""]
+
+    chapter_data["cleaned_html"] = "\n".join([str(e) for e in chapter_elements]) + "\n"
+    chapter_data["text"] = "\n".join([e.get_text().strip() for e in chapter_elements]) + "\n"
     chapter_data["authors_note"] = "\n".join(authors_note_lines) + "\n"
-    chapter_data["pre_note"] = "\n".join([line.strip() for line in pre_note_lines if line.strip() != ""]).strip() + "\n"
+    chapter_data["pre_note"] = "\n".join(pre_note_lines) + "\n"
 
     try:
         word_count = len(chapter_data["text"].split())
 
         authors_note_word_count = len(chapter_data["authors_note"].split())
-        digest: str = hashlib.sha256(chapter_data["text"].encode("utf-8")).hexdigest()
+        digest: str = hashlib.sha256(chapter_data["cleaned_html"].encode("utf-8")).hexdigest()
         chapter_data["metadata"] = {
             "word_count": word_count,
             "authors_note_word_count": authors_note_word_count,

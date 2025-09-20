@@ -102,7 +102,7 @@ class Chapter:
         self.path: Path = path
         self.title: str = path.name
 
-        src_path = Path(path, f"{self.title}.html")
+        src_path = Path(path, f"{self.title}_cleaned.html")
 
         if src_path.exists():
             self.src_path = src_path

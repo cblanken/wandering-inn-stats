@@ -8,9 +8,9 @@ from typing import Iterable, TypeVar
 import regex
 from django.core.management.base import CommandError
 from django.db.models.query import QuerySet
-from django.db.models import Model
+from django.db.models import Model, Q
 from processing import Pattern
-from stats.models import Alias, RefType
+from stats.models import Alias, RefType, Chapter
 
 
 def build_reftype_pattern(ref: RefType) -> list[str]:
@@ -225,10 +225,20 @@ def play_sound() -> None:
 
 
 def prompt(s: str = "", sound: bool = False) -> str:
-    if sound:
-        play_sound()
+    try:
+        if sound:
+            play_sound()
+        resp = input(s)
+    except KeyboardInterrupt as exc:
+        print("")
+        msg = "Build interrupted with Ctrl-C (Keyboard Interrupt)."
+        raise CommandError(msg) from exc
+    except EOFError as exc:
+        print("")
+        msg = "Build interrupted with Ctrl-D (EOF)."
+        raise CommandError(msg) from exc
 
-    return input(s)
+    return resp
 
 
 class PromptResponse(Enum):
@@ -243,7 +253,7 @@ def prompt_yes_no(prefix: str, *, enable_skip: bool = False, sound: bool = False
         play_sound()
 
     msg = f"{prefix} [y]es/[N]o/[s]kip: " if enable_skip else f"{prefix} [y]es/[N]o: "
-    resp = input(msg)
+    resp = prompt(msg, sound=sound)
     if enable_skip and regex.match(r"^[Ss][k]?[i]?[p]?\s*$", resp):
         return PromptResponse.SKIP
 
@@ -255,35 +265,25 @@ def prompt_yes_no(prefix: str, *, enable_skip: bool = False, sound: bool = False
 
 def select_ref_type(sound: bool = False) -> str | None:
     """Interactive classification of TextRef type"""
-    try:
-        while True:
-            sel = prompt(
-                f'Classify the above TextRef with\n{pformat(RefType.Type.choices)}\nleave blank to skip OR use "r" to retry: ',
-                sound,
-            )
+    while True:
+        sel = prompt(
+            f'Classify the above TextRef with\n{pformat(RefType.Type.choices)}\nleave blank to skip OR use "r" to retry: ',
+            sound,
+        )
 
-            if sel.strip().lower() == "r":
-                return "retry"  # special case to retry RefType acquisition
-            if sel.strip() == "":
-                return None  # skip without confirmation
+        if sel.strip().lower() == "r":
+            return "retry"  # special case to retry RefType acquisition
+        if sel.strip() == "":
+            return None  # skip without confirmation
 
-            ref_type = match_ref_type(sel)
-            if ref_type is None:
-                print("Invalid selection.")
-                if prompt_yes_no("Try again", sound=sound):
-                    continue
-                return None  # skip with confirmation
+        ref_type = match_ref_type(sel)
+        if ref_type is None:
+            print("Invalid selection.")
+            if prompt_yes_no("Try again", sound=sound):
+                continue
+            return None  # skip with confirmation
 
-            return ref_type
-
-    except KeyboardInterrupt as exc:
-        print("")
-        msg = "Build interrupted with Ctrl-C (Keyboard Interrupt)."
-        raise CommandError(msg) from exc
-    except EOFError as exc:
-        print("")
-        msg = "Build interrupted with Ctrl-D (EOF)."
-        raise CommandError(msg) from exc
+        return ref_type
 
 
 T = TypeVar("T", bound=Model)
@@ -293,71 +293,105 @@ def select_item_from_qs(qs: QuerySet[T], sound: bool = False) -> T | None:
     if len(qs) < 2:
         msg = "To select from a Queryset, it cannot be empty"
         raise ValueError(msg)
-    try:
-        while True:
-            for i, record in enumerate(qs):
-                print(f"{i}: {record}")
 
-            sel: str = prompt(
-                "Select one of the above records (leave empty to skip): ",
-                sound,
-            )
+    while True:
+        for i, record in enumerate(qs):
+            print(f"{i}: {record}")
 
-            sel = sel.strip()
-            try:
-                sel_i = int(sel)
-            except ValueError:
-                sel_i = -1  # invalid selection
+        sel: str = prompt(
+            "Select one of the above records (leave empty to skip): ",
+            sound,
+        )
 
-            if sel_i >= 0 and sel_i < len(qs):
-                return qs[sel_i]
-            print("Invalid selection.")
-            if prompt_yes_no("Try again", sound=sound):
-                continue
-            return None  # skip with confirmation
+        sel = sel.strip()
+        try:
+            sel_i = int(sel)
+        except ValueError:
+            sel_i = -1  # invalid selection
 
-    except KeyboardInterrupt as exc:
-        print("")
-        msg = "Build interrupted with Ctrl-C (Keyboard Interrupt)."
-        raise CommandError(msg) from exc
-    except EOFError as exc:
-        print("")
-        msg = "Build interrupted with Ctrl-D (EOF)."
-        raise CommandError(msg) from exc
+        if sel_i >= 0 and sel_i < len(qs):
+            return qs[sel_i]
+        print("Invalid selection.")
+        if prompt_yes_no("Try again", sound=sound):
+            continue
+        return None  # skip with confirmation
 
 
 def select_ref_type_from_qs(qs: QuerySet[RefType], sound: bool = False) -> RefType | None:
     """Interactive selection of an existing set of RefType(s)"""
-    try:
-        while True:
-            for i, ref_type in enumerate(qs):
-                print(f"{i}: {ref_type.name} - {match_ref_type(ref_type.type)}")
+    while True:
+        for i, ref_type in enumerate(qs):
+            print(f"{i}: {ref_type.name} - {match_ref_type(ref_type.type)}")
 
-            sel: str = prompt(
-                "Select one of the RefType(s) from the above options (leave empty to skip): ",
-                sound,
+        sel: str = prompt(
+            "Select one of the RefType(s) from the above options (leave empty to skip): ",
+            sound,
+        )
+
+        if sel.strip() == "":
+            return None  # skip without confirmation
+
+        try:
+            sel_i = int(sel)
+        except ValueError:
+            sel_i = -1  # invalid selection
+
+        if sel_i >= 0 and sel_i < len(qs):
+            return qs[sel_i]
+        print("Invalid selection.")
+        if prompt_yes_no("Try again", sound=sound):
+            continue
+        return None  # skip with confirmation
+
+
+def select_alias_from_qs(qs: QuerySet[Alias], *, sound: bool = False) -> Alias | None:
+    """Interactive selection of an existing set of Aliases"""
+    while True:
+        for i, alias in enumerate(qs):
+            print(f"{i}: {alias.name} -> {alias.ref_type}")
+
+        sel: str = prompt(
+            "Select one of the Aliases(s) from the above options (leave empty to skip): ",
+            sound,
+        )
+
+        if sel.strip() == "":
+            return None  # skip without confirmation
+
+        try:
+            sel_i = int(sel)
+        except ValueError:
+            sel_i = -1  # invalid selection
+
+        if sel_i >= 0 and sel_i < len(qs):
+            return qs[sel_i]
+        print("Invalid selection.")
+        if prompt_yes_no("Try again", sound=sound) == PromptResponse.YES:
+            continue
+        return None  # skip with confirmation
+
+
+def find_chapter_by_url(href: str) -> Chapter | None:
+    try:
+        # TODO: handle multiple 'first hrefs' e.g. before and after rewrite
+        endpoint = href.split(".com")[1]
+        try:
+            first_ref = Chapter.objects.get(
+                # Account for existence or lack of "/" at end of the URI
+                Q(source_url__contains=endpoint)
+                | Q(source_url__contains=endpoint + "/")
+                | Q(source_url__contains=endpoint[:-1]),
             )
 
-            if sel.strip() == "":
-                return None  # skip without confirmation
+            if first_ref:
+                return first_ref
+        except Chapter.DoesNotExist:
+            # self.log(f"A chapter matching the URL {endpoint} does not exist", LogCat.WARN)
+            pass
+    except IndexError:
+        # Failed to split URL on `.com` meaning the href was likely
+        # a relative link to another wiki page
+        # self.log(f'The first appearance href(s) for "{name}" could not be parsed: "{href}"', LogCat.WARN)
+        pass
 
-            try:
-                sel_i = int(sel)
-            except ValueError:
-                sel_i = -1  # invalid selection
-
-            if sel_i >= 0 and sel_i < len(qs):
-                return qs[sel_i]
-            print("Invalid selection.")
-            if prompt_yes_no("Try again", sound=sound):
-                continue
-            return None  # skip with confirmation
-
-    except KeyboardInterrupt as exc:
-        print("", flush=True)
-        msg = "Build interrupted with Ctrl-C (Keyboard Interrupt)."
-        raise CommandError(msg) from exc
-    except EOFError as exc:
-        print("", flush=True)
-        msg = "Build interrupted with Ctrl-D (EOF)."
-        raise CommandError(msg) from exc
+    return None

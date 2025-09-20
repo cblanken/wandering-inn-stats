@@ -1,5 +1,6 @@
 import datetime as dt
 from enum import Enum
+from functools import reduce
 import itertools
 import json
 from pathlib import Path
@@ -34,11 +35,13 @@ from processing import (
 from stats.build_utils import (
     build_reftype_pattern,
     compile_textref_patterns,
+    find_chapter_by_url,
     prompt,
     prompt_yes_no,
     PromptResponse,
     select_ref_type,
     select_ref_type_from_qs,
+    select_alias_from_qs,
     select_item_from_qs,
     COLOR_CATEGORY,
     COLORS,
@@ -327,6 +330,11 @@ class Command(BaseCommand):
                 else:
                     self.log(f'RefType: "{edited_name}" already exists', LogCat.EXISTS)
                 return rt
+            except Alias.MultipleObjectsReturned:
+                self.log(f'Multiple Aliases exist for RefType: "{rt_name}"', LogCat.PROMPT)
+                aliases = Alias.objects.filter(name=rt_name, ref_type__type=rt_type)
+                alias = select_alias_from_qs(aliases)
+                return alias.ref_type if alias is not None else None
 
     def get_or_create_ref_type_from_text_ref(self, options: dict[str, Any], text_ref: SrcTextRef) -> RefType | None:
         """Check for existing RefType of TextRef and create backing RefType and Aliases as needed"""
@@ -764,16 +772,20 @@ class Command(BaseCommand):
             except IntegrityError as e:
                 self.log(
                     f"An existing chapter line ({i}) in chapter {chapter} was found with different text.",
-                    LogCat.PROMPT,
+                    LogCat.WARN,
                 )
 
-                resp = prompt_yes_no("Continue?", sound=bool(options.get("prompt_sound")))
-                if resp:
-                    continue
+                print(f"OLD {ChapterLine.objects.get(chapter=chapter, line_number=i).text}")
+                print(f"NEW {src_chapter.lines[i]}")
 
-                self.log("Build was aborted", LogCat.ERROR)
-                msg = "Build aborted."
-                raise CommandError(msg) from e
+                resp = prompt_yes_no("Continue?", sound=self.prompt_sound)
+                match resp:
+                    case PromptResponse.YES:
+                        continue
+                    case _:
+                        self.log("Build was aborted", LogCat.ERROR)
+                        msg = "Build aborted."
+                        raise CommandError(msg) from e
 
             if created:
                 self.log(f"Created line {i:>3}", LogCat.CREATED)
@@ -973,37 +985,65 @@ class Command(BaseCommand):
                     aliases = char_data.get("aliases")
                     if aliases is not None:
                         for alias_name in char_data.get("aliases"):
+                            if alias_name == ref_type.name:
+                                self.log(
+                                    f"The alias {alias_name} exactly matches the name of the Reftype, so it will be ignored.",
+                                    LogCat.WARN,
+                                )
+                                continue
+
+                            if alias_name.strip() == "":
+                                self.log(f"An empty string is not a valid alias for {ref_type.name}", LogCat.WARN)
+                                continue
+
                             self.get_or_create_alias(ref_type, alias_name)
 
-                    try:
-                        if first_hrefs := char_data.get("first_hrefs"):
-                            try:
-                                # TODO: handle multiple 'first hrefs' e.g. before and after rewrite
-                                endpoint = first_hrefs[0].split(".com")[1]
-                            except IndexError:
-                                # Failed to split URL on `.com` meaning the href was likely
-                                # a relative link to another wiki page
-                                self.log(f'The first appearance href(s) for "{name}" could not be parsed', LogCat.WARN)
-                                first_ref = None
-                            else:
-                                first_ref = Chapter.objects.get(
-                                    # Account for existence or lack of "/" at end of the URI
-                                    Q(source_url__contains=endpoint)
-                                    | Q(source_url__contains=endpoint + "/")
-                                    | Q(source_url__contains=endpoint[:-1]),
-                                )
+                    first_appearance: Chapter | None = None
+                    first_hrefs = char_data.get("first_hrefs")
+                    if first_hrefs is not None:
+                        if not isinstance(first_hrefs, list):
+                            self.log(
+                                f"The first appearance hrefs for {name} are not in a list. Ensure they're being parsed correctly.",
+                                LogCat.ERROR,
+                            )
                         else:
-                            first_ref = None
-                    except Chapter.DoesNotExist:
-                        self.log(f"A chapter matching the URL {endpoint} does not exist", LogCat.WARN)
-                        first_ref = None
+                            found_chapters = []
+                            for href in first_hrefs:
+                                href = str(href)
+                                if found_chapter := find_chapter_by_url(href):
+                                    found_chapters.append(found_chapter)
+                                    # first_appearance = found_chapter
+
+                                if found_chapter is None and "wanderinginn.com" in href:
+                                    self.log(
+                                        f"The first_appearance href '{href}' for {name} points to https://wanderinginn.com, but a matching chapter could not be found in the database. This may be a reference to an old chapter prior to edit/rewrite",
+                                        LogCat.WARN,
+                                    )
+
+                                elif found_chapter is None:
+                                    self.log(
+                                        f"A matching chapter for the URL '{href}' could not be found.", LogCat.WARN
+                                    )
+                                else:
+                                    self.log(
+                                        f"A matching chapter for the URL '{href}' was found -> {found_chapter}",
+                                        LogCat.INFO,
+                                    )
+
+                            def earliest_chapter(c1: Chapter, c2: Chapter) -> Chapter:
+                                return c1 if c1.number < c2.number else c2
+
+                            # Target earliest chapter
+                            first_appearance = (
+                                reduce(earliest_chapter, found_chapters) if len(found_chapters) > 0 else None
+                            )
 
                     try:
-                        new_first_chapter_appearance = first_ref
+                        (char, char_created) = Character.objects.get_or_create(ref_type=ref_type)
+                        new_first_chapter_appearance = first_appearance
                         new_wiki_uri = f"https://wiki.wanderinginn.com/{char_data.get('page_url')}"
                         new_status = Character.identify_status(char_data.get("status"))
                         new_species = Character.identify_species(char_data.get("species"))
-                        (char, char_created) = Character.objects.get_or_create(ref_type=ref_type)
 
                         if char_created:
                             char.first_chapter_appearance = new_first_chapter_appearance

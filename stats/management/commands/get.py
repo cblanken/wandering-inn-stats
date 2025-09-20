@@ -86,6 +86,7 @@ class Command(BaseCommand):
         # Download chapter
         chapter_path.mkdir(parents=True, exist_ok=True)
         src_path = Path(chapter_path, f"{chapter_title}.html")
+        cleaned_src_path = Path(chapter_path, f"{chapter_title}_cleaned.html")
         txt_path = Path(chapter_path, f"{chapter_title}.txt")
         authors_note_path = Path(chapter_path, f"{chapter_title}_authors_note.txt")
         meta_path = Path(chapter_path, "metadata.json")
@@ -136,6 +137,15 @@ class Command(BaseCommand):
             path=src_path,
             clobber=bool(options.get("clobber")),
             success_msg=f'"{chapter_title}" html saved to {src_path}',
+            warn_msg=f"{src_path} already exists. Not saving...",
+        )
+
+        # Save cleaned HTML
+        self.save_file(
+            text=data["cleaned_html"],
+            path=cleaned_src_path,
+            clobber=bool(options.get("clobber")),
+            success_msg=f'"{chapter_title}" html saved to {cleaned_src_path}',
             warn_msg=f"{src_path} already exists. Not saving...",
         )
 
