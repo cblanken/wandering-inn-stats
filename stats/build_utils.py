@@ -3,7 +3,7 @@
 from enum import Enum, auto
 from pathlib import Path
 from pprint import pformat
-from subprocess import Popen, TimeoutExpired
+from subprocess import Popen, TimeoutExpired, DEVNULL
 from typing import Iterable, TypeVar
 import regex
 from django.core.management.base import CommandError
@@ -217,7 +217,11 @@ def match_ref_type(type_str: str) -> RefType.Type | None:
 def play_sound() -> None:
     sound_path = Path("stats/sounds/alert.mp3")
     try:
-        Popen(["/usr/bin/mpg123", "-q", sound_path])
+        Popen(
+            ["/usr/bin/ffplay", "-loglevel", "quiet", "-hide_banner", "-autoexit", "-nodisp", sound_path],
+            stdout=DEVNULL,
+            stderr=DEVNULL,
+        )
     except OSError as e:
         print(f"! - Alert sound file {sound_path} could not be played. {e}")
     except TimeoutExpired:

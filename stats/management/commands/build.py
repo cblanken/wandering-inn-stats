@@ -361,7 +361,7 @@ class Command(BaseCommand):
                 # Prompt user to continue
                 ans = prompt_yes_no(
                     f'> "{text_ref.text}" matches a name in [DISAMBIGUATION LIST]. Create RefType anyway?',
-                    sound=bool(options.get("prompt_sound")),
+                    sound=self.prompt_sound,
                 )
 
                 # Skip by default
@@ -382,7 +382,7 @@ class Command(BaseCommand):
                     f"Multiple RefType(s) exist for the name: {text_ref.text}...",
                     LogCat.WARN,
                 )
-                return select_ref_type_from_qs(ref_types, sound=True)
+                return select_ref_type_from_qs(ref_types, sound=self.prompt_sound)
 
             # Check for existing Alias
             try:
@@ -490,7 +490,7 @@ class Command(BaseCommand):
                 if options.get("skip_reftype_select"):
                     new_type = None
                 else:
-                    new_type = select_ref_type(sound=bool(options.get("prompt_sound")))
+                    new_type = select_ref_type(sound=self.prompt_sound)
                     if new_type == "retry":
                         continue  # retry RefType acquisition
 
