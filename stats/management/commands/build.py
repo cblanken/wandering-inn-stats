@@ -682,11 +682,12 @@ class Command(BaseCommand):
                             LogCat.WARN,
                         )
 
-                        match prompt_yes_no(f"Delete all existing TextRefs for chapter {chapter.title}?"):
+                        match prompt_yes_no(f"Delete all existing ChapterLines for chapter {chapter.title}?"):
                             case PromptResponse.YES:
-                                TextRef.objects.filter(chapter_line__chapter=chapter).delete()
+                                ChapterLine.objects.filter(chapter=chapter).delete()
                                 self.log(
-                                    f"All TextRefs for chapter {chapter.title} were successfully deleted", LogCat.INFO
+                                    f"All ChapterLines for chapter {chapter.title} were successfully deleted",
+                                    LogCat.INFO,
                                 )
 
         except Chapter.DoesNotExist:
