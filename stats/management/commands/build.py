@@ -623,6 +623,8 @@ class Command(BaseCommand):
         src_path: Path,
         chapter_num: int,
     ) -> None:
+        new_chapterlines: list[ChapterLine] = []
+        new_textrefs: list[TextRef] = []
         src_chapter: SrcChapter = SrcChapter(src_path)
         if src_chapter.metadata is None:
             self.log(
@@ -765,7 +767,7 @@ class Command(BaseCommand):
 
             # Create ChapterLine if it doesn't already exist
             try:
-                chapter_line, created = ChapterLine.objects.get_or_create(
+                chapter_line = ChapterLine.objects.get(
                     chapter=chapter,
                     line_number=i,
                     text=src_chapter.lines[i],
@@ -787,9 +789,10 @@ class Command(BaseCommand):
                         self.log("Build was aborted", LogCat.ERROR)
                         msg = "Build aborted."
                         raise CommandError(msg) from e
-
-            if created:
-                self.log(f"Created line {i:>3}", LogCat.CREATED)
+            except ChapterLine.DoesNotExist:
+                chapter_line = ChapterLine(chapter=chapter, line_number=i, text=src_chapter.lines[i])
+                new_chapterlines.append(chapter_line)
+                self.log(f"New line {i:>3} queued for creation", LogCat.INFO)
 
             text_refs = src_chapter.gen_text_refs(
                 i,
@@ -802,7 +805,8 @@ class Command(BaseCommand):
                 print(f"{chapter.number} - {text_ref}")
                 try:
                     TextRef.objects.get(
-                        chapter_line=chapter_line,
+                        chapter_line__chapter__number=chapter_line.chapter.number,
+                        chapter_line__line_number=chapter_line.line_number,
                         start_column=text_ref.start_column,
                         end_column=text_ref.end_column,
                     )
@@ -819,26 +823,22 @@ class Command(BaseCommand):
 
                 color = self.detect_textref_color(options, text_ref)
 
-                # Create TextRef
-                text_ref, ref_type_created = TextRef.objects.update_or_create(
+                # Queue TextRef for creation
+                text_ref = TextRef(
                     chapter_line=chapter_line,
                     start_column=text_ref.start_column,
                     end_column=text_ref.end_column,
-                    defaults={
-                        "chapter_line": chapter_line,
-                        "type": ref_type,
-                        "color": color,
-                        "start_column": text_ref.start_column,
-                        "end_column": text_ref.end_column,
-                    },
+                    type=ref_type,
+                    color=color,
                 )
-                if ref_type_created:
-                    self.log(f"TextRef: {text_ref.type.name} created", LogCat.CREATED)
-                else:
-                    self.log(
-                        f"TextRef: {text_ref.type.name} @line {text_ref.chapter_line.line_number} updated",
-                        LogCat.UPDATED,
-                    )
+
+                new_textrefs.append(text_ref)
+                self.log(f"TextRef: {text_ref.type.name} queued for creation", LogCat.INFO)
+
+        self.log(f"Creating new ChapterLines for chapter {chapter.title}...", LogCat.CREATED)
+        ChapterLine.objects.bulk_create(new_chapterlines)
+        self.log(f"Creating new TextRefs for chapter {chapter.title}...", LogCat.CREATED)
+        TextRef.objects.bulk_create(new_textrefs)
 
     def build_color_categories(self) -> None:
         """Build color categories"""
