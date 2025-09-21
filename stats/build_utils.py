@@ -7,6 +7,7 @@ from subprocess import Popen, TimeoutExpired, DEVNULL
 from typing import Iterable, TypeVar
 import regex
 from django.core.management.base import CommandError
+from django.db.models.functions import Length
 from django.db.models.query import QuerySet
 from django.db.models import Model, Q
 from processing import Pattern
@@ -15,10 +16,17 @@ from stats.models import Alias, RefType, Chapter
 
 def build_reftype_pattern(ref: RefType) -> list[str]:
     """Create an OR'ed regex of a Reftype's name and its aliases"""
-    return [
-        ref.name,
-        *[alias.name for alias in Alias.objects.filter(ref_type=ref) if "(" not in alias.name],
-    ]
+    return sorted(
+        [
+            ref.name,
+            *[
+                alias.name
+                for alias in Alias.objects.filter(ref_type=ref).order_by(Length("name").desc())
+                if "(" not in alias.name
+            ],
+        ],
+        key=len,
+    )
 
 
 def compile_textref_patterns(patterns: Iterable[str]) -> regex.Pattern[str] | None:
