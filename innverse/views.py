@@ -93,7 +93,7 @@ def overview(request: HtmxHttpRequest) -> HttpResponse:
     if request.htmx:
         return render(request, "tables/htmx_table.html", {"table": table})
 
-    total_wc = Chapter.objects.aggregate(total_wc=Sum("word_count"))["total_wc"]
+    total_wc = Chapter.objects.filter(is_canon=True).aggregate(total_wc=Sum("word_count"))["total_wc"]
     longest_chapter = Chapter.objects.filter(is_canon=True).order_by("-word_count")[0]
     shortest_chapter = Chapter.objects.filter(is_canon=True).order_by("word_count")[0]
     word_counts = Chapter.objects.filter(is_canon=True).order_by("word_count").values_list("word_count", flat=True)
@@ -285,7 +285,7 @@ def characters(request: HtmxHttpRequest) -> HttpResponse:
     species_count = Character.objects.values("species").distinct().count()
 
     chapter_with_most_char_refs = (
-        TextRef.objects.filter(type__type=RefType.Type.CHARACTER)
+        TextRef.objects.filter(type__type=RefType.Type.CHARACTER, chapter_line__chapter__is_canon=True)
         .select_related("chapter_line__chapter")
         .annotate(
             title=F("chapter_line__chapter__title"),
@@ -372,7 +372,7 @@ def classes(request: HtmxHttpRequest) -> HttpResponse:
     longest_class_name_by_words = rt_data.order_by("-word_count")[0]
 
     chapter_with_most_class_refs = (
-        TextRef.objects.filter(type__type=RefType.Type.CLASS)
+        TextRef.objects.filter(type__type=RefType.Type.CLASS, chapter_line__chapter__is_canon=True)
         .annotate(
             title=F("chapter_line__chapter__title"),
             url=F("chapter_line__chapter__source_url"),
