@@ -24,6 +24,12 @@ from .tables import (
 from .forms import ChapterFilterForm, SearchForm, MAX_CHAPTER_NUM
 
 
+def title_nbsp(s: str) -> str:
+    """Return a string replacing targeted spaces with the &nbsp; HTML entities
+    to improve the wrapping of titles"""
+    return s.replace("Pt. ", "Pt.&nbsp;")
+
+
 class HtmxHttpRequest(HttpRequest):
     htmx: HtmxDetails
 
@@ -153,7 +159,7 @@ def overview(request: HtmxHttpRequest) -> HttpResponse:
                 render_to_string(
                     "patterns/atoms/link/stat_link.html",
                     context={
-                        "text": longest_chapter.title,
+                        "text": title_nbsp(longest_chapter.title),
                         "href": reverse("chapters", args=[longest_chapter.number]),
                         "fit": True,
                     },
@@ -166,7 +172,7 @@ def overview(request: HtmxHttpRequest) -> HttpResponse:
                 render_to_string(
                     "patterns/atoms/link/stat_link.html",
                     context={
-                        "text": shortest_chapter.title,
+                        "text": title_nbsp(shortest_chapter.title),
                         "href": reverse("chapters", args=[shortest_chapter.number]),
                         "fit": True,
                     },
@@ -179,7 +185,7 @@ def overview(request: HtmxHttpRequest) -> HttpResponse:
                 render_to_string(
                     "patterns/atoms/link/stat_link.html",
                     context={
-                        "text": first_chapter.title,
+                        "text": title_nbsp(first_chapter.title),
                         "href": reverse("chapters", args=[first_chapter.number]),
                         "fit": True,
                     },
@@ -194,7 +200,7 @@ def overview(request: HtmxHttpRequest) -> HttpResponse:
                 render_to_string(
                     "patterns/atoms/link/stat_link.html",
                     context={
-                        "text": latest_chapter.title,
+                        "text": title_nbsp(latest_chapter.title),
                         "href": reverse("chapters", args=[latest_chapter.number]),
                         "fit": True,
                     },
@@ -215,7 +221,7 @@ def overview(request: HtmxHttpRequest) -> HttpResponse:
                 render_to_string(
                     "patterns/atoms/link/stat_link.html",
                     context={
-                        "text": longest_release_chapter_from.title,
+                        "text": title_nbsp(longest_release_chapter_from.title),
                         "href": reverse("chapters", args=[longest_release_chapter_from.number]),
                         "fit": True,
                     },
@@ -224,7 +230,7 @@ def overview(request: HtmxHttpRequest) -> HttpResponse:
                 + render_to_string(
                     "patterns/atoms/link/stat_link.html",
                     context={
-                        "text": longest_release_chapter_to.title,
+                        "text": title_nbsp(longest_release_chapter_to.title),
                         "href": reverse("chapters", args=[longest_release_chapter_to.number]),
                         "fit": True,
                     },
@@ -312,7 +318,7 @@ def characters(request: HtmxHttpRequest) -> HttpResponse:
                 render_to_string(
                     "patterns/atoms/link/stat_link.html",
                     context={
-                        "text": chapter_with_most_char_refs["title"],
+                        "text": title_nbsp(chapter_with_most_char_refs["title"]),
                         "href": reverse("chapters", args=[chapter_with_most_char_refs.get("number")]),
                         "fit": True,
                     },
@@ -422,7 +428,7 @@ def classes(request: HtmxHttpRequest) -> HttpResponse:
                 render_to_string(
                     "patterns/atoms/link/stat_link.html",
                     context={
-                        "text": chapter_with_most_class_refs["title"],
+                        "text": title_nbsp(chapter_with_most_class_refs["title"]),
                         "href": reverse(
                             "chapters",
                             args=[chapter_with_most_class_refs.get("number")],
@@ -977,7 +983,7 @@ def reftype_stats(request: HtmxHttpRequest, name: str) -> HttpResponse:
                     render_to_string(
                         "patterns/atoms/link/stat_link.html",
                         context={
-                            "text": first_mention_chapter.chapter.title,
+                            "text": title_nbsp(first_mention_chapter.chapter.title),
                             "href": reverse("chapters", args=[first_mention_chapter.chapter.number]),
                             "fit": True,
                             "no_icon": True,
@@ -989,7 +995,7 @@ def reftype_stats(request: HtmxHttpRequest, name: str) -> HttpResponse:
                     render_to_string(
                         "patterns/atoms/link/stat_link.html",
                         context={
-                            "text": last_mention_chapter.chapter.title,
+                            "text": title_nbsp(last_mention_chapter.chapter.title),
                             "href": reverse("chapters", args=[last_mention_chapter.chapter.number]),
                             "fit": True,
                             "no_icon": True,
