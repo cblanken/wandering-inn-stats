@@ -913,7 +913,7 @@ def reftype_stats(request: HtmxHttpRequest, name: str) -> HttpResponse:
         rt = RefType.objects.get(Q(slug__iexact=name) & Q(type=rt_type))
 
     # Table config and pagination
-    table_query = {"type": rt.type, "type_query": rt.name, "filter": request.GET.get("q", "")}
+    table_query = {"type": rt.type, "type_query": rt.name, "filter": request.GET.get("q", ""), "strict_mode": True}
 
     config = RequestConfig(request)
     table = get_search_result_table(table_query)
@@ -931,7 +931,6 @@ def reftype_stats(request: HtmxHttpRequest, name: str) -> HttpResponse:
     chapter_appearances = (
         RefType.objects.select_related("reftypecomputedview")
         .annotate(mentions=F("reftypecomputedview__mentions"))
-        .filter(type=RefType.Type.LOCATION)
         .order_by(F("mentions").desc(nulls_last=True))
     )
 
