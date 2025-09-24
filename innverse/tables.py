@@ -179,8 +179,9 @@ class ChapterRefTable(tables.Table):
 
 
 class ReftypeMentionsHtmxTable(tables.Table):
-    name = tables.Column(verbose_name="Name", attrs={"th": {"style": "width: 50%"}})
-    mentions = tables.Column(verbose_name="Mentions", attrs={"th": {"style": "width: 30%"}})
+    name = tables.Column(verbose_name="Name", attrs={"th": {"style": "width: 30%"}})
+    first_mention_num = tables.Column(verbose_name="First mentioned", attrs={"th": {"style": "width: 30%"}})
+    mentions = tables.Column(verbose_name="Mentions", attrs={"th": {"style": "width: 15%"}})
     word_count = tables.Column(attrs={"th": {"style": "width: 10%"}})
     letter_count = tables.Column(attrs={"th": {"style": "width: 10%"}})
 
@@ -200,10 +201,19 @@ class ReftypeMentionsHtmxTable(tables.Table):
 
         return (queryset, True)
 
+    def render_first_mention_num(self, record) -> SafeText:  # noqa: ANN001
+        return render_to_string(
+            "patterns/atoms/link/stat_link.html",
+            context={
+                "text": f"{record.first_mention_title}",
+                "href": reverse("chapters", args=[record.first_mention_num]),
+            },
+        )
+
     class Meta:
         model = RefType
         template_name = "tables/table_partial.html"
-        fields = ("name", "mentions", "word_count", "letter_count")
+        fields = ("name", "first_mention_num", "mentions", "word_count", "letter_count")
         empty_text = EMPTY_TABLE_TEXT
 
 
@@ -211,26 +221,31 @@ class CharacterHtmxTable(tables.Table):
     name = tables.Column(
         accessor="ref_type__name",
         verbose_name="Name",
-        attrs={"th": {"style": "width: 12rem; max-width: 15rem;"}},
+        attrs={"th": {"style": "width: 12rem; max-width: 20%;"}},
     )
     first_appearance = tables.Column(
         accessor="first_chapter_appearance",
         verbose_name="First appearance",
-        attrs={"th": {"style": "width: 12rem; max-width: 15rem;"}},
+        attrs={"th": {"style": "width: 12rem; max-width: 15%;"}},
+    )
+    first_mention_num = tables.Column(
+        accessor="first_mention_num",
+        verbose_name="First mention",
+        attrs={"th": {"style": "width: 12rem; max-width: 15%;"}},
     )
     wiki = tables.Column(
         accessor="wiki_uri",
         verbose_name="Wiki",
         orderable=False,
-        attrs={"th": {"style": "width: 10rem; max-width: 15rem;"}},
+        attrs={"th": {"style": "width: 10rem; max-width: 15%;"}},
     )
     mentions = tables.Column(
         accessor="ref_type__reftypecomputedview__mentions",
         verbose_name="Mentions",
-        attrs={"th": {"style": "width: 8rem; max-width: 8rem;"}},
+        attrs={"th": {"style": "width: 8rem; max-width: 10%;"}},
     )
 
-    species = tables.Column(attrs={"th": {"style": "width: 8rem; max-width: 12rem;"}})
+    species = tables.Column(attrs={"th": {"style": "width: 8rem; max-width: 10%;"}})
 
     def render_name(self, record: Character) -> SafeText:
         return render_to_string(
@@ -247,6 +262,15 @@ class CharacterHtmxTable(tables.Table):
             context={
                 "text": f"{value.title}",
                 "href": reverse("chapters", args=[value.number]),
+            },
+        )
+
+    def render_first_mention_num(self, record) -> SafeText:  # noqa: ANN001
+        return render_to_string(
+            "patterns/atoms/link/stat_link.html",
+            context={
+                "text": f"{record.first_mention_title}",
+                "href": reverse("chapters", args=[record.first_mention_num]),
             },
         )
 
@@ -277,7 +301,7 @@ class CharacterHtmxTable(tables.Table):
     class Meta:
         model = Character
         template_name = "tables/table_partial.html"
-        fields = ("name", "mentions", "species", "first_appearance", "wiki")
+        fields = ("name", "mentions", "species", "first_appearance", "first_mention_num", "wiki")
         empty_text = EMPTY_TABLE_TEXT
 
 

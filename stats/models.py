@@ -462,8 +462,8 @@ class RefTypeComputedView(models.Model):
     """
 
     ref_type = models.OneToOneField(RefType, on_delete=models.DO_NOTHING, primary_key=True, db_column="ref_type")
-    mentions = models.PositiveIntegerField()
-    # first_mention_chapter = models.ForeignKey(Chapter, on_delete=models.CASCADE)
+    mentions = models.PositiveIntegerField(db_column="mentions")
+    first_mention = models.ForeignKey(Chapter, on_delete=models.CASCADE, db_column="first_mention")
 
     class Meta:
         managed = False

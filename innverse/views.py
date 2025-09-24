@@ -254,13 +254,21 @@ def characters(request: HtmxHttpRequest) -> HttpResponse:
                 | Q(status__icontains=query)
                 | Q(first_chapter_appearance__title__icontains=query),
             )
-            .annotate(mentions=F("ref_type__reftypecomputedview__mentions"))
+            .annotate(
+                mentions=F("ref_type__reftypecomputedview__mentions"),
+                first_mention_num=F("ref_type__reftypecomputedview__first_mention__number"),
+                first_mention_title=F("ref_type__reftypecomputedview__first_mention__title"),
+            )
             .order_by(F("mentions").desc(nulls_last=True))
         )
     else:
         data = (
             Character.objects.select_related("ref_type", "ref_type__reftypecomputedview", "first_chapter_appearance")
-            .annotate(mentions=F("ref_type__reftypecomputedview__mentions"))
+            .annotate(
+                mentions=F("ref_type__reftypecomputedview__mentions"),
+                first_mention_num=F("ref_type__reftypecomputedview__first_mention__number"),
+                first_mention_title=F("ref_type__reftypecomputedview__first_mention__title"),
+            )
             .order_by(F("mentions").desc(nulls_last=True))
         )
 
@@ -343,14 +351,22 @@ def get_reftype_table_data(query: str | None, rt_type: str, order_by: str = "men
     if query:
         rt_data = (
             RefType.objects.select_related("reftypecomputedview")
-            .annotate(mentions=F("reftypecomputedview__mentions"))
+            .annotate(
+                mentions=F("reftypecomputedview__mentions"),
+                first_mention_num=F("reftypecomputedview__first_mention__number"),
+                first_mention_title=F("reftypecomputedview__first_mention__title"),
+            )
             .filter(type=rt_type, name__icontains=query)
             .order_by(F(order_by).desc(nulls_last=True))
         )
     else:
         rt_data = (
             RefType.objects.select_related("reftypecomputedview")
-            .annotate(mentions=F("reftypecomputedview__mentions"))
+            .annotate(
+                mentions=F("reftypecomputedview__mentions"),
+                first_mention_num=F("reftypecomputedview__first_mention__number"),
+                first_mention_title=F("reftypecomputedview__first_mention__title"),
+            )
             .filter(type=rt_type)
             .order_by(F("mentions").desc(nulls_last=True))
         )
@@ -940,9 +956,9 @@ def reftype_stats(request: HtmxHttpRequest, name: str) -> HttpResponse:
         .order_by(F("mentions").desc(nulls_last=True))
     )
 
-    mention_count = TextRef.objects.filter(type=rt).count()
+    mention_count = TextRef.objects.filter(type=rt, chapter_line__chapter__is_canon=True).count()
 
-    chapter_appearances = RefTypeChapter.objects.filter(type=rt).order_by("chapter__number")
+    chapter_appearances = RefTypeChapter.objects.filter(type=rt, chapter__is_canon=True).order_by("chapter__number")
     first_mention_chapter = chapter_appearances.first()
     last_mention_chapter = chapter_appearances.last()
 
