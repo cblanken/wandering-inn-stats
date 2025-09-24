@@ -1103,7 +1103,7 @@ def get_search_result_table(query: dict[str, str]) -> ChapterRefTable | TextRefT
                 Q(name__icontains=query_filter) | Q(text__icontains=query_filter) | Q(title__icontains=query_filter),
             )
 
-        table = TextRefTable(table_data)
+        table = TextRefTable(table_data, filter_text=query_filter)
 
     return table
 
@@ -1113,7 +1113,7 @@ def search(request: HtmxHttpRequest) -> HttpResponse:
         query = request.GET.copy()
         query["first_chapter"] = query.get("first_chapter", 0)
         query["last_chapter"] = query.get("last_chapter", MAX_CHAPTER_NUM + 1)
-        query["filter"] = query.get("q")
+        query["filter"] = query.get("text_query")
 
         config = RequestConfig(request)
 

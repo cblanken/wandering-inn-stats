@@ -8,6 +8,8 @@ from urllib.parse import quote
 import django_tables2 as tables
 from stats.models import Chapter, Character, RefType, TextRef
 from typing import Any
+import regex
+from bs4 import BeautifulSoup
 
 
 EMPTY_TABLE_TEXT = "No results found for the given query"
@@ -28,6 +30,8 @@ class TextRefTable(tables.Table):
         attrs={"th": {"style": "width: 20%;"}},
     )
 
+    invalid_filter = regex.compile(r"[<>]")
+
     @property
     def hidden_cols(self) -> list[int]:
         return self._hidden_cols
@@ -36,11 +40,23 @@ class TextRefTable(tables.Table):
     def hidden_cols(self, cols: list[int]) -> None:
         self._hidden_cols = cols
 
+    @property
+    def filter_text(self) -> str | None:
+        return self._filter_text
+
+    @filter_text.setter
+    def filter_text(self, text: str) -> None:
+        self._filter_text = text
+
     def __init__(self, *args, **kwargs) -> None:  # noqa: ANN002 ANN003
         super().__init__(*args)
         self._hidden_cols = []
         if hide_cols := kwargs.get("hidden_cols"):
             self._hidden_cols = hide_cols
+
+        self._filter_text = None
+        if filter_text := kwargs.get("filter_text"):
+            self._filter_text = filter_text
 
     def before_render(self, _request) -> None:  # noqa: ANN001
         for i, col in enumerate(self.columns):
@@ -67,15 +83,21 @@ class TextRefTable(tables.Table):
             return record.type.name
 
     def render_text(self, record: TextRef) -> SafeText:
-        text = record.chapter_line.text
-        first = strip_tags(text[: record.start_column])
-        highlight = text[record.start_column : record.end_column]
-        last = strip_tags(text[record.end_column :])
-
-        return render_to_string(
-            "patterns/atoms/search_result_line/search_result_line.html",
-            context={"first": first, "highlight": highlight, "last": last},
+        line_text = record.chapter_line.text
+        highlight = line_text[record.start_column : record.end_column]
+        clean_line_text = BeautifulSoup(line_text, features="html.parser").get_text()
+        highlighted_text = clean_line_text.replace(
+            highlight, f'<span class="text-hl-primary font-mono font-extrabold">{highlight}</span>', 1
         )
+        if self.filter_text and not self.invalid_filter.search(self.filter_text):
+            filter_text_i = clean_line_text.upper().find(self.filter_text.upper())
+            if filter_text_i != -1:
+                filter_text = clean_line_text[filter_text_i : filter_text_i + len(self.filter_text)]
+                highlighted_text = highlighted_text.replace(
+                    filter_text, f'<span class="bg-hl-tertiary text-black font-bold py-[2px]">{filter_text}</span>'
+                )
+
+        return SafeText(highlighted_text)
 
     def render_chapter_url(self, record: TextRef, value) -> SafeText:  # noqa: ANN001
         # Using the full text or a strict character count appears to run into issues when linking
