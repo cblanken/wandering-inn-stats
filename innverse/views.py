@@ -985,9 +985,9 @@ def reftype_stats(request: HtmxHttpRequest, name: str) -> HttpResponse:
     context = {
         "table": table,
         "title": rt.name,
-        "link": render_to_string(
+        "wiki_link": render_to_string(
             "patterns/atoms/link/link.html",
-            context={"text": "", "href": href, "size": 8, "external": True},
+            context={"text": rt.name, "href": href, "size": 8, "external": True},
         ),
         "aliases": aliases,
         "gallery": get_reftype_gallery(rt),
