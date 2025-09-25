@@ -5,8 +5,8 @@ from django.shortcuts import render
 from django.template.loader import render_to_string
 from django.utils.text import slugify
 from django_htmx.middleware import HtmxDetails
-from django_tables2 import RequestConfig
 from django_tables2.export.export import TableExport
+from django_tables2 import RequestConfig
 from django.urls import reverse
 import datetime as dt
 from itertools import chain
@@ -22,6 +22,13 @@ from .tables import (
     ReftypeMentionsHtmxTable,
 )
 from .forms import ChapterFilterForm, SearchForm, MAX_CHAPTER_NUM
+
+
+DEFAULT_TABLE_PAGINATION_OPTS = {
+    "page": 1,
+    "per_page": 25,
+    "orphans": 5,
+}
 
 
 def title_nbsp(s: str) -> str:
@@ -78,7 +85,6 @@ def parse_chapter_params(req: HttpRequest) -> Tuple[Chapter | None, Chapter | No
 
 
 def overview(request: HtmxHttpRequest) -> HttpResponse:
-    config = RequestConfig(request)
     query = request.GET.get("q")
     if query:
         chapter_data = (
@@ -87,18 +93,18 @@ def overview(request: HtmxHttpRequest) -> HttpResponse:
     else:
         chapter_data = Chapter.objects.filter(is_status_update=False)
     table = ChapterHtmxTable(chapter_data)
-    config.configure(table)
-    table.paginate(
-        page=request.GET.get("page", 1),
-        per_page=request.GET.get("page_size", 25),
-        orphans=5,
-    )
 
-    # Only filter for canon chapter data after Chapter table is configured
-    chapter_data = chapter_data.filter(is_canon=True)
+    if request.GET.get("show_all_rows"):
+        config = RequestConfig(request, paginate=False)
+    else:
+        config = RequestConfig(request, paginate=DEFAULT_TABLE_PAGINATION_OPTS)
+    config.configure(table)
 
     if request.htmx:
         return render(request, "tables/htmx_table.html", {"table": table})
+
+    # Only filter for canon chapter data after Chapter table is configured
+    chapter_data = chapter_data.filter(is_canon=True)
 
     total_wc = Chapter.objects.filter(is_canon=True).aggregate(total_wc=Sum("word_count"))["total_wc"]
     longest_chapter = Chapter.objects.filter(is_canon=True).order_by("-word_count")[0]
@@ -244,7 +250,6 @@ def overview(request: HtmxHttpRequest) -> HttpResponse:
 
 
 def characters(request: HtmxHttpRequest) -> HttpResponse:
-    config = RequestConfig(request)
     query = request.GET.get("q")
     if query:
         data = (
@@ -274,12 +279,12 @@ def characters(request: HtmxHttpRequest) -> HttpResponse:
         )
 
     table = CharacterHtmxTable(data)
+
+    if request.GET.get("show_all_rows"):
+        config = RequestConfig(request, paginate=False)
+    else:
+        config = RequestConfig(request, paginate=DEFAULT_TABLE_PAGINATION_OPTS)
     config.configure(table)
-    table.paginate(
-        page=request.GET.get("page", 1),
-        per_page=request.GET.get("page_size", 25),
-        orphans=5,
-    )
 
     if request.htmx:
         return render(request, "tables/htmx_table.html", {"table": table})
@@ -376,17 +381,15 @@ def get_reftype_table_data(query: str | None, rt_type: str, order_by: str = "men
 
 
 def classes(request: HtmxHttpRequest) -> HttpResponse:
-    config = RequestConfig(request)
     query = request.GET.get("q")
     rt_data = get_reftype_table_data(query, RefType.Type.CLASS)
-
     table = ReftypeMentionsHtmxTable(rt_data)
+
+    if request.GET.get("show_all_rows"):
+        config = RequestConfig(request, paginate=False)
+    else:
+        config = RequestConfig(request, paginate=DEFAULT_TABLE_PAGINATION_OPTS)
     config.configure(table)
-    table.paginate(
-        page=request.GET.get("page", 1),
-        per_page=request.GET.get("page_size", 25),
-        orphans=5,
-    )
 
     if request.htmx:
         return render(request, "tables/htmx_table.html", {"table": table})
@@ -465,17 +468,15 @@ def classes(request: HtmxHttpRequest) -> HttpResponse:
 
 
 def skills(request: HtmxHttpRequest) -> HttpResponse:
-    config = RequestConfig(request)
     query = request.GET.get("q")
     rt_data = get_reftype_table_data(query, RefType.Type.SKILL)
-
     table = ReftypeMentionsHtmxTable(rt_data)
+
+    if request.GET.get("show_all_rows"):
+        config = RequestConfig(request, paginate=False)
+    else:
+        config = RequestConfig(request, paginate=DEFAULT_TABLE_PAGINATION_OPTS)
     config.configure(table)
-    table.paginate(
-        page=request.GET.get("page", 1),
-        per_page=request.GET.get("page_size", 25),
-        orphans=5,
-    )
 
     if request.htmx:
         return render(request, "tables/htmx_table.html", {"table": table})
@@ -551,17 +552,15 @@ def skills(request: HtmxHttpRequest) -> HttpResponse:
 
 
 def magic(request: HtmxHttpRequest) -> HttpResponse:
-    config = RequestConfig(request)
     query = request.GET.get("q")
     rt_data = get_reftype_table_data(query, RefType.Type.SPELL)
-
     table = ReftypeMentionsHtmxTable(rt_data)
+
+    if request.GET.get("show_all_rows"):
+        config = RequestConfig(request, paginate=False)
+    else:
+        config = RequestConfig(request, paginate=DEFAULT_TABLE_PAGINATION_OPTS)
     config.configure(table)
-    table.paginate(
-        page=request.GET.get("page", 1),
-        per_page=request.GET.get("page_size", 25),
-        orphans=5,
-    )
 
     if request.htmx:
         return render(request, "tables/htmx_table.html", {"table": table})
@@ -637,17 +636,15 @@ def magic(request: HtmxHttpRequest) -> HttpResponse:
 
 
 def locations(request: HtmxHttpRequest) -> HttpResponse:
-    config = RequestConfig(request)
     query = request.GET.get("q")
     rt_data = get_reftype_table_data(query, RefType.Type.LOCATION)
-
     table = ReftypeMentionsHtmxTable(rt_data or [])
+
+    if request.GET.get("show_all_rows"):
+        config = RequestConfig(request, paginate=False)
+    else:
+        config = RequestConfig(request, paginate=DEFAULT_TABLE_PAGINATION_OPTS)
     config.configure(table)
-    table.paginate(
-        page=int(request.GET.get("page", 1)),
-        per_page=request.GET.get("page_size", 25),
-        orphans=5,
-    )
 
     if request.htmx:
         return render(request, "tables/htmx_table.html", {"table": table})
@@ -706,17 +703,14 @@ def chapter_stats(request: HtmxHttpRequest, number: int) -> HttpResponse:
     table_filter = request.GET.get("q", "")
     table_query = {"first_chapter": chapter.number, "last_chapter": chapter.number, "filter": table_filter}
 
-    config = RequestConfig(request)
     table = get_search_result_table(table_query)
     table.hidden_cols = [1]
 
+    if request.GET.get("show_all_rows"):
+        config = RequestConfig(request, paginate=False)
+    else:
+        config = RequestConfig(request, paginate=DEFAULT_TABLE_PAGINATION_OPTS)
     config.configure(table)
-
-    table.paginate(
-        page=int(request.GET.get("page", 1)),
-        per_page=request.GET.get("page_size", 25),
-        orphans=5,
-    )
 
     if request.htmx:
         return render(request, "tables/htmx_table.html", {"table": table})
@@ -938,15 +932,14 @@ def reftype_stats(request: HtmxHttpRequest, name: str) -> HttpResponse:
     # Table config and pagination
     table_query = {"type": rt.type, "type_query": rt.name, "filter": request.GET.get("q", ""), "strict_mode": True}
 
-    config = RequestConfig(request)
     table = get_search_result_table(table_query)
     table.hidden_cols = [0]
+
+    if request.GET.get("show_all_rows"):
+        config = RequestConfig(request, paginate=False)
+    else:
+        config = RequestConfig(request, paginate=DEFAULT_TABLE_PAGINATION_OPTS)
     config.configure(table)
-    table.paginate(
-        page=int(request.GET.get("page", 1)),
-        per_page=request.GET.get("page_size", 15),
-        orphans=5,
-    )
 
     if request.htmx:
         return render(request, "tables/htmx_table.html", {"table": table})
@@ -1110,51 +1103,46 @@ def get_search_result_table(query: dict[str, str]) -> ChapterRefTable | TextRefT
 
 
 def search(request: HtmxHttpRequest) -> HttpResponse:
-    if request.method == "GET" and bool(request.GET):
-        query = request.GET.copy()
-        query["first_chapter"] = query.get("first_chapter", 0)
-        query["last_chapter"] = query.get("last_chapter", MAX_CHAPTER_NUM + 1)
-        query["filter"] = query.get("text_query")
+    if request.method != "GET" or request.GET == {}:
+        return render(request, "pages/search.html", {"form": SearchForm()})
 
-        config = RequestConfig(request)
+    query = request.GET.copy()
 
-        if request.htmx:
-            table = get_search_result_table(query)
-            config.configure(table)
-            table.paginate(
-                page=request.GET.get("page", 1),
-                per_page=request.GET.get("page_size", 25),
-                orphans=5,
-            )
-            return render(request, "tables/htmx_table.html", {"table": table})
-
-        form = SearchForm(query)
-        if form.is_valid():
-            table = get_search_result_table(query)
-            config.configure(table)
-            table.paginate(
-                page=request.GET.get("page", 1),
-                per_page=request.GET.get("page_size", 25),
-                orphans=5,
-            )
-            export_format = request.GET.get("_export", None)
-            if TableExport.is_valid_format(export_format):
-                exporter = TableExport(export_format, table)
-                return exporter.response(f"twi_text_refs.{export_format}")
-
-            context = {
-                "table": table,
-                "form": form,
-            }
-            return render(request, "pages/search.html", context)
-
+    form = SearchForm(query)
+    if not request.htmx and not form.is_valid():
         # Form data not valid
         return render(
             request,
             "pages/search_error.html",
             {"error": "Invalid search parameter provided. Please try again."},
         )
-    return render(request, "pages/search.html", {"form": SearchForm()})
+
+    query["first_chapter"] = query.get("first_chapter", 0)
+    query["last_chapter"] = query.get("last_chapter", MAX_CHAPTER_NUM + 1)
+    query["filter"] = query.get("text_query")
+
+    table = get_search_result_table(query)
+
+    if request.GET.get("show_all_rows"):
+        config = RequestConfig(request, paginate=False)
+    else:
+        config = RequestConfig(request, paginate=DEFAULT_TABLE_PAGINATION_OPTS)
+    config.configure(table)
+
+    if request.htmx:
+        return render(request, "tables/htmx_table.html", {"table": table})
+
+    # Default search page
+    export_format = request.GET.get("_export", None)
+    if TableExport.is_valid_format(export_format):
+        exporter = TableExport(export_format, table)
+        return exporter.response(f"twi_text_refs.{export_format}")
+
+    context = {
+        "table": table,
+        "form": form,
+    }
+    return render(request, "pages/search.html", context)
 
 
 def about(request: HtmxHttpRequest) -> HttpResponse:

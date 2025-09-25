@@ -23,6 +23,7 @@ class TextRefTable(tables.Table):
             "th": {"style": "width: 60%;"},
             "td": {"style": "text-align: justify; padding: 1rem;"},
         },
+        orderable=False,
     )
     chapter_url = tables.Column(
         accessor="chapter_line__chapter__source_url",

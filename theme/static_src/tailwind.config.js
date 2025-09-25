@@ -66,7 +66,7 @@ module.exports = {
         "hl-primary": "#ef6461ff",
         "hl-secondary": "#ea8c62ff",
         "hl-tertiary": "#e4b363ff",
-        // "hl-tertiary": "#bea2f2",
+        "hl-quaternary": "#ade2b2",
         "accept": "#38c17f",
         "cancel": "#f4425f",
         "info": "rgb(164 174 240)",

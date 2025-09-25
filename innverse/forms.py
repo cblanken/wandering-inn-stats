@@ -65,7 +65,7 @@ class SearchForm(forms.Form):
     first_chapter = forms.TypedChoiceField(
         label="First Chapter",
         choices=chapter_choices,
-        required=True,
+        required=False,
         initial=0,
         widget=forms.Select(attrs={"class": select_input_tailwind_classes}),
     )
@@ -73,7 +73,7 @@ class SearchForm(forms.Form):
     last_chapter = forms.TypedChoiceField(
         label="Last Chapter",
         choices=chapter_choices,
-        required=True,
+        required=False,
         initial=max_choice,
         widget=forms.Select(attrs={"class": select_input_tailwind_classes}),
     )
