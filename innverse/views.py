@@ -82,12 +82,10 @@ def overview(request: HtmxHttpRequest) -> HttpResponse:
     query = request.GET.get("q")
     if query:
         chapter_data = (
-            Chapter.objects.filter(is_canon=True, is_status_update=False)
-            .filter(Q(title__icontains=query) | Q(post_date__icontains=query) | Q(word_count__icontains=query))
-            .order_by("post_date")
+            Chapter.objects.filter(is_status_update=False).filter(Q(title__icontains=query)).order_by("post_date")
         )
     else:
-        chapter_data = Chapter.objects.filter(is_canon=True, is_status_update=False)
+        chapter_data = Chapter.objects.filter(is_status_update=False)
     table = ChapterHtmxTable(chapter_data)
     config.configure(table)
     table.paginate(
@@ -95,6 +93,9 @@ def overview(request: HtmxHttpRequest) -> HttpResponse:
         per_page=request.GET.get("page_size", 25),
         orphans=5,
     )
+
+    # Only filter for canon chapter data after Chapter table is configured
+    chapter_data = chapter_data.filter(is_canon=True)
 
     if request.htmx:
         return render(request, "tables/htmx_table.html", {"table": table})
