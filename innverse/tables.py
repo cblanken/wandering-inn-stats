@@ -27,6 +27,7 @@ class TextRefTable(tables.Table):
     )
     chapter_url = tables.Column(
         accessor="chapter_line__chapter__source_url",
+        order_by="chapter_line__chapter__number",
         verbose_name="Chapter",
         attrs={"th": {"style": "width: 20%;"}},
     )
