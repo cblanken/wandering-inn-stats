@@ -1,7 +1,6 @@
 import cProfile
 import io
 import pstats
-import re
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from os import cpu_count
 
@@ -80,10 +79,6 @@ class Command(BaseCommand):
             charts.get_magic_charts(),
             charts.get_location_charts(),
         ]
-        if reftype_name := options.get("reftype_name"):
-            re.compile(reftype_name)
-        else:
-            pass
         try:
             if not options.get("reftypes_only"):
                 for gallery in main_chart_galleries:
@@ -98,7 +93,14 @@ class Command(BaseCommand):
                             )
 
             with ThreadPoolExecutor(max_workers=cpu_count() - 1) as executor:
-                reftypes = RefType.objects.filter(name__icontains=options.get("chart_name"))
+                reftypes = RefType.objects.all()
+
+                if reftype_name := options.get("reftype_name"):
+                    reftypes = reftypes.filter(name__icontains=reftype_name)
+
+                if chart_name := options.get("chart_name"):
+                    reftypes = RefType.objects.filter(name__icontains=chart_name)
+
                 future_to_rt = {executor.submit(self.gen_rt_gallery, rt, options): rt for rt in reftypes}
                 for future in as_completed(future_to_rt):
                     future.result()
