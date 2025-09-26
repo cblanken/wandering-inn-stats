@@ -3,6 +3,21 @@
   and provides styling via Tailwind classes
 {% endcomment %}
 
+<style>
+  .previous.htmx-request .previous-arrow,
+  .next.htmx-request .next-arrow {
+    display: none
+  }
+
+  .previous.htmx-request .spinner,
+  .next.htmx-request .spinner {
+    display: block;
+    opacity: 1;
+    transition: all 600ms ease-in;
+  }
+
+</style>
+
 {% load django_tables2 i18n l10n %}
 {% block table-wrapper %}
 <div class="table-container w-full flex flex-col min-h-screen overflow-x-visible">
@@ -32,21 +47,27 @@
         {% endblock pagination.range %}
         {% endif %}
       </div>
-      <div class="font-mono">
+      <div class="flex justify-end gap-4 font-mono">
         {% block pagination.previous %}
           {% if table.page.has_previous %}
-            <button class="px-2 previous"
+            <button class="previous w-[8rem] flex justify-end"
                     hx-get="{% querystring table.prefixed_page_field=table.page.previous_page_number %}"
                     hx-trigger="click"
                     hx-target="div.table-container"
-                    hx-swap="innerHTML"
                     hx-history="false"
-                    hx-push-url="false"
-                    hx-boost="true">
-              <div class="hover:font-extrabold hover:underline underline-offset-4"><i class="w-4 h-4 inline-block mr-2" data-feather="arrow-left"></i>{% translate 'Previous' %}</div>
+                    hx-push-url="true"
+                    hx-boost="true"
+                    hx-swap="innerHTML">
+                <div class="flex flex-nowrap items-center gap-2 hover:font-extrabold hover:underline underline-offset-4">
+                  <div class="">
+                    <span class="previous-arrow"><i class="size-4" data-feather="arrow-left"></i></span>
+                    <span class="spinner hidden"><i class="size-4 animate-spin-slow pointer-events-none select-none" data-feather="loader"></i></span>
+                  </div>
+                  <div class="flex items-center">{% translate 'Previous' %}</div>
+                </div>
             </button>
           {% else %}
-            <button disabled class="px-2 previous text-text-disabled">
+            <button disabled class="previous text-text-disabled">
               <div><i class="w-4 h-4 inline-block mr-2" data-feather="arrow-left"></i>{% translate 'Previous' %}
               </div>
             </button>
@@ -54,19 +75,24 @@
         {% endblock pagination.previous %}
         {% block pagination.next %}
           {% if table.page.has_next %}
-            <button class="px-2 next"
+            <button class="next w-[4rem]"
                     hx-get="{% querystring table.prefixed_page_field=table.page.next_page_number %}"
                     hx-trigger="click"
                     hx-target="div.table-container"
                     hx-history="false"
-                    hx-push-url="false"
+                    hx-push-url="true"
                     hx-boost="true"
                     hx-swap="innerHTML">
-                <div class="hover:font-extrabold hover:underline underline-offset-4">
-                {% translate 'Next' %}<i class="w-4 h-4 inline-block ml-2" data-feather="arrow-right"></i></div>
+                <div class="flex flex-nowrap items-center gap-2 hover:font-extrabold hover:underline underline-offset-4">
+                  <div class="flex items-center">{% translate 'Next' %}</div>
+                  <div class="">
+                    <span class="next-arrow"><i class="size-4" data-feather="arrow-right"></i></span>
+                    <span class="spinner hidden"><i class="size-4 animate-spin-slow pointer-events-none select-none" data-feather="loader"></i></span>
+                  </div>
+                </div>
             </button>
           {% else %}
-            <button disabled class="px-2 next text-text-disabled">
+            <button disabled class="next text-text-disabled">
               <div>{% translate 'Next' %}<i class="w-4 h-4 inline-block ml-2" data-feather="arrow-right"></i></div>
             </button>
           {% endif %}
