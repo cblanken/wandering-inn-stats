@@ -333,6 +333,7 @@ class ChapterHtmxTable(tables.Table):
     title = tables.Column(orderable=False, attrs={"td": {"style": "width: 30%; max-width: 40%;"}})
     number = tables.Column(attrs={"td": {"style": "width: 6rem"}})
     word_count = tables.Column(attrs={"td": {"style": "width: 6rem"}})
+    is_canon = tables.Column(attrs={"td": {"style": "width: 4rem"}})
     post_date = tables.Column(attrs={"td": {"style": "width: 10rem"}})
     last_update = tables.Column(verbose_name="Last Updated", attrs={"td": {"style": "width: 10rem"}})
 
@@ -345,8 +346,16 @@ class ChapterHtmxTable(tables.Table):
             },
         )
 
+    def render_is_canon(self, record: Chapter) -> SafeText:
+        yes_no = (
+            "<span class='font-bold text-accept'>Yes</span>"
+            if record.is_canon
+            else "<span class='font-bold text-cancel'>No</span>"
+        )
+        return SafeText(yes_no)
+
     class Meta:
         model = Chapter
         template_name = "tables/table_partial.html"
-        fields = ("number", "title", "word_count", "post_date")
+        fields = ("number", "title", "word_count", "is_canon", "post_date", "last_update")
         empty_text = EMPTY_TABLE_TEXT
