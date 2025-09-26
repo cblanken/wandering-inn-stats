@@ -332,7 +332,8 @@ class ChapterHtmxTable(tables.Table):
     title = tables.Column(orderable=False, attrs={"td": {"style": "width: 30%; max-width: 40%;"}})
     number = tables.Column(attrs={"td": {"style": "width: 6rem"}})
     word_count = tables.Column(attrs={"td": {"style": "width: 6rem"}})
-    post_date = tables.Column(attrs={"td": {"style": "width: 18rem"}})
+    post_date = tables.Column(attrs={"td": {"style": "width: 10rem"}})
+    last_update = tables.Column(verbose_name="Last Updated", attrs={"td": {"style": "width: 10rem"}})
 
     def render_title(self, record: Chapter, value: str) -> SafeText:
         return render_to_string(
