@@ -739,7 +739,6 @@ def chapter_stats(request: HtmxHttpRequest, number: int) -> HttpResponse:
                 "text": f"Chapter {chapter.title}" if len(chapter.title) < 10 else f"{chapter.title}",
                 "href": chapter.source_url,
                 "external": True,
-                "size": 8,
             },
         ),
         "table": table,
@@ -981,7 +980,7 @@ def reftype_stats(request: HtmxHttpRequest, name: str) -> HttpResponse:
         "title": rt.name,
         "wiki_link": render_to_string(
             "patterns/atoms/link/link.html",
-            context={"text": rt.name, "href": href, "size": 8, "external": True},
+            context={"text": rt.name, "href": href, "external": True},
         ),
         "aliases": aliases,
         "gallery": get_reftype_gallery(rt),
