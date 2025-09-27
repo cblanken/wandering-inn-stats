@@ -8,6 +8,7 @@ from django_htmx.middleware import HtmxDetails
 from django_tables2.export.export import TableExport
 from django_tables2 import RequestConfig
 from django.urls import reverse
+from django.utils.http import urlencode
 import datetime as dt
 from itertools import chain
 from typing import Iterable, Tuple
@@ -148,7 +149,7 @@ def overview(request: HtmxHttpRequest) -> HttpResponse:
                 "Total Word Count",
                 f"{total_wc:,}",
                 units="words",
-                popup_info="The word count for each chapter is calculated by counting the tokens between spaces over the entire text. This is a simple approach, and doesn't account for any of the punctuation-related edge cases. For this reason, you may notice differences between these word counts those posted elsewhere.",
+                popup_info="The word count for each chapter is calculated by splitting the text by the whitespace between words. This is a simple approach, and doesn't account for any punctuation-related edge cases, but it is the most common method for counting words. For this reason, you may notice differences between these word counts those posted elsewhere. Note this count excludes any non-canon chapters as well.",
             ),
             HeadlineStat(
                 "Median Word Count per Chapter",
@@ -202,7 +203,7 @@ def overview(request: HtmxHttpRequest) -> HttpResponse:
             if first_chapter
             else None,
             HeadlineStat(
-                "Latest chapter analyzed",
+                "Latest chapter published",
                 delta_since_latest_chapter_release.days,
                 render_to_string(
                     "patterns/atoms/link/stat_link.html",
@@ -213,7 +214,7 @@ def overview(request: HtmxHttpRequest) -> HttpResponse:
                     },
                 ),
                 units="days ago",
-                popup_info="This is the last chapter analyzed by the application. It is not updated after every release, so you can expect it to be a couple chapters behind the latest public release. This allows time for updates to be made to the Wiki and reduce the need for manual analysis of new chapters.",
+                popup_info="This is the last chapter analyzed by the application. You can expect it to be a couple chapters behind the latest public release. This allows time for updates to be made to the Wiki and reduce the need for manual analysis of new chapters.",
             )
             if latest_chapter
             else None,
@@ -325,6 +326,7 @@ def characters(request: HtmxHttpRequest) -> HttpResponse:
                 f"{chars_with_appearances:,}",
                 f"out of {chars_mentioned} total known characters",
                 units="character appearances",
+                popup_info="This metric counts how many characters have a known appearance according to the TWI Wiki. Therefore, the total known characters count includes some characters that are mentioned but don't actually have an appearance. To be considered an \"appearance\", a character must clearly be in a scene and interacting even if they're not mentioned by name.",
             ),
             HeadlineStat(
                 "Chapter with the Most Character Mentions",
@@ -382,8 +384,8 @@ def get_reftype_table_data(query: str | None, rt_type: str, order_by: str = "men
 
 def classes(request: HtmxHttpRequest) -> HttpResponse:
     query = request.GET.get("q")
-    rt_data = get_reftype_table_data(query, RefType.Type.CLASS)
-    table = ReftypeMentionsHtmxTable(rt_data)
+    rt_table_data = get_reftype_table_data(query, RefType.Type.CLASS)
+    table = ReftypeMentionsHtmxTable(rt_table_data)
 
     if request.GET.get("show_all_rows"):
         config = RequestConfig(request, paginate=False)
@@ -394,8 +396,13 @@ def classes(request: HtmxHttpRequest) -> HttpResponse:
     if request.htmx:
         return render(request, "tables/htmx_table.html", {"table": table})
 
-    longest_class_name_by_chars = rt_data.order_by("-letter_count")[0]
-    longest_class_name_by_words = rt_data.order_by("-word_count")[0]
+    class_data = RefType.objects.filter(type=RefType.Type.CLASS)
+    longest_class_name_by_chars = class_data.order_by("-letter_count")[0]
+    longest_class_name_by_words = class_data.order_by("-word_count")[0]
+    class_count = class_data.count()
+
+    class_update_data = RefType.objects.filter(type=RefType.Type.CLASS_UPDATE)
+    class_update_count = class_update_data.count()
 
     chapter_with_most_class_refs = (
         TextRef.objects.filter(type__type=RefType.Type.CLASS, chapter_line__chapter__is_canon=True)
@@ -413,6 +420,27 @@ def classes(request: HtmxHttpRequest) -> HttpResponse:
     context = {
         "gallery": charts.get_class_charts(),
         "stats": [
+            HeadlineStat(
+                "Total [Class] count",
+                f"{class_count}",
+                units="[Classes]",
+                popup_info="The number of known [Classes] issued by the [System]",
+            ),
+            HeadlineStat(
+                "[Class] updates",
+                f"{class_update_count}",
+                render_to_string(
+                    "patterns/atoms/link/stat_link.html",
+                    context={
+                        "text": "[Class] updates list",
+                        "href": f"{reverse('search')}?{urlencode({'type': RefType.Type.CLASS_UPDATE})}",
+                        "fit": True,
+                        "no_icon": True,
+                    },
+                ),
+                units="[Classes] updated",
+                popup_info="The number of unique [Class] update messages issued by the [System]",
+            ),
             HeadlineStat(
                 "Longest Class Name (by words)",
                 f"{longest_class_name_by_words.word_count}",
@@ -484,6 +512,9 @@ def skills(request: HtmxHttpRequest) -> HttpResponse:
     longest_skill_name_by_chars = rt_data.order_by("-letter_count")[0]
     longest_skill_name_by_words = rt_data.order_by("-word_count")[0]
 
+    skill_count = RefType.objects.filter(type=RefType.Type.SKILL).count()
+    skill_update_count = RefType.objects.filter(type=RefType.Type.SKILL_UPDATE).count()
+
     chapter_with_most_skill_refs = (
         TextRef.objects.filter(type__type=RefType.Type.SKILL)
         .annotate(
@@ -500,6 +531,27 @@ def skills(request: HtmxHttpRequest) -> HttpResponse:
     context = {
         "gallery": charts.get_skill_charts(),
         "stats": [
+            HeadlineStat(
+                "Total [Skill] count",
+                f"{skill_count}",
+                units="[Skills]",
+                popup_info="The number of known [Skills] either used by someone who Levels or issued by the [System]",
+            ),
+            HeadlineStat(
+                "[Skill] update count",
+                f"{skill_update_count}",
+                render_to_string(
+                    "patterns/atoms/link/stat_link.html",
+                    context={
+                        "text": "[Skill] updates list",
+                        "href": f"{reverse('search')}?{urlencode({'type': RefType.Type.SKILL_UPDATE})}",
+                        "fit": True,
+                        "no_icon": True,
+                    },
+                ),
+                units="[Skills] updated",
+                popup_info="The number of unique Skill update messages issued by the [System]",
+            ),
             HeadlineStat(
                 "Longest [Skill] Name (by words)",
                 f"{longest_skill_name_by_words.word_count}",
@@ -553,8 +605,8 @@ def skills(request: HtmxHttpRequest) -> HttpResponse:
 
 def magic(request: HtmxHttpRequest) -> HttpResponse:
     query = request.GET.get("q")
-    rt_data = get_reftype_table_data(query, RefType.Type.SPELL)
-    table = ReftypeMentionsHtmxTable(rt_data)
+    rt_table_data = get_reftype_table_data(query, RefType.Type.SPELL)
+    table = ReftypeMentionsHtmxTable(rt_table_data)
 
     if request.GET.get("show_all_rows"):
         config = RequestConfig(request, paginate=False)
@@ -565,8 +617,14 @@ def magic(request: HtmxHttpRequest) -> HttpResponse:
     if request.htmx:
         return render(request, "tables/htmx_table.html", {"table": table})
 
-    longest_spell_name_by_chars = rt_data.order_by("-letter_count")[0]
-    longest_spell_name_by_words = rt_data.order_by("-word_count")[0]
+    longest_spell_name_by_chars = rt_table_data.order_by("-letter_count")[0]
+    longest_spell_name_by_words = rt_table_data.order_by("-word_count")[0]
+
+    spell_data = RefType.objects.filter(type=RefType.Type.SPELL)
+    spell_count = spell_data.count()
+
+    spell_update_data = RefType.objects.filter(type=RefType.Type.SPELL_UPDATE)
+    spell_update_count = spell_update_data.count()
 
     chapter_with_most_spell_refs = (
         TextRef.objects.filter(type__type=RefType.Type.SPELL)
@@ -584,6 +642,27 @@ def magic(request: HtmxHttpRequest) -> HttpResponse:
     context = {
         "gallery": charts.get_magic_charts(),
         "stats": [
+            HeadlineStat(
+                "Total [Spell] count",
+                f"{spell_count}",
+                units="[Spells]",
+                popup_info="The number of known [Spells] issued by the [System]",
+            ),
+            HeadlineStat(
+                "[Spell] updates",
+                f"{spell_update_count}",
+                render_to_string(
+                    "patterns/atoms/link/stat_link.html",
+                    context={
+                        "text": "[Spell] updates list",
+                        "href": f"{reverse('search')}?{urlencode({'type': RefType.Type.SPELL_UPDATE})}",
+                        "fit": True,
+                        "no_icon": True,
+                    },
+                ),
+                units="[Spells] updated",
+                popup_info="The number of unique [Spell] update messages issued by the [System]",
+            ),
             HeadlineStat(
                 "Longest [Spell] Name (by words)",
                 f"{longest_spell_name_by_words.word_count}",
@@ -637,8 +716,8 @@ def magic(request: HtmxHttpRequest) -> HttpResponse:
 
 def locations(request: HtmxHttpRequest) -> HttpResponse:
     query = request.GET.get("q")
-    rt_data = get_reftype_table_data(query, RefType.Type.LOCATION)
-    table = ReftypeMentionsHtmxTable(rt_data or [])
+    rt_table_data = get_reftype_table_data(query, RefType.Type.LOCATION)
+    table = ReftypeMentionsHtmxTable(rt_table_data or [])
 
     if request.GET.get("show_all_rows"):
         config = RequestConfig(request, paginate=False)
@@ -648,6 +727,9 @@ def locations(request: HtmxHttpRequest) -> HttpResponse:
 
     if request.htmx:
         return render(request, "tables/htmx_table.html", {"table": table})
+
+    location_data = RefType.objects.filter(type=RefType.Type.LOCATION)
+    location_count = location_data.count()
 
     chapter_with_most_location_refs = (
         TextRef.objects.filter(type__type=RefType.Type.LOCATION)
@@ -670,6 +752,12 @@ def locations(request: HtmxHttpRequest) -> HttpResponse:
     context = {
         "gallery": charts.get_location_charts(),
         "stats": [
+            HeadlineStat(
+                "Total Location count",
+                f"{location_count}",
+                units="Locations",
+                popup_info="The number of known Locations",
+            ),
             HeadlineStat(
                 "Chapter with the Most Location Mentions",
                 f"{chapter_with_most_location_refs['count']}",
