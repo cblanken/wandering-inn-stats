@@ -9,8 +9,6 @@ import django_tables2 as tables
 from stats.models import Chapter, Character, RefType, TextRef
 from typing import Any
 import regex
-from bs4 import BeautifulSoup
-
 
 EMPTY_TABLE_TEXT = "No results found for the given query"
 
@@ -84,20 +82,25 @@ class TextRefTable(tables.Table):
         except NoReverseMatch:
             return record.type.name
 
+    @staticmethod
+    def highlight_text(text: str, hl: str) -> str:
+        # return text.replace(hl, f'<span class="bg-hl-tertiary text-black p-[1px]">{hl}</span>')
+        return regex.sub(
+            hl, f'<span class="bg-hl-tertiary text-black p-[1px]">{hl}</span>', text, flags=regex.IGNORECASE
+        )
+
     def render_text(self, record: TextRef) -> SafeText:
         line_text = record.chapter_line.text
-        highlight = line_text[record.start_column : record.end_column]
-        clean_line_text = BeautifulSoup(line_text, features="html.parser").get_text()
-        highlighted_text = clean_line_text.replace(
-            highlight, f'<span class="text-hl-primary font-mono font-extrabold">{highlight}</span>', 1
-        )
+        ref_text = line_text[record.start_column : record.end_column]
+
+        before = strip_tags(line_text[: record.start_column])
+        after = strip_tags(line_text[record.end_column :])
         if self.filter_text and not self.invalid_filter.search(self.filter_text):
-            filter_text_i = clean_line_text.upper().find(self.filter_text.upper())
-            if filter_text_i != -1:
-                filter_text = clean_line_text[filter_text_i : filter_text_i + len(self.filter_text)]
-                highlighted_text = highlighted_text.replace(
-                    filter_text, f'<span class="bg-hl-tertiary text-black font-bold py-[2px]">{filter_text}</span>'
-                )
+            ref_text = self.highlight_text(ref_text, self.filter_text)
+            before = self.highlight_text(before, self.filter_text)
+            after = self.highlight_text(after, self.filter_text)
+
+        highlighted_text = f"{before}<span class='text-hl-primary font-mono font-extrabold'>{ref_text}</span>{after}"
 
         return SafeText(highlighted_text)
 
