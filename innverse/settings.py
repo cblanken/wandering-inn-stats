@@ -19,7 +19,13 @@ if SECRET_KEY is None:
     msg = "The secret key (TWI_KEY) must be available in the environment to run this application!"
     raise Exception(msg)
 
-ALLOWED_HOSTS = ["localhost", "127.0.0.1", env.get("TWI_INTERNAL_HOST")]
+ALLOWED_HOSTS = [
+    "localhost",
+    "127.0.0.1",
+    env.get("TWI_PUBLIC_HOST"),
+    env.get("TWI_INTERNAL_HOST"),
+    env.get("TWI_WIREGUARD_BASTION"),
+]
 
 INTERNAL_IPS = ["127.0.0.1"]
 
