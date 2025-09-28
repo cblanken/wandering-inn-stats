@@ -1,5 +1,6 @@
 from django import template
 from django.http import HttpRequest
+import os
 
 register = template.Library()
 
@@ -12,3 +13,9 @@ def absolute_uri(req: HttpRequest, path: str) -> str:
     except AttributeError:
         """Invalid req object provided return initial input path"""
         return path
+
+
+@register.filter(name="env")
+def env(key: str) -> str | None:
+    """Return value of environment variable"""
+    return os.environ.get(key)
