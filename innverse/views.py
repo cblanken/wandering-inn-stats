@@ -1158,23 +1158,23 @@ def get_search_result_table(query: dict[str, str]) -> ChapterRefTable | TextRefT
             url=F("chapter_line__chapter__source_url"),
         )
 
-        if reftype := query.get("type"):
+        if (reftype := query.get("type")) is not None:
             table_data = table_data.filter(Q(type__type=reftype))
 
-        if first_chapter := query.get("first_chapter"):
+        if (first_chapter := query.get("first_chapter")) is not None:
             table_data = table_data.filter(chapter_line__chapter__number__gte=first_chapter)
 
-        if last_chapter := query.get("last_chapter"):
+        if (last_chapter := query.get("last_chapter")) is not None:
             table_data = table_data.filter(chapter_line__chapter__number__lte=last_chapter)
 
-        if query.get("type_query"):
+        if (type_query := query.get("type_query")) is not None:
             if strict_mode:
-                table_data = table_data.filter(type__name=query.get("type_query"))
+                table_data = table_data.filter(type__name=type_query)
             else:
-                table_data = table_data.filter(type__name__icontains=query.get("type_query"))
+                table_data = table_data.filter(type__name__icontains=type_query)
 
         if query.get("text_query"):
-            table_data = table_data.filter(chapter_line__text__icontains=query.get("text_query"))
+            table_data = table_data.filter(chapter_line__text__icontains=type_query)
 
         if query.get("only_colored_refs"):
             table_data = table_data.filter(color__isnull=False)
