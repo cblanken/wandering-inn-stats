@@ -101,6 +101,12 @@ class TextRefAdmin(admin.ModelAdmin):
     raw_id_fields = ["chapter_line"]
     autocomplete_fields = ["type"]
 
+    def get_form(self, request, obj=None, **kwargs):  # noqa
+        form = super().get_form(request, obj, **kwargs)
+        if form:
+            form.base_fields["color"].required = False
+        return form
+
 
 class RefTypeChapterAdmin(admin.ModelAdmin):
     list_display = ["type", "chapter"]
