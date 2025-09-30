@@ -163,7 +163,10 @@ class RefType(models.Model):
     )
 
     class Meta:
-        constraints = [models.UniqueConstraint(fields=["name", "type"], name="unique_name_and_type")]
+        constraints = [
+            models.UniqueConstraint(fields=["name", "type"], name="unique_name_and_type"),
+            models.UniqueConstraint(fields=["slug", "type"], name="unique_slug_and_type"),
+        ]
         indexes = [
             models.Index(fields=["name"]),
             models.Index(fields=["type"]),
