@@ -1,32 +1,34 @@
 {% if table %}
   {% if not request.htmx %}
   <style>
-    .htmx-request {
-      opacity: 1;
-      transition: opacity 300ms ease-in;
-    }
+  .table-container.htmx-request {
+    filter: saturate(65%);
+    transition: all 250ms ease-in;
+  }
 
-    .htmx-request .button-text {
-      display: none;
-    }
-
+  .table-container.htmx-request .spinner {
+    opacity: 1;
+    transition: opacity 250ms ease-in;
+  }
   </style>
-  <div class="relative flex flex-row w-full mb-1">
-    <input spellcheck="false" id="query-input" name="q" placeholder="Filter" class="bg-bg-secondary h-[3rem] leading-1 grow focus:ring-0 focus:outline-none focus:border-hl-secondary border-2 focus:transition-colors text-xl font-mono"
-      type="text"
-      value="{{ request.GET.q }}"
-      hx-get=""
-      hx-trigger="keyup changed delay:400ms"
-      hx-swap="innerHTML"
-      hx-target=".table-container"
-      hx-boost="true"
-      hx-push-url="false"
-      hx-preserve="true"
-      hx-indicator="#table-filter-spinner"
-    />
-    <i id="table-filter-spinner" class="spinner opacity-0 animate-spin-slow absolute right-4 pointer-events-none select-none h-full" data-feather="loader"></i>
+  <div class="table-container">
+    <div class="table-filter relative flex flex-row w-full mb-1">
+      <input spellcheck="false" id="query-input" name="q" placeholder="Filter" class="bg-bg-secondary h-[3rem] leading-1 grow focus:ring-0 focus:outline-none focus:border-hl-secondary border-2 focus:transition-colors text-xl font-mono"
+        type="text"
+        value="{{ request.GET.q }}"
+        hx-get=""
+        hx-trigger="keyup changed delay:400ms"
+        hx-swap="innerHTML"
+        hx-target="div.table-body-container"
+        hx-boost="true"
+        hx-push-url="false"
+        hx-preserve="true"
+        hx-indicator=".table-container"
+      />
+      <i class="spinner opacity-0 animate-spin-slow absolute right-4 pointer-events-none select-none h-full" data-feather="loader"></i>
+    </div>
+    {% endif %}
+    {% load render_table from django_tables2 %}
+    {% render_table table %}
   </div>
-  {% endif %}
-  {% load render_table from django_tables2 %}
-  {% render_table table %}
 {% endif %}

@@ -86,14 +86,19 @@ module.exports = {
           "100%": { transform: "rotate(-180deg)" },
         },
         spin: {
-          "0%": { transform: "roatate(0deg)" },
-          "100%": { transform: "roatate(360deg)" },
+          "0%": { transform: "rotate(0deg)" },
+          "100%": { transform: "rotate(360deg)" },
+        },
+        spin_reverse: {
+          "0%": { transform: "rotate(0deg)" },
+          "100%": { transform: "rotate(-360deg)" },
         }
       },
     },
     animation: {
       "flip-icon": "flip180 0.25s linear forwards",
       "spin-slow": "spin 2s linear infinite",
+      "spin-slow-reverse": "spin_reverse 2s linear infinite",
     }
   },
   plugins: [
