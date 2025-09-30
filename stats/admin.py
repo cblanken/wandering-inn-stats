@@ -1,4 +1,6 @@
 from django.contrib import admin
+from django.http import HttpRequest, HttpResponseRedirect
+from django.db.models import QuerySet
 from .models import (
     Chapter,
     Book,
@@ -67,6 +69,24 @@ class RefTypeAdmin(admin.ModelAdmin):
     list_filter = ["type"]
     search_fields = ["name"]
     radio_fields = {"type": admin.VERTICAL}
+
+    @admin.action(
+        description="Merge (no alias) selected RefTypes into RefTypeB (does NOT create alias of RefTypeA.name)"
+    )
+    def merge_reftypes(self, _request: HttpRequest, queryset: QuerySet) -> HttpResponseRedirect | None:
+        selected = queryset.values_list("pk", flat=True)
+        return HttpResponseRedirect(
+            f"/stats/select_reftype/?no_alias=1&ids={','.join(str(pk) for pk in selected)}", preserve_request=True
+        )
+
+    @admin.action(description="Merge (with alias) selected RefTypes into RefTypeB (creates alias of RefTypeA.name)")
+    def merge_reftypes_with_alias(self, _request: HttpRequest, queryset: QuerySet) -> HttpResponseRedirect | None:
+        selected = queryset.values_list("pk", flat=True)
+        return HttpResponseRedirect(
+            f"/stats/select_reftype/?ids={','.join(str(pk) for pk in selected)}", preserve_request=True
+        )
+
+    actions = [merge_reftypes.__name__, merge_reftypes_with_alias.__name__]
 
 
 class LocationAdmin(admin.ModelAdmin):

@@ -18,6 +18,7 @@ from django.urls import path, include
 from django.contrib.auth import get_user_model
 from rest_framework import permissions, routers, serializers, viewsets
 from stats.models import Chapter
+from .views import admin
 
 
 # Serializers define the API representation.
@@ -63,4 +64,5 @@ router.register(r"longest-chapters", LongestChaptersViewSet, basename="longest-c
 urlpatterns = [
     path("api/", include(router.urls)),
     path("api-auth/", include("rest_framework.urls", namespace="rest_framework")),
+    path("select_reftype/", admin.select_reftype),
 ]
