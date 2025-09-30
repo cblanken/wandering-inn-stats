@@ -183,6 +183,8 @@ class RefType(models.Model):
         for row in computed_cols:
             row.delete()
 
+        super(RefType, self).delete()
+
 
 @dataclass
 class SpeciesMetadata:
