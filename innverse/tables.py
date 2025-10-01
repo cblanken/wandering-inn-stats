@@ -205,7 +205,7 @@ class ChapterRefTable(tables.Table):
         return ";".join([x[1] for x in record["chapter_data"]])
 
 
-class ReftypeMentionsHtmxTable(tables.Table):
+class ReftypeHtmxTable(tables.Table):
     name = tables.Column(verbose_name="Name", attrs={"th": {"style": "width: 30%"}})
     first_mention_num = tables.Column(verbose_name="First mentioned", attrs={"th": {"style": "width: 30%"}})
     mentions = tables.Column(verbose_name="Mentions", attrs={"th": {"style": "width: 15%"}})

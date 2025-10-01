@@ -20,7 +20,7 @@ from .tables import (
     TextRefTable,
     ChapterHtmxTable,
     CharacterHtmxTable,
-    ReftypeMentionsHtmxTable,
+    ReftypeHtmxTable,
 )
 from .forms import ChapterFilterForm, SearchForm, MAX_CHAPTER_NUM
 
@@ -385,7 +385,7 @@ def get_reftype_table_data(query: str | None, rt_type: str, order_by: str = "men
 def classes(request: HtmxHttpRequest) -> HttpResponse:
     query = request.GET.get("q")
     rt_table_data = get_reftype_table_data(query, RefType.Type.CLASS)
-    table = ReftypeMentionsHtmxTable(rt_table_data)
+    table = ReftypeHtmxTable(rt_table_data)
 
     if request.GET.get("show_all_rows"):
         config = RequestConfig(request, paginate=False)
@@ -498,7 +498,7 @@ def classes(request: HtmxHttpRequest) -> HttpResponse:
 def skills(request: HtmxHttpRequest) -> HttpResponse:
     query = request.GET.get("q")
     rt_data = get_reftype_table_data(query, RefType.Type.SKILL)
-    table = ReftypeMentionsHtmxTable(rt_data)
+    table = ReftypeHtmxTable(rt_data)
 
     if request.GET.get("show_all_rows"):
         config = RequestConfig(request, paginate=False)
@@ -606,7 +606,7 @@ def skills(request: HtmxHttpRequest) -> HttpResponse:
 def magic(request: HtmxHttpRequest) -> HttpResponse:
     query = request.GET.get("q")
     rt_table_data = get_reftype_table_data(query, RefType.Type.SPELL)
-    table = ReftypeMentionsHtmxTable(rt_table_data)
+    table = ReftypeHtmxTable(rt_table_data)
 
     if request.GET.get("show_all_rows"):
         config = RequestConfig(request, paginate=False)
@@ -717,7 +717,7 @@ def magic(request: HtmxHttpRequest) -> HttpResponse:
 def locations(request: HtmxHttpRequest) -> HttpResponse:
     query = request.GET.get("q")
     rt_table_data = get_reftype_table_data(query, RefType.Type.LOCATION)
-    table = ReftypeMentionsHtmxTable(rt_table_data or [])
+    table = ReftypeHtmxTable(rt_table_data or [])
 
     if request.GET.get("show_all_rows"):
         config = RequestConfig(request, paginate=False)
