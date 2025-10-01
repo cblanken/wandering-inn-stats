@@ -28,6 +28,12 @@ class ChapterAdmin(admin.ModelAdmin):
 class BookAdmin(admin.ModelAdmin):
     list_display = ["title", "number", "volume"]
 
+    def get_form(self, request, obj=None, **kwargs):  # noqa
+        form = super().get_form(request, obj, **kwargs)
+        if form:
+            form.base_fields["summary"].required = False
+        return form
+
 
 class VolumeAdmin(admin.ModelAdmin):
     list_display = ["title", "number"]
