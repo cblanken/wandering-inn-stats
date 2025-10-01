@@ -10,7 +10,7 @@ from stats.models import Chapter, Character, RefType, TextRef
 from typing import Any
 import regex
 
-EMPTY_TABLE_TEXT = "No results found for the given query"
+EMPTY_TABLE_TEXT = "No results found"
 
 
 class TextRefTable(tables.Table):
