@@ -813,11 +813,19 @@ def chapter_stats(request: HtmxHttpRequest, number: int) -> HttpResponse:
         .values("type__type", "type__name", "count")
     )
 
-    most_mentioned_character = rt_counts.filter(type__type=RefType.Type.CHARACTER).first()
-    most_mentioned_class = rt_counts.filter(type__type=RefType.Type.CLASS).first()
-    most_mentioned_skill = rt_counts.filter(type__type=RefType.Type.SKILL).first()
-    most_mentioned_spell = rt_counts.filter(type__type=RefType.Type.SPELL).first()
-    most_mentioned_location = rt_counts.filter(type__type=RefType.Type.LOCATION).first()
+    most_mentioned_characters = rt_counts.filter(type__type=RefType.Type.CHARACTER)
+    most_mentioned_classes = rt_counts.filter(type__type=RefType.Type.CLASS)
+    most_mentioned_skills = rt_counts.filter(type__type=RefType.Type.SKILL)
+    most_mentioned_spells = rt_counts.filter(type__type=RefType.Type.SPELL)
+    most_mentioned_locations = rt_counts.filter(type__type=RefType.Type.LOCATION)
+
+    most_mentioned_character = most_mentioned_characters.first()
+    most_mentioned_class = most_mentioned_classes.first()
+    most_mentioned_skill = most_mentioned_skills.first()
+    most_mentioned_spell = most_mentioned_spells.first()
+    most_mentioned_location = most_mentioned_locations.first()
+
+    honourable_mentions_max = 4
 
     context = {
         "title": chapter.title,
@@ -846,6 +854,15 @@ def chapter_stats(request: HtmxHttpRequest, number: int) -> HttpResponse:
                     },
                 ),
                 units="mentions",
+                popup_info=render_to_string(
+                    "patterns/atoms/headline_stat_block/mention_info_counts.html",
+                    context={
+                        "description": "Some honourable mentions",
+                        "mention_items": most_mentioned_characters[1:honourable_mentions_max],
+                    },
+                )
+                if most_mentioned_characters[1:honourable_mentions_max]
+                else None,
             )
             if most_mentioned_character
             else None,
@@ -864,6 +881,15 @@ def chapter_stats(request: HtmxHttpRequest, number: int) -> HttpResponse:
                     },
                 ),
                 units="mentions",
+                popup_info=render_to_string(
+                    "patterns/atoms/headline_stat_block/mention_info_counts.html",
+                    context={
+                        "description": "Some honourable mentions",
+                        "mention_items": most_mentioned_classes[1:honourable_mentions_max],
+                    },
+                )
+                if most_mentioned_classes[1:honourable_mentions_max]
+                else None,
             )
             if most_mentioned_class
             else None,
@@ -882,6 +908,15 @@ def chapter_stats(request: HtmxHttpRequest, number: int) -> HttpResponse:
                     },
                 ),
                 units="mentions",
+                popup_info=render_to_string(
+                    "patterns/atoms/headline_stat_block/mention_info_counts.html",
+                    context={
+                        "description": "Some honourable mentions",
+                        "mention_items": most_mentioned_skills[1:honourable_mentions_max],
+                    },
+                )
+                if most_mentioned_skills[1:honourable_mentions_max]
+                else None,
             )
             if most_mentioned_skill
             else None,
@@ -900,6 +935,15 @@ def chapter_stats(request: HtmxHttpRequest, number: int) -> HttpResponse:
                     },
                 ),
                 units="mentions",
+                popup_info=render_to_string(
+                    "patterns/atoms/headline_stat_block/mention_info_counts.html",
+                    context={
+                        "description": "Some honourable mentions",
+                        "mention_items": most_mentioned_spells[1:honourable_mentions_max],
+                    },
+                )
+                if most_mentioned_spells[1:honourable_mentions_max]
+                else None,
             )
             if most_mentioned_spell
             else None,
@@ -918,6 +962,15 @@ def chapter_stats(request: HtmxHttpRequest, number: int) -> HttpResponse:
                     },
                 ),
                 units="mentions",
+                popup_info=render_to_string(
+                    "patterns/atoms/headline_stat_block/mention_info_counts.html",
+                    context={
+                        "description": "Some honourable mentions",
+                        "mention_items": most_mentioned_locations[1:honourable_mentions_max],
+                    },
+                )
+                if most_mentioned_locations[1:honourable_mentions_max]
+                else None,
             )
             if most_mentioned_location
             else None,
