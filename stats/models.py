@@ -61,19 +61,6 @@ class Book(models.Model):
     volume = models.ForeignKey(Volume, on_delete=models.CASCADE)
     summary = models.TextField(default="")
 
-    title_short = models.GeneratedField(  # type: ignore[attr-defined]
-        expression=models.Func(
-            models.Func(
-                models.F("title"),
-                models.Value(r"(\w+\s\w+)\s"),
-                function="regexp_substr",
-            ),
-            function="trim",
-        ),
-        output_field=models.TextField(),
-        db_persist=True,
-    )
-
     class Meta:
         ordering = ["volume", "number"]
         constraints = [

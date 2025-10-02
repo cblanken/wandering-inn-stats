@@ -122,8 +122,8 @@ def word_count_by_book(first_chapter: Chapter | None = None, last_chapter: Chapt
         .values(
             "book__volume__title",
             "book",
+            "book__number",
             "book__title",
-            "book__title_short",
             "id",
             "title",
             "word_count",
@@ -139,12 +139,12 @@ def word_count_by_book(first_chapter: Chapter | None = None, last_chapter: Chapt
 
     book_wc_fig = px.bar(
         book_wc_data,
-        x="book__title_short",
+        x="book__title",
         y="word_count",
         color="book__volume__title",
         color_discrete_sequence=px.colors.qualitative.Pastel,
         labels={"book__volume__title": "Volume"},
-        hover_data=["title", "book__title", "book__volume__title", "word_count"],
+        custom_data=["title", "book__title", "book__number", "book__volume__title"],
     )
 
     book_wc_fig.update_layout(
@@ -156,8 +156,8 @@ def word_count_by_book(first_chapter: Chapter | None = None, last_chapter: Chapt
     book_wc_fig.update_traces(
         hovertemplate="<b>Word Count</b>: %{y}<br>"
         "<b>Chapter</b>: %{customdata[0]}<br>"
-        "<b>Book</b>: %{customdata[1]}<br>"
-        "<b>Volume</b>: %{customdata[2]}<br>"
+        "<b>Book</b>: %{customdata[1]} (%{customdata[2]})<br>"
+        "<b>Volume</b>: %{customdata[3]}<br>"
         "<extra></extra>",
     )
 

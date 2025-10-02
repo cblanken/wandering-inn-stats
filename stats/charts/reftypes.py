@@ -134,7 +134,7 @@ def most_mentions_by_book(
     last_chapter: Chapter | None = None,
 ) -> Figure | None:
     sql = """
-    SELECT stats_book.id, "stats_book"."title","stats_book"."title_short", SUM(
+    SELECT stats_book.id, "stats_book"."title", SUM(
          (SELECT COUNT(U0."id") AS "mentions"
           FROM "stats_textref" U0
           INNER JOIN "stats_chapterline" U1 ON (U0."chapter_line_id" = U1."id")
@@ -145,6 +145,7 @@ def most_mentions_by_book(
           LIMIT 1)) AS "book_mentions"
     FROM "stats_chapter"
     INNER JOIN "stats_book" ON ("stats_chapter"."book_id" = "stats_book"."id")
+    WHERE "stats_book"."title" <> 'Unreleased'
     """
 
     # WHERE clause
@@ -157,7 +158,7 @@ def most_mentions_by_book(
 
     sql += """
     GROUP BY "stats_book"."id"
-    ORDER BY "book_mentions" ASC
+    ORDER BY "book_mentions" DESC
     """
 
     if first_chapter and last_chapter:
@@ -178,12 +179,11 @@ def most_mentions_by_book(
             y="title",
             labels={
                 "book_mentions": "Mentions",
-                "title_short": "Book",
-                "title": "Book (full name)",
+                "title": "Book",
             },
-            hover_data=["title", "title_short", "book_mentions"],
+            hover_data=["title", "book_mentions"],
             orientation="h",
-            color="title_short",
+            color="title",
             color_discrete_sequence=DEFAULT_DISCRETE_COLORS,
         ).update_layout(DEFAULT_LAYOUT)
     return None
