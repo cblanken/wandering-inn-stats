@@ -6,7 +6,7 @@ from django.template.loader import render_to_string
 from django.utils.text import slugify
 from django_htmx.middleware import HtmxDetails
 from django_tables2.export.export import TableExport
-from django_tables2 import RequestConfig
+from django_tables2 import RequestConfig, tables
 from django.urls import reverse
 from django.utils.http import urlencode
 import datetime as dt
@@ -30,6 +30,21 @@ DEFAULT_TABLE_PAGINATION_OPTS = {
     "per_page": 25,
     "orphans": 5,
 }
+
+MAX_TABLE_ROWS = 1000
+
+
+def config_table_request(request: HttpRequest, table: tables.Table) -> RequestConfig:
+    if request.GET.get("show_all_rows"):
+        if len(table.rows) < MAX_TABLE_ROWS:
+            config = RequestConfig(request, paginate=False)
+        else:
+            pagination_opts = DEFAULT_TABLE_PAGINATION_OPTS | {"per_page": MAX_TABLE_ROWS}
+            config = RequestConfig(request, paginate=pagination_opts)
+    else:
+        config = RequestConfig(request, paginate=DEFAULT_TABLE_PAGINATION_OPTS)
+
+    return config
 
 
 def title_nbsp(s: str) -> str:
@@ -95,10 +110,7 @@ def overview(request: HtmxHttpRequest) -> HttpResponse:
         chapter_data = Chapter.objects.filter(is_status_update=False)
     table = ChapterHtmxTable(chapter_data)
 
-    if request.GET.get("show_all_rows"):
-        config = RequestConfig(request, paginate=False)
-    else:
-        config = RequestConfig(request, paginate=DEFAULT_TABLE_PAGINATION_OPTS)
+    config = config_table_request(request, table)
     config.configure(table)
 
     if request.htmx:
@@ -281,10 +293,7 @@ def characters(request: HtmxHttpRequest) -> HttpResponse:
 
     table = CharacterHtmxTable(data)
 
-    if request.GET.get("show_all_rows"):
-        config = RequestConfig(request, paginate=False)
-    else:
-        config = RequestConfig(request, paginate=DEFAULT_TABLE_PAGINATION_OPTS)
+    config = config_table_request(request, table)
     config.configure(table)
 
     if request.htmx:
@@ -387,10 +396,7 @@ def classes(request: HtmxHttpRequest) -> HttpResponse:
     rt_table_data = get_reftype_table_data(query, RefType.Type.CLASS)
     table = ReftypeHtmxTable(rt_table_data)
 
-    if request.GET.get("show_all_rows"):
-        config = RequestConfig(request, paginate=False)
-    else:
-        config = RequestConfig(request, paginate=DEFAULT_TABLE_PAGINATION_OPTS)
+    config = config_table_request(request, table)
     config.configure(table)
 
     if request.htmx:
@@ -500,10 +506,7 @@ def skills(request: HtmxHttpRequest) -> HttpResponse:
     rt_data = get_reftype_table_data(query, RefType.Type.SKILL)
     table = ReftypeHtmxTable(rt_data)
 
-    if request.GET.get("show_all_rows"):
-        config = RequestConfig(request, paginate=False)
-    else:
-        config = RequestConfig(request, paginate=DEFAULT_TABLE_PAGINATION_OPTS)
+    config = config_table_request(request, table)
     config.configure(table)
 
     if request.htmx:
@@ -608,10 +611,7 @@ def magic(request: HtmxHttpRequest) -> HttpResponse:
     rt_table_data = get_reftype_table_data(query, RefType.Type.SPELL)
     table = ReftypeHtmxTable(rt_table_data)
 
-    if request.GET.get("show_all_rows"):
-        config = RequestConfig(request, paginate=False)
-    else:
-        config = RequestConfig(request, paginate=DEFAULT_TABLE_PAGINATION_OPTS)
+    config = config_table_request(request, table)
     config.configure(table)
 
     if request.htmx:
@@ -719,10 +719,7 @@ def locations(request: HtmxHttpRequest) -> HttpResponse:
     rt_table_data = get_reftype_table_data(query, RefType.Type.LOCATION)
     table = ReftypeHtmxTable(rt_table_data or [])
 
-    if request.GET.get("show_all_rows"):
-        config = RequestConfig(request, paginate=False)
-    else:
-        config = RequestConfig(request, paginate=DEFAULT_TABLE_PAGINATION_OPTS)
+    config = config_table_request(request, table)
     config.configure(table)
 
     if request.htmx:
@@ -794,10 +791,7 @@ def chapter_stats(request: HtmxHttpRequest, number: int) -> HttpResponse:
     table = get_search_result_table(table_query)
     table.hidden_cols = [1]
 
-    if request.GET.get("show_all_rows"):
-        config = RequestConfig(request, paginate=False)
-    else:
-        config = RequestConfig(request, paginate=DEFAULT_TABLE_PAGINATION_OPTS)
+    config = config_table_request(request, table)
     config.configure(table)
 
     if request.htmx:
@@ -1079,10 +1073,7 @@ def reftype_stats(request: HtmxHttpRequest, name: str) -> HttpResponse:
     table = get_search_result_table(table_query)
     table.hidden_cols = [0]
 
-    if request.GET.get("show_all_rows"):
-        config = RequestConfig(request, paginate=False)
-    else:
-        config = RequestConfig(request, paginate=DEFAULT_TABLE_PAGINATION_OPTS)
+    config = config_table_request(request, table)
     config.configure(table)
 
     if request.htmx:
@@ -1267,10 +1258,7 @@ def search(request: HtmxHttpRequest) -> HttpResponse:
 
     table = get_search_result_table(query)
 
-    if request.GET.get("show_all_rows"):
-        config = RequestConfig(request, paginate=False)
-    else:
-        config = RequestConfig(request, paginate=DEFAULT_TABLE_PAGINATION_OPTS)
+    config = config_table_request(request, table)
     config.configure(table)
 
     if request.htmx:
