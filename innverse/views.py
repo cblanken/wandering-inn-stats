@@ -27,7 +27,7 @@ from .forms import ChapterFilterForm, SearchForm, MAX_CHAPTER_NUM
 
 DEFAULT_TABLE_PAGINATION_OPTS = {
     "page": 1,
-    "per_page": 25,
+    "per_page": 20,
     "orphans": 5,
 }
 
