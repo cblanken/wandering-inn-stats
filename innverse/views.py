@@ -829,6 +829,10 @@ def chapter_stats(request: HtmxHttpRequest, number: int) -> HttpResponse:
 
     context = {
         "title": chapter.title,
+        "word_count": chapter.word_count,
+        "post_date": chapter.post_date,
+        "last_update": chapter.last_update,
+        "book_title": chapter.book.title,
         "heading": render_to_string(
             "patterns/atoms/link/link.html",
             context={
