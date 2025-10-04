@@ -1,0 +1,36 @@
+{% extends "admin/base.html" %}
+{% load admin_urls i18n l10n static tailwind_tags %}
+
+{% block extrastyle %}
+{{ block.super }}
+{{ form.media }}
+{% tailwind_css %}
+{% endblock extrastyle %}
+
+{% block content %}
+
+<h1 class="text-4xl mb-2">Move Selected Chapters to Book <span class="font-bold text-hl-secondary">"X"</span></h1>
+
+These chapters will be moved
+<div class="flex {% if queryset.count > 5 %}flex-col{% endif %} flex-wrap gap-2">
+    {% for record in qs %}
+    <div class="font-bold bg-bg-primary px-2 py-1 w-fit">{{ record }}</div>
+    {% endfor %}
+</div>
+
+
+<div class="my-5">
+    <div>Are you sure you want to move the selected Chapters to the selected Book?</div>
+    <form class="flex flex-col gap-5 max-w-full" method="post">
+        {% csrf_token %}
+        {{ form }}
+        <input type="hidden" name="action" value="{{ action }}">
+        <input type="hidden" name="confirm" value="yes">
+
+        <div>
+            <input class="h-12 p-2 rounded-md" type="submit" value="{% translate 'Yes, proceed' %}">
+            <a href="{{ return_url }}" class="rounded-md text-center align-middle h-12 p-2 m-0 inline-block !bg-red-500">{% translate "No, take me back" %}</a>
+        </div>
+    </form>
+</div>
+{% endblock content %}

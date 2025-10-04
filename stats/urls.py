@@ -17,8 +17,7 @@ Including another URLconf
 from django.urls import path, include
 from django.contrib.auth import get_user_model
 from rest_framework import permissions, routers, serializers, viewsets
-from stats.models import Chapter
-from .views import admin
+from stats.models import Book, Chapter
 
 
 # Serializers define the API representation.
@@ -47,6 +46,12 @@ class ChapterViewSet(viewsets.ReadOnlyModelViewSet):
     http_method_names = ["get"]
 
 
+class BookSerializer(serializers.HyperlinkedModelSerializer):
+    class Meta:
+        model = Book
+        fields = ["title", "number"]
+
+
 class LongestChaptersViewSet(viewsets.ModelViewSet):
     queryset = Chapter.objects.filter(is_canon=True).order_by("-word_count")[:5]
     serializer_class = ChapterSerializer
@@ -64,5 +69,4 @@ router.register(r"longest-chapters", LongestChaptersViewSet, basename="longest-c
 urlpatterns = [
     path("api/", include(router.urls)),
     path("api-auth/", include("rest_framework.urls", namespace="rest_framework")),
-    path("select_reftype/", admin.select_reftype),
 ]

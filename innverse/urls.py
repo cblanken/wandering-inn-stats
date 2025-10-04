@@ -54,7 +54,7 @@ urlpatterns = [
     # Chapters
     path("chapter/<slug:number>", cache_page(CACHE_TIME_SHORT)(views.chapter_stats), name="chapters"),
     # Plugins
-    path("admin/", admin.site.urls),
+    path("admin/", admin.site.urls, name="admin"),
     path("stats/", include("stats.urls")),
     path("__debug__/", include("debug_toolbar.urls")),
     path("__reload__", include("django_browser_reload.urls")),

@@ -1,6 +1,11 @@
 from django.contrib import admin
 from django.http import HttpRequest, HttpResponseRedirect
 from django.db.models import QuerySet
+from django.urls import path, include
+from django.urls.resolvers import URLResolver
+from stats.enums import AdminActionTypes
+from stats.views.admin import SelectForeignModelView
+
 from .models import (
     Chapter,
     Book,
@@ -18,15 +23,73 @@ from .models import (
 )
 
 
+class StatsAdminSite(admin.AdminSite):
+    site_header = "Innverse Stats administration"
+
+    def get_urls(self) -> list[URLResolver]:
+        custom_urls = [
+            path(
+                "custom-actions/",
+                include(
+                    [
+                        path(
+                            "select-book/",
+                            self.admin_view(
+                                SelectForeignModelView.as_view(
+                                    admin=self,
+                                    base_model=Chapter,
+                                    field="book",
+                                    select_model=Book,
+                                    template_name="custom_admin/select_book.html",
+                                )
+                            ),
+                        ),
+                        path(
+                            "select-reftype/",
+                            self.admin_view(
+                                SelectForeignModelView.as_view(
+                                    admin=self,
+                                    base_model=Alias,
+                                    field="ref_type",
+                                    select_model=RefType,
+                                    qs_model=RefType,
+                                    template_name="custom_admin/select_reftype.html",
+                                )
+                            ),
+                        ),
+                    ]
+                ),
+            )
+        ]
+        admin_urls = super().get_urls()
+        return custom_urls + admin_urls
+
+
+site = StatsAdminSite(name="twi-admin")
+admin.site = site
+
+
 # Admin model settings
 class ChapterAdmin(admin.ModelAdmin):
     list_display = ["title", "number", "word_count", "post_date", "is_canon", "is_interlude"]
     list_filter = ["is_canon", "is_interlude", "book__volume__title", "book__title"]
     search_fields = ["title", "source_url"]
+    autocomplete_fields = ["book"]
+
+    @admin.action(description='Move chapter(s) to Book "X"', permissions=["change"])
+    def move_chapters_to_book(self, _request: HttpRequest, queryset: QuerySet) -> HttpResponseRedirect | None:
+        selected = queryset.values_list("pk", flat=True)
+        return HttpResponseRedirect(
+            f"/admin/custom-actions/select-book/?return_url=/admin/stats/chapter&action={AdminActionTypes.MOVE_CHAPTERS}&ids={','.join(str(pk) for pk in selected)}",
+            preserve_request=True,
+        )
+
+    actions = [move_chapters_to_book.__name__]
 
 
 class BookAdmin(admin.ModelAdmin):
     list_display = ["title", "number", "volume"]
+    search_fields = ["title"]
 
     def get_form(self, request, obj=None, **kwargs):  # noqa
         form = super().get_form(request, obj, **kwargs)
@@ -82,14 +145,16 @@ class RefTypeAdmin(admin.ModelAdmin):
     def merge_reftypes(self, _request: HttpRequest, queryset: QuerySet) -> HttpResponseRedirect | None:
         selected = queryset.values_list("pk", flat=True)
         return HttpResponseRedirect(
-            f"/stats/select_reftype/?no_alias=1&ids={','.join(str(pk) for pk in selected)}", preserve_request=True
+            f"/admin/custom-actions/select-reftype/?return_url=/admin/stats/reftype&action={AdminActionTypes.MERGE_REFTYPES_NO_ALIAS}&ids={','.join(str(pk) for pk in selected)}",
+            preserve_request=True,
         )
 
     @admin.action(description="Merge (with alias) selected RefTypes into RefTypeB (creates alias of RefTypeA.name)")
     def merge_reftypes_with_alias(self, _request: HttpRequest, queryset: QuerySet) -> HttpResponseRedirect | None:
         selected = queryset.values_list("pk", flat=True)
         return HttpResponseRedirect(
-            f"/stats/select_reftype/?ids={','.join(str(pk) for pk in selected)}", preserve_request=True
+            f"/admin/custom-actions/select-reftype/?return_url=/admin/stats/reftype&action={AdminActionTypes.MERGE_REFTYPES_WITH_ALIAS}&ids={','.join(str(pk) for pk in selected)}",
+            preserve_request=True,
         )
 
     actions = [merge_reftypes.__name__, merge_reftypes_with_alias.__name__]
@@ -129,20 +194,20 @@ class RefTypeComputedViewAdmin(admin.ModelAdmin):
 
 
 # Organizational data
-admin.site.register(Chapter, ChapterAdmin)
-admin.site.register(Book, BookAdmin)
-admin.site.register(Volume, VolumeAdmin)
+site.register(Chapter, ChapterAdmin)
+site.register(Book, BookAdmin)
+site.register(Volume, VolumeAdmin)
 
 # Text reference data
-admin.site.register(Alias, AliasAdmin)
-admin.site.register(ChapterLine, ChapterLineAdmin)
-admin.site.register(Color, ColorAdmin)
-admin.site.register(ColorCategory, ColorCategoryAdmin)
-admin.site.register(RefType, RefTypeAdmin)
-admin.site.register(RefTypeComputedView, RefTypeComputedViewAdmin)
-admin.site.register(TextRef, TextRefAdmin)
-admin.site.register(RefTypeChapter, RefTypeChapterAdmin)
+site.register(Alias, AliasAdmin)
+site.register(ChapterLine, ChapterLineAdmin)
+site.register(Color, ColorAdmin)
+site.register(ColorCategory, ColorCategoryAdmin)
+site.register(RefType, RefTypeAdmin)
+site.register(RefTypeComputedView, RefTypeComputedViewAdmin)
+site.register(TextRef, TextRefAdmin)
+site.register(RefTypeChapter, RefTypeChapterAdmin)
 
 # Wiki data objects
-admin.site.register(Character, CharacterAdmin)
-admin.site.register(Location, LocationAdmin)
+site.register(Character, CharacterAdmin)
+site.register(Location, LocationAdmin)

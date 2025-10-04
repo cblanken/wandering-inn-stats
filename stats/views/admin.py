@@ -1,15 +1,17 @@
 from django.db.utils import IntegrityError
+from django.db.models import Model, QuerySet
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
-from django.views.decorators.csrf import requires_csrf_token
-from stats.forms import SelectRefType
-from stats.models import RefType, Alias, TextRef, RefTypeChapter
+from django.views.generic import TemplateView
+from stats.forms import SelectForeignModelForm
+from stats.models import RefType, Alias, TextRef, RefTypeChapter, Book, Chapter
+from stats.enums import AdminActionTypes
 
 
-def merge_reftypes(old_rt_ids: list[int], target_rt: RefType, *, make_alias: bool) -> None:
-    for rt_id in old_rt_ids:
-        orig_rt = RefType.objects.get(pk=rt_id)
-
+def merge_reftypes(qs: QuerySet[RefType], target_rt: RefType, *, make_alias: bool) -> None:
+    # TODO: error handling
+    # - Detect different RefType categories
+    for orig_rt in qs:
         aliases = Alias.objects.filter(ref_type=orig_rt)
         for a in aliases:
             try:
@@ -47,21 +49,79 @@ def merge_reftypes(old_rt_ids: list[int], target_rt: RefType, *, make_alias: boo
         print(f"RefType {name} merged with {target_rt.name}")
 
 
-@requires_csrf_token
-def select_reftype(request: HttpRequest) -> HttpResponse:
-    original_rt_ids = list(map(int, request.GET.get("ids").split(",")))
-    rt_choices = RefType.objects.exclude(pk__in=original_rt_ids).values_list("pk", "name")
-    if request.method == "POST":
-        form = SelectRefType(request.POST, rt_choices=rt_choices)
-        if form.is_valid():
-            target_reftype = RefType.objects.get(pk=form.cleaned_data["target_reftype"])
-            if request.GET.get("no_alias"):
-                merge_reftypes(original_rt_ids, target_reftype, make_alias=False)
-            else:
-                merge_reftypes(original_rt_ids, target_reftype, make_alias=True)
+def move_chapters_to_book(chapters: QuerySet[Chapter], book: Book) -> None:
+    for c in chapters:
+        c.book = book
+        c.save()
+        print(f"Moved chapter {c} to Book {book}")
 
-            return HttpResponseRedirect("/admin/stats/reftype/")
-    else:
-        form = SelectRefType(rt_choices=rt_choices)
 
-    return render(request, "select_reftype.html", context={"form": form, "ids": original_rt_ids})
+class SelectForeignModelView(TemplateView):
+    """
+    admin: needed for admin site context
+    base_model: the model used for selecting items in the admin dashboard
+    field: the foreign key field (of `base_model`) required for the built-in AutocompleteSelect widget
+    select_model: the model to populate the selection items of the widget
+    qs_model: the queryset type selected from in the admin dashboard
+
+    Ideally this view is used when selecting a foreign key attribute and doing some operation
+    to update the `base_model` items, but it can also be used with an arbitrary `base_model`
+    if a specific set of `select_model` records needs to be selected from. Just provided the correct
+    `qs_model` per the actual selection made in the admin dashboard.
+    """
+
+    admin = {}
+    template_name = "custom_admin/select_book.html"
+    base_model: type[Model] | None = None
+    field: str | None = None
+    select_model: type[Model] | None = None
+    qs_model: type[Model] | None = None
+
+    def post(self, request: HttpRequest):  # noqa: ANN201
+        if self.base_model is None or self.select_model is None or self.field is None:
+            msg = "The qs_model, select_model, and field for the SelectForeignModelView must all be specified"
+            raise ValueError(msg)
+
+        if self.qs_model is None:
+            self.qs_model = self.base_model
+
+        ids = request.GET.get("ids")
+        try:
+            if ids:
+                queryset_ids = list(map(int, ids.split(",")))
+                queryset = self.qs_model.objects.filter(pk__in=queryset_ids)
+        except ValueError as e:
+            msg = "Invalid Chapter ID in {qs_param}"
+            raise ValueError(msg) from e
+
+        form = SelectForeignModelForm(self.base_model, self.field, request.POST)  # type: ignore
+        action = request.GET.get("action")
+        return_url = request.GET.get("return_url", "")
+
+        if form.data.get("confirm") == "yes":
+            selected_model_id = int(form.data.get("model_id"))
+
+            match (action, self.select_model, self.base_model):
+                case (AdminActionTypes.MOVE_CHAPTERS.value, Book._meta.model, Chapter._meta.model):
+                    book = Book.objects.get(pk=selected_model_id)
+                    move_chapters_to_book(queryset, book)
+                    return HttpResponseRedirect(return_url)
+                case (AdminActionTypes.MERGE_REFTYPES_WITH_ALIAS.value, RefType._meta.model, *_):
+                    merge_reftypes(queryset, RefType.objects.get(pk=selected_model_id), make_alias=True)
+                    return HttpResponseRedirect(return_url)
+                case (AdminActionTypes.MERGE_REFTYPES_NO_ALIAS.value, RefType._meta.model, *_):
+                    merge_reftypes(queryset, RefType.objects.get(pk=selected_model_id), make_alias=False)
+                    return HttpResponseRedirect(return_url)
+                case _:
+                    return HttpResponse("nothing to see here")
+
+        ctx = {
+            "qs": queryset,
+            "form": form,
+            "action": action,
+            "return_url": return_url,
+        }
+
+        ctx |= self.admin.each_context(request)
+
+        return render(request, self.template_name, ctx)
