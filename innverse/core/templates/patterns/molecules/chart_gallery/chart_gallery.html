@@ -1,10 +1,12 @@
 {% load static %}
-<div class="grid lg:grid-cols-2 md:cols-1 gap-x-4 gap-y-8 max-w-[4000px]">
+<div class="grid grid-cols-1 lg:grid-cols-2 {% if gallery|length > 4 %}2xl:grid-cols-3{% elif gallery|length > 9 %}2xl:grid-cols-4{% endif %} gap-x-4 gap-y-8 max-w-[4000px]">
   {% for item in gallery %}
     <div class="gallery-item-container">
-      <figure class="relative bg-bg-tertiary rounded-lg">
-        <h2 class="absolute left-4 top-2 whitespace-nowrap sm:text-base lg:text-lg font-subheading font-bold uppercase z-10">{{ item.title }}</h2>
-        <img alt="{{ item.title }}" class="max-h-[calc(100vh-2.75rem)] w-full rounded-t-lg" src="{{ item.static_url }}" onerror="this.onerror=null; this.parentElement.querySelectorAll('svg').forEach(e => e.remove()); this.remove()"/>
+      <figure class="relative bg-bg-tertiary rounded-xl">
+        <div class="bg-plotly-bg overflow-hidden rounded-t-xl">
+          <h2 class="absolute top-2 left-4 whitespace-nowrap sm:text-base lg:text-lg font-subheading font-bold uppercase z-10">{{ item.title }}</h2>
+          <img alt="{{ item.title }}" loading="lazy" class="noscript:visible invisible max-h-[calc(100vh-2.75rem)] h-auto w-full aspect-[7/5] object-contain rounded-t-lg" src="{{ item.static_url }}" onerror="this.onerror=null; this.parentElement.querySelectorAll('svg').forEach(e => e.remove()); this.remove()"/>
+        </div>
         <button class="absolute bottom-2 right-2 inline hover:scale-150 text-info">
           <i class="inline pointer-events-none h-6 w-6 text-info z-50" data-feather="maximize"></i>
         </button>
@@ -12,8 +14,7 @@
           {{ item.caption }} See the <a class="interactive-chart-link border-b-2 text-info border-info p-1 hover:bg-info hover:text-bg-primary" href="{{ request.path }}charts/{{ item.title_slug }}">interactive chart</a>
         </figcaption>
         {% if item.popup_info %}
-        <i data-feather="info" class="peer absolute right-2 top-2 hover:cursor-pointer text-info hover:z-50"></i>
-        <div class="z-20 h-fit w-fit max-w-[400px] absolute p-5 rounded-lg border-2 border-info top-0 right-0 invisible peer-hover:visible transition ease-in-out delay-150 bg-bg-secondary text-lg text-text-primary">{{ item.popup_info }}</div>
+          {% include "atoms/popup_info/popup_info.html" with popup_info=item.popup_info %}
         {% endif %}
       </figure>
     </div>
@@ -21,6 +22,13 @@
 </div>
 
 <script>
+  document.querySelectorAll(".gallery-item-container img").forEach((img) => {
+    img.onload = function() {
+      img.classList.add("animate-fade-in-fast");
+      img.classList.remove("invisible");
+    }
+  });
+
   function replace_icon(ele, feather_name) {
     let icon = document.createElement("i");
     icon.setAttribute("data-feather", feather_name);
