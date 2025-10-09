@@ -110,6 +110,7 @@ TEMPLATES = [
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
                 "innverse.context_processors.analytics",
+                "innverse.context_processors.prod",
             ],
             "builtins": ["pattern_library.loader_tags"],
         },
