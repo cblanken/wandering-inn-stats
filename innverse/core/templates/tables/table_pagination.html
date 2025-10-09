@@ -1,0 +1,78 @@
+{% load django_tables2 i18n l10n %}
+<section class="pagination flex justify-between items-center">
+    <div class="flex gap-4 my-2 px-4 py-1 font-mono">
+    {% if table.page.has_previous or table.page.has_next %}
+    {% block pagination.range %}
+        {% for p in table.page|table_page_range:table.paginator %}
+        <div class="page cursor-pointer {% if p == table.page.number %}active text-hl-primary underline underline-offset-8{% endif %}"
+            hx-get="{% querystring table.prefixed_page_field=p %}"
+            hx-trigger="click"
+            hx-target="div.table-body-container"
+            hx-swap="innerHTML"
+            hx-history="false"
+            hx-push-url="false"
+            hx-boost="true"
+            hx-indicator="div.page"
+        >
+            {% if p == '...' %}
+            <span>{{ p }}</span>
+            {% else %}
+            <span class="hover:underline underline-offset-8">{{ p }}</span>
+            {% endif %}
+            </div>
+        {% endfor %}
+    {% endblock pagination.range %}
+    {% endif %}
+    </div>
+    <div class="flex justify-end gap-4 font-mono">
+    {% block pagination.previous %}
+        {% if table.page.has_previous %}
+        <button class="previous w-[8rem] flex justify-end"
+                hx-get="{% querystring table.prefixed_page_field=table.page.previous_page_number %}"
+                hx-trigger="click"
+                hx-target="div.table-body-container"
+                hx-history="false"
+                hx-push-url="true"
+                hx-boost="true"
+                hx-swap="innerHTML">
+            <div class="flex flex-nowrap items-center gap-2 hover:font-extrabold hover:underline underline-offset-4">
+                <div class="">
+                <span class="previous-arrow"><i class="size-4" data-feather="arrow-left"></i></span>
+                <span class="spinner hidden"><i class="size-4 animate-spin-slow-reverse pointer-events-none select-none" data-feather="loader"></i></span>
+                </div>
+                <div class="flex items-center">{% translate 'Previous' %}</div>
+            </div>
+        </button>
+        {% else %}
+        <button disabled class="previous text-text-disabled">
+            <div><i class="w-4 h-4 inline-block mr-2" data-feather="arrow-left"></i>{% translate 'Previous' %}
+            </div>
+        </button>
+        {% endif %}
+    {% endblock pagination.previous %}
+    {% block pagination.next %}
+        {% if table.page.has_next %}
+        <button class="next w-[4rem]"
+                hx-get="{% querystring table.prefixed_page_field=table.page.next_page_number %}"
+                hx-trigger="click"
+                hx-target="div.table-body-container"
+                hx-history="false"
+                hx-push-url="true"
+                hx-boost="true"
+                hx-swap="innerHTML">
+            <div class="flex flex-nowrap items-center gap-2 hover:font-extrabold hover:underline underline-offset-4">
+                <div class="flex items-center">{% translate 'Next' %}</div>
+                <div class="">
+                <span class="next-arrow"><i class="size-4" data-feather="arrow-right"></i></span>
+                <span class="spinner hidden"><i class="size-4 animate-spin-slow pointer-events-none select-none" data-feather="loader"></i></span>
+                </div>
+            </div>
+        </button>
+        {% else %}
+        <button disabled class="next text-text-disabled">
+            <div>{% translate 'Next' %}<i class="w-4 h-4 inline-block ml-2" data-feather="arrow-right"></i></div>
+        </button>
+        {% endif %}
+    {% endblock pagination.next %}
+    </div>
+</section>
