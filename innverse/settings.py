@@ -100,7 +100,7 @@ TEMPLATES = [
         "BACKEND": "django.template.backends.django.DjangoTemplates",
         "DIRS": [
             Path(BASE_DIR, "innverse/core/templates/patterns"),
-            Path(BASE_DIR, "innverse/core/templates/admin"),
+            Path(BASE_DIR, "stats/templates/"),
         ],
         "APP_DIRS": True,
         "OPTIONS": {

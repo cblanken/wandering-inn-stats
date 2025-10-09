@@ -15,48 +15,8 @@ Including another URLconf
 """
 
 from django.urls import path, include
-from django.contrib.auth import get_user_model
-from rest_framework import permissions, routers, serializers, viewsets
-from stats.models import Book, Chapter
-
-
-# Serializers define the API representation.
-class UserSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = get_user_model()
-        fields = ["url", "username", "email", "is_staff"]
-
-
-# ViewSets define the view behavior.
-class UserViewSet(viewsets.ModelViewSet):
-    queryset = get_user_model().objects.all()
-    serializer_class = UserSerializer
-    permission_classes = [permissions.IsAuthenticated]
-
-
-class ChapterSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = Chapter
-        fields = ["title", "number", "post_date", "word_count"]
-
-
-class ChapterViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Chapter.objects.all()
-    serializer_class = ChapterSerializer
-    http_method_names = ["get"]
-
-
-class BookSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = Book
-        fields = ["title", "number"]
-
-
-class LongestChaptersViewSet(viewsets.ModelViewSet):
-    queryset = Chapter.objects.filter(is_canon=True).order_by("-word_count")[:5]
-    serializer_class = ChapterSerializer
-    http_method_names = ["get"]
-
+from rest_framework import routers
+from stats.views.api import UserViewSet, ChapterViewSet, LongestChaptersViewSet
 
 # Routers provide an easy way of automatically determining the URL conf.
 router = routers.DefaultRouter()
