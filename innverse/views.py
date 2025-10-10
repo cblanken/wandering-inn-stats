@@ -23,6 +23,7 @@ from .tables import (
     ReftypeHtmxTable,
 )
 from .forms import ChapterFilterForm, SearchForm, MAX_CHAPTER_NUM
+from innverse.settings import TWI_MIN_REFTYPE_MENTIONS
 
 
 DEFAULT_TABLE_PAGINATION_OPTS = {
@@ -1119,7 +1120,7 @@ def reftype_stats(request: HtmxHttpRequest, name: str) -> HttpResponse:
             context={"text": rt.name, "href": href, "external": True},
         ),
         "aliases": aliases,
-        "gallery": get_reftype_gallery(rt),
+        "gallery": get_reftype_gallery(rt) if mention_count > TWI_MIN_REFTYPE_MENTIONS else None,
         "stats": (
             [
                 HeadlineStat("Total mentions", mention_count, units="mentions"),

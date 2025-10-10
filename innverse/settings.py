@@ -299,3 +299,6 @@ else:
                 "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
             },
         }
+
+# Chart settings
+TWI_MIN_REFTYPE_MENTIONS = int(env.get("TWI_MIN_REFTYPE_MENTIONS", 5))

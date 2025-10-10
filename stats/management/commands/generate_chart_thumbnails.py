@@ -5,10 +5,12 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from os import cpu_count
 
 from django.core.management.base import BaseCommand, CommandError, CommandParser
+from django.db.models import F
 from typing import Any
 
 from stats import charts
 from stats.models import RefType
+from innverse.settings import TWI_MIN_REFTYPE_MENTIONS
 
 
 class Command(BaseCommand):
@@ -93,7 +95,9 @@ class Command(BaseCommand):
                             )
 
             with ThreadPoolExecutor(max_workers=cpu_count() - 1) as executor:
-                reftypes = RefType.objects.all()
+                reftypes = RefType.objects.annotate(mentions=F("reftypecomputedview__mentions")).filter(
+                    mentions__gt=TWI_MIN_REFTYPE_MENTIONS
+                )
 
                 if reftype_name := options.get("reftype_name"):
                     reftypes = reftypes.filter(name__icontains=reftype_name)
