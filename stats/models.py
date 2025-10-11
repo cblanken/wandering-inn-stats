@@ -1,3 +1,5 @@
+from django.contrib.postgres.search import SearchVector
+from django.contrib.postgres.indexes import GinIndex
 from django.core.validators import RegexValidator
 from django.db import models
 from django.db.models import Q
@@ -390,11 +392,13 @@ class ChapterLine(models.Model):
     chapter = models.ForeignKey(Chapter, on_delete=models.CASCADE)
     line_number = models.PositiveIntegerField()
     text = models.TextField()
+    text_plain = models.TextField(default="")
 
     class Meta:
         verbose_name_plural = "Chapter Lines"
         ordering = ["chapter", "line_number"]
         constraints = [models.UniqueConstraint(fields=["chapter", "line_number"], name="unique_chapter_and_line")]
+        indexes = [GinIndex(SearchVector("text_plain", config="english"), name="chapterline_search_vector_idx")]
 
     def __str__(self) -> str:
         return f"(Chapter: ({self.chapter.number}) {self.chapter.title}, Line: {self.line_number}, Text: {self.text})"
