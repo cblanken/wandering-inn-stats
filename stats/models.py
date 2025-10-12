@@ -398,7 +398,10 @@ class ChapterLine(models.Model):
         verbose_name_plural = "Chapter Lines"
         ordering = ["chapter", "line_number"]
         constraints = [models.UniqueConstraint(fields=["chapter", "line_number"], name="unique_chapter_and_line")]
-        indexes = [GinIndex(SearchVector("text_plain", config="english"), name="chapterline_search_vector_idx")]
+        indexes = [
+            GinIndex(SearchVector("text_plain", config="english"), name="search_vector_idx"),
+            GinIndex(SearchVector("text_plain", config="english_nostop"), name="search_vector_no_stop_idx"),
+        ]
 
     def __str__(self) -> str:
         return f"(Chapter: ({self.chapter.number}) {self.chapter.title}, Line: {self.line_number}, Text: {self.text})"

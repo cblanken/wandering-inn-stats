@@ -2,7 +2,7 @@
 Each function should return relevant table data or a full table object
 """
 
-from django.contrib.postgres.search import SearchQuery
+from django.contrib.postgres.search import SearchQuery, SearchHeadline
 from django.db.models import F, Q, QuerySet
 from django.http import QueryDict
 from innverse.tables import ChapterRefTable, CharacterHtmxTable, TextRefTable
@@ -42,9 +42,35 @@ def get_textref_table(query: QueryDict | dict[str, str]) -> TextRefTable:
         table_data = table_data.filter(color__isnull=False)
 
     if search_filter:
-        table_data = table_data.filter(
-            text_plain__search=SearchQuery(search_filter, config="english", search_type="websearch")
+        if '"' in search_filter:
+            search_query = SearchQuery(search_filter, config="english_nostop", search_type="websearch")
+            config = "english_nostop"
+        else:
+            search_query = SearchQuery(search_filter, config="english", search_type="websearch")
+            config = "english"
+
+        full_text_search_data = table_data.filter(text_plain__search=search_query).annotate(
+            headline=SearchHeadline(
+                "text_plain",
+                search_query,
+                config=config,
+                start_sel="<span class='text-black bg-hl-tertiary'>",
+                stop_sel="</span>",
+                highlight_all=True,
+            )
         )
+
+        # Fallback to basic icontains search if the SearchQuery fails, for example,
+        # if the query only contains stop words
+        if not full_text_search_data:
+            search_filter = search_filter.replace('"', "")
+            table_data = (
+                full_text_search_data
+                if full_text_search_data
+                else table_data.filter(text_plain__icontains=search_filter)
+            )
+        else:
+            table_data = full_text_search_data
 
     return TextRefTable(table_data, filter_text=search_filter)
 

@@ -1,7 +1,7 @@
 from django.db.models import F, QuerySet
 from django.urls import NoReverseMatch, reverse
 from django.utils.text import slugify
-from django.utils.html import strip_tags
+from django.utils.html import strip_tags, format_html
 from django.utils.safestring import SafeText
 from django.template.loader import render_to_string
 from urllib.parse import quote
@@ -16,7 +16,7 @@ EMPTY_TABLE_TEXT = "No results found"
 class TextRefTable(tables.Table):
     ref_name = tables.Column(accessor="type__name", attrs={"th": {"style": "width: 20%;"}})
     text = tables.Column(
-        accessor="chapter_line__text",
+        accessor="chapter_line__text_plain",
         attrs={
             "th": {"style": "width: 60%;"},
             "td": {"style": "text-align: justify; padding: 1rem;"},
@@ -64,7 +64,6 @@ class TextRefTable(tables.Table):
                 self.columns.hide(col.name)
 
     class Meta:
-        model = TextRef
         template_name = "tables/table_partial.html"
         fields = ("ref_name", "chapter_url", "text")
         empty_text = EMPTY_TABLE_TEXT
@@ -84,25 +83,31 @@ class TextRefTable(tables.Table):
 
     @staticmethod
     def highlight_text(text: str, hl: str) -> str:
-        # return text.replace(hl, f'<span class="bg-hl-tertiary text-black p-[1px]">{hl}</span>')
         return regex.sub(
             hl, f'<span class="bg-hl-tertiary text-black p-[1px]">{hl}</span>', text, flags=regex.IGNORECASE
         )
 
-    def render_text(self, record: TextRef) -> SafeText:
+    def render_text(self, record) -> SafeText:  # noqa: ANN001
         line_text = record.chapter_line.text
         ref_text = line_text[record.start_column : record.end_column]
 
-        before = strip_tags(line_text[: record.start_column])
-        after = strip_tags(line_text[record.end_column :])
-        if self.filter_text and not self.invalid_filter.search(self.filter_text):
-            ref_text = self.highlight_text(ref_text, self.filter_text)
-            before = self.highlight_text(before, self.filter_text)
-            after = self.highlight_text(after, self.filter_text)
+        if hasattr(record, "headline"):
+            highlighted_text = format_html(record.headline).replace(
+                ref_text, f"<span class='text-hl-primary font-mono font-extrabold'>{ref_text}</span>"
+            )
+        else:
+            before = strip_tags(line_text[: record.start_column])
+            after = strip_tags(line_text[record.end_column :])
+            if self.filter_text and not self.invalid_filter.search(self.filter_text):
+                ref_text = self.highlight_text(ref_text, self.filter_text)
+                before = self.highlight_text(before, self.filter_text)
+                after = self.highlight_text(after, self.filter_text)
 
-        highlighted_text = f"{before}<span class='text-hl-primary font-mono font-extrabold'>{ref_text}</span>{after}"
+            highlighted_text = (
+                f"{before}<span class='text-hl-primary font-mono font-extrabold'>{ref_text}</span>{after}"
+            )
 
-        return SafeText(highlighted_text)
+        return format_html(highlighted_text)
 
     def render_chapter_url(self, record: TextRef, value) -> SafeText:  # noqa: ANN001
         # Using the full text or a strict character count appears to run into issues when linking
