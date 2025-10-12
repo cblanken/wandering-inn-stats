@@ -1,4 +1,4 @@
-from django.db.models import Count, F, Q, QuerySet, Sum, Window
+from django.db.models import Count, F, Q, Sum, Window
 from django.db.models.functions import Lag
 from django.http import HttpRequest, HttpResponse, Http404
 from django.shortcuts import render
@@ -15,11 +15,9 @@ from typing import Iterable, Tuple
 from stats import charts
 from stats.charts import ChartGalleryItem, get_reftype_gallery
 from stats.models import Alias, Chapter, Character, RefType, RefTypeChapter, TextRef
+from .table_search import get_textref_table, get_chapterref_table, get_character_table, get_reftype_table_data
 from .tables import (
-    ChapterRefTable,
-    TextRefTable,
     ChapterHtmxTable,
-    CharacterHtmxTable,
     ReftypeHtmxTable,
 )
 from .forms import ChapterFilterForm, SearchForm, MAX_CHAPTER_NUM
@@ -264,36 +262,7 @@ def overview(request: HtmxHttpRequest) -> HttpResponse:
 
 
 def characters(request: HtmxHttpRequest) -> HttpResponse:
-    query = request.GET.get("q")
-    if query:
-        data = (
-            Character.objects.select_related("ref_type", "ref_type__reftypecomputedview", "first_chapter_appearance")
-            .filter(
-                Q(ref_type__name__icontains=query)
-                | Q(species__icontains=query)
-                | Q(status__icontains=query)
-                | Q(first_chapter_appearance__title__icontains=query),
-            )
-            .annotate(
-                mentions=F("ref_type__reftypecomputedview__mentions"),
-                first_mention_num=F("ref_type__reftypecomputedview__first_mention__number"),
-                first_mention_title=F("ref_type__reftypecomputedview__first_mention__title"),
-            )
-            .order_by(F("mentions").desc(nulls_last=True))
-        )
-    else:
-        data = (
-            Character.objects.select_related("ref_type", "ref_type__reftypecomputedview", "first_chapter_appearance")
-            .annotate(
-                mentions=F("ref_type__reftypecomputedview__mentions"),
-                first_mention_num=F("ref_type__reftypecomputedview__first_mention__number"),
-                first_mention_title=F("ref_type__reftypecomputedview__first_mention__title"),
-            )
-            .order_by(F("mentions").desc(nulls_last=True))
-        )
-
-    table = CharacterHtmxTable(data)
-
+    table = get_character_table(request.GET)
     config = config_table_request(request, table)
     config.configure(table)
 
@@ -363,33 +332,6 @@ def characters(request: HtmxHttpRequest) -> HttpResponse:
         "table": table,
     }
     return render(request, "pages/characters.html", context)
-
-
-def get_reftype_table_data(query: str | None, rt_type: str, order_by: str = "mentions") -> QuerySet[RefType]:
-    if query:
-        rt_data = (
-            RefType.objects.select_related("reftypecomputedview")
-            .annotate(
-                mentions=F("reftypecomputedview__mentions"),
-                first_mention_num=F("reftypecomputedview__first_mention__number"),
-                first_mention_title=F("reftypecomputedview__first_mention__title"),
-            )
-            .filter(type=rt_type, name__icontains=query)
-            .order_by(F(order_by).desc(nulls_last=True))
-        )
-    else:
-        rt_data = (
-            RefType.objects.select_related("reftypecomputedview")
-            .annotate(
-                mentions=F("reftypecomputedview__mentions"),
-                first_mention_num=F("reftypecomputedview__first_mention__number"),
-                first_mention_title=F("reftypecomputedview__first_mention__title"),
-            )
-            .filter(type=rt_type)
-            .order_by(F("mentions").desc(nulls_last=True))
-        )
-
-    return rt_data
 
 
 def classes(request: HtmxHttpRequest) -> HttpResponse:
@@ -789,7 +731,7 @@ def chapter_stats(request: HtmxHttpRequest, number: int) -> HttpResponse:
     table_filter = request.GET.get("q", "")
     table_query = {"first_chapter": chapter.number, "last_chapter": chapter.number, "filter": table_filter}
 
-    table = get_search_result_table(table_query)
+    table = get_chapterref_table(table_query)
     table.hidden_cols = [1]
 
     config = config_table_request(request, table)
@@ -1071,7 +1013,7 @@ def reftype_stats(request: HtmxHttpRequest, name: str) -> HttpResponse:
     # Table config and pagination
     table_query = {"type": rt.type, "type_query": rt.name, "filter": request.GET.get("q", ""), "strict_mode": True}
 
-    table = get_search_result_table(table_query)
+    table = get_textref_table(table_query)
     table.hidden_cols = [0]
 
     config = config_table_request(request, table)
@@ -1156,88 +1098,6 @@ def reftype_stats(request: HtmxHttpRequest, name: str) -> HttpResponse:
     return render(request, "pages/reftype_page.html", context)
 
 
-def get_search_result_table(query: dict[str, str]) -> ChapterRefTable | TextRefTable:
-    strict_mode = query.get("strict_mode")
-    query_filter = query.get("filter")
-    if query.get("refs_by_chapter"):
-        if strict_mode:
-            ref_types: QuerySet[RefType] = RefType.objects.filter(
-                Q(name=query.get("type_query")) & Q(type=query.get("type")),
-            )
-        else:
-            ref_types: QuerySet[RefType] = RefType.objects.filter(
-                Q(name__icontains=query.get("type_query")) & Q(type=query.get("type")),
-            )
-
-        reftype_chapters = RefTypeChapter.objects.filter(
-            Q(type__in=ref_types)
-            & Q(chapter__number__gte=query.get("first_chapter"))
-            & Q(
-                chapter__number__lte=query.get(
-                    "last_chapter",
-                    int(Chapter.objects.values_list("number").order_by("-number")[0][0]),
-                ),
-            ),
-        )
-
-        if query_filter:
-            reftype_chapters = reftype_chapters.filter(type__name__icontains=query_filter)
-
-        table_data = []
-        for rt in ref_types:
-            chapter_data = reftype_chapters.filter(type=rt).values_list("chapter__title", "chapter__source_url")
-
-            rc_data = {
-                "name": rt.name,
-                "type": rt.type,
-                "chapter_data": chapter_data,
-            }
-
-            rc_data["count"] = len(rc_data["chapter_data"])
-
-            if rc_data["chapter_data"]:
-                table_data.append(rc_data)
-
-        table = ChapterRefTable(table_data)
-    else:
-        table_data = TextRef.objects.select_related("type", "chapter_line__chapter").annotate(
-            name=F("type__name"),
-            text=F("chapter_line__text"),
-            title=F("chapter_line__chapter__title"),
-            url=F("chapter_line__chapter__source_url"),
-        )
-
-        if (reftype := query.get("type")) is not None:
-            table_data = table_data.filter(Q(type__type=reftype))
-
-        if (first_chapter := query.get("first_chapter")) is not None:
-            table_data = table_data.filter(chapter_line__chapter__number__gte=first_chapter)
-
-        if (last_chapter := query.get("last_chapter")) is not None:
-            table_data = table_data.filter(chapter_line__chapter__number__lte=last_chapter)
-
-        if (type_query := query.get("type_query")) is not None:
-            if strict_mode:
-                table_data = table_data.filter(type__name=type_query)
-            else:
-                table_data = table_data.filter(type__name__icontains=type_query)
-
-        if query.get("text_query"):
-            table_data = table_data.filter(chapter_line__text__icontains=type_query)
-
-        if query.get("only_colored_refs"):
-            table_data = table_data.filter(color__isnull=False)
-
-        if query_filter:
-            table_data = table_data.filter(
-                Q(name__icontains=query_filter) | Q(text__icontains=query_filter) | Q(title__icontains=query_filter),
-            )
-
-        table = TextRefTable(table_data, filter_text=query_filter)
-
-    return table
-
-
 def search(request: HtmxHttpRequest) -> HttpResponse:
     if request.method != "GET" or request.GET == {}:
         return render(request, "pages/search.html", {"form": SearchForm()})
@@ -1257,7 +1117,7 @@ def search(request: HtmxHttpRequest) -> HttpResponse:
     query["last_chapter"] = query.get("last_chapter", MAX_CHAPTER_NUM + 1)
     query["filter"] = query.get("text_query")
 
-    table = get_search_result_table(query)
+    table = get_chapterref_table(query) if query.get("refs_by_chapter") else get_textref_table(query)
 
     config = config_table_request(request, table)
     config.configure(table)
