@@ -729,9 +729,9 @@ def chapter_stats(request: HtmxHttpRequest, number: int) -> HttpResponse:
         raise Http404() from e
 
     table_filter = request.GET.get("q", "")
-    table_query = {"first_chapter": chapter.number, "last_chapter": chapter.number, "filter": table_filter}
+    table_query = {"first_chapter": chapter.number, "last_chapter": chapter.number, "q": table_filter}
 
-    table = get_chapterref_table(table_query)
+    table = get_textref_table(table_query)
     table.hidden_cols = [1]
 
     config = config_table_request(request, table)
@@ -1011,7 +1011,7 @@ def reftype_stats(request: HtmxHttpRequest, name: str) -> HttpResponse:
         rt = RefType.objects.get(Q(slug__iexact=name) & Q(type=rt_type))
 
     # Table config and pagination
-    table_query = {"type": rt.type, "type_query": rt.name, "filter": request.GET.get("q", ""), "strict_mode": True}
+    table_query = {"type": rt.type, "type_query": rt.name, "filter": request.GET.get("q", "")}
 
     table = get_textref_table(table_query)
     table.hidden_cols = [0]
@@ -1102,10 +1102,9 @@ def search(request: HtmxHttpRequest) -> HttpResponse:
     if request.method != "GET" or request.GET == {}:
         return render(request, "pages/search.html", {"form": SearchForm()})
 
-    query = request.GET.copy()
-
-    form = SearchForm(query)
-    if not request.htmx and not form.is_valid():
+    form = SearchForm(request.GET)
+    is_valid = form.is_valid()
+    if not request.htmx and not is_valid:
         # Form data not valid
         return render(
             request,
@@ -1115,7 +1114,7 @@ def search(request: HtmxHttpRequest) -> HttpResponse:
 
     table = (
         get_chapterref_table(form.cleaned_data)
-        if query.get("refs_by_chapter")
+        if form.cleaned_data.get("refs_by_chapter")
         else get_textref_table(form.cleaned_data)
     )
 

@@ -107,10 +107,3 @@ class SearchForm(forms.Form):
         initial=False,
         widget=forms.CheckboxInput(attrs={"class": checkbox_tailwind_classes}),
     )
-
-    strict_mode = forms.BooleanField(
-        label="Strict mode",
-        required=False,
-        initial=False,
-        widget=forms.CheckboxInput(attrs={"class": checkbox_tailwind_classes}),
-    )

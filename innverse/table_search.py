@@ -11,8 +11,6 @@ from stats.models import Chapter, Character, RefType, RefTypeChapter, TextRef
 
 
 def get_textref_table(query: dict[str, Any]) -> TextRefTable:
-    strict_mode = query.get("strict_mode")
-
     # Handle TextRef reftype filtering
     table_data = TextRef.objects.select_related("type", "chapter_line").annotate(
         name=F("type__name"),
@@ -27,10 +25,7 @@ def get_textref_table(query: dict[str, Any]) -> TextRefTable:
         table_data = table_data.filter(Q(type__type=reftype))
 
     if type_query := query.get("type_query"):
-        if strict_mode:
-            table_data = table_data.filter(type__name=type_query)
-        else:
-            table_data = table_data.filter(type__name__icontains=type_query)
+        table_data = table_data.filter(type__name__icontains=type_query)
     if query.get("only_colored_refs"):
         table_data = table_data.filter(color__isnull=False)
 
@@ -69,16 +64,14 @@ def get_textref_table(query: dict[str, Any]) -> TextRefTable:
 
 
 def get_chapterref_table(query: QueryDict | dict[str, str]) -> ChapterRefTable:
-    strict_mode = query.get("strict_mode")
-    query_filter = query.get("filter")
-    if strict_mode:
-        ref_types: QuerySet[RefType] = RefType.objects.filter(
-            Q(name=query.get("type_query")) & Q(type=query.get("type")),
-        )
-    else:
-        ref_types: QuerySet[RefType] = RefType.objects.filter(
-            Q(name__icontains=query.get("type_query")) & Q(type=query.get("type")),
-        )
+    reftype = query.get("type", "")
+    type_query = query.get("type_query", "")
+
+    ref_types: QuerySet[RefType] = RefType.objects.all()
+    if reftype != "":
+        ref_types = RefType.objects.filter(Q(type=reftype))
+    if type_query != "":
+        ref_types = RefType.objects.filter(Q(name__icontains=type_query))
 
     reftype_chapters = RefTypeChapter.objects.filter(
         Q(type__in=ref_types)
@@ -90,9 +83,6 @@ def get_chapterref_table(query: QueryDict | dict[str, str]) -> ChapterRefTable:
             ),
         ),
     )
-
-    if query_filter:
-        reftype_chapters = reftype_chapters.filter(type__name__icontains=query_filter)
 
     table_data = []
     for rt in ref_types:
