@@ -6,8 +6,45 @@ from typing import Any
 from django.contrib.postgres.search import SearchQuery, SearchHeadline
 from django.db.models import F, Q, QuerySet
 from django.http import QueryDict
-from innverse.tables import ChapterRefTable, CharacterHtmxTable, TextRefTable
-from stats.models import Chapter, Character, RefType, RefTypeChapter, TextRef
+from innverse.tables import ChapterRefTable, CharacterHtmxTable, TextRefTable, ChapterLineTable
+from stats.models import Chapter, Character, RefType, RefTypeChapter, TextRef, ChapterLine
+
+
+def get_chapterline_table(query: dict[str, Any]) -> ChapterLineTable:
+    table_data = ChapterLine.objects.all()
+
+    # Handle chapter range filtering
+    if (first_chapter := query.get("first_chapter")) is not None:
+        table_data = table_data.filter(chapter__number__gte=first_chapter)
+
+    if (last_chapter := query.get("last_chapter")) is not None:
+        table_data = table_data.filter(chapter__number__lte=last_chapter)
+
+    # Handle full-text search filtering
+    if search_filter := query.get("q"):
+        config = "english_nostop" if '"' in search_filter else "english"
+        search_query = SearchQuery(search_filter, config=config, search_type="websearch")
+
+        full_text_search_data = table_data.filter(text_plain__search=search_query).annotate(
+            headline=SearchHeadline(
+                "text_plain",
+                search_query,
+                config=config,
+                start_sel="<span class='text-black bg-hl-tertiary'>",
+                stop_sel="</span>",
+                highlight_all=True,
+            )
+        )
+
+        # Fallback to basic icontains search if the SearchQuery fails, for example,
+        # if the query only contains stop words
+        if not full_text_search_data:
+            search_filter = search_filter.replace('"', "")
+            table_data = table_data.filter(text_plain__icontains=search_filter)
+        else:
+            table_data = full_text_search_data
+
+    return ChapterLineTable(table_data)
 
 
 def get_textref_table(query: dict[str, Any]) -> TextRefTable:

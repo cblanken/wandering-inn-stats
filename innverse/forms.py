@@ -94,6 +94,13 @@ class SearchForm(forms.Form):
         widget=forms.NumberInput(attrs={"class": integer_input_tailwind_classes, "style": "width: 5rem"}),
     )
 
+    all_contents = forms.BooleanField(
+        label="Search all chapter content",
+        required=False,
+        initial=False,
+        widget=forms.CheckboxInput(attrs={"class": checkbox_tailwind_classes}),
+    )
+
     only_colored_refs = forms.BooleanField(
         label="Only colored refs",
         required=False,

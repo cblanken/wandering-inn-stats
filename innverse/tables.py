@@ -6,7 +6,7 @@ from django.utils.safestring import SafeText
 from django.template.loader import render_to_string
 from urllib.parse import quote
 import django_tables2 as tables
-from stats.models import Chapter, Character, RefType, TextRef
+from stats.models import Chapter, Character, RefType, TextRef, ChapterLine
 from typing import Any
 import regex
 
@@ -15,6 +15,48 @@ EMPTY_TABLE_TEXT = "No results found"
 
 def highlight_text(text: str, hl: str) -> str:
     return regex.sub(hl, f'<span class="bg-hl-tertiary text-black p-[1px]">{hl}</span>', text, flags=regex.IGNORECASE)
+
+
+class ChapterLineTable(tables.Table):
+    """Table for listing chapter lines with direct links to their source"""
+
+    chapter_url = tables.Column(
+        accessor="chapter__source_url",
+        order_by="number",
+        verbose_name="Chapter",
+        attrs={"th": {"style": "width: 30%;"}},
+    )
+    text_plain = tables.Column(
+        accessor="text_plain",
+        attrs={
+            "th": {"style": "width: 70%;"},
+            "td": {"style": "text-align: justify; padding: 1rem;"},
+        },
+        orderable=False,
+    )
+
+    class Meta:
+        template_name = "tables/table_partial.html"
+        empty_text = EMPTY_TABLE_TEXT
+
+    def render_chapter_url(self, record: ChapterLine, value) -> SafeText:  # noqa: ANN001
+        # Using the full text or a strict character count appears to run into issues when linking
+        # with a TextFragment, either with too long URLs or unfinished words
+        text_fragment = " ".join(record.text_plain.split(" ")[:10])
+        source_url_with_fragment = f"{value}#:~:text={text_fragment}"
+        return render_to_string(
+            "patterns/atoms/link/link.html",
+            context={
+                "text": f"{record.chapter.title}",
+                "href": f"{source_url_with_fragment}",
+                "external": True,
+            },
+        )
+
+    def render_text_plain(self, record, value) -> SafeText:  # noqa: ANN001
+        highlighted_text = format_html(record.headline) if hasattr(record, "headline") else SafeText(value)
+
+        return format_html(highlighted_text)
 
 
 class TextRefTable(tables.Table):

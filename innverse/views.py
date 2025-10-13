@@ -15,7 +15,13 @@ from typing import Iterable, Tuple
 from stats import charts
 from stats.charts import ChartGalleryItem, get_reftype_gallery
 from stats.models import Alias, Chapter, Character, RefType, RefTypeChapter, TextRef
-from .table_search import get_textref_table, get_chapterref_table, get_character_table, get_reftype_table_data
+from .table_search import (
+    get_textref_table,
+    get_chapterref_table,
+    get_character_table,
+    get_reftype_table_data,
+    get_chapterline_table,
+)
 from .tables import (
     ChapterHtmxTable,
     ReftypeHtmxTable,
@@ -1112,11 +1118,12 @@ def search(request: HtmxHttpRequest) -> HttpResponse:
             {"error": "Invalid search parameter provided. Please try again."},
         )
 
-    table = (
-        get_chapterref_table(form.cleaned_data)
-        if form.cleaned_data.get("refs_by_chapter")
-        else get_textref_table(form.cleaned_data)
-    )
+    if form.cleaned_data.get("all_contents"):
+        table = get_chapterline_table(form.cleaned_data)
+    elif form.cleaned_data.get("refs_by_chapter"):
+        table = get_chapterref_table(form.cleaned_data)
+    else:
+        table = get_textref_table(form.cleaned_data)
 
     config = config_table_request(request, table)
     config.configure(table)
