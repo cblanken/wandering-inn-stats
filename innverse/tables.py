@@ -13,10 +13,14 @@ import regex
 EMPTY_TABLE_TEXT = "No results found"
 
 
+def highlight_text(text: str, hl: str) -> str:
+    return regex.sub(hl, f'<span class="bg-hl-tertiary text-black p-[1px]">{hl}</span>', text, flags=regex.IGNORECASE)
+
+
 class TextRefTable(tables.Table):
-    ref_name = tables.Column(accessor="type__name", attrs={"th": {"style": "width: 20%;"}})
+    ref_name = tables.Column(accessor="name", attrs={"th": {"style": "width: 20%;"}})
     text = tables.Column(
-        accessor="chapter_line__text_plain",
+        accessor="text_plain",
         attrs={
             "th": {"style": "width: 60%;"},
             "td": {"style": "text-align: justify; padding: 1rem;"},
@@ -24,8 +28,8 @@ class TextRefTable(tables.Table):
         orderable=False,
     )
     chapter_url = tables.Column(
-        accessor="chapter_line__chapter__source_url",
-        order_by="chapter_line__chapter__number",
+        accessor="source_url",
+        order_by="number",
         verbose_name="Chapter",
         attrs={"th": {"style": "width: 20%;"}},
     )
@@ -81,27 +85,20 @@ class TextRefTable(tables.Table):
         except NoReverseMatch:
             return record.type.name
 
-    @staticmethod
-    def highlight_text(text: str, hl: str) -> str:
-        return regex.sub(
-            hl, f'<span class="bg-hl-tertiary text-black p-[1px]">{hl}</span>', text, flags=regex.IGNORECASE
-        )
-
     def render_text(self, record) -> SafeText:  # noqa: ANN001
-        line_text = record.chapter_line.text
-        ref_text = line_text[record.start_column : record.end_column]
+        ref_text = record.text[record.start_column : record.end_column]
 
         if hasattr(record, "headline"):
             highlighted_text = format_html(record.headline).replace(
                 ref_text, f"<span class='text-hl-primary font-mono font-extrabold'>{ref_text}</span>"
             )
         else:
-            before = strip_tags(line_text[: record.start_column])
-            after = strip_tags(line_text[record.end_column :])
+            before = strip_tags(record.text[: record.start_column])
+            after = strip_tags(record.text[record.end_column :])
             if self.filter_text and not self.invalid_filter.search(self.filter_text):
-                ref_text = self.highlight_text(ref_text, self.filter_text)
-                before = self.highlight_text(before, self.filter_text)
-                after = self.highlight_text(after, self.filter_text)
+                ref_text = highlight_text(ref_text, self.filter_text)
+                before = highlight_text(before, self.filter_text)
+                after = highlight_text(after, self.filter_text)
 
             highlighted_text = (
                 f"{before}<span class='text-hl-primary font-mono font-extrabold'>{ref_text}</span>{after}"
@@ -109,25 +106,25 @@ class TextRefTable(tables.Table):
 
         return format_html(highlighted_text)
 
-    def render_chapter_url(self, record: TextRef, value) -> SafeText:  # noqa: ANN001
+    def render_chapter_url(self, record, value) -> SafeText:  # noqa: ANN001
         # Using the full text or a strict character count appears to run into issues when linking
         # with a TextFragment, either with too long URLs or unfinished words
+
         offset = 25
         fragment_start = record.start_column - offset if record.start_column > offset else 0
         fragment_end = (
-            record.end_column + offset
-            if len(record.chapter_line.text) > record.end_column + offset
-            else len(record.chapter_line.text) - 1
+            record.end_column + offset if len(record.text) > record.end_column + offset else len(record.text) - 1
         )
         front_word_cutoff_cnt = 0 if fragment_start == 0 else 1
-        end_word_cutoff_cnt = len(record.chapter_line.text) if fragment_end == len(record.chapter_line.text) - 1 else -1
+        end_word_cutoff_cnt = len(record.text) if fragment_end == len(record.text) - 1 else -1
 
-        source_url_with_fragment = f"{value}#:~:text={quote(' '.join(strip_tags(record.chapter_line.text[fragment_start:fragment_end]).split(' ')[front_word_cutoff_cnt:end_word_cutoff_cnt]))}"
+        source_url_with_fragment = f"{value}#:~:text={quote(' '.join(strip_tags(record.text[fragment_start:fragment_end]).split(' ')[front_word_cutoff_cnt:end_word_cutoff_cnt]))}"
+        # source_url_with_fragment = f"{value}#:~:text={quote(record.text_plain[:30].strip()).strip()}"
 
         return render_to_string(
             "patterns/atoms/link/link.html",
             context={
-                "text": f"{record.chapter_line.chapter.title}",
+                "text": f"{record.title}",
                 "href": f"{source_url_with_fragment}",
                 "external": True,
             },

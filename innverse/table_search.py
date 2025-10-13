@@ -2,6 +2,7 @@
 Each function should return relevant table data or a full table object
 """
 
+from typing import Any
 from django.contrib.postgres.search import SearchQuery, SearchHeadline
 from django.db.models import F, Q, QuerySet
 from django.http import QueryDict
@@ -9,45 +10,41 @@ from innverse.tables import ChapterRefTable, CharacterHtmxTable, TextRefTable
 from stats.models import Chapter, Character, RefType, RefTypeChapter, TextRef
 
 
-def get_textref_table(query: QueryDict | dict[str, str]) -> TextRefTable:
-    search_filter = query.get("filter")
+def get_textref_table(query: dict[str, Any]) -> TextRefTable:
     strict_mode = query.get("strict_mode")
-    table_data = TextRef.objects.select_related("type", "chapter_line__chapter").annotate(
+
+    # Handle TextRef reftype filtering
+    table_data = TextRef.objects.select_related("type", "chapter_line").annotate(
         name=F("type__name"),
         text=F("chapter_line__text"),
         text_plain=F("chapter_line__text_plain"),
         title=F("chapter_line__chapter__title"),
-        url=F("chapter_line__chapter__source_url"),
+        source_url=F("chapter_line__chapter__source_url"),
+        number=F("chapter_line__chapter__number"),
     )
 
-    if (reftype := query.get("type")) is not None:
+    if reftype := query.get("type"):
         table_data = table_data.filter(Q(type__type=reftype))
 
-    if (first_chapter := query.get("first_chapter")) is not None:
-        table_data = table_data.filter(chapter_line__chapter__number__gte=first_chapter)
-
-    if (last_chapter := query.get("last_chapter")) is not None:
-        table_data = table_data.filter(chapter_line__chapter__number__lte=last_chapter)
-
-    if (type_query := query.get("type_query")) is not None:
+    if type_query := query.get("type_query"):
         if strict_mode:
             table_data = table_data.filter(type__name=type_query)
         else:
             table_data = table_data.filter(type__name__icontains=type_query)
-
-    if text_query := query.get("text_query"):
-        table_data = table_data.filter(text_plain__search=SearchQuery(text_query, config="english"))
-
     if query.get("only_colored_refs"):
         table_data = table_data.filter(color__isnull=False)
 
-    if search_filter:
-        if '"' in search_filter:
-            search_query = SearchQuery(search_filter, config="english_nostop", search_type="websearch")
-            config = "english_nostop"
-        else:
-            search_query = SearchQuery(search_filter, config="english", search_type="websearch")
-            config = "english"
+    # Handle chapter range filtering
+    if (first_chapter := query.get("first_chapter")) is not None:
+        table_data = table_data.filter(number__gte=first_chapter)
+
+    if (last_chapter := query.get("last_chapter")) is not None:
+        table_data = table_data.filter(number__lte=last_chapter)
+
+    # Handle full-text search filtering
+    if search_filter := query.get("q"):
+        config = "english_nostop" if '"' in search_filter else "english"
+        search_query = SearchQuery(search_filter, config=config, search_type="websearch")
 
         full_text_search_data = table_data.filter(text_plain__search=search_query).annotate(
             headline=SearchHeadline(
@@ -64,11 +61,7 @@ def get_textref_table(query: QueryDict | dict[str, str]) -> TextRefTable:
         # if the query only contains stop words
         if not full_text_search_data:
             search_filter = search_filter.replace('"', "")
-            table_data = (
-                full_text_search_data
-                if full_text_search_data
-                else table_data.filter(text_plain__icontains=search_filter)
-            )
+            table_data = table_data.filter(text_plain__icontains=search_filter)
         else:
             table_data = full_text_search_data
 

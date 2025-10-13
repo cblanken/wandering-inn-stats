@@ -20,7 +20,7 @@ from .tables import (
     ChapterHtmxTable,
     ReftypeHtmxTable,
 )
-from .forms import ChapterFilterForm, SearchForm, MAX_CHAPTER_NUM
+from .forms import ChapterFilterForm, SearchForm
 from innverse.settings import TWI_MIN_REFTYPE_MENTIONS
 
 
@@ -1113,11 +1113,11 @@ def search(request: HtmxHttpRequest) -> HttpResponse:
             {"error": "Invalid search parameter provided. Please try again."},
         )
 
-    query["first_chapter"] = query.get("first_chapter", 0)
-    query["last_chapter"] = query.get("last_chapter", MAX_CHAPTER_NUM + 1)
-    query["filter"] = query.get("text_query")
-
-    table = get_chapterref_table(query) if query.get("refs_by_chapter") else get_textref_table(query)
+    table = (
+        get_chapterref_table(form.cleaned_data)
+        if query.get("refs_by_chapter")
+        else get_textref_table(form.cleaned_data)
+    )
 
     config = config_table_request(request, table)
     config.configure(table)

@@ -1,3 +1,4 @@
+from collections.abc import Generator
 from django import forms
 from django.core.cache import cache
 from stats.models import RefType, Chapter
@@ -12,13 +13,19 @@ MAX_CHAPTER_NUM = (
 )
 
 
-def get_chapters():  # noqa: ANN201
+def gen_chapter_choices():  # noqa: ANN201
     yield (0, "--- First Chapter ---")
     i = 0
     for tup in ((c["number"], c["title"]) for c in Chapter.objects.values("number", "title").order_by("number")):
         i += 1
         yield tup
     yield (i, "--- Last Chapter ---")
+
+
+def gen_reftype_choices() -> Generator[tuple[RefType.Type | str, str]]:
+    yield ("", "Any")
+    for tup in RefType.Type.choices:
+        yield tup
 
 
 select_input_tailwind_classes = "bg-bg-primary text-text-primary border-none"
@@ -28,7 +35,7 @@ integer_input_tailwind_classes = "bg-bg-tertiary"
 
 
 class ChapterFilterForm(forms.Form):
-    chapter_choices = list(get_chapters())
+    chapter_choices = list(gen_chapter_choices())
     max_choice = len(chapter_choices) - 2
 
     first_chapter = forms.TypedChoiceField(
@@ -51,15 +58,15 @@ class ChapterFilterForm(forms.Form):
 class SearchForm(forms.Form):
     type = forms.ChoiceField(
         label="Type",
-        choices=RefType.Type.choices,
+        choices=gen_reftype_choices(),
         required=False,
         widget=forms.Select(attrs={"class": select_input_tailwind_classes}),
     )
     type_query = forms.CharField(label="Type Query", max_length=50, required=False)
 
-    text_query = forms.CharField(label="Text Query", max_length=100, required=False)
+    q = forms.CharField(label="Text Query", max_length=100, required=False)
 
-    chapter_choices = list(get_chapters())
+    chapter_choices = list(gen_chapter_choices())
     max_choice = len(chapter_choices) - 2
 
     first_chapter = forms.TypedChoiceField(
