@@ -1061,6 +1061,8 @@ def reftype_stats(request: HtmxHttpRequest, name: str) -> HttpResponse:
             href = None
 
     context = {
+        "name": name,
+        "character": character if rt_type == RefType.Type.CHARACTER else None,
         "table": table,
         "title": rt.name,
         "wiki_link": render_to_string(
