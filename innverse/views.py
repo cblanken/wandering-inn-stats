@@ -1019,7 +1019,7 @@ def reftype_stats(request: HtmxHttpRequest, name: str) -> HttpResponse:
         rt = RefType.objects.get(Q(slug__iexact=name) & Q(type=rt_type))
 
     # Table config and pagination
-    table_query = {"type": rt.type, "type_query": rt.name, "filter": request.GET.get("q", "")}
+    table_query = {"type": rt.type, "type_query": rt.name, "q": request.GET.get("q", "")}
 
     table = get_textref_table(table_query)
     table.hidden_cols = [0]
