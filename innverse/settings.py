@@ -2,11 +2,12 @@
 Django settings for innverse project.
 """
 
-from pathlib import Path
 from os import environ as env
-from dotenv import load_dotenv
-import pymemcache  # type: ignore[import-untyped]
+from pathlib import Path
 from typing import Any
+
+import pymemcache  # type: ignore[import-untyped]
+from dotenv import load_dotenv
 
 load_dotenv()
 

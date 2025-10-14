@@ -1,7 +1,9 @@
-from bs4 import BeautifulSoup
 from itertools import islice
-from stats.models import ChapterLine
+
+from bs4 import BeautifulSoup
 from django.core.management.base import BaseCommand
+
+from stats.models import ChapterLine
 
 
 class Command(BaseCommand):

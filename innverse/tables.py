@@ -1,14 +1,16 @@
-from django.db.models import F, QuerySet
-from django.urls import NoReverseMatch, reverse
-from django.utils.text import slugify
-from django.utils.html import strip_tags, format_html
-from django.utils.safestring import SafeText
-from django.template.loader import render_to_string
-from urllib.parse import quote
-import django_tables2 as tables
-from stats.models import Chapter, Character, RefType, TextRef, ChapterLine
 from typing import Any
+from urllib.parse import quote
+
+import django_tables2 as tables
 import regex
+from django.db.models import F, QuerySet
+from django.template.loader import render_to_string
+from django.urls import NoReverseMatch, reverse
+from django.utils.html import format_html, strip_tags
+from django.utils.safestring import SafeText
+from django.utils.text import slugify
+
+from stats.models import Chapter, ChapterLine, Character, RefType, TextRef
 
 EMPTY_TABLE_TEXT = "No results found"
 

@@ -1,19 +1,20 @@
+import plotly.express as px
 from django.db.models import (
     Count,
+    F,
     OuterRef,
     Subquery,
     Sum,
     Window,
-    F,
 )
 from django.db.models.manager import BaseManager
-import plotly.express as px
+from django.db.models.query import ValuesIterable
 from plotly.graph_objects import Figure
+
 from stats.models import Book, Chapter, RefType, TextRef, Volume
 from stats.queries import apply_chapter_filter
-from .config import DEFAULT_LAYOUT, DEFAULT_DISCRETE_COLORS
 
-from django.db.models.query import ValuesIterable
+from .config import DEFAULT_DISCRETE_COLORS, DEFAULT_LAYOUT
 
 
 def __chapter_counts(

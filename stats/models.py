@@ -1,14 +1,15 @@
-from django.contrib.postgres.search import SearchVector
+import re
+from dataclasses import dataclass
+from enum import Enum
+
 from django.contrib.postgres.indexes import GinIndex
+from django.contrib.postgres.search import SearchVector
 from django.core.validators import RegexValidator
 from django.db import models
 from django.db.models import Q
 from django.db.models.functions import Length
 from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
-from dataclasses import dataclass
-from enum import Enum
-import re
 
 models.CharField.register_lookup(Length, "length")
 

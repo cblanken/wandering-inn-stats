@@ -1,11 +1,12 @@
-from django.db.utils import IntegrityError
 from django.db.models import Model, QuerySet
+from django.db.utils import IntegrityError
 from django.http import HttpRequest, HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.views.generic import TemplateView
-from stats.forms import SelectForeignModelForm
-from stats.models import RefType, Alias, TextRef, RefTypeChapter, Book, Chapter
+
 from stats.enums import AdminActionTypes
+from stats.forms import SelectForeignModelForm
+from stats.models import Alias, Book, Chapter, RefType, RefTypeChapter, TextRef
 
 
 def merge_reftypes(qs: QuerySet[RefType], target_rt: RefType, *, make_alias: bool) -> None:

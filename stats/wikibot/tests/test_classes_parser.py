@@ -1,6 +1,5 @@
 from stats.wikibot.parse import ClassesTableParser
 
-
 """
 Name
 """

@@ -1,5 +1,6 @@
 import argparse
 from pathlib import Path
+
 from processing import Chapter
 
 if __name__ == "__main__":

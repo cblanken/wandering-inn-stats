@@ -1,7 +1,9 @@
-from django.db.models import Q, Sum, Func
-from plotly.graph_objects import Figure
 import plotly.express as px
+from django.db.models import Func, Q, Sum
+from plotly.graph_objects import Figure
+
 from stats.models import Chapter
+
 from .config import DEFAULT_LAYOUT
 
 chapter_data = Chapter.objects.filter(is_canon=True).order_by("number")

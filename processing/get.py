@@ -1,22 +1,24 @@
 """Module to download every chapter from the links in the Wandering Inn Table of Contents"""
 
-from collections import OrderedDict
-from datetime import datetime
-from enum import Enum
-from pathlib import Path
-from itertools import chain
 import hashlib
 import random
 import re
-from sys import stderr
 import time
-from bs4 import BeautifulSoup, Tag
-from bs4.element import PageElement
+from collections import OrderedDict
+from datetime import datetime
+from enum import Enum
+from itertools import chain
+from pathlib import Path
+from sys import stderr
+from typing import Any, NamedTuple
+
 import requests
 import requests.exceptions
+from bs4 import BeautifulSoup, Tag
+from bs4.element import PageElement
 from fake_useragent import UserAgent
-from .exceptions import PatreonChapterError, ChapterPartitionsOverlappingError, TooManyAuthorsNotes
-from typing import Any, NamedTuple
+
+from .exceptions import ChapterPartitionsOverlappingError, PatreonChapterError, TooManyAuthorsNotes
 
 BASE_URL: str = "https://www.wanderinginn.com"
 

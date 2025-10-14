@@ -1,34 +1,36 @@
-from django.db.models import Count, F, Q, Sum, Window
-from django.db.models.functions import Lag
-from django.http import HttpRequest, HttpResponse, Http404
-from django.shortcuts import render
-from django.template.loader import render_to_string
-from django.utils.text import slugify
-from django_htmx.middleware import HtmxDetails
-from django_tables2.export.export import TableExport
-from django_tables2 import RequestConfig, tables
-from django.urls import reverse
-from django.utils.http import urlencode
 import datetime as dt
 from itertools import chain
 from typing import Iterable, Tuple
+
+from django.db.models import Count, F, Q, Sum, Window
+from django.db.models.functions import Lag
+from django.http import Http404, HttpRequest, HttpResponse
+from django.shortcuts import render
+from django.template.loader import render_to_string
+from django.urls import reverse
+from django.utils.http import urlencode
+from django.utils.text import slugify
+from django_htmx.middleware import HtmxDetails
+from django_tables2 import RequestConfig, tables
+from django_tables2.export.export import TableExport
+
+from innverse.settings import TWI_MIN_REFTYPE_MENTIONS
 from stats import charts
 from stats.charts import ChartGalleryItem, get_reftype_gallery
 from stats.models import Alias, Chapter, Character, RefType, RefTypeChapter, TextRef
+
+from .forms import ChapterFilterForm, SearchForm
 from .table_search import (
-    get_textref_table,
+    get_chapterline_table,
     get_chapterref_table,
     get_character_table,
     get_reftype_table_data,
-    get_chapterline_table,
+    get_textref_table,
 )
 from .tables import (
     ChapterHtmxTable,
     ReftypeHtmxTable,
 )
-from .forms import ChapterFilterForm, SearchForm
-from innverse.settings import TWI_MIN_REFTYPE_MENTIONS
-
 
 DEFAULT_TABLE_PAGINATION_OPTS = {
     "page": 1,

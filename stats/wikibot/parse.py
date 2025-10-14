@@ -1,12 +1,13 @@
 import abc
 from itertools import chain
 from typing import Any
-import regex as re
-from pywikibot.textlib import extract_templates_and_params
-from pywikibot.site import APISite
+
 import mwparserfromhell as mwp
+import regex as re
 import wikitextparser as wtp
 from bs4 import BeautifulSoup
+from pywikibot.site import APISite
+from pywikibot.textlib import extract_templates_and_params
 
 
 class ParseError(RuntimeError):

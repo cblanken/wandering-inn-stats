@@ -1,9 +1,11 @@
 """API views"""
 
 from django.contrib.auth import get_user_model
-from rest_framework import permissions as perms, viewsets
+from rest_framework import permissions as perms
+from rest_framework import viewsets
+
 from stats.models import Chapter
-from stats.serializers import UserSerializer, ChapterSerializer
+from stats.serializers import ChapterSerializer, UserSerializer
 
 
 class UserViewSet(viewsets.ModelViewSet):

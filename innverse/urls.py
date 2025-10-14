@@ -1,10 +1,10 @@
-from django.contrib import admin
 from django.apps import apps
-from django.http import HttpResponseRedirect, HttpRequest
-from django.urls import path, include, reverse
+from django.contrib import admin
+from django.http import HttpRequest, HttpResponseRedirect
+from django.urls import include, path, reverse
 from django.views.decorators.cache import cache_page
-from . import views
 
+from . import views
 
 CACHE_TIME_TINY = 60
 CACHE_TIME_SHORT = 60 * 10

@@ -1,5 +1,6 @@
-from pywikibot import family
 from typing import Literal
+
+from pywikibot import family
 
 
 class Family(family.Family):

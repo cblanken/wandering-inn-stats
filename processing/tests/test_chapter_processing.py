@@ -1,8 +1,10 @@
-import pytest
-from processing.get import parse_chapter_content
-from bs4 import BeautifulSoup
 from pathlib import Path
+
+import pytest
+from bs4 import BeautifulSoup
+
 from processing.exceptions import PatreonChapterError
+from processing.get import parse_chapter_content
 
 """
 Note that many sample files are truncated to only fulfill their specific tests

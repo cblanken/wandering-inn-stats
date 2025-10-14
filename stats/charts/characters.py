@@ -1,10 +1,12 @@
-from django.db.models import Q, Count, Max
-from django.db.models.manager import BaseManager
-import plotly.express as px
-from plotly.graph_objects import Figure
 import numpy as np
-from stats.models import Character, RefType, TextRef, Chapter
-from .config import DEFAULT_LAYOUT, DEFAULT_DISCRETE_COLORS
+import plotly.express as px
+from django.db.models import Count, Max, Q
+from django.db.models.manager import BaseManager
+from plotly.graph_objects import Figure
+
+from stats.models import Chapter, Character, RefType, TextRef
+
+from .config import DEFAULT_DISCRETE_COLORS, DEFAULT_LAYOUT
 
 
 def character_text_refs(first_chapter: Chapter | None = None, last_chapter: Chapter | None = None) -> Figure | None:

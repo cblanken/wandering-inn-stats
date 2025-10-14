@@ -1,8 +1,10 @@
-from django.db.models import Count
 import plotly.express as px
+from django.db.models import Count
 from plotly.graph_objects import Figure
-from stats.models import RefType, TextRef, Chapter
-from .config import DEFAULT_LAYOUT, DEFAULT_DISCRETE_COLORS
+
+from stats.models import Chapter, RefType, TextRef
+
+from .config import DEFAULT_DISCRETE_COLORS, DEFAULT_LAYOUT
 
 
 def class_ref_counts(first_chapter: Chapter | None = None, last_chapter: Chapter | None = None) -> Figure | None:

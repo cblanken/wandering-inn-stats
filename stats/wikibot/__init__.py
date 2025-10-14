@@ -1,7 +1,10 @@
-import regex as re
 import pywikibot as pwb
+import regex as re
 import wikitextparser as wtp
 from pywikibot.bot import SingleSiteBot
+from pywikibot.textlib import extract_sections
+
+from .exceptions import MissingWikiContent
 from .parse import (
     ArtifactListParser,
     CharInfoBoxParser,
@@ -9,8 +12,6 @@ from .parse import (
     SkillTableParser,
     SpellTableParser,
 )
-from pywikibot.textlib import extract_sections
-from .exceptions import MissingWikiContent
 
 
 def get_aliases(page: pwb.Page) -> list[str] | None:

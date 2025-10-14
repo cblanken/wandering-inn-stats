@@ -1,12 +1,12 @@
 import json
 from pathlib import Path
-import regex as re
-from django.core.management.base import BaseCommand
-from django.core.management.base import CommandParser
+
 import pywikibot as pwb
+import regex as re
+from django.core.management.base import BaseCommand, CommandParser
+
 from stats.models import RefType
 from stats.wikibot import bot
-
 
 DATA_DIR = Path("data")
 

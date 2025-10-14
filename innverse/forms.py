@@ -1,7 +1,9 @@
 from collections.abc import Generator
+
 from django import forms
 from django.core.cache import cache
-from stats.models import RefType, Chapter
+
+from stats.models import Chapter, RefType
 
 MAX_CHAPTER_NUM = (
     cache.get_or_set(

@@ -3,14 +3,14 @@ import io
 import pstats
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from os import cpu_count
+from typing import Any
 
 from django.core.management.base import BaseCommand, CommandError, CommandParser
 from django.db.models import F
-from typing import Any
 
+from innverse.settings import TWI_MIN_REFTYPE_MENTIONS
 from stats import charts
 from stats.models import RefType
-from innverse.settings import TWI_MIN_REFTYPE_MENTIONS
 
 
 class Command(BaseCommand):

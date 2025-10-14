@@ -1,5 +1,6 @@
-from stats.wikibot.parse import CharInfoBoxParser
 from pywikibot.site import APISite
+
+from stats.wikibot.parse import CharInfoBoxParser
 
 site = APISite(code="en", fam="twi")
 

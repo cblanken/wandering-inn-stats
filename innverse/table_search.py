@@ -3,11 +3,13 @@ Each function should return relevant table data or a full table object
 """
 
 from typing import Any
-from django.contrib.postgres.search import SearchQuery, SearchHeadline
+
+from django.contrib.postgres.search import SearchHeadline, SearchQuery
 from django.db.models import F, Q, QuerySet
 from django.http import QueryDict
-from innverse.tables import ChapterRefTable, CharacterHtmxTable, TextRefTable, ChapterLineTable
-from stats.models import Chapter, Character, RefType, RefTypeChapter, TextRef, ChapterLine
+
+from innverse.tables import ChapterLineTable, ChapterRefTable, CharacterHtmxTable, TextRefTable
+from stats.models import Chapter, ChapterLine, Character, RefType, RefTypeChapter, TextRef
 
 
 def get_chapterline_table(query: dict[str, Any]) -> ChapterLineTable:

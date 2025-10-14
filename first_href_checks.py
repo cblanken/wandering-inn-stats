@@ -1,6 +1,7 @@
 import json
-from stats.models import Character, TextRef
 from pathlib import Path
+
+from stats.models import Character, TextRef
 
 
 def get_char_missing_first_href() -> None:

@@ -1,11 +1,13 @@
 """Module for processing scraped chapter text"""
 
 from __future__ import annotations
-import regex
-import sys
+
 import json
+import sys
 from pathlib import Path
 from typing import Generator
+
+import regex
 
 OBTAINED_SUFFIX = r".*[Oo]btained.?\]"
 

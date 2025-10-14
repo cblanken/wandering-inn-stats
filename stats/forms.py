@@ -1,9 +1,10 @@
+import json
+
 from django import forms
 from django.contrib import admin
-from django.contrib.admin.widgets import AutocompleteSelect, AutocompleteMixin
+from django.contrib.admin.widgets import AutocompleteMixin, AutocompleteSelect
 from django.db.models import Model, QuerySet
 from django.urls import reverse
-import json
 
 
 class CustomAutocompleteMixin(AutocompleteMixin):

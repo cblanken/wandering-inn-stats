@@ -1,25 +1,26 @@
 from django.contrib import admin
-from django.http import HttpRequest, HttpResponseRedirect
 from django.db.models import QuerySet
-from django.urls import path, include
+from django.http import HttpRequest, HttpResponseRedirect
+from django.urls import include, path
 from django.urls.resolvers import URLResolver
+
 from stats.enums import AdminActionTypes
 from stats.views.admin import SelectForeignModelView
 
 from .models import (
-    Chapter,
-    Book,
-    Volume,
     Alias,
+    Book,
+    Chapter,
     ChapterLine,
+    Character,
     Color,
     ColorCategory,
+    Location,
     RefType,
+    RefTypeChapter,
     RefTypeComputedView,
     TextRef,
-    RefTypeChapter,
-    Location,
-    Character,
+    Volume,
 )
 
 

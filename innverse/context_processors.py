@@ -1,6 +1,7 @@
+from typing import Any
+
 from django.conf import settings
 from django.http import HttpRequest
-from typing import Any
 
 
 def analytics(_req: HttpRequest) -> dict[str, Any]:

@@ -1,6 +1,7 @@
+import os
+
 from django import template
 from django.http import HttpRequest
-import os
 
 register = template.Library()
 

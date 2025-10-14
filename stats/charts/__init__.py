@@ -2,39 +2,44 @@ from enum import Enum
 from pathlib import Path
 from typing import Callable
 
+import plotly.io as pio
 from django.conf import settings
 from django.utils.text import slugify
 from plotly.graph_objects import Figure
-import plotly.io as pio
 
-from .word_counts import (
-    word_count_per_chapter,
-    word_count_cumulative,
-    word_count_by_book,
-    word_count_by_volume,
-)
+from stats.models import Chapter, RefType
 
 from .characters import (
-    character_text_refs,
     character_counts_per_chapter,
+    character_text_refs,
     characters_by_species,
     characters_by_status,
 )
-
+from .classes import class_ref_counts
+from .locations import location_ref_counts
+from .magic import spell_ref_counts
+from .reftypes import (
+    cumulative_mentions as rt_cumulative_mentions,
+)
 from .reftypes import (
     mentions as rt_mentions,
-    cumulative_mentions as rt_cumulative_mentions,
-    most_mentions_by_chapter as rt_most_mentions_by_chapter,
+)
+from .reftypes import (
     most_mentions_by_book as rt_most_mentions_by_book,
+)
+from .reftypes import (
+    most_mentions_by_chapter as rt_most_mentions_by_chapter,
+)
+from .reftypes import (
     most_mentions_by_volume as rt_most_mentions_by_volume,
 )
-
-from .classes import class_ref_counts
 from .skills import skill_ref_counts
-from .magic import spell_ref_counts
-from .locations import location_ref_counts
-from stats.models import Chapter, RefType
-
+from .word_counts import (
+    word_count_by_book,
+    word_count_by_volume,
+    word_count_cumulative,
+    word_count_per_chapter,
+)
 
 pio.templates.default = "plotly_dark"
 

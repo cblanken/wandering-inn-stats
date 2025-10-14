@@ -1,50 +1,59 @@
 import datetime as dt
-from enum import Enum
-from functools import reduce
 import itertools
 import json
+from enum import Enum
+from functools import reduce
 from pathlib import Path
-import regex
 from typing import Any
+
+import regex
 from django.core.management.base import BaseCommand, CommandError, CommandParser
-from django.db.models import Q, Model
+from django.db.models import Model, Q
 from django.db.models.query import QuerySet
 from django.db.utils import DataError, IntegrityError
 from django.utils.html import strip_tags
-from stats.models import (
-    ChapterLine,
-    Color,
-    ColorCategory,
-    Chapter,
-    Book,
-    Volume,
-    TextRef,
-    RefType,
-    Alias,
-    Character,
-    Location,
+
+from processing import (
+    Book as SrcBook,
+)
+from processing import (
+    Chapter as SrcChapter,
+)
+from processing import (
+    TextRef as SrcTextRef,
 )
 from processing import (
     Volume as SrcVolume,
-    Book as SrcBook,
-    Chapter as SrcChapter,
-    TextRef as SrcTextRef,
+)
+from processing import (
     get_metadata,
 )
-
 from stats.build_utils import (
+    COLOR_CATEGORY,
+    COLORS,
+    PromptResponse,
     build_reftype_pattern,
     compile_textref_patterns,
     find_chapter_by_url,
     prompt,
     prompt_yes_no,
-    PromptResponse,
-    select_ref_type,
-    select_ref_type_from_qs,
     select_alias_from_qs,
     select_item_from_qs,
-    COLOR_CATEGORY,
-    COLORS,
+    select_ref_type,
+    select_ref_type_from_qs,
+)
+from stats.models import (
+    Alias,
+    Book,
+    Chapter,
+    ChapterLine,
+    Character,
+    Color,
+    ColorCategory,
+    Location,
+    RefType,
+    TextRef,
+    Volume,
 )
 
 

@@ -3,15 +3,17 @@
 from enum import Enum, auto
 from pathlib import Path
 from pprint import pformat
-from subprocess import Popen, TimeoutExpired, DEVNULL
+from subprocess import DEVNULL, Popen, TimeoutExpired
 from typing import Iterable, TypeVar
+
 import regex
 from django.core.management.base import CommandError
+from django.db.models import Model, Q
 from django.db.models.functions import Length
 from django.db.models.query import QuerySet
-from django.db.models import Model, Q
+
 from processing import Pattern
-from stats.models import Alias, RefType, Chapter
+from stats.models import Alias, Chapter, RefType
 
 
 def build_reftype_pattern(ref: RefType) -> list[str]:
