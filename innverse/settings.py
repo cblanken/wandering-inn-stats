@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     "django_htmx",
     "django_minify_html",
     "django_tables2",
+    "django_watchfiles",
     "innverse",
     "innverse.core",
     "pattern_library",
