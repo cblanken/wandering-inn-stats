@@ -109,7 +109,9 @@ class Chapter(models.Model):
         indexes = [
             models.Index(fields=["number"]),
         ]
-        constraints = [models.CheckConstraint(check=Q(digest__length=64) | Q(digest__length=0), name="digest_length")]
+        constraints = [
+            models.CheckConstraint(condition=Q(digest__length=64) | Q(digest__length=0), name="digest_length")
+        ]
 
     def __str__(self) -> str:
         return f"(Chapter: {self.title}, URL: {self.source_url})"
