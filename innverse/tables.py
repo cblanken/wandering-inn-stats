@@ -153,18 +153,9 @@ class TextRefTable(tables.Table):
     def render_chapter_url(self, record, value) -> SafeText:  # noqa: ANN001
         # Using the full text or a strict character count appears to run into issues when linking
         # with a TextFragment, either with too long URLs or unfinished words
-
-        offset = 25
-        fragment_start = record.start_column - offset if record.start_column > offset else 0
-        fragment_end = (
-            record.end_column + offset if len(record.text) > record.end_column + offset else len(record.text) - 1
+        source_url_with_fragment = f"{value}#:~:text=" + quote(
+            " ".join(regex.split(r"\s", record.text_plain)[:10]).strip()
         )
-        front_word_cutoff_cnt = 0 if fragment_start == 0 else 1
-        end_word_cutoff_cnt = len(record.text) if fragment_end == len(record.text) - 1 else -1
-
-        source_url_with_fragment = f"{value}#:~:text={quote(' '.join(strip_tags(record.text[fragment_start:fragment_end]).split(' ')[front_word_cutoff_cnt:end_word_cutoff_cnt]))}"
-        # source_url_with_fragment = f"{value}#:~:text={quote(record.text_plain[:30].strip()).strip()}"
-
         return render_to_string(
             "patterns/atoms/link/link.html",
             context={
@@ -178,7 +169,7 @@ class TextRefTable(tables.Table):
         return record.type.name
 
     def value_text(self, record: TextRef) -> str:
-        return strip_tags(record.chapter_line.text)
+        return record.chapter_line.text_plain
 
     def value_chapter_url(self, record: TextRef) -> str:
         return record.chapter_line.chapter.source_url
