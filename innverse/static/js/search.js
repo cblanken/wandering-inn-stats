@@ -58,3 +58,5 @@ header_fold_btn.addEventListener("click", (e) => {
   }
   window.dispatchEvent(new Event('resize'));
 })
+
+let all_content_input = document.querySelector("#id_all_content");

@@ -20,3 +20,9 @@ def absolute_uri(req: HttpRequest, path: str) -> str:
 def env(key: str) -> str | None:
     """Return value of environment variable"""
     return os.environ.get(key)
+
+
+@register.filter
+def addstr(s1: str, s2: str) -> str:
+    """concatenate arg1 & arg2"""
+    return str(s1) + str(s2)
