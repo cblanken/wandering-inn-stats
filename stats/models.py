@@ -171,13 +171,6 @@ class RefType(models.Model):
         self.slug = slugify(self.name[:100], allow_unicode=True)
         super(RefType, self).save(*args, **kwargs)
 
-    def delete(self) -> None:
-        computed_cols = RefTypeComputedView.objects.filter(ref_type=self)
-        for row in computed_cols:
-            row.delete()
-
-        super(RefType, self).delete()
-
 
 @dataclass
 class SpeciesMetadata:
