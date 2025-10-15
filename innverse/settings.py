@@ -6,8 +6,11 @@ from os import environ as env
 from pathlib import Path
 from typing import Any
 
+import django_stubs_ext
 import pymemcache  # type: ignore[import-untyped]
 from dotenv import load_dotenv
+
+django_stubs_ext.monkeypatch()
 
 load_dotenv()
 

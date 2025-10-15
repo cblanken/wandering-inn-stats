@@ -1,4 +1,5 @@
 from collections.abc import Generator
+from typing import Any
 
 from django import forms
 from django.core.cache import cache
@@ -24,7 +25,7 @@ def gen_chapter_choices():  # noqa: ANN201
     yield (i, "--- Last Chapter ---")
 
 
-def gen_reftype_choices() -> Generator[tuple[RefType.Type | str, str]]:
+def gen_reftype_choices() -> Generator[tuple[str, str | Any]]:
     yield ("", "Any")
     for tup in RefType.Type.choices:
         yield tup

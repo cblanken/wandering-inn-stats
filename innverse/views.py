@@ -1,6 +1,6 @@
 import datetime as dt
 from itertools import chain
-from typing import Iterable, Tuple
+from typing import Iterable, Sequence, Tuple, TypedDict
 
 from django.db.models import Count, F, Q, Sum, Window
 from django.db.models.functions import Lag
@@ -11,6 +11,7 @@ from django.urls import reverse
 from django.utils.http import urlencode
 from django.utils.text import slugify
 from django_htmx.middleware import HtmxDetails
+from django_stubs_ext import ValuesQuerySet
 from django_tables2 import RequestConfig, tables
 from django_tables2.export.export import TableExport
 
@@ -47,9 +48,9 @@ def config_table_request(request: HttpRequest, table: tables.Table) -> RequestCo
             config = RequestConfig(request, paginate=False)
         else:
             pagination_opts = DEFAULT_TABLE_PAGINATION_OPTS | {"per_page": MAX_TABLE_ROWS}
-            config = RequestConfig(request, paginate=pagination_opts)
+            config = RequestConfig(request, paginate=pagination_opts)  # type: ignore
     else:
-        config = RequestConfig(request, paginate=DEFAULT_TABLE_PAGINATION_OPTS)
+        config = RequestConfig(request, paginate=DEFAULT_TABLE_PAGINATION_OPTS)  # type: ignore
 
     return config
 
@@ -81,6 +82,43 @@ class HeadlineStat:
         self.units = units
         self.caption = caption
         self.popup_info = popup_info
+
+
+class RefTypeMostMentionsHeadlineStat(HeadlineStat):
+    def __init__(self, title: str, most_mentions_vqs: ValuesQuerySet, honourable_mentions_max: int = 4) -> None:
+        most_mentioned_rt = most_mentions_vqs.first()
+        if most_mentioned_rt is None:
+            return
+
+        name = most_mentioned_rt.get("rt_name")
+        rt_type = most_mentioned_rt.get("rt_type")
+        count = most_mentioned_rt.get("count")
+        honourable_mentions = most_mentions_vqs[1:honourable_mentions_max]
+        super().__init__(
+            title,
+            f"{count or 'No Mentions'}",
+            render_to_string(
+                "patterns/atoms/link/stat_link.html",
+                context={
+                    "text": f"{name}",
+                    "href": reverse(
+                        f"{rt_type.lower()}-stats",
+                        args=[slugify(name)],
+                    ),
+                    "fit": True,
+                },
+            ),
+            units="mentions",
+            popup_info=render_to_string(
+                "patterns/atoms/headline_stat_block/mention_info_counts.html",
+                context={
+                    "description": "Some honourable mentions",
+                    "mention_items": honourable_mentions,
+                },
+            )
+            if honourable_mentions
+            else None,
+        )
 
 
 def parse_chapter_params(req: HttpRequest) -> Tuple[Chapter | None, Chapter | None]:
@@ -131,7 +169,7 @@ def overview(request: HtmxHttpRequest) -> HttpResponse:
     shortest_chapter = Chapter.objects.filter(is_canon=True).order_by("word_count")[0]
     word_counts = Chapter.objects.filter(is_canon=True).order_by("word_count").values_list("word_count", flat=True)
 
-    def median(values: list[int]) -> float:
+    def median(values: Sequence | ValuesQuerySet) -> float:
         length = len(values)
         if length % 2 == 0:
             return sum(values[int(length / 2 - 1) : int(length / 2 + 1)]) / 2.0
@@ -143,9 +181,12 @@ def overview(request: HtmxHttpRequest) -> HttpResponse:
     first_chapter = chapter_data.first()
     latest_chapter = chapter_data.last()
 
+    if first_chapter is None or latest_chapter is None:
+        msg = "Insufficient chapter data available for Overview page stats"
+        raise RuntimeError(msg)
+
     delta_since_first_chapter_release: dt.timedelta = dt.datetime.now(tz=dt.timezone.utc) - first_chapter.post_date
     delta_since_latest_chapter_release: dt.timedelta = dt.datetime.now(tz=dt.timezone.utc) - latest_chapter.post_date
-    latest_chapter.post_date - first_chapter.post_date
 
     longest_release_gap_chapters = (
         Chapter.objects.annotate(
@@ -157,8 +198,10 @@ def overview(request: HtmxHttpRequest) -> HttpResponse:
         .order_by("-release_cadence")
     )
 
-    longest_release_chapter_to = longest_release_gap_chapters.first()
-    longest_release_chapter_from = Chapter.objects.get(number=longest_release_chapter_to.prev_chapter_number)
+    if (longest_release_chapter_to := longest_release_gap_chapters.first()) is None:
+        msg = "The longest chapter release gap could not be found. There may be insufficient chapter data."
+        raise RuntimeError(msg)
+    longest_release_chapter_from = Chapter.objects.get(number=longest_release_chapter_to.prev_chapter_number)  # type: ignore
     longest_release_gap: dt.timedelta = longest_release_chapter_to.post_date - longest_release_chapter_from.post_date
 
     context = {
@@ -361,6 +404,9 @@ def classes(request: HtmxHttpRequest) -> HttpResponse:
     class_update_data = RefType.objects.filter(type=RefType.Type.CLASS_UPDATE)
     class_update_count = class_update_data.count()
 
+    class AnnoTextRefDict(TypedDict):
+        title: str
+
     chapter_with_most_class_refs = (
         TextRef.objects.filter(type__type=RefType.Type.CLASS, chapter_line__chapter__is_canon=True)
         .annotate(
@@ -368,7 +414,6 @@ def classes(request: HtmxHttpRequest) -> HttpResponse:
             url=F("chapter_line__chapter__source_url"),
             number=F("chapter_line__chapter__number"),
         )
-        .select_related("title")
         .values("title", "url", "number")
         .annotate(mentions=Count("title"))
         .order_by("-mentions")[0]
@@ -476,7 +521,6 @@ def skills(request: HtmxHttpRequest) -> HttpResponse:
             url=F("chapter_line__chapter__source_url"),
             number=F("chapter_line__chapter__number"),
         )
-        .select_related("title")
         .values("title", "url", "number")
         .annotate(count=Count("title"))
         .order_by("-count")[0]
@@ -584,7 +628,6 @@ def magic(request: HtmxHttpRequest) -> HttpResponse:
             url=F("chapter_line__chapter__source_url"),
             number=F("chapter_line__chapter__number"),
         )
-        .select_related("title")
         .values("title", "url", "number")
         .annotate(count=Count("title"))
         .order_by("-count")[0]
@@ -686,7 +729,6 @@ def locations(request: HtmxHttpRequest) -> HttpResponse:
             url=F("chapter_line__chapter__source_url"),
             number=F("chapter_line__chapter__number"),
         )
-        .select_related("title")
         .values("title", "url", "number")
         .annotate(count=Count("title"))
         .order_by("-count")[0]
@@ -755,7 +797,8 @@ def chapter_stats(request: HtmxHttpRequest, number: int) -> HttpResponse:
         textrefs.values("type")
         .annotate(count=Count("type"))
         .order_by("-count")
-        .values("type__type", "type__name", "count")
+        .annotate(rt_type=F("type__type"), rt_name=F("type__name"))
+        .values("rt_type", "rt_name", "count")
     )
 
     most_mentioned_characters = rt_counts.filter(type__type=RefType.Type.CHARACTER)
@@ -763,14 +806,6 @@ def chapter_stats(request: HtmxHttpRequest, number: int) -> HttpResponse:
     most_mentioned_skills = rt_counts.filter(type__type=RefType.Type.SKILL)
     most_mentioned_spells = rt_counts.filter(type__type=RefType.Type.SPELL)
     most_mentioned_locations = rt_counts.filter(type__type=RefType.Type.LOCATION)
-
-    most_mentioned_character = most_mentioned_characters.first()
-    most_mentioned_class = most_mentioned_classes.first()
-    most_mentioned_skill = most_mentioned_skills.first()
-    most_mentioned_spell = most_mentioned_spells.first()
-    most_mentioned_location = most_mentioned_locations.first()
-
-    honourable_mentions_max = 4
 
     context = {
         "title": chapter.title,
@@ -788,140 +823,20 @@ def chapter_stats(request: HtmxHttpRequest, number: int) -> HttpResponse:
         ),
         "table": table,
         "stats": [
-            HeadlineStat(
-                "Most mentioned character",
-                f"{most_mentioned_character.get('count') if most_mentioned_character else 'None Mentioned'}",
-                render_to_string(
-                    "patterns/atoms/link/stat_link.html",
-                    context={
-                        "text": f"{most_mentioned_character.get('type__name')}",
-                        "href": reverse(
-                            f"{most_mentioned_character.get('type__type').lower()}-stats",
-                            args=[slugify(most_mentioned_character.get("type__name"))],
-                        ),
-                        "fit": True,
-                    },
-                ),
-                units="mentions",
-                popup_info=render_to_string(
-                    "patterns/atoms/headline_stat_block/mention_info_counts.html",
-                    context={
-                        "description": "Some honourable mentions",
-                        "mention_items": most_mentioned_characters[1:honourable_mentions_max],
-                    },
-                )
-                if most_mentioned_characters[1:honourable_mentions_max]
-                else None,
-            )
-            if most_mentioned_character
+            RefTypeMostMentionsHeadlineStat("Most mentioned character", most_mentioned_characters)
+            if most_mentioned_characters
             else None,
-            HeadlineStat(
-                "Most mentioned class",
-                f"{most_mentioned_class.get('count') if most_mentioned_class else 'None Mentioned'}",
-                render_to_string(
-                    "patterns/atoms/link/stat_link.html",
-                    context={
-                        "text": f"{most_mentioned_class.get('type__name')}",
-                        "href": reverse(
-                            f"{most_mentioned_class.get('type__type').lower()}-stats",
-                            args=[slugify(most_mentioned_class.get("type__name"))],
-                        ),
-                        "fit": True,
-                    },
-                ),
-                units="mentions",
-                popup_info=render_to_string(
-                    "patterns/atoms/headline_stat_block/mention_info_counts.html",
-                    context={
-                        "description": "Some honourable mentions",
-                        "mention_items": most_mentioned_classes[1:honourable_mentions_max],
-                    },
-                )
-                if most_mentioned_classes[1:honourable_mentions_max]
-                else None,
-            )
-            if most_mentioned_class
+            RefTypeMostMentionsHeadlineStat("Most mentioned class", most_mentioned_classes)
+            if most_mentioned_classes
             else None,
-            HeadlineStat(
-                "Most mentioned skill",
-                f"{most_mentioned_skill.get('count') if most_mentioned_skill else 'None Mentioned'}",
-                render_to_string(
-                    "patterns/atoms/link/stat_link.html",
-                    context={
-                        "text": f"{most_mentioned_skill.get('type__name')}",
-                        "href": reverse(
-                            f"{most_mentioned_skill.get('type__type').lower()}-stats",
-                            args=[slugify(most_mentioned_skill.get("type__name"))],
-                        ),
-                        "fit": True,
-                    },
-                ),
-                units="mentions",
-                popup_info=render_to_string(
-                    "patterns/atoms/headline_stat_block/mention_info_counts.html",
-                    context={
-                        "description": "Some honourable mentions",
-                        "mention_items": most_mentioned_skills[1:honourable_mentions_max],
-                    },
-                )
-                if most_mentioned_skills[1:honourable_mentions_max]
-                else None,
-            )
-            if most_mentioned_skill
+            RefTypeMostMentionsHeadlineStat("Most mentioned skill", most_mentioned_skills)
+            if most_mentioned_skills
             else None,
-            HeadlineStat(
-                "Most mentioned spell",
-                f"{most_mentioned_spell.get('count') if most_mentioned_spell else 'None Mentioned'}",
-                render_to_string(
-                    "patterns/atoms/link/stat_link.html",
-                    context={
-                        "text": f"{most_mentioned_spell.get('type__name')}",
-                        "href": reverse(
-                            f"{most_mentioned_spell.get('type__type').lower()}-stats",
-                            args=[slugify(most_mentioned_spell.get("type__name"))],
-                        ),
-                        "fit": True,
-                    },
-                ),
-                units="mentions",
-                popup_info=render_to_string(
-                    "patterns/atoms/headline_stat_block/mention_info_counts.html",
-                    context={
-                        "description": "Some honourable mentions",
-                        "mention_items": most_mentioned_spells[1:honourable_mentions_max],
-                    },
-                )
-                if most_mentioned_spells[1:honourable_mentions_max]
-                else None,
-            )
-            if most_mentioned_spell
+            RefTypeMostMentionsHeadlineStat("Most mentioned spell", most_mentioned_spells)
+            if most_mentioned_spells
             else None,
-            HeadlineStat(
-                "Most mentioned location",
-                f"{most_mentioned_location.get('count') if most_mentioned_location else 'None Mentioned'}",
-                render_to_string(
-                    "patterns/atoms/link/stat_link.html",
-                    context={
-                        "text": f"{most_mentioned_location.get('type__name')}",
-                        "href": reverse(
-                            f"{most_mentioned_location.get('type__type').lower()}-stats",
-                            args=[slugify(most_mentioned_location.get("type__name"))],
-                        ),
-                        "fit": True,
-                    },
-                ),
-                units="mentions",
-                popup_info=render_to_string(
-                    "patterns/atoms/headline_stat_block/mention_info_counts.html",
-                    context={
-                        "description": "Some honourable mentions",
-                        "mention_items": most_mentioned_locations[1:honourable_mentions_max],
-                    },
-                )
-                if most_mentioned_locations[1:honourable_mentions_max]
-                else None,
-            )
-            if most_mentioned_location
+            RefTypeMostMentionsHeadlineStat("Most mentioned location", most_mentioned_locations)
+            if most_mentioned_locations
             else None,
         ],
         "query": table_filter,
@@ -1030,20 +945,14 @@ def reftype_stats(request: HtmxHttpRequest, name: str) -> HttpResponse:
     if request.htmx:
         return render(request, "tables/htmx_table.html", {"table": table})
 
-    chapter_appearances = (
-        RefType.objects.select_related("reftypecomputedview")
-        .annotate(mentions=F("reftypecomputedview__mentions"))
-        .order_by(F("mentions").desc(nulls_last=True))
-    )
-
     mention_count = TextRef.objects.filter(type=rt, chapter_line__chapter__is_canon=True).count()
-
     chapter_appearances = RefTypeChapter.objects.filter(type=rt, chapter__is_canon=True).order_by("chapter__number")
     first_mention_chapter = chapter_appearances.first()
     last_mention_chapter = chapter_appearances.last()
 
     aliases = Alias.objects.filter(ref_type=rt).order_by("name")
 
+    href: str | None = None
     match rt_type:
         case RefType.Type.CHARACTER:
             character = Character.objects.get(ref_type=rt)

@@ -93,16 +93,16 @@ class TextRefTable(tables.Table):
         return self._filter_text
 
     @filter_text.setter
-    def filter_text(self, text: str) -> None:
-        self._filter_text = text
+    def filter_text(self, text: str | None) -> None:
+        self._filter_text: str = text or ""
 
     def __init__(self, *args, **kwargs) -> None:  # noqa: ANN002 ANN003
         super().__init__(*args)
-        self._hidden_cols = []
+        self.hidden_cols = []
         if hide_cols := kwargs.get("hidden_cols"):
             self._hidden_cols = hide_cols
 
-        self._filter_text = None
+        self.filter_text = None
         if filter_text := kwargs.get("filter_text"):
             self._filter_text = filter_text
 

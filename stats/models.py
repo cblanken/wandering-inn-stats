@@ -1,6 +1,7 @@
 import re
 from dataclasses import dataclass
 from enum import Enum
+from typing import Any
 
 from django.contrib.postgres.indexes import GinIndex
 from django.contrib.postgres.search import SearchVector
@@ -465,9 +466,11 @@ class RefTypeComputedView(models.Model):
     def __str__(self) -> str:
         return f"RefTypeComputed: {self.ref_type}, Mentions: {self.mentions}"
 
-    def delete(self) -> None:
+    def delete(self, _using: Any = None, _keep_parents: bool = False) -> tuple[int, dict[str, int]]:  # noqa: ANN401
         RefTypeComputedView.objects.raw(
             "DELETE FROM reftype_computed_view INNER JOIN stats_reftype as sr ON ref_type = \
                                         sr.id WHERE sr.name = %s AND sr.type = %s",
             params=[self.ref_type.name, self.ref_type.type],
         )
+
+        return super(RefTypeComputedView, self).delete()

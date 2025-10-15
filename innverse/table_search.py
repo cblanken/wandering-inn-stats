@@ -127,7 +127,7 @@ def get_chapterref_table(query: QueryDict | dict[str, str]) -> ChapterRefTable:
     for rt in ref_types:
         chapter_data = reftype_chapters.filter(type=rt).values_list("chapter__title", "chapter__source_url")
 
-        rc_data = {
+        rc_data: dict[str, Any] = {
             "name": rt.name,
             "type": rt.type,
             "chapter_data": chapter_data,
