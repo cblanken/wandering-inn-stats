@@ -44,8 +44,9 @@ class ChapterLineTable(tables.Table):
     def render_chapter_url(self, record: ChapterLine, value) -> SafeText:  # noqa: ANN001
         # Using the full text or a strict character count appears to run into issues when linking
         # with a TextFragment, either with too long URLs or unfinished words
-        text_fragment = " ".join(record.text_plain.split(" ")[:10])
-        source_url_with_fragment = f"{value}#:~:text={text_fragment}"
+        source_url_with_fragment = f"{value}#:~:text=" + quote(
+            " ".join(regex.split(r"\s", record.text_plain)[:10]).strip()
+        )
         return render_to_string(
             "patterns/atoms/link/link.html",
             context={
