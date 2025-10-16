@@ -1,26 +1,13 @@
 {% load django_tables2 i18n l10n static %}
 {% block table_wrapper %}
-<style>
-  .previous.htmx-request .previous-arrow,
-  .next.htmx-request .next-arrow {
-    display: none;
-  }
-
-  .previous.htmx-request .spinner,
-  .next.htmx-request .spinner {
-    display: block;
-    opacity: 1;
-    transition: all 600ms ease-in;
-  }
-</style>
-<div class="table-body-container w-full flex flex-col min-h-screen overflow-x-visible">
+<div class="table-body-container w-full min-h-screen flex flex-col overflow-x-visible">
   {% block pagination %}
     {% if table.page and table.paginator.num_pages > 1 %}
     {% include "tables/table_pagination.html" with table_page_range=table_page_range %}
     {% endif %}
   {% endblock pagination %}
   {% block table %}
-    <table class="border-collapse border-spacing-2">
+  <table class="border-collapse border-spacing-2">
     {% block table.thead %}
     {% if table.show_header %}
         <thead class="text-hl-tertiary text-xl bg-bg-secondary" {{ table.attrs.thead.as_html }}>
@@ -31,7 +18,7 @@
                 hx-get="{% querystring table.prefixed_order_by_field=column.order_by_alias.next %}"
                 hx-trigger="click"
                 hx-target="div.table-body-container"
-                hx-swap="innerHTML"
+                hx-swap="outerHTML"
                 hx-push-url="true"
                 hx-boost="true"
                 class="cursor-pointer"
@@ -50,56 +37,44 @@
           {% endfor %}
           </tr>
         </thead>
-      {% endif %}
-      {% endblock table.thead %}
-      {% block table.tbody %}
-        <tbody>
-        {% include "tables/table_body_partial.html" %}
-        </tbody>
-      {% endblock table.tbody %}
-      {% block table.tfoot %}
-      {% if table.has_footer %}
-      <tfoot {{ table.attrs.tfoot.as_html }}>
-        <tr>
-        {% for column in table.columns %}
-          <td {{ column.attrs.tf.as_html }}>{{ column.footer }}</td>
-        {% endfor %}
-        </tr>
-      </tfoot>
-      {% endif %}
-      {% endblock table.tfoot %}
-    </table>
+    {% endif %}
+    {% endblock table.thead %}
+    {% block table.tbody %}
+      <tbody class="group-has-[.htmx-request]/loading:saturate-[75%] group-has-[.htmx-request]/loading:opacity-80 transition-all duration-500 ease-in-out">
+      {% include "tables/table_body_partial.html" %}
+      </tbody>
+    {% endblock table.tbody %}
+    {% block table.tfoot %}
+    {% if table.has_footer %}
+    <tfoot {{ table.attrs.tfoot.as_html }}>
+      <tr>
+      {% for column in table.columns %}
+        <td {{ column.attrs.tf.as_html }}>{{ column.footer }}</td>
+      {% endfor %}
+      </tr>
+    </tfoot>
+    {% endif %}
+    {% endblock table.tfoot %}
+  </table>
   {% endblock table %}
 
   {% if table.page and table.paginator.num_pages > 1 %}
   {% include "tables/table_pagination.html" with table_page_range=table_page_range %}
   {% endif %}
-
   {% if table.paginator and table.paginator.num_pages > 1 and not request.GET.show_all_rows and query.GET.q != '' %}
-  <style>
-    .htmx-request {
-      opacity: 1;
-      transition: opacity 300ms ease-in;
-    }
-
-    .htmx-request .show-all-button-text {
-      display: none;
-    }
-  </style>
-  <button class="w-full p-2 bg-bg-tertiary border-2 border-x-bg-tertiary border-y-hl-tertiary font-mono hover:bg-hl-tertiary hover:font-bold hover:text-black text-xl"
+  <button class="group/spinner flex justify-center p-2 bg-bg-tertiary border-2 border-x-bg-tertiary border-y-hl-tertiary font-mono hover:bg-hl-tertiary hover:font-bold hover:text-black text-xl"
     hx-get=""
     hx-include="[name='show_all_rows']"
     hx-params="*"
     hx-push-url="true"
     hx-trigger="click"
-    hx-swap="innerHTML"
+    hx-swap="outerHTML"
     hx-target="div.table-body-container"
-    hx-indicator="#show-all-rows-spinner"
   >
-    <span class="show-all-button-text">Show more rows</span>
-    <svg id="show-all-rows-spinner" class="feather spinner opacity-0 animate-spin-slow inline-block ml-3 pointer-events-none select-none h-full">
-      <use href="{% static 'icons/feather-sprite.svg#spinner' %}" />
-    </svg>
+    <div class="flex items-center gap-4">
+      <div class="show-more-button-text">Show more rows</div>
+      {% include "atoms/htmx/spinner.html" %}
+    </div>
     <input type="hidden" name="show_all_rows" value="1"/>
   </button>
   {% endif %}
