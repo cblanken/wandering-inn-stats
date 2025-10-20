@@ -1,0 +1,117 @@
+{% load static %}
+<header id="mobile-nav-header" class="lg:hidden sticky top-0 h-16 w-screen flex justify-between bg-bg-tertiary p-4 z-50 text-text-primary">
+    <a href="/"><img class="size-8" src="{% static "favicon.svg" %}"></img></a>
+    <div class="text-3xl font-bold font-heading">TWI Stats</div>
+    <svg id="mobile-nav-header-btn" class="feather !size-8">
+        <use href="{% static 'icons/feather-sprite.svg#menu' %}" />
+    </svg>
+</header>
+<nav id="primary-nav" class="hidden w-full h-[calc(100%-theme(space.16))] absolute top-16 gap-4 p-2 pb-4 font-heading z-[49] text-text-primary bg-bg-secondary select-none lg:h-full lg:top-0 lg:flex lg:flex-col lg:w-fit  lg:max-w-600px lg:min-w-fit lg:relative lg:p-4">
+    <button id="nav-fold-btn" class="absolute top-0 right-0 noscript:hidden hidden lg:block">
+        <svg class="feather nav-icon !size-7"><use href="{% static 'icons/feather-sprite.svg#chevron-left' %}" /></svg>
+    </button>
+    <section class="flex flex-col justify-between h-full px-4 py-2 lg:p-0 text-3xl 2xl:text-4xl gap-4 select-none">
+        <ul class="flex flex-col gap-2 uppercase">
+            {% include "atoms/navbar_element/navbar_element.html" with title="Overview" feather_icon="home" target_href="/" %}
+            {% include "atoms/navbar_element/navbar_element.html" with title="Characters" feather_icon="users" target_href="/characters" %}
+            {% include "atoms/navbar_element/navbar_element.html" with title="Classes" feather_icon="star" target_href="/classes" %}
+            {% include "atoms/navbar_element/navbar_element.html" with title="Skills" feather_icon="award" target_href="/skills" %}
+            {% include "atoms/navbar_element/navbar_element.html" with title="Magic" feather_icon="feather" target_href="/magic" %}
+            {% include "atoms/navbar_element/navbar_element.html" with title="Locations" feather_icon="map" target_href="/locations" %}
+            {% include "atoms/navbar_element/navbar_element.html" with title="Search" feather_icon="search" target_href="/search" %}
+        </ul>
+        <ul class="bg-bg-tertiary flex flex-col gap-3 p-2 rounded-xl text-hl-tertiary capitalize">
+            {% include "atoms/navbar_element/navbar_element.html" with title="Code" feather_icon="github" target_href="https://github.com/cblanken/wandering-inn-stats" new_tab=True %}
+            {% include "atoms/navbar_element/navbar_element.html" with title="About" feather_icon="info" target_href="/about" %}
+        </ul>
+    </section>
+</nav>
+<script>
+    let nav = document.querySelector("nav");
+    let nav_titles = document.querySelectorAll(".nav-title")
+
+    function fold_sidebar_nav() {
+        nav_titles.forEach(title => {
+            title.classList.add("hidden");
+        })
+
+        nav_groups = document.querySelectorAll("nav > ul")
+        nav_groups.forEach(group => {
+            group.classList.add("items-center");
+        })
+
+        let nav_fold_btn = document.querySelector("#nav-fold-btn")
+        nav_fold_btn.classList.add("animate-flip-icon");
+    }
+
+    function unfold_sidebar_nav() {
+        nav_titles.forEach(title => {
+            title.classList.remove("hidden");
+        })
+
+        nav_groups = document.querySelectorAll("nav > ul")
+        nav_groups.forEach(group => {
+            group.classList.remove("items-center");
+        })
+
+        let nav_fold_btn = document.querySelector("#nav-fold-btn")
+        nav_fold_btn.classList.remove("animate-flip-icon");
+    }
+
+    let mobile_fold_btn_classes = ["animate-rot-90-cc"];
+    let mobile_unfold_btn_classes = ["animate-rot-90", "text-hl-tertiary", "!stroke-3"];
+    let mobile_fold_nav_classes = ["hidden"];
+    let mobile_unfold_nav_classes = ["animate-wipe-in-down"];
+
+
+    function fold_mobile_nav() {
+        let header_btn = document.getElementById("mobile-nav-header-btn");
+        header_btn.classList.remove(...mobile_unfold_btn_classes)
+        header_btn.classList.add(...mobile_fold_btn_classes)
+
+        let nav = document.getElementById("primary-nav");
+        nav.classList.remove(...mobile_unfold_nav_classes)
+        nav.classList.add(...mobile_fold_nav_classes);
+    }
+
+    function unfold_mobile_nav() {
+        let header_btn = document.getElementById("mobile-nav-header-btn");
+        header_btn.classList.remove(...mobile_fold_btn_classes)
+        header_btn.classList.add(...mobile_unfold_btn_classes)
+
+        let nav = document.getElementById("primary-nav");
+        nav.classList.remove(...mobile_fold_nav_classes);
+        nav.classList.add(...mobile_unfold_nav_classes);
+    }
+
+    // Fold per setting in localStorage
+    let is_nav_folded = localStorage.getItem("nav_folded");
+    if (is_nav_folded === "true") {
+        fold_sidebar_nav()
+    }
+
+    // Add fold click event
+    let nav_fold_btn = document.querySelector("#nav-fold-btn")
+    nav_fold_btn.addEventListener("click", (e) => {
+        if (localStorage.getItem("nav_folded") === "true") {
+            localStorage.setItem("nav_folded", false);
+            unfold_sidebar_nav()
+        } else {
+            localStorage.setItem("nav_folded", true);
+            fold_sidebar_nav()
+        }
+        window.dispatchEvent(new Event('resize'));
+    })
+
+    // Add mobile fold click event
+    let mobile_nav_folded = true;
+    let nav_fold_mobile_btn = document.querySelector("#mobile-nav-header-btn");
+    nav_fold_mobile_btn.addEventListener("click", (e) => {
+        if (mobile_nav_folded) {
+            unfold_mobile_nav();
+        } else {
+            fold_mobile_nav();
+        }
+        mobile_nav_folded = !mobile_nav_folded
+    });
+</script>
