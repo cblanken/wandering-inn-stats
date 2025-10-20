@@ -46,7 +46,7 @@ def get_chapterline_table(query: dict[str, Any]) -> ChapterLineTable:
         else:
             table_data = full_text_search_data
 
-    return ChapterLineTable(table_data)
+    return ChapterLineTable(table_data, query=str(search_filter))
 
 
 def get_textref_table(query: dict[str, Any]) -> TextRefTable:
@@ -94,12 +94,12 @@ def get_textref_table(query: dict[str, Any]) -> TextRefTable:
         # Fallback to basic icontains search if the SearchQuery fails, for example,
         # if the query only contains stop words
         if not full_text_search_data:
-            search_filter = search_filter.replace('"', "")
+            search_filter: str = search_filter.replace('"', "")
             table_data = table_data.filter(text_plain__icontains=search_filter)
         else:
             table_data = full_text_search_data
 
-    return TextRefTable(table_data, filter_text=search_filter)
+    return TextRefTable(table_data, query=search_filter)
 
 
 def get_chapterref_table(query: QueryDict | dict[str, str]) -> ChapterRefTable:

@@ -1,3 +1,4 @@
+from enum import Enum
 from typing import Any
 from urllib.parse import quote
 
@@ -6,7 +7,7 @@ import regex
 from django.db.models import F, QuerySet
 from django.template.loader import render_to_string
 from django.urls import NoReverseMatch, reverse
-from django.utils.html import format_html, strip_tags
+from django.utils.html import strip_tags
 from django.utils.safestring import SafeText
 from django.utils.text import slugify
 
@@ -15,11 +16,155 @@ from stats.models import Chapter, ChapterLine, Character, RefType, TextRef
 EMPTY_TABLE_TEXT = "No results found"
 
 
-def highlight_text(text: str, hl: str) -> str:
-    return regex.sub(hl, f'<span class="bg-hl-tertiary text-black p-[1px]">{hl}</span>', text, flags=regex.IGNORECASE)
+def highlight_simple_text(text: str, hl: str) -> SafeText:
+    return SafeText(
+        regex.sub(hl, f'<span class="bg-hl-tertiary text-black p-[1px]">{hl}</span>', text, flags=regex.IGNORECASE)
+    )
 
 
-class ChapterLineTable(tables.Table):
+class RangeType(Enum):
+    PHRASE = 0
+    KEYWORDS = 1
+
+
+class WebSearchRange:
+    """A range across a search's text indicating a marked phrase OR a section
+    containing keywords"""
+
+    type: RangeType
+    start: int
+    stop: int
+
+    def __init__(self, range_type: RangeType, start: int, stop: int) -> None:
+        self.type = range_type
+        if start > stop:
+            msg = "WebSearch ranges must be ascending."
+            raise ValueError(msg)
+        self.start = start
+        self.stop = stop
+
+    def __repr__(self) -> str:
+        return f"<WebSearchRange type: {self.type} start: {self.start}, stop: {self.stop}>"
+
+
+class WebSearch:
+    """Models a Postgres `websearch` query including functions
+    for properly highlighting results. The Postgres `websearch` query
+    allows for phrases surrounded with qutoes ("), negations with a leading
+    minus (-) sign, and keywords for everything else split on whitespace
+    - Keywords are normalized to lowercase.
+    - Phrases take priority for highlighting, so no keywords should be highlighting
+    within phrases.
+    - `ignore_range` is a section of the incoming text that is already highlighted or should
+    otherwise be ignored when highlighting
+    """
+
+    text: str
+    text_lower: str
+    query: str
+    search_ranges: list[WebSearchRange]
+    keywords: list[str]
+    phrases: list[str]
+    negations: list[str]
+    max_phrase_highlights: int
+
+    def __init__(self, text: str, query: str, max_phrase_highlights: int = 5) -> None:
+        self.text = text
+        self.text_lower = text.lower()
+        self.query = query
+        self.max_phrase_highlights = max_phrase_highlights
+        self.keywords, self.phrases, self.negations = self.__parse_query()
+
+    def __parse_query(self) -> tuple[list[str], list[str], list[str]]:
+        """Identifies ranges of phrases and keywords from"""
+        partitions = self.query.split('"')
+        if len(partitions) % 2 == 0:
+            # Uneven quotes or no quotes
+            msg = "The filter text must contain an even number of quotes to specify any phrases"
+            raise ValueError(msg)
+
+        phrases: list[str] = []
+        keywords: list[str] = []
+        negations: list[str] = []
+        if len(partitions) % 2 == 1:
+            for i, part in enumerate(partitions):
+                if i % 2 == 1:
+                    # All odd indexes are quoted phrases
+                    phrases.append(part)
+                else:
+                    for word in regex.split(r"\s+", part):
+                        if len(word) > 0:
+                            if word[0] == "-":
+                                negations.append(word)
+                            else:
+                                keywords.append(word)
+
+        return (keywords, phrases, negations)
+
+    def __find_text_ranges(self, phrases: list[str]) -> list[WebSearchRange]:
+        phrase_ranges: list[WebSearchRange] = []
+        for phrase in phrases:
+            phrase_highlight_count = 0
+            phrase_lookup_start = 0
+            while phrase_highlight_count < self.max_phrase_highlights:
+                phrase_i = self.text_lower.find(phrase.lower(), phrase_lookup_start)
+                if phrase_i == -1:
+                    break
+                phrase_ranges.append(WebSearchRange(RangeType.PHRASE, phrase_i, phrase_i + len(phrase)))
+                phrase_lookup_start = phrase_i + len(phrase)
+                phrase_highlight_count += 1
+
+        ranges: list[WebSearchRange] = []
+        if phrase_ranges:
+            phrase_ranges.sort(key=lambda pr: pr.start)
+            keyword_range_start = 0
+            for pr in phrase_ranges:
+                if keyword_range_start != pr.start:
+                    ranges.append(WebSearchRange(RangeType.KEYWORDS, keyword_range_start, pr.start))
+                ranges.append(pr)
+                keyword_range_start = pr.stop
+            if keyword_range_start != len(self.text):
+                ranges.append(WebSearchRange(RangeType.KEYWORDS, keyword_range_start, len(self.text)))
+        else:
+            ranges = [WebSearchRange(RangeType.KEYWORDS, 0, len(self.text))]
+
+        return ranges
+
+    def highlight_range(self, r: WebSearchRange) -> str:
+        hl_begin = '<span class="bg-hl-tertiary text-black p-[1px]">'
+        hl_end = "</span>"
+
+        match r.type:
+            case RangeType.PHRASE:
+                return f"{hl_begin}{self.text[r.start : r.stop]}{hl_end}"
+            case RangeType.KEYWORDS:
+                words = [
+                    f"{hl_begin}{word}{hl_end}"
+                    if any(regex.match(keyword, word) for keyword in self.keywords)
+                    else word
+                    for word in regex.split(r"\s+", self.text[r.start : r.stop])
+                ]
+                return " ".join(words)
+
+    def highlighted_text(self) -> str:
+        ranges = self.__find_text_ranges(self.phrases)
+
+        hl_text_sections: list[str] = []
+        for r in ranges:
+            hl_text_sections.append(self.highlight_range(r))
+
+        return "".join(hl_text_sections)
+
+
+class SearchQueryTable(tables.Table):
+    query: str
+
+    def __init__(self, *args: str, **kwargs: str) -> None:
+        super().__init__(*args)
+        self.query = kwargs.get("query", "")
+
+
+class ChapterLineTable(SearchQueryTable):
     """Table for listing chapter lines with direct links to their source"""
 
     chapter_url = tables.Column(
@@ -56,20 +201,20 @@ class ChapterLineTable(tables.Table):
             },
         )
 
-    def render_text_plain(self, record, value) -> SafeText:  # noqa: ANN001
-        highlighted_text = format_html(record.headline) if hasattr(record, "headline") else SafeText(value)
+    def render_text_plain(self, value) -> SafeText:  # noqa: ANN001, ARG002
+        highlighted_text = WebSearch(value, self.query).highlighted_text()
+        return SafeText(highlighted_text)
 
-        return format_html(highlighted_text)
 
-
-class TextRefTable(tables.Table):
+class TextRefTable(SearchQueryTable):
     ref_name = tables.Column(accessor="name", attrs={"th": {"style": "width: 20%;"}})
-    text = tables.Column(
+    text_plain = tables.Column(
         accessor="text_plain",
         attrs={
             "th": {"style": "width: 60%;"},
             "td": {"style": "text-align: justify; padding: 1rem;"},
         },
+        verbose_name="Text",
         orderable=False,
     )
     chapter_url = tables.Column(
@@ -89,23 +234,11 @@ class TextRefTable(tables.Table):
     def hidden_cols(self, cols: list[int]) -> None:
         self._hidden_cols = cols
 
-    @property
-    def filter_text(self) -> str | None:
-        return self._filter_text
-
-    @filter_text.setter
-    def filter_text(self, text: str | None) -> None:
-        self._filter_text: str = text or ""
-
     def __init__(self, *args, **kwargs) -> None:  # noqa: ANN002 ANN003
-        super().__init__(*args)
+        super().__init__(*args, **kwargs)
         self.hidden_cols = []
         if hide_cols := kwargs.get("hidden_cols"):
             self._hidden_cols = hide_cols
-
-        self.filter_text = None
-        if filter_text := kwargs.get("filter_text"):
-            self._filter_text = filter_text
 
     def before_render(self, _request) -> None:  # noqa: ANN001
         for i, col in enumerate(self.columns):
@@ -114,7 +247,7 @@ class TextRefTable(tables.Table):
 
     class Meta:
         template_name = "tables/table_partial.html"
-        fields = ("ref_name", "chapter_url", "text")
+        fields = ("ref_name", "chapter_url", "text_plain")
         empty_text = EMPTY_TABLE_TEXT
 
     def render_ref_name(self, record: TextRef, value) -> SafeText | str:  # noqa: ANN001
@@ -130,26 +263,19 @@ class TextRefTable(tables.Table):
         except NoReverseMatch:
             return record.type.name
 
-    def render_text(self, record) -> SafeText:  # noqa: ANN001
+    def render_text_plain(self, record) -> SafeText:  # noqa: ANN001
         ref_text = record.text[record.start_column : record.end_column]
+        before = strip_tags(record.text[: record.start_column])
+        after = strip_tags(record.text[record.end_column :])
+        if self.query and not self.invalid_filter.search(self.query):
+            ref_text = highlight_simple_text(ref_text, self.query)
 
-        if hasattr(record, "headline"):
-            highlighted_text = format_html(record.headline).replace(
-                ref_text, f"<span class='text-hl-primary font-mono font-extrabold'>{ref_text}</span>"
-            )
-        else:
-            before = strip_tags(record.text[: record.start_column])
-            after = strip_tags(record.text[record.end_column :])
-            if self.filter_text and not self.invalid_filter.search(self.filter_text):
-                ref_text = highlight_text(ref_text, self.filter_text)
-                before = highlight_text(before, self.filter_text)
-                after = highlight_text(after, self.filter_text)
+        highlighted_ref = f"<span class='text-hl-primary font-mono font-extrabold'>{ref_text}</span>"
+        highlighted_before = WebSearch(before, self.query).highlighted_text()
+        highlighted_after = WebSearch(after, self.query).highlighted_text()
 
-            highlighted_text = (
-                f"{before}<span class='text-hl-primary font-mono font-extrabold'>{ref_text}</span>{after}"
-            )
-
-        return format_html(highlighted_text)
+        highlighted = highlighted_before + highlighted_ref + highlighted_after
+        return SafeText(highlighted)
 
     def render_chapter_url(self, record, value) -> SafeText:  # noqa: ANN001
         # Using the full text or a strict character count appears to run into issues when linking
@@ -169,7 +295,7 @@ class TextRefTable(tables.Table):
     def value_ref_name(self, record: TextRef) -> str:
         return record.type.name
 
-    def value_text(self, record: TextRef) -> str:
+    def value_text_plain(self, record: TextRef) -> str:
         return record.chapter_line.text_plain
 
     def value_chapter_url(self, record: TextRef) -> str:
