@@ -223,8 +223,16 @@ LOGGING = {
             "format": "{levelname} {message}",
             "style": "{",
         },
+        "server": {
+            "()": "django.utils.log.ServerFormatter",
+            "format": "[{server_time}] {message}",
+            "style": "{",
+        },
     },
     "filters": {
+        "require_debug_false": {
+            "()": "django.utils.log.RequireDebugFalse",
+        },
         "require_debug_true": {
             "()": "django.utils.log.RequireDebugTrue",
         },
@@ -236,24 +244,45 @@ LOGGING = {
             "class": "logging.StreamHandler",
             "formatter": "simple",
         },
-        "file": {
+        "debug_file": {
             "level": "DEBUG",
+            "filters": ["require_debug_true"],
             "class": "logging.FileHandler",
-            "filename": "./debug.log",
+            "filename": "logs/debug.log",
+        },
+        "error_file": {
+            "level": "ERROR",
+            "class": "logging.FileHandler",
+            "filename": "logs/error.log",
+        },
+        "mail_admins": {
+            "level": "ERROR",
+            "filters": ["require_debug_false"],
+            "class": "django.utils.log.AdminEmailHandler",
         },
     },
     "loggers": {
         "django": {
-            "handlers": ["console", "file"],
+            "handlers": ["console"],
+            "level": "ERROR",
             "propagate": True,
         },
         "django.request": {
-            "handlers": ["console", "file"],
+            "handlers": ["error_file", "mail_admins"],
             "level": "ERROR",
             "propagate": False,
         },
     },
 }
+
+# Email and Error reporting
+EMAIL_BACKEND = env.get("EMAIL_BACKEND", "django.core.mail.backends.smtp.EmailBackend")
+EMAIL_USE_TLS = env.get("EMAIL_USE_TLS", True)
+EMAIL_HOST = env.get("EMAIL_HOST")
+EMAIL_HOST_USER = env.get("EMAIL_HOST_USER")
+EMAIL_HOST_PASSWORD = env.get("EMAIL_HOST_PASSWORD")
+EMAIL_PORT = env.get("EMAIL_PORT")
+ADMINS = [(env.get("TWI_ADMIN_NAME"), env.get("TWI_ADMIN_EMAIL"))]
 
 # Wiki Bot Configuration
 TWIKI_BOT_USER = env.get("PYWIKIBOT_USER")
