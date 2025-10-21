@@ -57,6 +57,10 @@ class ChapterFilterForm(forms.Form):
     )
 
 
+chapter_choices = list(gen_chapter_choices())
+max_chapter_choice = len(chapter_choices) - 2
+
+
 class SearchForm(forms.Form):
     type = forms.ChoiceField(
         label="Type",
@@ -67,9 +71,6 @@ class SearchForm(forms.Form):
     type_query = forms.CharField(label="Type Query", max_length=50, required=False)
 
     q = forms.CharField(label="Text Query", max_length=100, required=False)
-
-    chapter_choices = list(gen_chapter_choices())
-    max_choice = len(chapter_choices) - 2
 
     first_chapter = forms.TypedChoiceField(
         label="First Chapter",
@@ -83,7 +84,7 @@ class SearchForm(forms.Form):
         label="Last Chapter",
         choices=chapter_choices,
         required=False,
-        initial=max_choice,
+        initial=max_chapter_choice,
         widget=forms.Select(attrs={"class": select_input_tailwind_classes}),
     )
 
@@ -92,7 +93,7 @@ class SearchForm(forms.Form):
         required=False,
         initial=15,
         min_value=10,
-        max_value=9999,
+        max_value=5000,
         widget=forms.NumberInput(attrs={"class": integer_input_tailwind_classes, "style": "width: 5rem"}),
     )
 
@@ -116,3 +117,20 @@ class SearchForm(forms.Form):
         initial=False,
         widget=forms.CheckboxInput(attrs={"class": checkbox_tailwind_classes}),
     )
+
+    def __init__(self, *args, **kwargs) -> None:  # noqa: ANN002, ANN003
+        if len(args) == 1:
+            # Apply default values
+            try:
+                data = args[0].copy()
+                if "first_chapter" not in data:
+                    data["first_chapter"] = 0
+                if "last_chapter" not in data:
+                    data["last_chapter"] = max_chapter_choice
+            except Exception as e:
+                msg = "SearchForm can only be initialized with a QueryDict"
+                raise ValueError(msg) from e
+
+            super().__init__(data, **kwargs)
+        else:
+            super().__init__(*args, **kwargs)

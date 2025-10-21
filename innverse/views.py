@@ -20,7 +20,7 @@ from stats import charts
 from stats.charts import ChartGalleryItem, get_reftype_gallery
 from stats.models import Alias, Chapter, Character, RefType, RefTypeChapter, TextRef
 
-from .forms import ChapterFilterForm, SearchForm
+from .forms import MAX_CHAPTER_NUM, ChapterFilterForm, SearchForm
 from .table_search import (
     get_chapterline_table,
     get_chapterref_table,
@@ -1021,15 +1021,8 @@ def search(request: HtmxHttpRequest) -> HttpResponse:
     if request.method != "GET" or request.GET == {}:
         return render(request, "pages/search.html", {"form": SearchForm()})
 
-    form = SearchForm(request.GET)
-    is_valid = form.is_valid()
-    if not request.htmx and not is_valid:
-        # Form data not valid
-        return render(
-            request,
-            "pages/search_error.html",
-            {"error": "Invalid search parameter provided. Please try again."},
-        )
+    form = SearchForm(request.GET, initial={"first_chapter": 0, "last_chapter": MAX_CHAPTER_NUM})
+    form.is_valid()
 
     if form.cleaned_data.get("all_contents"):
         table = get_chapterline_table(form.cleaned_data)

@@ -70,10 +70,16 @@ def get_textref_table(query: dict[str, Any]) -> TextRefTable:
 
     # Handle chapter range filtering
     if (first_chapter := query.get("first_chapter")) is not None:
-        table_data = table_data.filter(number__gte=first_chapter)
+        try:
+            table_data = table_data.filter(number__gte=first_chapter)
+        except ValueError:
+            table_data = table_data.filter(number__gte=0)
 
     if (last_chapter := query.get("last_chapter")) is not None:
-        table_data = table_data.filter(number__lte=last_chapter)
+        try:
+            table_data = table_data.filter(number__lte=last_chapter)
+        except ValueError:
+            table_data = table_data.filter(number__lte=9999)
 
     # Handle full-text search filtering
     if search_filter := query.get("q"):
