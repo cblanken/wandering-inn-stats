@@ -31,8 +31,7 @@ def gen_reftype_choices() -> Generator[tuple[str, str | Any]]:
         yield tup
 
 
-select_input_tailwind_classes = "bg-bg-primary text-text-primary border-none"
-select_input_styles = "max-width: 15rem"
+select_input_tailwind_classes = "bg-bg-primary text-text-primary border-none w-full lg:w-fit"
 checkbox_tailwind_classes = "bg-bg-tertiary"
 integer_input_tailwind_classes = "bg-bg-tertiary"
 
@@ -46,7 +45,7 @@ class ChapterFilterForm(forms.Form):
         choices=chapter_choices,
         required=False,
         initial=0,
-        widget=forms.Select(attrs={"class": select_input_tailwind_classes, "style": select_input_styles}),
+        widget=forms.Select(attrs={"class": select_input_tailwind_classes}),
     )
 
     last_chapter = forms.TypedChoiceField(
@@ -54,7 +53,7 @@ class ChapterFilterForm(forms.Form):
         choices=chapter_choices,
         required=False,
         initial=max_choice,
-        widget=forms.Select(attrs={"class": select_input_tailwind_classes, "style": select_input_styles}),
+        widget=forms.Select(attrs={"class": select_input_tailwind_classes}),
     )
 
 
