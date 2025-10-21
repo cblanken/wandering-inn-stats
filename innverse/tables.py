@@ -212,7 +212,7 @@ class TextRefTable(SearchQueryTable):
         accessor="text_plain",
         attrs={
             "th": {"style": "width: 60%;"},
-            "td": {"style": "text-align: justify; padding: 1rem;"},
+            "td": {"style": "text-align: justify; min-width: 325px"},
         },
         verbose_name="Text",
         orderable=False,
