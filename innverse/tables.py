@@ -171,13 +171,13 @@ class ChapterLineTable(SearchQueryTable):
         accessor="chapter__source_url",
         order_by="number",
         verbose_name="Chapter",
-        attrs={"th": {"style": "width: 30%;"}},
+        attrs={"th": {"class": "w-[20%]"}},
     )
     text_plain = tables.Column(
         accessor="text_plain",
         attrs={
-            "th": {"style": "width: 70%;"},
-            "td": {"style": "text-align: left; min-width: 325px; padding: 8px;"},
+            "th": {"class": "w-[80%]"},
+            "td": {"class": "min-w-[325px]"},
         },
         orderable=False,
     )
@@ -207,12 +207,12 @@ class ChapterLineTable(SearchQueryTable):
 
 
 class TextRefTable(SearchQueryTable):
-    ref_name = tables.Column(accessor="name", attrs={"th": {"style": "width: 20%;"}})
+    ref_name = tables.Column(accessor="name", verbose_name="Name")
     text_plain = tables.Column(
         accessor="text_plain",
         attrs={
-            "th": {"style": "width: 60%;"},
-            "td": {"style": "text-align: left; min-width: 325px; padding: 8px"},
+            "th": {"class": "w-[60%]"},
+            "td": {"style": "min-width: 325px;"},
         },
         verbose_name="Text",
         orderable=False,
@@ -304,11 +304,11 @@ class TextRefTable(SearchQueryTable):
 
 class ChapterRefTable(tables.Table):
     ref_name = tables.Column(accessor="name", verbose_name="Name", attrs={"th": {"style": "width: 30%;"}})
-    count = tables.Column(accessor="count", verbose_name="Count", attrs={"th": {"style": "width: 10%;"}})
+    count = tables.Column(accessor="count", verbose_name="Count", attrs={"td": {"class": "text-center"}})
     chapters = tables.Column(
         accessor="chapter_data",
         verbose_name="Chapters",
-        attrs={"th": {"style": "width: 60%;"}},
+        attrs={"th": {"style": "width: 70%;"}},
     )
 
     @property
@@ -370,11 +370,11 @@ class ChapterRefTable(tables.Table):
 
 
 class ReftypeHtmxTable(tables.Table):
-    name = tables.Column(verbose_name="Name", attrs={"th": {"style": "width: 30%"}})
-    first_mention_num = tables.Column(verbose_name="First mentioned", attrs={"th": {"style": "width: 30%"}})
-    mentions = tables.Column(verbose_name="Mentions", attrs={"th": {"style": "width: 15%"}})
-    word_count = tables.Column(attrs={"th": {"style": "width: 10%"}})
-    letter_count = tables.Column(attrs={"th": {"style": "width: 10%"}})
+    name = tables.Column(verbose_name="Name", attrs={"th": {"class": "w-[40%]"}})
+    first_mention_num = tables.Column(verbose_name="First mentioned", default="", attrs={"th": {"class": "w-[30%]"}})
+    mentions = tables.Column(verbose_name="Mentions", default="", attrs={"td": {"class": "text-center"}})
+    word_count = tables.Column(attrs={"td": {"class": "w-[10%] text-center"}})
+    letter_count = tables.Column(attrs={"td": {"class": "w-[10%] text-center"}})
 
     def render_name(self, record: RefType) -> SafeText:  # noqa: ANN001
         return render_to_string(
@@ -412,31 +412,32 @@ class CharacterHtmxTable(tables.Table):
     name = tables.Column(
         accessor="ref_type__name",
         verbose_name="Name",
-        attrs={"th": {"style": "width: 12rem; max-width: 20%;"}},
+        attrs={"th": {"class": "w-[25%]"}},
     )
     first_appearance = tables.Column(
         accessor="first_chapter_appearance",
         verbose_name="First appearance",
-        attrs={"th": {"style": "width: 12rem; max-width: 15%;"}},
+        attrs={"th": {"class": "w-[20%]"}},
+        default="",
     )
     first_mention_num = tables.Column(
         accessor="first_mention_num",
         verbose_name="First mention",
-        attrs={"th": {"style": "width: 12rem; max-width: 15%;"}},
+        attrs={"th": {"class": "w-[10%]"}},
     )
     wiki = tables.Column(
         accessor="wiki_uri",
         verbose_name="Wiki",
         orderable=False,
-        attrs={"th": {"style": "width: 10rem; max-width: 15%;"}},
+        attrs={"th": {"class": "w-[25%]"}},
     )
     mentions = tables.Column(
         accessor="ref_type__reftypecomputedview__mentions",
         verbose_name="Mentions",
-        attrs={"th": {"style": "width: 8rem; max-width: 10%;"}},
+        attrs={"th": {"class": "w-[10%]"}, "td": {"class": "text-center"}},
     )
 
-    species = tables.Column(attrs={"th": {"style": "width: 8rem; max-width: 10%;"}})
+    species = tables.Column(attrs={"th": {"class": "w-[10%]"}, "td": {"class": "text-center"}})
 
     def render_name(self, record: Character) -> SafeText:
         return render_to_string(
@@ -497,12 +498,12 @@ class CharacterHtmxTable(tables.Table):
 
 
 class ChapterHtmxTable(tables.Table):
-    title = tables.Column(orderable=False, attrs={"td": {"style": "width: 30%; max-width: 40%;"}})
-    number = tables.Column(attrs={"td": {"style": "width: 6rem"}})
-    word_count = tables.Column(attrs={"td": {"style": "width: 6rem"}})
-    is_canon = tables.Column(attrs={"td": {"style": "width: 4rem"}})
-    post_date = tables.Column(attrs={"td": {"style": "width: 10rem"}})
-    last_update = tables.Column(verbose_name="Last Updated", attrs={"td": {"style": "width: 10rem"}})
+    title = tables.Column(orderable=False, attrs={"th": {"class": "w-[40%]"}})
+    number = tables.Column(attrs={"th": {"class": "w-[5%]"}, "td": {"class": "text-center"}})
+    word_count = tables.Column(attrs={"th": {"class": "w-[10%]"}, "td": {"class": "text-center"}})
+    is_canon = tables.Column(attrs={"th": {"class": "w-[5%]"}, "td": {"class": "text-center"}})
+    post_date = tables.Column(attrs={"th": {"class": "w-[20%]"}})
+    last_update = tables.Column(verbose_name="Last Updated", attrs={"th": {"class": "w-[20%]"}})
 
     def render_title(self, record: Chapter, value: str) -> SafeText:
         return render_to_string(

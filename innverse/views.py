@@ -813,10 +813,11 @@ def chapter_stats(request: HtmxHttpRequest, number: int) -> HttpResponse:
         "post_date": chapter.post_date,
         "last_update": chapter.last_update,
         "book_title": chapter.book.title,
+        "book_number": chapter.book.number,
         "heading": render_to_string(
             "patterns/atoms/link/link.html",
             context={
-                "text": f"Chapter {chapter.title}" if len(chapter.title) < 10 else f"{chapter.title}",
+                "text": f"{chapter.title}" if len(chapter.title) < 10 else f"{chapter.title}",
                 "href": chapter.source_url,
                 "external": True,
             },
