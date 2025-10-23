@@ -975,6 +975,7 @@ def reftype_stats(request: HtmxHttpRequest, name: str) -> HttpResponse:
     context = {
         "name": name,
         "character": character if rt_type == RefType.Type.CHARACTER else None,
+        "first_mention": first_mention_chapter.chapter if first_mention_chapter else None,
         "table": table,
         "title": rt.name,
         "wiki_link": render_to_string(
