@@ -108,6 +108,7 @@ TEMPLATES = [
         "DIRS": [
             Path(BASE_DIR, "innverse/core/templates/patterns"),
             Path(BASE_DIR, "stats/templates/"),
+            Path(BASE_DIR, "stats/static/charts/html"),
         ],
         "APP_DIRS": True,
         "OPTIONS": {

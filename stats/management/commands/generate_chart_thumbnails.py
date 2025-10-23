@@ -48,10 +48,17 @@ class Command(BaseCommand):
                 fig.update_xaxes(rangeslider={"visible": False})
                 fig.update_layout(title={"text": ""}, showlegend=False)
 
-                chart.path.parent.mkdir(parents=True, exist_ok=True)
-                fig.write_image(file=chart.path, format="svg")
+                chart.local_thumbnail_path.parent.mkdir(parents=True, exist_ok=True)
+                fig.write_image(file=chart.local_thumbnail_path, format="svg")
+                self.stdout.write(
+                    self.style.SUCCESS(f'> Chart (svg) ({chart.title}) saved to "{chart.local_thumbnail_path}"')
+                )
 
-                self.stdout.write(self.style.SUCCESS(f'> Chart ({chart.title}) saved to "{chart.path}"'))
+                chart.local_html_path.parent.mkdir(parents=True, exist_ok=True)
+                fig.write_html(file=chart.local_html_path, include_plotlyjs="cdn", full_html=False)
+                self.stdout.write(
+                    self.style.SUCCESS(f'> Chart (html) ({chart.title}) saved to "{chart.local_html_path}"')
+                )
             else:
                 self.stdout.write(self.style.WARNING(f"> Chart ({chart.title}) did not have enough data. Skipped."))
         else:
@@ -63,11 +70,11 @@ class Command(BaseCommand):
         print(f"> Generating gallery for: {rt.name}")
         gallery = charts.get_reftype_gallery(rt)
         for chart in gallery:
-            if options.get("clobber") or not chart.path.exists():
+            if options.get("clobber") or not chart.local_thumbnail_path.exists():
                 self.save_chart_thumbnail(options, chart)
             else:
                 self.stdout.write(
-                    self.style.WARNING(f"> Thumbnail for {rt.name} already exists at {chart.static_path}"),
+                    self.style.WARNING(f"> Thumbnail for {rt.name} already exists at {chart.local_thumbnail_path}"),
                 )
 
     def handle(self, *_args, **options) -> None:  # noqa: ANN002, ANN003
@@ -85,12 +92,12 @@ class Command(BaseCommand):
             if not options.get("reftypes_only"):
                 for gallery in main_chart_galleries:
                     for chart in gallery:
-                        if options.get("clobber") or not chart.path.exists():
+                        if options.get("clobber") or not chart.local_thumbnail_path.exists():
                             self.save_chart_thumbnail(options, chart)
                         else:
                             self.stdout.write(
                                 self.style.WARNING(
-                                    f"> Thumbnail for {chart.title} already exists at {chart.static_path}",
+                                    f"> Thumbnail for {chart.title} already exists at {chart.local_thumbnail_path}",
                                 ),
                             )
 
@@ -116,4 +123,4 @@ class Command(BaseCommand):
             print(s.getvalue())
 
             msg = "Keyboard interrupt...thumbnail generation stopped."
-            raise CommandError(msg) from exc
+            raise CommandError(msg) from exc  # type: ignore[no-untyped-def]  # type: ignore[no-untyped-def]

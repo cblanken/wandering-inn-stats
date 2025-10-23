@@ -845,7 +845,7 @@ def chapter_stats(request: HtmxHttpRequest, number: int) -> HttpResponse:
     return render(request, "pages/chapter_page.html", context)
 
 
-def main_interactive_chart(request: HtmxHttpRequest, chart: str) -> HttpResponse:
+def main_interactive_chart(request: HtmxHttpRequest, chart_name: str) -> HttpResponse:
     first_chapter, last_chapter = parse_chapter_params(request)
 
     chart_items: Iterable[ChartGalleryItem] = chain(
@@ -856,20 +856,17 @@ def main_interactive_chart(request: HtmxHttpRequest, chart: str) -> HttpResponse
         charts.get_magic_charts(first_chapter, last_chapter),
         charts.get_location_charts(first_chapter, last_chapter),
     )
+    first_chapter, last_chapter = parse_chapter_params(request)
+    form = ChapterFilterForm(request.GET) if first_chapter or last_chapter else ChapterFilterForm()
 
-    if request.GET.get("first_chapter") or request.GET.get("last_chapter"):
-        form = ChapterFilterForm(request.GET)
-        # TODO check for valid params
-    else:
-        form = ChapterFilterForm()
-
-    for c in chart_items:
-        if chart == c.title_slug:
-            fig = c.get_fig()
+    for chart_item in chart_items:
+        if chart_name == chart_item.title_slug:
+            fig = chart_item.get_fig() if first_chapter or last_chapter else None
             context = {
-                "chart": (fig.to_html(full_html=False, include_plotlyjs="cdn") if fig else None),
+                "chart": fig.to_html(full_html=False, include_plotlyjs="cdn") if fig else None,
+                "chart_path": chart_item.template_url,
                 "form": form,
-                "has_chapter_filter": c.has_chapter_filter,
+                "has_chapter_filter": chart_item.has_chapter_filter,
             }
             return render(request, "pages/interactive_chart.html", context)
 
@@ -892,7 +889,7 @@ def match_reftype_str(s: str) -> str | None:
             return None
 
 
-def reftype_interactive_chart(request: HtmxHttpRequest, name: str, chart: str) -> HttpResponse:
+def reftype_interactive_chart(request: HtmxHttpRequest, name: str, chart_name: str) -> HttpResponse:
     stat_root = request.path.split("/")[1].strip().lower()
     rt_type = match_reftype_str(stat_root)
     if len(name) >= 100:
@@ -900,24 +897,19 @@ def reftype_interactive_chart(request: HtmxHttpRequest, name: str, chart: str) -
     else:
         rt = RefType.objects.get(Q(slug__iexact=name) & Q(type=rt_type))
 
-    if request.GET.get("first_chapter") or request.GET.get("last_chapter"):
-        form = ChapterFilterForm(request.GET)
-        # TODO check for valid params
-    else:
-        form = ChapterFilterForm()
-
     first_chapter, last_chapter = parse_chapter_params(request)
+    form = ChapterFilterForm(request.GET) if first_chapter or last_chapter else ChapterFilterForm()
 
     chart_items = get_reftype_gallery(rt, first_chapter, last_chapter)
 
-    for c in chart_items:
-        if chart == c.title_slug:
-            fig = c.get_fig()
-
+    for chart_item in chart_items:
+        if chart_name == chart_item.title_slug:
+            fig = chart_item.get_fig() if first_chapter or last_chapter else None
             context = {
-                "chart": (fig.to_html(full_html=False, include_plotlyjs="cdn") if fig else None),
+                "chart": fig.to_html(full_html=False, include_plotlyjs="cdn") if fig else None,
+                "chart_path": str(chart_item.template_url),
                 "form": form,
-                "has_chapter_filter": c.has_chapter_filter,
+                "has_chapter_filter": chart_item.has_chapter_filter,
             }
 
             return render(request, "pages/interactive_chart.html", context)

@@ -48,9 +48,10 @@ class Filetype(Enum):
     SVG = "svg"
     PNG = "png"
     JPG = "jpg"
+    HTML = "html"
 
 
-def get_static_thumbnail_path(filename: str, filetype: Filetype, extra_path: Path = "") -> Path:
+def get_chart_path(filename: str, filetype: Filetype, extra_path: Path = "") -> Path:
     return Path(
         "charts",
         filetype.value,
@@ -59,8 +60,8 @@ def get_static_thumbnail_path(filename: str, filetype: Filetype, extra_path: Pat
     )
 
 
-def get_thumbnail_path(filename: str, filetype: Filetype, extra_path: Path = "") -> Path:
-    return Path("stats", "static", get_static_thumbnail_path(filename, filetype, extra_path))
+def get_local_static_chart_path(filename: str, filetype: Filetype, extra_path: Path = "") -> Path:
+    return Path("stats", "static", get_chart_path(filename, filetype, extra_path))
 
 
 class ChartGalleryItem:
@@ -78,12 +79,16 @@ class ChartGalleryItem:
         self.title_slug = slugify(title)
         self.caption = caption
         self.filetype = filetype
-        self.static_path = get_static_thumbnail_path(self.title_slug, filetype, subdir)
-        self.static_url = f"{settings.STATIC_URL}{self.static_path}"
-        self.path = get_thumbnail_path(self.title_slug, filetype, subdir)
         self.get_fig: Callable[[], Figure | None] = get_fig
         self.popup_info: str | None = popup_info
         self.has_chapter_filter = has_chapter_filter
+
+        # Paths and URLs
+        self.template_url = str(Path(subdir, f"{self.title_slug}.{Filetype.HTML.value}"))
+        self.thumbnail_url = f"{settings.STATIC_URL}{get_chart_path(self.title_slug, filetype, subdir)}"
+        self.local_thumbnail_path = get_local_static_chart_path(self.title_slug, filetype, subdir)
+        self.html_url = f"{settings.STATIC_URL}{get_chart_path(self.title_slug, Filetype.HTML, subdir)}"
+        self.local_html_path = get_local_static_chart_path(self.title_slug, Filetype.HTML, subdir)
 
 
 def get_reftype_gallery(

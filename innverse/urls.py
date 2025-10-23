@@ -22,32 +22,32 @@ urlpatterns = [
     # Main page
     path("", overview_redirect),
     path("overview/", cache_page(CACHE_TIME_LONG)(views.overview), name="overview"),
-    path("overview/charts/<slug:chart>", cache_page(CACHE_TIME_LONG)(views.main_interactive_chart)),
+    path("overview/charts/<slug:chart_name>", cache_page(CACHE_TIME_LONG)(views.main_interactive_chart)),
     # Characters
     path("characters/", cache_page(CACHE_TIME_LONG)(views.characters), name="character"),
-    path("characters/charts/<slug:chart>", cache_page(CACHE_TIME_LONG)(views.main_interactive_chart)),
+    path("characters/charts/<slug:chart_name>", cache_page(CACHE_TIME_LONG)(views.main_interactive_chart)),
     path("characters/<slug:name>/", cache_page(CACHE_TIME_SHORT)(views.reftype_stats), name="ch-stats"),
-    path("characters/<slug:name>/charts/<slug:chart>", cache_page(CACHE_TIME_SHORT)(views.reftype_interactive_chart)),
+    path("characters/<slug:name>/charts/<slug:chart_name>", cache_page(CACHE_TIME_SHORT)(views.reftype_interactive_chart)),
     # Classes
     path("classes/", views.classes, name="classes"),
-    path("classes/charts/<slug:chart>", cache_page(CACHE_TIME_LONG)(views.main_interactive_chart)),
+    path("classes/charts/<slug:chart_name>", cache_page(CACHE_TIME_LONG)(views.main_interactive_chart)),
     path("classes/<slug:name>/", cache_page(CACHE_TIME_SHORT)(views.reftype_stats), name="cl-stats"),
-    path("classes/<slug:name>/charts/<slug:chart>", cache_page(CACHE_TIME_SHORT)(views.reftype_interactive_chart)),
+    path("classes/<slug:name>/charts/<slug:chart_name>", cache_page(CACHE_TIME_SHORT)(views.reftype_interactive_chart)),
     # Skills
     path("skills/", views.skills, name="skills"),
-    path("skills/charts/<slug:chart>", cache_page(CACHE_TIME_LONG)(views.main_interactive_chart)),
+    path("skills/charts/<slug:chart_name>", cache_page(CACHE_TIME_LONG)(views.main_interactive_chart)),
     path("skills/<slug:name>/", cache_page(CACHE_TIME_SHORT)(views.reftype_stats), name="sk-stats"),
-    path("skills/<slug:name>/charts/<slug:chart>", cache_page(CACHE_TIME_SHORT)(views.reftype_interactive_chart)),
+    path("skills/<slug:name>/charts/<slug:chart_name>", cache_page(CACHE_TIME_SHORT)(views.reftype_interactive_chart)),
     # Magic
     path("magic/", views.magic, name="magic"),
-    path("magic/charts/<slug:chart>", cache_page(CACHE_TIME_LONG)(views.main_interactive_chart)),
+    path("magic/charts/<slug:chart_name>", cache_page(CACHE_TIME_LONG)(views.main_interactive_chart)),
     path("magic/<slug:name>/", cache_page(CACHE_TIME_SHORT)(views.reftype_stats), name="sp-stats"),
-    path("magic/<slug:name>/charts/<slug:chart>", cache_page(CACHE_TIME_SHORT)(views.reftype_interactive_chart)),
+    path("magic/<slug:name>/charts/<slug:chart_name>", cache_page(CACHE_TIME_SHORT)(views.reftype_interactive_chart)),
     # Locations
     path("locations/", views.locations, name="locations"),
-    path("locations/charts/<slug:chart>", views.main_interactive_chart),
+    path("locations/charts/<slug:chart_name>", views.main_interactive_chart),
     path("locations/<slug:name>/", cache_page(CACHE_TIME_SHORT)(views.reftype_stats), name="lo-stats"),
-    path("locations/<slug:name>/charts/<slug:chart>", cache_page(CACHE_TIME_SHORT)(views.reftype_interactive_chart)),
+    path("locations/<slug:name>/charts/<slug:chart_name>", cache_page(CACHE_TIME_SHORT)(views.reftype_interactive_chart)),
     # Search / misc
     path("search/", cache_page(CACHE_TIME_LONG)(views.search), name="search"),
     path("about/", cache_page(CACHE_TIME_LONG)(views.about), name="about"),
