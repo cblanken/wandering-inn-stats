@@ -211,6 +211,9 @@ PATTERN_LIBRARY = {
 }
 
 
+LOG_DIR = Path(env.get("TWI_LOG_DIR", "logs"))
+LOG_DIR.mkdir(exist_ok=True)
+
 # Logging
 LOGGING = {
     "version": 1,
