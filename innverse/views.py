@@ -105,7 +105,6 @@ class RefTypeMostMentionsHeadlineStat(HeadlineStat):
                         f"{rt_type.lower()}-stats",
                         args=[slugify(name)],
                     ),
-                    "fit": True,
                 },
             ),
             units="mentions",
@@ -231,7 +230,6 @@ def overview(request: HtmxHttpRequest) -> HttpResponse:
                     context={
                         "text": title_nbsp(longest_chapter.title),
                         "href": reverse("chapters", args=[longest_chapter.number]),
-                        "fit": True,
                     },
                 ),
                 units="words",
@@ -244,7 +242,6 @@ def overview(request: HtmxHttpRequest) -> HttpResponse:
                     context={
                         "text": title_nbsp(shortest_chapter.title),
                         "href": reverse("chapters", args=[shortest_chapter.number]),
-                        "fit": True,
                     },
                 ),
                 units="words",
@@ -257,7 +254,6 @@ def overview(request: HtmxHttpRequest) -> HttpResponse:
                     context={
                         "text": title_nbsp(first_chapter.title),
                         "href": reverse("chapters", args=[first_chapter.number]),
-                        "fit": True,
                     },
                 ),
                 units="days ago",
@@ -272,7 +268,6 @@ def overview(request: HtmxHttpRequest) -> HttpResponse:
                     context={
                         "text": title_nbsp(latest_chapter.title),
                         "href": reverse("chapters", args=[latest_chapter.number]),
-                        "fit": True,
                     },
                 ),
                 units="days ago",
@@ -293,7 +288,6 @@ def overview(request: HtmxHttpRequest) -> HttpResponse:
                     context={
                         "text": title_nbsp(longest_release_chapter_from.title),
                         "href": reverse("chapters", args=[longest_release_chapter_from.number]),
-                        "fit": True,
                     },
                 )
                 + "<div>→</div>"
@@ -302,7 +296,6 @@ def overview(request: HtmxHttpRequest) -> HttpResponse:
                     context={
                         "text": title_nbsp(longest_release_chapter_to.title),
                         "href": reverse("chapters", args=[longest_release_chapter_to.number]),
-                        "fit": True,
                     },
                 ),
             ),
@@ -366,7 +359,6 @@ def characters(request: HtmxHttpRequest) -> HttpResponse:
                     context={
                         "text": title_nbsp(chapter_with_most_char_refs["title"]),
                         "href": reverse("chapters", args=[chapter_with_most_char_refs.get("number")]),
-                        "fit": True,
                     },
                 ),
                 units="character mentions",
@@ -436,7 +428,6 @@ def classes(request: HtmxHttpRequest) -> HttpResponse:
                     context={
                         "text": "[Class] updates list",
                         "href": f"{reverse('search')}?{urlencode({'type': RefType.Type.CLASS_UPDATE})}",
-                        "fit": True,
                         "no_icon": True,
                     },
                 ),
@@ -451,7 +442,6 @@ def classes(request: HtmxHttpRequest) -> HttpResponse:
                     context={
                         "text": f"{longest_class_name_by_words.name}",
                         "href": reverse("cl-stats", args=[longest_class_name_by_words.slug]),
-                        "fit": True,
                         "no_icon": True,
                     },
                 ),
@@ -465,7 +455,6 @@ def classes(request: HtmxHttpRequest) -> HttpResponse:
                     context={
                         "text": f"{longest_class_name_by_chars.name}",
                         "href": reverse("cl-stats", args=[longest_class_name_by_chars.slug]),
-                        "fit": True,
                         "no_icon": True,
                     },
                 ),
@@ -483,7 +472,6 @@ def classes(request: HtmxHttpRequest) -> HttpResponse:
                             "chapters",
                             args=[chapter_with_most_class_refs.get("number")],
                         ),
-                        "fit": True,
                         "no_icon": True,
                     },
                 ),
@@ -543,7 +531,6 @@ def skills(request: HtmxHttpRequest) -> HttpResponse:
                     context={
                         "text": "[Skill] updates list",
                         "href": f"{reverse('search')}?{urlencode({'type': RefType.Type.SKILL_UPDATE})}",
-                        "fit": True,
                         "no_icon": True,
                     },
                 ),
@@ -558,7 +545,6 @@ def skills(request: HtmxHttpRequest) -> HttpResponse:
                     context={
                         "text": f"{longest_skill_name_by_words.name}",
                         "href": reverse("sk-stats", args=[longest_skill_name_by_words.slug]),
-                        "fit": True,
                         "no_icon": True,
                     },
                 ),
@@ -572,7 +558,6 @@ def skills(request: HtmxHttpRequest) -> HttpResponse:
                     context={
                         "text": f"{longest_skill_name_by_chars.name}",
                         "href": reverse("sk-stats", args=[longest_skill_name_by_chars.slug]),
-                        "fit": True,
                         "no_icon": True,
                     },
                 ),
@@ -587,7 +572,6 @@ def skills(request: HtmxHttpRequest) -> HttpResponse:
                     context={
                         "text": chapter_with_most_skill_refs["title"],
                         "href": reverse("chapters", args=[chapter_with_most_skill_refs["number"]]),
-                        "fit": True,
                         "no_icon": True,
                     },
                 ),
@@ -650,7 +634,6 @@ def magic(request: HtmxHttpRequest) -> HttpResponse:
                     context={
                         "text": "[Spell] updates list",
                         "href": f"{reverse('search')}?{urlencode({'type': RefType.Type.SPELL_UPDATE})}",
-                        "fit": True,
                         "no_icon": True,
                     },
                 ),
@@ -665,7 +648,6 @@ def magic(request: HtmxHttpRequest) -> HttpResponse:
                     context={
                         "text": f"{longest_spell_name_by_words.name}",
                         "href": reverse("sp-stats", args=[longest_spell_name_by_words.slug]),
-                        "fit": True,
                         "no_icon": True,
                     },
                 ),
@@ -679,7 +661,6 @@ def magic(request: HtmxHttpRequest) -> HttpResponse:
                     context={
                         "text": f"{longest_spell_name_by_chars.name}",
                         "href": reverse("sp-stats", args=[longest_spell_name_by_chars.slug]),
-                        "fit": True,
                         "no_icon": True,
                     },
                 ),
@@ -694,7 +675,6 @@ def magic(request: HtmxHttpRequest) -> HttpResponse:
                     context={
                         "text": chapter_with_most_spell_refs["title"],
                         "href": reverse("chapters", args=[chapter_with_most_spell_refs["number"]]),
-                        "fit": True,
                         "no_icon": True,
                     },
                 ),
@@ -756,7 +736,6 @@ def locations(request: HtmxHttpRequest) -> HttpResponse:
                     context={
                         "text": chapter_with_most_location_refs["title"],
                         "href": reverse("chapters", args=[chapter_with_most_location_refs["number"]]),
-                        "fit": True,
                         "no_icon": True,
                     },
                 ),
@@ -986,7 +965,6 @@ def reftype_stats(request: HtmxHttpRequest, name: str) -> HttpResponse:
                         context={
                             "text": title_nbsp(first_mention_chapter.chapter.title),
                             "href": reverse("chapters", args=[first_mention_chapter.chapter.number]),
-                            "fit": True,
                             "no_icon": True,
                         },
                     ),
@@ -998,7 +976,6 @@ def reftype_stats(request: HtmxHttpRequest, name: str) -> HttpResponse:
                         context={
                             "text": title_nbsp(last_mention_chapter.chapter.title),
                             "href": reverse("chapters", args=[last_mention_chapter.chapter.number]),
-                            "fit": True,
                             "no_icon": True,
                         },
                     ),
