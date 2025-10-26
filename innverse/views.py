@@ -843,7 +843,7 @@ def main_interactive_chart(request: HtmxHttpRequest, chart_name: str) -> HttpRes
             fig = chart_item.get_fig() if first_chapter or last_chapter else None
             context = {
                 "chart": fig.to_html(full_html=False, include_plotlyjs="cdn") if fig else None,
-                "chart_path": chart_item.template_url,
+                "chart_path": chart_item.html_url,
                 "form": form,
                 "has_chapter_filter": chart_item.has_chapter_filter,
             }
@@ -886,7 +886,7 @@ def reftype_interactive_chart(request: HtmxHttpRequest, name: str, chart_name: s
             fig = chart_item.get_fig() if first_chapter or last_chapter else None
             context = {
                 "chart": fig.to_html(full_html=False, include_plotlyjs="cdn") if fig else None,
-                "chart_path": str(chart_item.template_url),
+                "chart_path": str(chart_item.html_url),
                 "form": form,
                 "has_chapter_filter": chart_item.has_chapter_filter,
             }

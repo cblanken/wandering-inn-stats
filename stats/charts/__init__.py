@@ -87,7 +87,7 @@ class ChartGalleryItem:
         self.template_url = str(Path(subdir, f"{self.title_slug}.{Filetype.HTML.value}"))
         self.thumbnail_url = f"{settings.STATIC_URL}{get_chart_path(self.title_slug, filetype, subdir)}"
         self.local_thumbnail_path = get_local_static_chart_path(self.title_slug, filetype, subdir)
-        self.html_url = f"{settings.STATIC_URL}{get_chart_path(self.title_slug, Filetype.HTML, subdir)}"
+        self.html_url = str(Path(f"{settings.STATIC_URL}", f"{get_chart_path(self.title_slug, Filetype.HTML, subdir)}"))
         self.local_html_path = get_local_static_chart_path(self.title_slug, Filetype.HTML, subdir)
 
 
