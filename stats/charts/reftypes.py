@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import plotly.express as px
 from django.db.models import (
     Count,
@@ -9,12 +11,14 @@ from django.db.models import (
 )
 from django.db.models.manager import BaseManager
 from django.db.models.query import ValuesIterable
+from django.utils.text import slugify
 from plotly.graph_objects import Figure
 
 from stats.models import Book, Chapter, RefType, TextRef, Volume
 from stats.queries import apply_chapter_filter
 
 from .config import DEFAULT_DISCRETE_COLORS, DEFAULT_LAYOUT
+from .gallery import ChartGalleryItem, Filetype
 
 
 def __chapter_counts(
@@ -40,7 +44,7 @@ def __mentions_by_chapter(
     rt: RefType,
 ) -> BaseManager[Chapter]:
     rt_mentions_subquery = (
-        TextRef.objects.select_related("chapter_line__chapter")
+        TextRef.objects.select_related("chapter_line__chapter", "reftypecomputedview__first_mention")
         .filter(type=rt, chapter_line__chapter=OuterRef("id"))
         .values("chapter_line__chapter")
         .annotate(mentions=Count("id"), chapter=F("chapter_line__chapter"))
@@ -50,7 +54,7 @@ def __mentions_by_chapter(
     return Chapter.objects.annotate(rt_mentions=Subquery(rt_mentions_subquery.values_list("mentions")[:1]))
 
 
-def mentions(
+def mentions_over_time(
     rt: RefType,
     first_chapter: Chapter | None = None,
     last_chapter: Chapter | None = None,
@@ -63,6 +67,30 @@ def mentions(
         return px.area(
             rt_mentions_by_chapter,
             x="post_date",
+            y="rt_mentions",
+            hover_data=["title", "rt_mentions", "post_date"],
+            labels={
+                "title": "Chapter",
+                "rt_mentions": "Mentions",
+                "post_date": "Post date",
+            },
+        ).update_layout(DEFAULT_LAYOUT)
+    return None
+
+
+def mentions_over_chapter_num(
+    rt: RefType,
+    first_chapter: Chapter | None = None,
+    last_chapter: Chapter | None = None,
+) -> Figure | None:
+    rt_mentions_by_chapter = __mentions_by_chapter(rt).values("title", "rt_mentions", "post_date", "number")
+
+    rt_mentions_by_chapter = apply_chapter_filter(rt_mentions_by_chapter, first_chapter, last_chapter)
+
+    if rt_mentions_by_chapter:
+        return px.area(
+            rt_mentions_by_chapter,
+            x="number",
             y="rt_mentions",
             hover_data=["title", "rt_mentions", "post_date"],
             labels={
@@ -98,9 +126,7 @@ def cumulative_mentions(
                 "cum_rt_mentions": "Total Mentions",
                 "post_date": "Post date",
             },
-        ).update_layout(
-            DEFAULT_LAYOUT,
-        )
+        ).update_layout(DEFAULT_LAYOUT)
 
     return None
 
@@ -248,3 +274,56 @@ def most_mentions_by_volume(
             color_discrete_sequence=DEFAULT_DISCRETE_COLORS,
         ).update_layout(DEFAULT_LAYOUT)
     return None
+
+
+def get_reftype_gallery(
+    rt: RefType,
+    first_chapter: Chapter | None = None,
+    last_chapter: Chapter | None = None,
+) -> list[ChartGalleryItem]:
+    return [
+        ChartGalleryItem(
+            "Total mentions",
+            "",
+            Filetype.SVG,
+            lambda rt=rt: cumulative_mentions(rt, first_chapter, last_chapter),
+            subdir=Path(slugify(rt.type), rt.slug),
+        ),
+        ChartGalleryItem(
+            "Mentions over time",
+            "",
+            Filetype.SVG,
+            lambda rt=rt: mentions_over_time(rt, first_chapter, last_chapter),
+            subdir=Path(slugify(rt.type), rt.slug),
+        ),
+        ChartGalleryItem(
+            "Mentions by chapter",
+            "",
+            Filetype.SVG,
+            lambda rt=rt: mentions_over_chapter_num(rt, first_chapter, last_chapter),
+            subdir=Path(slugify(rt.type), rt.slug),
+        ),
+        ChartGalleryItem(
+            "Chapters with the most mentions",
+            "",
+            Filetype.SVG,
+            lambda rt=rt: most_mentions_by_chapter(rt, first_chapter, last_chapter),
+            subdir=Path(slugify(rt.type), rt.slug),
+            popup_info='Interlude chapters are abbreviated with "I." for readability.',
+        ),
+        ChartGalleryItem(
+            "Books with the most mentions",
+            "",
+            Filetype.SVG,
+            lambda rt=rt: most_mentions_by_book(rt, first_chapter, last_chapter),
+            subdir=Path(slugify(rt.type), rt.slug),
+            popup_info="These counts only include released books, so, if mentions occur outside that range, they won't appear in this chart.",
+        ),
+        ChartGalleryItem(
+            "Volumes with the most mentions",
+            "",
+            Filetype.SVG,
+            lambda rt=rt: most_mentions_by_volume(rt, first_chapter, last_chapter),
+            subdir=Path(slugify(rt.type), rt.slug),
+        ),
+    ]

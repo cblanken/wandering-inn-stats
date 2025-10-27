@@ -1,41 +1,18 @@
-import plotly.express as px
-from django.db.models import Count
-from plotly.graph_objects import Figure
+from stats.models import Chapter, RefType
 
-from stats.models import Chapter, RefType, TextRef
-
-from .config import DEFAULT_DISCRETE_COLORS, DEFAULT_LAYOUT
+from .gallery import ChartGalleryItem
+from .reftype_types import get_reftype_type_gallery
 
 
-def class_ref_counts(first_chapter: Chapter | None = None, last_chapter: Chapter | None = None) -> Figure | None:
-    class_refs = TextRef.objects.filter(type__type=RefType.Type.CLASS)
-
-    if first_chapter:
-        class_refs = class_refs.filter(chapter_line__chapter__number__gte=first_chapter.number)
-
-    if last_chapter:
-        class_refs = class_refs.filter(chapter_line__chapter__number__lte=last_chapter.number)
-
-    class_refs = (
-        class_refs.values("type__name")
-        .annotate(class_instance_cnt=Count("type__name"))
-        .order_by("-class_instance_cnt")[:15]
+def get_class_charts(
+    first_chapter: Chapter | None = None, last_chapter: Chapter | None = None
+) -> list[ChartGalleryItem]:
+    default_chart_gallery: list[ChartGalleryItem] = get_reftype_type_gallery(
+        RefType.Type.CLASS, first_chapter, last_chapter
     )
-
-    class_refs_count_fig = px.bar(
-        class_refs,
-        x="class_instance_cnt",
-        y="type__name",
-        color="type__name",
-        color_discrete_sequence=DEFAULT_DISCRETE_COLORS,
-        text_auto="d",
-        labels={"type__name": "Class", "class_instance_cnt": "Count"},
+    return (
+        default_chart_gallery
+        + [
+            # Custom gallery charts
+        ]
     )
-    class_refs_count_fig.update_layout(DEFAULT_LAYOUT)
-    class_refs_count_fig.update_traces(
-        textfont={"size": 20},
-        textposition="inside",
-        showlegend=False,
-    )
-
-    return class_refs_count_fig

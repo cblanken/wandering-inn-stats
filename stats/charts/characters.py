@@ -7,40 +7,8 @@ from plotly.graph_objects import Figure
 from stats.models import Chapter, Character, RefType, TextRef
 
 from .config import DEFAULT_DISCRETE_COLORS, DEFAULT_LAYOUT
-
-
-def character_text_refs(first_chapter: Chapter | None = None, last_chapter: Chapter | None = None) -> Figure | None:
-    character_text_refs = TextRef.objects.filter(Q(type__type=RefType.Type.CHARACTER))
-
-    if first_chapter:
-        character_text_refs = character_text_refs.filter(chapter_line__chapter__number__gte=first_chapter.number)
-
-    if last_chapter:
-        character_text_refs = character_text_refs.filter(chapter_line__chapter__number__lte=last_chapter.number)
-
-    character_text_refs = (
-        character_text_refs.values("type__name")
-        .annotate(char_instance_cnt=Count("type__name"))
-        .order_by("-char_instance_cnt")
-    )
-
-    if len(character_text_refs) == 0:
-        return None
-
-    char_refs_count_fig = px.bar(
-        character_text_refs[:15],
-        x="char_instance_cnt",
-        y="type__name",
-        color="type__name",
-        color_discrete_sequence=DEFAULT_DISCRETE_COLORS,
-        text_auto="d",
-        labels={"type__name": "Name", "char_instance_cnt": "Mentions"},
-    )
-
-    char_refs_count_fig.update_layout(DEFAULT_LAYOUT)
-    char_refs_count_fig.update_traces(showlegend=False)
-
-    return char_refs_count_fig
+from .gallery import ChartGalleryItem, Filetype
+from .reftype_types import get_reftype_type_gallery
 
 
 def character_counts_per_chapter(first_chapter: Chapter | None = None, last_chapter: Chapter | None = None) -> Figure:
@@ -157,3 +125,37 @@ def characters_by_status() -> Figure:
     )
 
     return chars_by_status_fig
+
+
+def get_character_charts(
+    first_chapter: Chapter | None = None, last_chapter: Chapter | None = None
+) -> list[ChartGalleryItem]:
+    default_chart_gallery: list[ChartGalleryItem] = get_reftype_type_gallery(
+        RefType.Type.CHARACTER, first_chapter, last_chapter
+    )
+    return default_chart_gallery + [
+        # Custom gallery charts
+        ChartGalleryItem(
+            "Unique Characters per Chapter",
+            "",
+            Filetype.SVG,
+            lambda: character_counts_per_chapter(first_chapter, last_chapter),
+            popup_info="This chart counts how many different characters appear in each chapter. Note this one may take a moment to load the interactive chart due to all the calculations required.",
+        ),
+        ChartGalleryItem(
+            "Character Species",
+            "",
+            Filetype.SVG,
+            characters_by_species,
+            popup_info="This chart shows the most common species for all the characters. Check out the interactive chart to see precise counts.",
+            has_chapter_filter=False,
+        ),
+        ChartGalleryItem(
+            "Character Statuses",
+            "",
+            Filetype.SVG,
+            characters_by_status,
+            popup_info='This chart shows the ratio of character statuses including: "Alive", "Deceased", "Undead" and "Unknown". Please note that while some characters\' statuses are specified as "Unknown" in the TWI Wiki, it is also the default for characters with a blank status or a status that is poorly formatted in the Wiki data.',
+            has_chapter_filter=False,
+        ),
+    ]

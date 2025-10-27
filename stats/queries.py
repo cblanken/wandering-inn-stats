@@ -1,13 +1,15 @@
+from typing import Any
+
 from django.db.models import QuerySet
 
 from stats.models import Chapter
 
 
 def apply_chapter_filter(
-    qs: QuerySet,
+    qs: type[QuerySet[Any]],
     first_chapter: Chapter | None = None,
     last_chapter: Chapter | None = None,
-) -> QuerySet:
+) -> type[QuerySet[Any]]:
     """Filter queryset `qs` within a chapter range. Expects a column of `number`
     to check the chapter numbers within the range."""
     if first_chapter:

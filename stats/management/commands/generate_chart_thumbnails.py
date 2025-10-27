@@ -10,6 +10,13 @@ from django.db.models import F
 
 from innverse.settings import TWI_MIN_REFTYPE_MENTIONS
 from stats import charts
+from stats.charts.characters import get_character_charts
+from stats.charts.classes import get_class_charts
+from stats.charts.gallery import ChartGalleryItem
+from stats.charts.locations import get_location_charts
+from stats.charts.magic import get_magic_charts
+from stats.charts.reftypes import get_reftype_gallery
+from stats.charts.skills import get_skill_charts
 from stats.models import RefType
 
 
@@ -39,7 +46,7 @@ class Command(BaseCommand):
 
         parser.add_argument("-t", "--reftype-name", help="Specify regex for RefType name")
 
-    def save_chart_thumbnail(self, options: dict[str, Any], chart: charts.ChartGalleryItem) -> None:
+    def save_chart_thumbnail(self, options: dict[str, Any], chart: ChartGalleryItem) -> None:
         if options.get("chart_name") in str(chart.title):
             fig = chart.get_fig()
 
@@ -68,7 +75,7 @@ class Command(BaseCommand):
 
     def gen_rt_gallery(self, rt: RefType, options: dict[str, Any]) -> None:
         print(f"> Generating gallery for: {rt.name}")
-        gallery = charts.get_reftype_gallery(rt)
+        gallery = get_reftype_gallery(rt)
         for chart in gallery:
             if options.get("clobber") or not chart.local_thumbnail_path.exists():
                 self.save_chart_thumbnail(options, chart)
@@ -82,11 +89,11 @@ class Command(BaseCommand):
         pr.enable()
         main_chart_galleries = [
             charts.get_word_count_charts(),
-            charts.get_character_charts(),
-            charts.get_class_charts(),
-            charts.get_skill_charts(),
-            charts.get_magic_charts(),
-            charts.get_location_charts(),
+            get_character_charts(),
+            get_class_charts(),
+            get_skill_charts(),
+            get_magic_charts(),
+            get_location_charts(),
         ]
         try:
             if not options.get("reftypes_only"):
@@ -123,4 +130,4 @@ class Command(BaseCommand):
             print(s.getvalue())
 
             msg = "Keyboard interrupt...thumbnail generation stopped."
-            raise CommandError(msg) from exc  # type: ignore[no-untyped-def]  # type: ignore[no-untyped-def]
+            raise CommandError(msg) from exc

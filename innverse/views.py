@@ -1,5 +1,4 @@
 import datetime as dt
-from itertools import chain
 from typing import Iterable, Sequence, Tuple, TypedDict
 
 from django.db.models import Count, F, Q, Sum, Window
@@ -17,7 +16,13 @@ from django_tables2.export.export import TableExport
 
 from innverse.settings import TWI_MIN_REFTYPE_MENTIONS
 from stats import charts
-from stats.charts import ChartGalleryItem, get_reftype_gallery
+from stats.charts.characters import get_character_charts
+from stats.charts.classes import get_class_charts
+from stats.charts.gallery import ChartGalleryItem
+from stats.charts.locations import get_location_charts
+from stats.charts.magic import get_magic_charts
+from stats.charts.reftypes import get_reftype_gallery
+from stats.charts.skills import get_skill_charts
 from stats.models import Alias, Chapter, Character, RefType, RefTypeChapter, TextRef
 
 from .forms import MAX_CHAPTER_NUM, ChapterFilterForm, SearchForm
@@ -342,7 +347,7 @@ def characters(request: HtmxHttpRequest) -> HttpResponse:
     )
 
     context = {
-        "gallery": charts.get_character_charts(),
+        "gallery": get_character_charts(),
         "stats": [
             HeadlineStat(
                 "Total Number of Characters",
@@ -412,7 +417,7 @@ def classes(request: HtmxHttpRequest) -> HttpResponse:
     )
 
     context = {
-        "gallery": charts.get_class_charts(),
+        "gallery": get_class_charts(),
         "stats": [
             HeadlineStat(
                 "Total [Class] count",
@@ -515,7 +520,7 @@ def skills(request: HtmxHttpRequest) -> HttpResponse:
     )
 
     context = {
-        "gallery": charts.get_skill_charts(),
+        "gallery": get_skill_charts(),
         "stats": [
             HeadlineStat(
                 "Total [Skill] count",
@@ -618,7 +623,7 @@ def magic(request: HtmxHttpRequest) -> HttpResponse:
     )
 
     context = {
-        "gallery": charts.get_magic_charts(),
+        "gallery": get_magic_charts(),
         "stats": [
             HeadlineStat(
                 "Total [Spell] count",
@@ -720,7 +725,7 @@ def locations(request: HtmxHttpRequest) -> HttpResponse:
         form = ChapterFilterForm()
 
     context = {
-        "gallery": charts.get_location_charts(),
+        "gallery": get_location_charts(),
         "stats": [
             HeadlineStat(
                 "Total Location count",
@@ -827,15 +832,7 @@ def chapter_stats(request: HtmxHttpRequest, number: int) -> HttpResponse:
 def main_interactive_chart(request: HtmxHttpRequest, chart_name: str) -> HttpResponse:
     first_chapter, last_chapter = parse_chapter_params(request)
 
-    chart_items: Iterable[ChartGalleryItem] = chain(
-        charts.get_word_count_charts(first_chapter, last_chapter),
-        charts.get_character_charts(first_chapter, last_chapter),
-        charts.get_class_charts(first_chapter, last_chapter),
-        charts.get_skill_charts(first_chapter, last_chapter),
-        charts.get_magic_charts(first_chapter, last_chapter),
-        charts.get_location_charts(first_chapter, last_chapter),
-    )
-    first_chapter, last_chapter = parse_chapter_params(request)
+    chart_items: Iterable[ChartGalleryItem] = charts.get_word_count_charts(first_chapter, last_chapter)
     form = ChapterFilterForm(request.GET) if first_chapter or last_chapter else ChapterFilterForm()
 
     for chart_item in chart_items:
@@ -866,6 +863,39 @@ def match_reftype_str(s: str) -> str | None:
             return RefType.Type.LOCATION
         case _:
             return None
+
+
+def reftype_type_interactive_chart(request: HtmxHttpRequest, reftype_type: str, chart_name: str) -> HttpResponse:
+    first_chapter, last_chapter = parse_chapter_params(request)
+
+    match match_reftype_str(slugify(reftype_type)):
+        case RefType.Type.CHARACTER:
+            chart_items = get_character_charts(first_chapter, last_chapter)
+        case RefType.Type.CLASS:
+            chart_items = get_class_charts(first_chapter, last_chapter)
+        case RefType.Type.SKILL:
+            chart_items = get_skill_charts(first_chapter, last_chapter)
+        case RefType.Type.SPELL:
+            chart_items = get_magic_charts(first_chapter, last_chapter)
+        case RefType.Type.LOCATION:
+            chart_items = get_location_charts(first_chapter, last_chapter)
+        case _:
+            raise Http404()
+
+    form = ChapterFilterForm(request.GET) if first_chapter or last_chapter else ChapterFilterForm()
+
+    for chart_item in chart_items:
+        if chart_name == chart_item.title_slug:
+            fig = chart_item.get_fig() if first_chapter or last_chapter else None
+            context = {
+                "chart": fig.to_html(full_html=False, include_plotlyjs="cdn") if fig else None,
+                "chart_path": chart_item.html_url,
+                "form": form,
+                "has_chapter_filter": chart_item.has_chapter_filter,
+            }
+            return render(request, "pages/interactive_chart.html", context)
+
+    raise Http404()
 
 
 def reftype_interactive_chart(request: HtmxHttpRequest, name: str, chart_name: str) -> HttpResponse:
