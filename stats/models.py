@@ -15,6 +15,15 @@ from django.utils.translation import gettext_lazy as _
 models.CharField.register_lookup(Length, "length")
 
 
+class WordCount(models.Func):
+    """A word count function for text columns
+    Takes a text column as it's first positional argument
+    """
+
+    function = "WORDCOUNT"
+    template = "array_length(regexp_split_to_array(%(expressions)s, '\s+'), 1)"
+
+
 class ColorCategory(models.Model):
     """Model linking Colors to a their corresponding categories"""
 
@@ -89,11 +98,17 @@ class Chapter(models.Model):
     last_update = models.DateTimeField()
     download_date = models.DateTimeField()
     word_count = models.PositiveBigIntegerField(default=0)
-    authors_note_word_count = models.PositiveBigIntegerField(default=0)
     book = models.ForeignKey(Book, on_delete=models.CASCADE)
     digest = models.CharField(default="")
 
-    title_short = models.GeneratedField(  # type: ignore[attr-defined]
+    authors_note = models.TextField(default="")
+    authors_note_word_count = models.GeneratedField(
+        expression=WordCount(models.F("authors_note")),
+        output_field=models.PositiveIntegerField(default=0),
+        db_persist=True,
+    )
+
+    title_short = models.GeneratedField(
         expression=models.Func(
             models.F("title"),
             models.Value(r"^Interlude"),

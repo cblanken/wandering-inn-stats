@@ -72,10 +72,16 @@ admin.site = site
 
 # Admin model settings
 class ChapterAdmin(admin.ModelAdmin):
-    list_display = ["title", "number", "word_count", "post_date", "is_canon", "is_interlude"]
+    list_display = ["title", "number", "word_count", "authors_note_word_count", "post_date", "is_canon", "is_interlude"]
     list_filter = ["is_canon", "is_interlude", "book__volume__title", "book__title"]
     search_fields = ["title", "source_url"]
     autocomplete_fields = ["book"]
+
+    def get_form(self, request, obj=None, **kwargs):  # noqa
+        form = super().get_form(request, obj, **kwargs)
+        if form:
+            form.base_fields["authors_note"].required = False
+        return form
 
     @admin.action(description='Move chapter(s) to Book "X"', permissions=["change"])
     def move_chapters_to_book(self, _request: HttpRequest, queryset: QuerySet) -> HttpResponseRedirect | None:
