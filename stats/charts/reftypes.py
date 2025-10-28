@@ -177,11 +177,11 @@ def most_mentions_by_book(
 
     # WHERE clause
     if first_chapter and last_chapter:
-        sql += """WHERE stats_chapter.number >= %s AND stats_chapter.number <= %s"""
+        sql += """AND "stats_chapter".number >= %s AND "stats_chapter".number <= %s"""
     elif first_chapter:
-        sql += """WHERE stats_chapter.number >= %s"""
+        sql += """AND "stats_chapter".number >= %s"""
     elif last_chapter:
-        sql += """WHERE stats_chapter.number <= %s"""
+        sql += """AND "stats_chapter".number <= %s"""
 
     sql += """
     GROUP BY "stats_book"."id"
