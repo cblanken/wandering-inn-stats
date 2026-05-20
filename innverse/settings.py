@@ -297,7 +297,7 @@ with Path.open(Path("user-password.py"), "w", encoding="utf-8") as fp:
 
 
 # Analytics env
-ANALYTICS_ID = env.get("ANALYTICS_ID")
+TWI_ANALYTICS_ID = env.get("TWI_ANALYTICS_ID")
 
 # Production
 TWI_PROD = env.get("TWI_PROD")

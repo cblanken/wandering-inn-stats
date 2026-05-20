@@ -5,7 +5,7 @@ from django.http import HttpRequest
 
 
 def analytics(_req: HttpRequest) -> dict[str, Any]:
-    return {"ANALYTICS_ID": settings.ANALYTICS_ID}
+    return {"TWI_ANALYTICS_ID": settings.TWI_ANALYTICS_ID}
 
 
 def prod(_req: HttpRequest) -> dict[str, Any]:
