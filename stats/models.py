@@ -131,6 +131,10 @@ class Chapter(models.Model):
     def __str__(self) -> str:
         return f"(Chapter: {self.title}, URL: {self.source_url})"
 
+    @classmethod
+    def get_max_chapter_num(cls) -> int:
+        return int(cls.objects.values_list("number", flat=True).order_by("-number").first() or -1)
+
 
 class RefType(models.Model):
     """Reference keywords / phrases"""

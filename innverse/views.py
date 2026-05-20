@@ -1,6 +1,7 @@
 import datetime as dt
 from typing import Iterable, Sequence, Tuple, TypedDict
 
+from django.core.cache import cache
 from django.db.models import Count, F, Q, Sum, Window
 from django.db.models.functions import Lag
 from django.http import Http404, HttpRequest, HttpResponse
@@ -25,7 +26,7 @@ from stats.charts.reftypes import get_reftype_gallery
 from stats.charts.skills import get_skill_charts
 from stats.models import Alias, Chapter, Character, RefType, RefTypeChapter, TextRef
 
-from .forms import MAX_CHAPTER_NUM, ChapterFilterForm, SearchForm
+from .forms import ChapterFilterForm, SearchForm
 from .table_search import (
     get_chapterline_table,
     get_chapterref_table,
@@ -168,65 +169,33 @@ def overview(request: HtmxHttpRequest) -> HttpResponse:
     # Only filter for canon chapter data after Chapter table is configured
     chapter_data = chapter_data.filter(is_canon=True)
 
-    total_wc = Chapter.objects.filter(is_canon=True).aggregate(total_wc=Sum("word_count"))["total_wc"]
-    longest_chapter = Chapter.objects.filter(is_canon=True).order_by("-word_count")[0]
-    shortest_chapter = Chapter.objects.filter(is_canon=True).order_by("word_count")[0]
-    word_counts = Chapter.objects.filter(is_canon=True).order_by("word_count").values_list("word_count", flat=True)
+    headline_stats: list[HeadlineStat] = []
 
-    def median(values: Sequence | ValuesQuerySet) -> float:
-        length = len(values)
-        if length % 2 == 0:
-            return sum(values[int(length / 2 - 1) : int(length / 2 + 1)]) / 2.0
-        return values[int(length / 2)]
-
-    median_chapter_word_count = median(word_counts)
-    avg_chapter_word_count = sum(word_counts) / len(word_counts)
-
-    first_chapter = chapter_data.first()
-    latest_chapter = chapter_data.last()
-
-    if first_chapter is None or latest_chapter is None:
-        msg = "Insufficient chapter data available for Overview page stats"
-        raise RuntimeError(msg)
-
-    delta_since_first_chapter_release: dt.timedelta = dt.datetime.now(tz=dt.timezone.utc) - first_chapter.post_date
-    delta_since_latest_chapter_release: dt.timedelta = dt.datetime.now(tz=dt.timezone.utc) - latest_chapter.post_date
-
-    longest_release_gap_chapters = (
-        Chapter.objects.annotate(
-            prev_chapter_number=Window(expression=Lag("number", offset=1)),
-            prev_post_date=Window(expression=Lag("post_date", offset=1), order_by="post_date"),
+    # Calculate total canon chapter published stat
+    headline_stats.append(
+        HeadlineStat(
+            "Total canon chapters published",
+            chapter_data.count(),
+            units="chapters",
         )
-        .annotate(release_cadence=F("post_date") - F("prev_post_date"))
-        .filter(release_cadence__isnull=False)
-        .order_by("-release_cadence")
     )
 
-    if (longest_release_chapter_to := longest_release_gap_chapters.first()) is None:
-        msg = "The longest chapter release gap could not be found. There may be insufficient chapter data."
-        raise RuntimeError(msg)
-    longest_release_chapter_from = Chapter.objects.get(number=longest_release_chapter_to.prev_chapter_number)  # type: ignore
-    longest_release_gap: dt.timedelta = longest_release_chapter_to.post_date - longest_release_chapter_from.post_date
-
-    context = {
-        "gallery": charts.get_word_count_charts(),
-        "stats": [
+    # Calculate total word count stat
+    total_wc = Chapter.objects.filter(is_canon=True).aggregate(total_wc=Sum("word_count"))["total_wc"]
+    if total_wc:
+        headline_stats.append(
             HeadlineStat(
                 "Total Word Count",
                 f"{total_wc:,}",
                 units="words",
                 popup_info="The word count for each chapter is calculated by splitting the text by the whitespace between words. This is a simple approach, and doesn't account for any punctuation-related edge cases, but it is the most common method for counting words. For this reason, you may notice differences between these word counts those posted elsewhere. Note this count excludes any non-canon chapters as well.",
-            ),
-            HeadlineStat(
-                "Median Word Count per Chapter",
-                f"{round(median_chapter_word_count):,}",
-                units="words",
-            ),
-            HeadlineStat(
-                "Average Word Count per Chapter",
-                f"{round(avg_chapter_word_count):,}",
-                units="words",
-            ),
+            )
+        )
+
+    # Calculate longest chapter stat
+    longest_chapter = Chapter.objects.filter(is_canon=True).order_by("-word_count").first()
+    if longest_chapter:
+        headline_stats.append(
             HeadlineStat(
                 "Longest Chapter",
                 f"{longest_chapter.word_count:,}",
@@ -238,7 +207,13 @@ def overview(request: HtmxHttpRequest) -> HttpResponse:
                     },
                 ),
                 units="words",
-            ),
+            )
+        )
+
+    # Calculate shortest chapter stat
+    shortest_chapter = Chapter.objects.filter(is_canon=True).order_by("word_count").first()
+    if shortest_chapter:
+        headline_stats.append(
             HeadlineStat(
                 "Shortest Chapter",
                 f"{shortest_chapter.word_count:,}",
@@ -250,7 +225,42 @@ def overview(request: HtmxHttpRequest) -> HttpResponse:
                     },
                 ),
                 units="words",
-            ),
+            )
+        )
+
+    def median(values: Sequence | ValuesQuerySet) -> float:
+        length = len(values)
+        if length % 2 == 0:
+            return sum(values[int(length / 2 - 1) : int(length / 2 + 1)]) / 2.0
+        return values[int(length / 2)]
+
+    # Calculate word count stats
+    word_counts = Chapter.objects.filter(is_canon=True).order_by("word_count").values_list("word_count", flat=True)
+    if word_counts.count() > 0:
+        median_chapter_word_count = median(word_counts)
+        headline_stats.append(
+            HeadlineStat(
+                "Median Word Count per Chapter",
+                f"{round(median_chapter_word_count):,}",
+                units="words",
+            )
+        )
+
+        avg_chapter_word_count = sum(word_counts) / len(word_counts)
+        headline_stats.append(
+            HeadlineStat(
+                "Average Word Count per Chapter",
+                f"{round(avg_chapter_word_count):,}",
+                units="words",
+            )
+        )
+
+    # Calculate chapter delta stats
+    first_chapter = chapter_data.first()
+    latest_chapter = chapter_data.last()
+    if first_chapter is not None and latest_chapter is not None:
+        delta_since_first_chapter_release: dt.timedelta = dt.datetime.now(tz=dt.timezone.utc) - first_chapter.post_date
+        headline_stats.append(
             HeadlineStat(
                 "First chapter published",
                 delta_since_first_chapter_release.days,
@@ -263,8 +273,12 @@ def overview(request: HtmxHttpRequest) -> HttpResponse:
                 ),
                 units="days ago",
             )
-            if first_chapter
-            else None,
+        )
+
+        delta_since_latest_chapter_release: dt.timedelta = (
+            dt.datetime.now(tz=dt.timezone.utc) - latest_chapter.post_date
+        )
+        headline_stats.append(
             HeadlineStat(
                 "Latest chapter published",
                 delta_since_latest_chapter_release.days,
@@ -278,13 +292,25 @@ def overview(request: HtmxHttpRequest) -> HttpResponse:
                 units="days ago",
                 popup_info="This is the last chapter analyzed by the application. You can expect it to be a couple chapters behind the latest public release. This allows time for updates to be made to the Wiki and reduce the need for manual analysis of new chapters.",
             )
-            if latest_chapter
-            else None,
-            HeadlineStat(
-                "Total canon chapters published",
-                chapter_data.count(),
-                units="chapters",
-            ),
+        )
+
+    # Calculate longest chapter release gap stat
+    longest_release_gap_chapters = (
+        Chapter.objects.annotate(
+            prev_chapter_number=Window(expression=Lag("number", offset=1)),
+            prev_post_date=Window(expression=Lag("post_date", offset=1), order_by="post_date"),
+        )
+        .annotate(release_cadence=F("post_date") - F("prev_post_date"))
+        .filter(release_cadence__isnull=False)
+        .order_by("-release_cadence")
+    )
+
+    if (longest_release_chapter_to := longest_release_gap_chapters.first()) is not None:
+        longest_release_chapter_from = Chapter.objects.get(number=longest_release_chapter_to.prev_chapter_number)  # type: ignore
+        longest_release_gap: dt.timedelta = (
+            longest_release_chapter_to.post_date - longest_release_chapter_from.post_date
+        )
+        headline_stats.append(
             HeadlineStat(
                 "Longest chapter release gap",
                 f"{longest_release_gap.days} days and {longest_release_gap.seconds // 3600} hours",
@@ -303,8 +329,12 @@ def overview(request: HtmxHttpRequest) -> HttpResponse:
                         "href": reverse("chapters", args=[longest_release_chapter_to.number]),
                     },
                 ),
-            ),
-        ],
+            )
+        )
+
+    context = {
+        "gallery": charts.get_word_count_charts(),
+        "stats": headline_stats,
         "table": table,
     }
     return render(request, "pages/overview.html", context)
@@ -1030,7 +1060,9 @@ def search(request: HtmxHttpRequest) -> HttpResponse:
     if request.method != "GET" or request.GET == {}:
         return render(request, "pages/search.html", {"form": SearchForm()})
 
-    form = SearchForm(request.GET, initial={"first_chapter": 0, "last_chapter": MAX_CHAPTER_NUM})
+    max_chapter_num = cache.get_or_set("MAX_CHAPTER_NUM", Chapter.get_max_chapter_num(), 60 * 60 * 24)
+
+    form = SearchForm(request.GET, initial={"first_chapter": 0, "last_chapter": max_chapter_num})
     form.is_valid()
 
     if form.cleaned_data.get("all_contents"):

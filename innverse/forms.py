@@ -2,18 +2,8 @@ from collections.abc import Generator
 from typing import Any
 
 from django import forms
-from django.core.cache import cache
 
 from stats.models import Chapter, RefType
-
-MAX_CHAPTER_NUM = (
-    cache.get_or_set(
-        "MAX_CHAPTER_NUM",
-        int(Chapter.objects.values_list("number").order_by("-number")[0][0]),
-        60 * 60 * 24,
-    )
-    or 0
-)
 
 
 def gen_chapter_choices():  # noqa: ANN201
